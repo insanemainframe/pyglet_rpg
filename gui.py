@@ -206,7 +206,8 @@ class ObjectsView(GameWindow, Drawable):
             diff = hypot(self.position.x - point.x, self.position.y - point.y) - self.rad*TILESIZE
             if diff<0:
                 tilename = game_object['tilename']
-                tile = self.create_tile(point - self.position +self.center, tilename)
+                position = point - self.position +self.center - Point(TILESIZE/2,TILESIZE/2)
+                tile = self.create_tile(position, tilename)
                 self.tiles.append(tile)
     
 
