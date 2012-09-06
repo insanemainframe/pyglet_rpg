@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import pyglet
-from pyglet.window.key import UP, DOWN, LEFT, RIGHT
 from pyglet.image.codecs.png import PNGImageDecoder
 from pyglet.gl import *
 
-from time import time
 from os import listdir
-
+from math import hypot
 
 from engine import Game
 from mathlib import Point
-from maplib import ClientWorld
+from gui_lib import TimerObject, Drawable, InputHandle
+from maplib import Map
 from config import *
 
 
@@ -19,9 +18,8 @@ from config import *
 class GameWindow():
     "разделяемое состояние элементов gui"
     @staticmethod
-    def configure(size, timer_value):
+    def configure(size):
         cls = GameWindow
-        cls.timer_value = timer_value
         cls.size = size
         cls.window_size = size
         cls.center = Point(cls.window_size/2,cls.window_size/2)
@@ -32,8 +30,8 @@ class GameWindow():
         
     @staticmethod
     def gentiles():
-        names = listdir('data')
         cls = GameWindow
+        names = listdir('data')
         cls.tiledict = {}
         for name in names:
             image = pyglet.image.load('data/%s' % name, decoder=PNGImageDecoder()).get_texture()
@@ -45,51 +43,20 @@ class GameWindow():
         #tile.x, tile.y = point.round().get()
         #return tile
         return (tilename, point.get())
+    
     @staticmethod
-    def set_timer():
-        cls = GameWindow
-        #if cls.complete<1 and cls.clock_setted:
-        #    #print 'not complete', cls.complete
-        
-        cls.clock = time()
-        cls.complete = 0
-        cls.clock_setted = True
-    @staticmethod
-    def complete_delta():
-        cls = GameWindow
-        if cls.complete<1:
-            delta = 1-cls.complete
-            cls.complete = 1
-            return delta
-        else:
-            return 0
-    @staticmethod
-    def get_delta():
-        "возвращзает отношение времени предыдщего вызова get_delta или set_timer к timer_value"
-        cls = GameWindow
-        if cls.clock_setted:
-            cur_time = time()
-            delta_time = cur_time-cls.clock
-            part = delta_time/cls.timer_value
-            cls.clock = cur_time
-            if part+cls.complete<=1:
-                cls.complete+=part
-                return part
-            else:
-                part = 1-cls.complete
-                cls.complete = 1
-                return part
-        else:
-            return 0
+    def set_position(position):
+        GameWindow.position = position
 
         
         
 
-class Gui(GameWindow, pyglet.window.Window): 
+class Gui(GameWindow, TimerObject, InputHandle, pyglet.window.Window): 
     def __init__(self,size, timer_value):
         pyglet.window.Window.__init__(self, size, size)
+        TimerObject.__init__(self, timer_value)
         print 'windowsize %s' %  size     
-        self.configure(size, timer_value)
+        self.configure(size)
         self.gentiles()
         self.game = Game(self.rad/TILESIZE)
         self.objects = ObjectsView()
@@ -102,21 +69,8 @@ class Gui(GameWindow, pyglet.window.Window):
         self.land = LandView(world_size, position, tiles)
         self.objects.insert(objects)
         
-        
 
-    def on_key_press(self, symbol, modifiers):
-        "движение с помощью клавиатуры"
-        if symbol==UP: self.vector = Point(0,41)
-        elif symbol==DOWN: self.vector = Point(0,-40)
-        elif symbol==LEFT: self.vector = Point(-40,0)
-        elif symbol==RIGHT: self.vector = Point(40,0)
     
-    def on_mouse_press(self, x, y, button, modifiers):
-        "перехватывавем нажатие мышки"
-        #левая кнопка - движение
-        if button==1:
-            vector = (Point(x,y) - self.center)
-            self.vector = vector
     
     def update(self, dt):
         delta = self.get_delta()
@@ -124,12 +78,14 @@ class Gui(GameWindow, pyglet.window.Window):
         self.shift = self.shift - vector
         self.land.move_position(vector)
         self.land.update()
+        self.objects.update(delta)
         
     def force_complete(self):
         "завершает перемщение по вектору"
         if self.shift:
             self.land.move_position(self.shift)
             self.shift = Point(0,0)
+            self.land.update()
     
     def round_update(self, dt):
         "обращение к движку"
@@ -138,11 +94,14 @@ class Gui(GameWindow, pyglet.window.Window):
         self.shift = move_vector
 
         self.vector = Point(0,0)
-        self.land.update()
+        #self.land.update()
         self.land.insert(newtiles)
         self.objects.insert(objects)
+        #self.objects.update()
         self.set_timer()
         logger.debug('>\n')
+        print self.objects.updates
+        
 
         
     def on_draw(self):
@@ -154,8 +113,6 @@ class Gui(GameWindow, pyglet.window.Window):
         self.land.draw()
         self.objects.draw()
         self.fps_display.draw()
-
-        
         
     def run(self):
         "старт"
@@ -166,40 +123,89 @@ class Gui(GameWindow, pyglet.window.Window):
         
         pyglet.app.run()
 
-class Drawable:
-     def draw(self):
-        #[tile.draw() for tile in self.tiles]
-        [self.tiledict[tilename].blit(x,y, width=TILESIZE, height=TILESIZE) for tilename, (x,y) in self.tiles]
-    
-class LandView(GameWindow, ClientWorld, Drawable):
-    "представление карты на экране"
+
+class LandView(GameWindow,  Drawable, Map):
+    "клиентская карта"
     def __init__(self, world_size, position, tiles = []):
-        ClientWorld.__init__(self, world_size)
+        size = world_size
+        print 'clientworld size', size
+        self.map = [[None for j in xrange(size)] for i in xrange(size)]
         self.tiles = []
         if tiles:
             self.insert(tiles)
-        self.position = position
-        logger.debug('LandView init: position %s' % self.position)
+        self.set_position(position)
+        
+    def move_position(self, vector):
+        "перемещаем камеру"
+        self.set_position(self.position + vector)
+        
+    def insert(self, tiles):
+        "обновляет карту, добавляя новые тайлы, координаты - расстояние от стартовой точки"
+        for point, tile_type in tiles:
+            self.map[point.x][point.y] = tile_type
+            
+    def look_around(self, rad):
+        "список тайлов в поле зрения (координаты в тайлах от позиции камеры, тип)"
+        rad = int(rad/TILESIZE)+2
+        I,J = (self.position/TILESIZE).get()
+        looked = set()
+        for i in xrange(I-rad, I+rad):
+            for j in xrange(J-rad, J+rad):
+                i,j = self.resize(i), self.resize(j)
+                tile_type = self.map[i][j]
+                if not tile_type:
+                    tile_type = 'fog'
+                point = (Point(i,j)*TILESIZE)-self.position
+                looked.add((point, tile_type))
+        i, j = self.position.get()
+        return looked
         
     def update(self):
         "обноление на каждом фрейме"
         looked = self.look_around(self.rad)
         logger.debug('looked len %s' % len(looked))
         self.tiles = [self.create_tile(point+self.center, tile_type) for point, tile_type in looked]
-        #print 'tiles count', len(self.tiles )#[tile.position for tile in self.tiles]
-
 
     
 class ObjectsView(GameWindow, Drawable):
     def __init__(self):
+        self.objects = {}
         self.tiles = []
+        self.updates = []
     
     def insert(self, objects):
-        for point, tilename in objects:
-            #смещаем по центру
-            point = point+self.center - Point(TILESIZE/2, TILESIZE/2)
-            tile = self.create_tile(point, tilename)
-            self.tiles.append(tile)
+        new_objects, updates = objects
+        self.updates = updates
+        if new_objects:
+            for object_name, game_object in new_objects.items():
+                self.objects[object_name] = {'position':game_object[0],'tilename': game_object[1]}
+        #смещаем по центру
+        #point = point+self.center - Point(TILESIZE/2, TILESIZE/2)
+            
+    def update(self, delta):
+        new_updates = {}
+        if self.updates:
+            for object_name, vector in self.updates.items():
+                move_vector = vector * delta
+                mod_vector = vector - move_vector
+                if abs(mod_vector)>0:
+                    self.objects[object_name]['position']+= move_vector
+                    new_updates[object_name] = move_vector
+                if abs(mod_vector)<0:
+                    self.objects[object_name]['position']+= vector
+        self.updates = new_updates
+        
+        #отображение объектов
+        self.tiles = []
+        for object_name, game_object in self.objects.items():
+            point = game_object['position']
+            #проверяем находится ои объект в радиусе обзора
+            diff = hypot(self.position.x - point.x, self.position.y - point.y) - self.rad*TILESIZE
+            if diff<0:
+                tilename = game_object['tilename']
+                tile = self.create_tile(point - self.position +self.center, tilename)
+                self.tiles.append(tile)
+    
 
 
 

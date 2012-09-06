@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from mathlib import *
-from maplib import World, MetaWorld
+from maplib import World, MetaMap
 from config import TILESIZE, PLAYERSPEED, BLOCKTILES ,logger
 
 class GameObject:
@@ -24,16 +24,16 @@ class Game(GameObject):
         position = self.player.position
         land, objects = self.player.look()
         world_size = self.world.size
-        return  world_size, position, land, [(Point(0,0),'player')]
+        return  world_size, position, land, ({'Player':(position,'player')},())
     
     def go(self, vector):
         move_vector = self.player.go(vector)
         land, objects = self.player.look()
 
-        return move_vector, land, objects
-
+        return move_vector, land, ({},{'Player':move_vector})
+        
     
-class Movable(MetaWorld):
+class Movable(MetaMap):
     def __init__(self, position, speed):
         self.vector  = Point(0,0)
         self.speed = speed
@@ -81,5 +81,5 @@ class Player(Movable, GameObject):
         self.prev_looked = looked
             
 
-        return (new_looked, [])
+        return (new_looked, {})
             

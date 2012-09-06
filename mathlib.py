@@ -11,8 +11,16 @@ class Point:
             return True
         else:
             return False
+            
     def __eq__(self, point):
         return self.x==point.x and self.y==point.y
+    def __lt__(self, other):
+        "<"
+        return abs(self)<abs(other)
+    def __gt__(self, other):
+        ">"
+        return abs(self)>abs(other)
+        
     def __abs__(self):
         return hypot(self.x,self.y)
     def __add__(self, point):

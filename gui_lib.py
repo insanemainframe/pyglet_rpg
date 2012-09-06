@@ -7,6 +7,7 @@ from pyglet.window.key import UP, DOWN, LEFT, RIGHT
 from time import time
 
 class TimerObject:
+    "объект с таймером и deltatime"
     def __init__(self, timer_value):
         self.timer_value = timer_value
     
@@ -41,6 +42,7 @@ class TimerObject:
             return 0
 
 class InputHandle:
+    "перехват устройств ввода"
     def on_key_press(self, symbol, modifiers):
         "движение с помощью клавиатуры"
         if symbol==UP: self.vector = Point(0,41)
@@ -56,5 +58,6 @@ class InputHandle:
             self.vector = vector
             
 class Drawable:
-     def draw(self):
+    "рисуемые объекты"
+    def draw(self):
         [self.tiledict[tilename].blit(x,y, width=TILESIZE, height=TILESIZE) for tilename, (x,y) in self.tiles]
