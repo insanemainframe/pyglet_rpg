@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from config import TILESIZE
+from config import TILESIZE, ANIMATED_TILES
 from mathlib import Point
 from pyglet.window.key import UP, DOWN, LEFT, RIGHT
 
@@ -59,5 +59,24 @@ class InputHandle:
             
 class Drawable:
     "рисуемые объекты"
+    def __init__(self):
+        self.animation = 1
+        self.animation_counter = 0
+        self.aps = 15
+    
+    def animation_tick(self):
+        if self.animation_counter==self.aps:
+            self.animation*=-1
+            self.animation_counter = 0
+        self.animation_counter+=1
+            
+        self.animation*=-1
     def draw(self):
-        [self.tiledict[tilename].blit(x,y, width=TILESIZE, height=TILESIZE) for tilename, (x,y) in self.tiles]
+        for tilename, (x,y) in self.tiles:
+            if tilename in ANIMATED_TILES:
+                if self.animation==-1:
+                    tilename = tilename+'_'
+                self.animation_tick()
+            self.tiledict[tilename].blit(x,y, width=TILESIZE, height=TILESIZE)
+
+    

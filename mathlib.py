@@ -17,9 +17,15 @@ class Point:
     def __lt__(self, other):
         "<"
         return abs(self)<abs(other)
+    def __le__(self, other):
+        "<="
+        return abs(self)<=abs(other)
     def __gt__(self, other):
         ">"
         return abs(self)>abs(other)
+    def __ge__(self, other):
+        ">="
+        return abs(self)>=abs(other)
         
     def __abs__(self):
         return hypot(self.x,self.y)

@@ -3,6 +3,7 @@
 TILESIZE = 40
 PLAYERSPEED = 80
 BLOCKTILES = ['stone', 'water', 'forest']
+ANIMATED_TILES = ['player']
 #logging
 import os.path
 logfile = '/tmp/rpg.log'

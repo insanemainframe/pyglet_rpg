@@ -90,17 +90,17 @@ class Gui(GameWindow, TimerObject, InputHandle, pyglet.window.Window):
     def round_update(self, dt):
         "обращение к движку"
         self.force_complete()
-        move_vector, newtiles, objects = self.game.go(self.vector)
+        move_vector, newtiles, objects, objects_update = self.game.go(self.vector)
         self.shift = move_vector
 
         self.vector = Point(0,0)
-        #self.land.update()
+        self.land.update()
         self.land.insert(newtiles)
-        self.objects.insert(objects)
+        self.objects.insert(objects, objects_update)
         #self.objects.update()
         self.set_timer()
         logger.debug('>\n')
-        print self.objects.updates
+        #print self.objects.updates
         
 
         
@@ -127,6 +127,7 @@ class Gui(GameWindow, TimerObject, InputHandle, pyglet.window.Window):
 class LandView(GameWindow,  Drawable, Map):
     "клиентская карта"
     def __init__(self, world_size, position, tiles = []):
+        Drawable.__init__(self)
         size = world_size
         print 'clientworld size', size
         self.map = [[None for j in xrange(size)] for i in xrange(size)]
@@ -169,31 +170,33 @@ class LandView(GameWindow,  Drawable, Map):
     
 class ObjectsView(GameWindow, Drawable):
     def __init__(self):
+        Drawable.__init__(self)
         self.objects = {}
         self.tiles = []
-        self.updates = []
+        self.updates = {}
     
-    def insert(self, objects):
-        new_objects, updates = objects
-        self.updates = updates
+    def insert(self, new_objects, updates=None):
+        if updates:
+            for object_name, vector in updates.items():
+                if object_name in self.updates:
+                    self.updates[object_name] += vector
+                else:
+                     self.updates[object_name] = vector
         if new_objects:
             for object_name, game_object in new_objects.items():
                 self.objects[object_name] = {'position':game_object[0],'tilename': game_object[1]}
-        #смещаем по центру
-        #point = point+self.center - Point(TILESIZE/2, TILESIZE/2)
+
             
     def update(self, delta):
-        new_updates = {}
         if self.updates:
             for object_name, vector in self.updates.items():
                 move_vector = vector * delta
                 mod_vector = vector - move_vector
                 if abs(mod_vector)>0:
                     self.objects[object_name]['position']+= move_vector
-                    new_updates[object_name] = move_vector
-                if abs(mod_vector)<0:
-                    self.objects[object_name]['position']+= vector
-        self.updates = new_updates
+                    self.updates[object_name] = mod_vector
+                else:
+                    self.objects[object_name]['position'] += vector
         
         #отображение объектов
         self.tiles = []

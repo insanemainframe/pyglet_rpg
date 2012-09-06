@@ -24,13 +24,13 @@ class Game(GameObject):
         position = self.player.position
         land, objects = self.player.look()
         world_size = self.world.size
-        return  world_size, position, land, ({'Player':(position,'player')},())
+        return  world_size, position, land, {'Player':(position,'player')}
     
     def go(self, vector):
         move_vector = self.player.go(vector)
         land, objects = self.player.look()
 
-        return move_vector, land, ({},{'Player':move_vector})
+        return move_vector, land, {},{'Player':move_vector}
         
     
 class Movable(MetaMap):
