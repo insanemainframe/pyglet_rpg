@@ -1,0 +1,45 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from mathlib import Point
+from anyjson import serialize as dumps, deserialize as loads
+
+
+def pack_server_accept(world_size, position, land, objects):
+    land = [point.get()+(tilename,) for point, tilename in land]
+    objects = [(object_name, position.get(), tilename) for object_name, (position, tilename) in objects.items()]
+    data = (world_size, position.get(), land, objects)
+    return dumps(data)
+
+def unpack_server_accept(data):
+    world_size, (x,y), land, objects = loads(data)
+    position = Point(x,y)
+    land = [(Point(x,y),tilename) for x,y, tilename in land]
+    objects = {object_name :(Point(x,y), tilename) for object_name, (x,y), tilename in objects}
+    return world_size, position, land, objects
+    
+def pack_server_message(move_vector, land, objects, objects_updates):
+    move_vector = move_vector.get()
+    land = [point.get()+(tilename,) for point, tilename in land]
+    objects = [(object_name, position.get(), tilename) for object_name, (position, tilename) in objects]
+    objects_updates = [(object_name, vector.get()) for object_name, vector in objects_updates.items()]
+    data = move_vector, land, objects, objects_updates
+    return dumps(data)
+
+def unpack_server_message(data):
+    (x,y), land, objects, objects_updates = loads(data)
+    move_vector = Point(x,y)
+    land =  [(Point(x,y),tilename) for x,y, tilename in land]
+    objects = [(object_name, Point(x,y), tilename) for object_name, (x,y), tilename in objects]
+    objects_updates = {object_name:Point(x,y) for object_name, (x,y) in objects_updates}
+    
+    return move_vector, land, objects, objects_updates
+
+
+
+def main():
+	
+	return 0
+
+if __name__ == '__main__':
+	main()
+

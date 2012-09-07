@@ -3,7 +3,10 @@
 TILESIZE = 40
 PLAYERSPEED = 80
 BLOCKTILES = ['stone', 'water', 'forest']
-ANIMATED_TILES = ['player']
+ANIMATED_TILES = [] #['player']
+PRESSED_TIMER = 0.5
+HOSTNAME = '127.0.0.1'
+PORT = 1488
 #logging
 import os.path
 logfile = '/tmp/rpg.log'

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from config import TILESIZE, ANIMATED_TILES
+from config import TILESIZE, ANIMATED_TILES, PRESSED_TIMER
 from mathlib import Point
 from pyglet.window.key import UP, DOWN, LEFT, RIGHT
 
@@ -43,12 +43,17 @@ class TimerObject:
 
 class InputHandle:
     "перехват устройств ввода"
+    def __init__(self):
+        self.vectors = {UP:Point(0,40), DOWN: Point(0,-40), LEFT : Point(-40,0), RIGHT : Point(40,0)}
+            
     def on_key_press(self, symbol, modifiers):
         "движение с помощью клавиатуры"
-        if symbol==UP: self.vector = Point(0,41)
-        elif symbol==DOWN: self.vector = Point(0,-40)
-        elif symbol==LEFT: self.vector = Point(-40,0)
-        elif symbol==RIGHT: self.vector = Point(40,0)
+        if symbol in (UP,DOWN, LEFT,RIGHT):
+            self.vector = self.vectors[symbol]
+            self.key_pressed  = symbol
+            self.key_timer = time()
+            
+        
     
     def on_mouse_press(self, x, y, button, modifiers):
         "перехватывавем нажатие мышки"
@@ -56,6 +61,7 @@ class InputHandle:
         if button==1:
             vector = (Point(x,y) - self.center)
             self.vector = vector
+
             
 class Drawable:
     "рисуемые объекты"

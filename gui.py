@@ -14,7 +14,7 @@ from maplib import Map
 from config import *
 
 
-
+from protocol import *
 class GameWindow():
     "разделяемое состояние элементов gui"
     @staticmethod
@@ -48,6 +48,7 @@ class GameWindow():
     def set_position(position):
         GameWindow.position = position
 
+
         
         
 
@@ -55,6 +56,7 @@ class Gui(GameWindow, TimerObject, InputHandle, pyglet.window.Window):
     def __init__(self,size, timer_value):
         pyglet.window.Window.__init__(self, size, size)
         TimerObject.__init__(self, timer_value)
+        InputHandle.__init__(self)
         print 'windowsize %s' %  size     
         self.configure(size)
         self.gentiles()
@@ -64,7 +66,7 @@ class Gui(GameWindow, TimerObject, InputHandle, pyglet.window.Window):
         
         self.fps_display = pyglet.clock.ClockDisplay()
         
-        world_size, position, tiles, objects = self.game.accept()
+        world_size, position, tiles, objects = unpack_server_accept(pack_server_accept(*self.game.accept()))
 
         self.land = LandView(world_size, position, tiles)
         self.objects.insert(objects)
@@ -90,7 +92,7 @@ class Gui(GameWindow, TimerObject, InputHandle, pyglet.window.Window):
     def round_update(self, dt):
         "обращение к движку"
         self.force_complete()
-        move_vector, newtiles, objects, objects_update = self.game.go(self.vector)
+        move_vector, newtiles, objects, objects_update = unpack_server_message(pack_server_message(*self.game.go(self.vector)))
         self.shift = move_vector
 
         self.vector = Point(0,0)
@@ -113,6 +115,7 @@ class Gui(GameWindow, TimerObject, InputHandle, pyglet.window.Window):
         self.land.draw()
         self.objects.draw()
         self.fps_display.draw()
+        print len(self.land.tiles),len(self.objects.tiles)
         
     def run(self):
         "старт"
@@ -129,6 +132,7 @@ class LandView(GameWindow,  Drawable, Map):
     def __init__(self, world_size, position, tiles = []):
         Drawable.__init__(self)
         size = world_size
+        self.world_size = world_size
         print 'clientworld size', size
         self.map = [[None for j in xrange(size)] for i in xrange(size)]
         self.tiles = []
@@ -138,6 +142,7 @@ class LandView(GameWindow,  Drawable, Map):
         
     def move_position(self, vector):
         "перемещаем камеру"
+        
         self.set_position(self.position + vector)
         
     def insert(self, tiles):
@@ -183,8 +188,8 @@ class ObjectsView(GameWindow, Drawable):
                 else:
                      self.updates[object_name] = vector
         if new_objects:
-            for object_name, game_object in new_objects.items():
-                self.objects[object_name] = {'position':game_object[0],'tilename': game_object[1]}
+            for object_name, (position, tilename) in new_objects.items():
+                self.objects[object_name] = {'position':position,'tilename': tilename}
 
             
     def update(self, delta):
