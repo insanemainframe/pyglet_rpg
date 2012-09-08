@@ -11,6 +11,8 @@ def pack_server_accept(world_size, position, land, objects):
     return dumps(data)
 
 def unpack_server_accept(data):
+    if not data:
+        return None
     world_size, (x,y), land, objects = loads(data)
     position = Point(x,y)
     land = [(Point(x,y),tilename) for x,y, tilename in land]
@@ -26,6 +28,8 @@ def pack_server_message(move_vector, land, objects, objects_updates):
     return dumps(data)
 
 def unpack_server_message(data):
+    if not data:
+        return None
     (x,y), land, objects, objects_updates = loads(data)
     move_vector = Point(x,y)
     land =  [(Point(x,y),tilename) for x,y, tilename in land]
