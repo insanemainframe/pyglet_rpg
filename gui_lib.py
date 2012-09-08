@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from config import TILESIZE, ANIMATED_TILES, PRESSED_TIMER
+from config import TILESIZE, ANIMATED_TILES, ROUND_TIMER
 from mathlib import Point
 from pyglet.window.key import UP, DOWN, LEFT, RIGHT
 
@@ -8,8 +8,8 @@ from time import time
 
 class TimerObject:
     "объект с таймером и deltatime"
-    def __init__(self, timer_value):
-        self.timer_value = timer_value
+    def __init__(self):
+        self.timer_value = ROUND_TIMER
     
     def set_timer(self):
         self.clock = time()

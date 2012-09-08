@@ -37,7 +37,16 @@ def unpack_server_message(data):
     objects_updates = {object_name:Point(x,y) for object_name, (x,y) in objects_updates}
     
     return move_vector, land, objects, objects_updates
+def pack_client_message(vector):
+    return dumps(vector.get())
 
+def unpack_client_message(message):
+    try:
+        x,y = loads(message)
+    except ValueError:
+        print 'unpack_client_message', message
+        raise ValueError
+    return Point(x,y)
 
 
 def main():

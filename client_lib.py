@@ -6,9 +6,8 @@ from protocol import *
 from config import HOSTNAME, IN_PORT, OUT_PORT
 EOL = '\n'
 
-class EpollClient:
+class SelectClient:
     def __init__(self):
-        self.epoll = select.epoll()
         self.buff = ''
         
         self.outsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -16,7 +15,6 @@ class EpollClient:
         self.outsock.connect((HOSTNAME,IN_PORT))
         self.outsock.setblocking(0)
         self.out_fileno = self.outsock.fileno()
-        self.epoll.register(self.out_fileno, select.EPOLLOUT)
         print 'output connection'
         
         self.insock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -24,25 +22,23 @@ class EpollClient:
         self.insock.connect((HOSTNAME,OUT_PORT))
         self.insock.setblocking(0)
         self.in_fileno = self.insock.fileno()
-        self.epoll.register(self.in_fileno, select.EPOLLIN)
         print 'input connection'
         
         
-        self.events = self.epoll.poll()
     
     def handle_write(self):
-        #print 'handle_Write'
-        for message in self.out_messages:
-            self.outsock.send(dumps(message)+EOL)
-        self.epoll.modify(self.out_fileno, select.EPOLLOUT)
+        if self.out_messages:
+            messages = EOL.join(self.out_messages) + EOL
+            self.out_messages = []
+            print 'sending message', messages
+            self.outsock.send(messages)
+            
     
     def put_message(self, message):
         print 'put_message', message
         self.out_messages.append(message)
-        self.epoll.modify(self.out_fileno, select.EPOLLOUT)
     
     def handle_read(self):
-        print 'handle_read'
         try:
             data = self.insock.recv(1024)
         except socket.error, err:
@@ -53,6 +49,7 @@ class EpollClient:
                 return []
         else:
             messages = []
+            print 'handle_read', data
             for char in data:
                 if char!=EOL:
                     self.buff+=char
@@ -64,41 +61,53 @@ class EpollClient:
                     self.accept(message)
                 else:
                     self.receive(message)
-        finally:
-            print 'modify to OUT'
-            self.epoll.modify(self.in_fileno, select.EPOLLIN)
+
     
     def loop(self):
-        for fileno, event in self.events:
+        #input events
+        inevents , outevents, expevents = select.select([self.insock],[self.outsock],[])
+        for fileno in inevents:
             try:
-                if event & select.EPOLLIN: 
-                    self.handle_read()
-                elif event & select.EPOLLOUT:
-                    self.handle_write()
-                elif event & select.EPOLLHUP: 
-                    self.handle_close()
+                self.handle_read()
             except socket.error as Error:
                 self.handle_error(Error)
+        #output events
+        for fileno in outevents:
+            try:
+                self.handle_write()
+            except socket.error as Error:
+                self.handle_error(Error)
+       
+        
     
     def handle_close(self):
         print 'connection closed'
-    def handle_error(Error):
+    def handle_error(self, Error):
         print Error
         sys.exit()
     
             
-class Client(EpollClient):
+class Client(SelectClient):
     def __init__(self):
-        EpollClient.__init__(self)
+        SelectClient.__init__(self)
         self.accept_message = False
         self.in_messages = []
         self.out_messages = []
-        
+    
+    def wait_for_accept(self):
+        print 'waiting for accept'
+        while 1:
+            self.loop()
+            if self.accept_message:
+                print 'accepted'
+                return self.accept_message
+    
     def accept(self, message):
         self.accept_message = unpack_server_accept(message)
         
     def send(self, vector):
-        self.put_message(dumps(vector.get()))
+        message = pack_client_message(vector)
+        self.put_message(message)
         
     
     def receive(self, message):

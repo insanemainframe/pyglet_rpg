@@ -79,11 +79,13 @@ class Player(Movable, GameObject):
     def look(self):
         #получаем видимые тайлы
         looked =self.world.look(self.position, self.rad)
+        print 'GAME', len(looked), len(self.prev_looked), self.position
         
         new_looked = looked - self.prev_looked
 
         self.prev_looked = looked
             
+        
 
         return (new_looked, {})
             

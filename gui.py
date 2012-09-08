@@ -53,15 +53,14 @@ class GameWindow():
         
 
 class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window): 
-    def __init__(self,size, timer_value):
+    def __init__(self,size):
         pyglet.window.Window.__init__(self, size, size)
-        TimerObject.__init__(self, timer_value)
+        TimerObject.__init__(self)
         InputHandle.__init__(self)
         Client.__init__(self)
         
         self.configure(size)
         self.gentiles()
-        self.game = Game(self.rad/TILESIZE)
         self.objects = ObjectsView()
         self.shift = Point(0,0)
         self.vector = Point(0,0)
@@ -70,16 +69,11 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
         
         #net
         world_size, position, tiles, objects = self.wait_for_accept()
+        
+        print 'accepteed'
 
         self.land = LandView(world_size, position, tiles)
         self.objects.insert(objects)
-        
-    def wait_for_accept(self):
-        while 1:
-            self.loop()
-            if self.accept_message:
-                print 'accepted'
-                return self.accept_message
         
 
     
@@ -97,8 +91,10 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
             self.land.move_position(self.shift)
             self.shift = Point(0,0)
             self.land.update()
+    
     def send_mouse(self, vector):
-        self.send(dumps(vector.get()))
+        self.send(vector)
+    
     def round_update(self, dt):
         "обращение к движку"
         self.force_complete()
@@ -109,7 +105,7 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
         if self.in_messages:
             message = self.in_messages.pop(0)
             print 'receive', message
-            move_vector, newtiles, objects, objects_update = unpack_server_message(message)
+            move_vector, newtiles, objects, objects_update = message
             #/net
             self.shift = move_vector
     
@@ -236,7 +232,7 @@ class ObjectsView(GameWindow, Drawable):
 
     
 def main():
-    g = Gui(size=600,timer_value = 0.1)
+    g = Gui(size=600)
     g.run()
 if __name__=='__main__':
     if PROFILE:
