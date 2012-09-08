@@ -7,14 +7,16 @@ from pyglet.gl import *
 from os import listdir
 from math import hypot
 
-from engine import Game
-from mathlib import Point
+from engine_lib import Game
+from math_lib import Point
 from gui_lib import TimerObject, Drawable, InputHandle
-from maplib import Map
-from config import *
+from map_lib import Map
 from client_lib import Client
+from protocol_lib import *
 
-from protocol import *
+
+from config import *
+
 class GameWindow():
     "разделяемое состояние элементов gui"
     @staticmethod
@@ -94,9 +96,6 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
             self.shift = Point(0,0)
             self.land.update()
     
-    def send_mouse(self, vector):
-        self.send(vector)
-    
     def round_update(self, dt):
         "обращение к движку"
         self.force_complete()
@@ -152,7 +151,6 @@ class LandView(GameWindow,  Drawable, Map):
         
     def move_position(self, vector):
         "перемещаем камеру"
-        
         self.set_position(self.position + vector)
         
     def insert(self, tiles):

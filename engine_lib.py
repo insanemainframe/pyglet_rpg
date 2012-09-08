@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from mathlib import *
-from maplib import World, MetaMap
+from math_lib import *
+from map_lib import World, MetaMap
+
 from config import TILESIZE, PLAYERSPEED, BLOCKTILES ,logger
 
 class GameObject:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import socket, sys, os, select
-from protocol import *
+from protocol_lib import *
 
 from config import HOSTNAME, IN_PORT, OUT_PORT
 EOL = '\n'

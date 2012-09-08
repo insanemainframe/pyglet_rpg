@@ -4,8 +4,8 @@ import os, socket, select
 from collections import namedtuple
 
 from config import HOSTNAME, IN_PORT, OUT_PORT
-from engine import *
-from protocol import *
+from engine_lib import *
+from protocol_lib import *
 
 EOL = '\n'
 IN, OUT = 0,1

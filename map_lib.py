@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import TILESIZE, logger
-from mathlib import Point
+from math_lib import Point
 from math import hypot
 from mapgen import load_map
 
