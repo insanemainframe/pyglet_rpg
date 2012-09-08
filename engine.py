@@ -28,9 +28,12 @@ class Game(GameObject):
     
     def go(self, vector):
         move_vector = self.player.go(vector)
+        self.player.move_vector = move_vector
+        
+    def look(self):
         land, objects = self.player.look()
-
-        return move_vector, land, {},{'Player':move_vector}
+        return self.player.move_vector, land, {},{'Player':self.player.move_vector}
+        
         
     
 class Movable(MetaMap):
@@ -38,6 +41,7 @@ class Movable(MetaMap):
         self.vector  = Point(0,0)
         self.speed = speed
         self.position = position
+        self.move_vector = Point(0,0)
         
     def move(self, vector):
         #если вектор на входе определен, до определяем вектор движения объекта

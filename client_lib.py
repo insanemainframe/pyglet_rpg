@@ -11,38 +11,40 @@ class EpollClient:
         self.epoll = select.epoll()
         self.buff = ''
         
-        self.insock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.insock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.insock.connect((HOSTNAME,IN_PORT))
-        self.insock.setblocking(0)
-        self.in_fileno = self.insock.fileno()
-        self.epoll.register(self.in_fileno, select.EPOLLIN)
-        
         self.outsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.outsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.outsock.connect((HOSTNAME,OUT_PORT))
+        self.outsock.connect((HOSTNAME,IN_PORT))
         self.outsock.setblocking(0)
         self.out_fileno = self.outsock.fileno()
         self.epoll.register(self.out_fileno, select.EPOLLOUT)
-        		
+        print 'output connection'
+        
+        self.insock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.insock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.insock.connect((HOSTNAME,OUT_PORT))
+        self.insock.setblocking(0)
+        self.in_fileno = self.insock.fileno()
+        self.epoll.register(self.in_fileno, select.EPOLLIN)
+        print 'input connection'
+        
         
         self.events = self.epoll.poll()
     
     def handle_write(self):
-        print 'handle_Write'
+        #print 'handle_Write'
         for message in self.out_messages:
-            self.socket.send(dumps(message)+EOL)
-        self.epoll.modify(self.fileno, select.EPOLLIN)
+            self.outsock.send(dumps(message)+EOL)
+        self.epoll.modify(self.out_fileno, select.EPOLLOUT)
     
     def put_message(self, message):
         print 'put_message', message
         self.out_messages.append(message)
-        self.epoll.modify(self.fileno, select.EPOLLOUT)
+        self.epoll.modify(self.out_fileno, select.EPOLLOUT)
     
     def handle_read(self):
         print 'handle_read'
         try:
-            data = self.socket.recv(1024)
+            data = self.insock.recv(1024)
         except socket.error, err:
             print 'socket.error', err
             if err[0]!=11:
@@ -64,7 +66,7 @@ class EpollClient:
                     self.receive(message)
         finally:
             print 'modify to OUT'
-            self.epoll.modify(self.fileno, select.EPOLLOUT)
+            self.epoll.modify(self.in_fileno, select.EPOLLIN)
     
     def loop(self):
         for fileno, event in self.events:

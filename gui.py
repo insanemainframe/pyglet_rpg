@@ -12,7 +12,7 @@ from mathlib import Point
 from gui_lib import TimerObject, Drawable, InputHandle
 from maplib import Map
 from config import *
-
+from client_lib import Client
 
 from protocol import *
 class GameWindow():
@@ -31,10 +31,10 @@ class GameWindow():
     @staticmethod
     def gentiles():
         cls = GameWindow
-        names = listdir('data')
+        names = listdir('images')
         cls.tiledict = {}
         for name in names:
-            image = pyglet.image.load('data/%s' % name, decoder=PNGImageDecoder()).get_texture()
+            image = pyglet.image.load('images/%s' % name, decoder=PNGImageDecoder()).get_texture()
             cls.tiledict[name[:-4]] = image
     @staticmethod
     def create_tile(point, tilename):
@@ -52,27 +52,36 @@ class GameWindow():
         
         
 
-class Gui(GameWindow, TimerObject, InputHandle, pyglet.window.Window): 
+class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window): 
     def __init__(self,size, timer_value):
         pyglet.window.Window.__init__(self, size, size)
         TimerObject.__init__(self, timer_value)
         InputHandle.__init__(self)
-        print 'windowsize %s' %  size     
+        Client.__init__(self)
+        
         self.configure(size)
         self.gentiles()
         self.game = Game(self.rad/TILESIZE)
         self.objects = ObjectsView()
         self.shift = Point(0,0)
+        self.vector = Point(0,0)
         
         self.fps_display = pyglet.clock.ClockDisplay()
         
-        world_size, position, tiles, objects = unpack_server_accept(pack_server_accept(*self.game.accept()))
+        #net
+        world_size, position, tiles, objects = self.wait_for_accept()
 
         self.land = LandView(world_size, position, tiles)
         self.objects.insert(objects)
         
+    def wait_for_accept(self):
+        while 1:
+            self.loop()
+            if self.accept_message:
+                print 'accepted'
+                return self.accept_message
+        
 
-    
     
     def update(self, dt):
         delta = self.get_delta()
@@ -88,17 +97,25 @@ class Gui(GameWindow, TimerObject, InputHandle, pyglet.window.Window):
             self.land.move_position(self.shift)
             self.shift = Point(0,0)
             self.land.update()
-    
+    def send_mouse(self, vector):
+        self.send(dumps(vector.get()))
     def round_update(self, dt):
         "обращение к движку"
         self.force_complete()
-        move_vector, newtiles, objects, objects_update = unpack_server_message(pack_server_message(*self.game.go(self.vector)))
-        self.shift = move_vector
-
+        #net
+        self.loop()
+        self.send(self.vector)
         self.vector = Point(0,0)
-        self.land.update()
-        self.land.insert(newtiles)
-        self.objects.insert(objects, objects_update)
+        if self.in_messages:
+            message = self.in_messages.pop(0)
+            print 'receive', message
+            move_vector, newtiles, objects, objects_update = unpack_server_message(message)
+            #/net
+            self.shift = move_vector
+    
+            self.land.update()
+            self.land.insert(newtiles)
+            self.objects.insert(objects, objects_update)
         #self.objects.update()
         self.set_timer()
         logger.debug('>\n')
@@ -115,12 +132,10 @@ class Gui(GameWindow, TimerObject, InputHandle, pyglet.window.Window):
         self.land.draw()
         self.objects.draw()
         self.fps_display.draw()
-        print len(self.land.tiles),len(self.objects.tiles)
         
     def run(self):
         "старт"
         print 'loop'
-        self.vector = Point(0,0)
         pyglet.clock.schedule(self.update)
         pyglet.clock.schedule_interval(self.round_update, self.timer_value)
         
@@ -224,11 +239,10 @@ def main():
     g = Gui(size=600,timer_value = 0.1)
     g.run()
 if __name__=='__main__':
-    profile = 0
-    if profile:
+    if PROFILE:
         import cProfile, pstats
-        cProfile.run('main()', 'game_pyglet.stat')
-        stats = pstats.Stats('game_pyglet.stat')
+        cProfile.run('main()', '/tmp/game_pyglet.stat')
+        stats = pstats.Stats('/tmp/game_pyglet.stat')
         stats.sort_stats('cumulative')
         stats.print_stats()
     else:

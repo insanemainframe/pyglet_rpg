@@ -6,7 +6,10 @@ BLOCKTILES = ['stone', 'water', 'forest']
 ANIMATED_TILES = [] #['player']
 PRESSED_TIMER = 0.5
 HOSTNAME = '127.0.0.1'
-PORT = 1488
+IN_PORT = 1488
+OUT_PORT = 1489
+PROFILE = False
+
 #logging
 import os.path
 logfile = '/tmp/rpg.log'
