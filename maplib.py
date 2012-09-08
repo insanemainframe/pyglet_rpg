@@ -24,15 +24,17 @@ class Map:
 class MetaMap:
     "разделяемое состояние объектов карты"
     @staticmethod
-    def set_map(worldmap, size):
-        MetaMap.map = worldmap
-        MetaMap.size = size
+    def set_map():
+        if not (hasattr(MetaMap,'map') and hasattr(MetaMap,'size')):
+            worldmap, size = load_map()
+            MetaMap.map = worldmap
+            MetaMap.size = size
         
     
 class World(MetaMap, Map):
     "класс карты как со стороны ссервера"
     def __init__(self):
-        self.set_map(*load_map())
+        self.set_map()
         print 'server world size', self.size
 
             
