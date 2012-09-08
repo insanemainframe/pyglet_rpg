@@ -9,11 +9,15 @@ from protocol import *
 EOL = '\n'
 
 class FilenoError(Exception):
-    pass
+    def __init__(self, fileno, text = ''):
+        self.fileno = fileno
+        Exception.__init__(self, '%s %s' % (fileno,text))
+        
 
 class EpollServer:
-    def __init__(self, host=HOSTNAME):
+    def __init__(self, host=HOSTNAME, listen_num=10):
         self.poll = select.epoll()
+        self.listen_num = listen_num
         
         self.insock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.insock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -39,8 +43,9 @@ class EpollServer:
         self.in_buffers = {}
         self.out_buffers = {}
         
+        self.counter = 0
+        
         self.log = open('/tmp/game.log','w')
-        self.log.write('new\n')
     
     def put_message(self, address, message):
         print 'put_message', str(message) if len(message)<50 else type(message), len(message)
@@ -100,12 +105,9 @@ class EpollServer:
             self.accept_client(address, in_fileno, out_fileno)
     
     def accept_client(self, address, in_fileno, out_fileno):
+        address = address + str(self.counter)
+        self.counter+=1
         print 'accepting_client', address
-        counter = 0
-        for exist_address in self.address_list:
-            if address not in exist_address:
-                counter+=1
-        address = address + str(counter)
         
         self.clients[address] = (in_fileno, out_fileno)
         self.requests[address] = []
@@ -126,23 +128,21 @@ class EpollServer:
         for address, filenos in self.clients.items():
             if fileno in filenos:
                 return address
-        raise FilenoError('%s' % fileno)
+        raise FilenoError(fileno, 'FilenoError')
+    
     def has_reponse(self, fileno):
         address = self.get_address(fileno)
         return bool(self.responses[address])
 
     def run(self):
-        self.insock.listen(10)
-        self.outsock.listen(10)
+        self.insock.listen(self.listen_num)
+        self.outsock.listen(self.listen_num)
         try:
             while 1:
                 events = self.poll.poll()
                 for fileno, event in events:
                     try:
-                        if event & select.EPOLLHUP: 
-                            print 'self.handle_close(%s)' % fileno
-                            self.handle_close(fileno)
-                        elif fileno==self.in_fileno:
+                        if fileno==self.in_fileno:
                             print 'self.handle_accept_in(%s)' % fileno
                             self.handle_accept_in()
                         elif fileno==self.out_fileno:
@@ -154,41 +154,50 @@ class EpollServer:
                         elif (event & select.EPOLLOUT) and self.has_reponse(fileno):
                             print 'self.handle_write(%s) %s' % (fileno, str( self.responses))
                             self.handle_write(fileno)
+                        elif event & select.EPOLLHUP: 
+                            print 'self.handle_close(%s)' % fileno
+                            self.handle_close(fileno)
                     except socket.error as Error:
                         self.handle_error(Error, fileno, event)
-                    except FilenoError:
-                        print 'FilenoError'
+                    except FilenoError, excp:
+                        print excp
+                        self.handle_close(excp.fileno)
         finally:
             self.stop()
     
     def handle_close(self, fileno):
-        address = self.get_address(fileno)
-        
-        in_fileno, out_fileno = self.get_fileno(address)
-        
-        self.poll.unregister(in_fileno)
-        self.poll.unregister(out_fileno)
-        
-        self.insocks[in_fileno].close()
-        del self.insocks[in_fileno]
-        self.outsocks[out_fileno].close()
-        del self.outsocks[out_fileno]
-        
-        del self.clients[address]
-        del self.requests[address]
-        del self.responses[address]
-        del self.in_buffers[address]
-        del self.out_buffers[address]
         try:
-            self.address_list.remove(address)
-        except ValueError:
-            pass
+            address = self.get_address(fileno)
+        except FilenoError:
+            print 'handle_close fileno_error %s with %s' % (fileno, str(self.clients))
+        else:
+            in_fileno, out_fileno = self.get_fileno(address)
+            
+            self.poll.unregister(in_fileno)
+            self.poll.unregister(out_fileno)
+            print 'unregister', in_fileno, out_fileno
+            
+            self.insocks[in_fileno].close()
+            del self.insocks[in_fileno]
+            self.outsocks[out_fileno].close()
+            del self.outsocks[out_fileno]
+            
+            del self.clients[address]
+            del self.requests[address]
+            del self.responses[address]
+            del self.in_buffers[address]
+            del self.out_buffers[address]
+            try:
+                self.address_list.remove(address)
+            except ValueError:
+                pass
         
-        self.close(address)
-        print('Closing %s(%s,%s)' % (address, in_fileno, out_fileno))
+            self.close(address)
+            print('Closing %s(%s,%s)' % (address, in_fileno, out_fileno))
     
-    def handle_error(self, error, *args):
-        self.log.write(str(error) + '\n')
+    def handle_error(self, error, fileno, event):
+        self.handle_close(fileno)
+        self.log.write(str(fileno, event) + '\n')
     
     def stop(self):
         self.poll.unregister(self.in_fileno)
