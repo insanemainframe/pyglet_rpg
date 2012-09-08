@@ -1,17 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os, socket, select
+from collections import namedtuple
 
 from config import HOSTNAME, IN_PORT, OUT_PORT
 from engine import *
 from protocol import *
 
 EOL = '\n'
+IN, OUT = 0,1
+fileno_tuple = namedtuple('fileno_tuple',('in_','out_'))
 
 class FilenoError(Exception):
     def __init__(self, fileno, text = ''):
         self.fileno = fileno
         Exception.__init__(self, '%s %s' % (fileno,text))
+
+class HandleAcceptError(Exception):
+    pass
         
 
 class EpollServer:
@@ -19,19 +25,9 @@ class EpollServer:
         self.poll = select.epoll()
         self.listen_num = listen_num
         
-        self.insock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.insock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.insock.setblocking(0)
-        self.insock.bind((host,IN_PORT))
-        self.in_fileno = self.insock.fileno()
-        self.poll.register(self.in_fileno, select.EPOLLIN)
+        self.insock, self.in_fileno = self.create_socket(host, IN_PORT)
+        self.outsock, self.out_fileno = self.create_socket(host, OUT_PORT)
         
-        self.outsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.outsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.outsock.setblocking(0)
-        self.outsock.bind((host,OUT_PORT))
-        self.out_fileno = self.outsock.fileno()
-        self.poll.register(self.out_fileno, select.EPOLLIN)
         
         self.address_buf = {}
         self.address_list = []
@@ -47,15 +43,24 @@ class EpollServer:
         
         self.log = open('/tmp/game.log','w')
     
+    def create_socket(self, host, port):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.setblocking(0)
+        sock.bind((host, port))
+        fileno = sock.fileno()
+        self.poll.register(fileno, select.EPOLLIN)
+        return sock, fileno
+    
     def put_message(self, address, message):
         print 'put_message', str(message) if len(message)<50 else type(message), len(message)
         self.responses[address].append(message)
-        out_fileno = self.get_fileno(address)[1]
+        out_fileno = self.clients[address].out_
         self.poll.modify(out_fileno, select.EPOLLOUT)
     
     def handle_write(self, fileno):
         address = self.get_address(fileno)
-        fileno = self.get_fileno(address)[1]
+        fileno = self.clients[address].out_
         if self.responses[address]:
             response = (EOL.join(self.responses[address])+EOL)
             print('Sending', str(response) if len(response)<50 else type(response), len(response),'to', fileno)
@@ -77,39 +82,42 @@ class EpollServer:
         
 
     
-    def handle_accept_in(self):
-        conn, (address, in_fileno) = self.insock.accept()
-        print('input Connection from %s (%s)' % (in_fileno, address))
+    def handle_accept(self, stream):
+        
+        if stream==IN:
+            conn, (address, in_fileno) = self.insock.accept()
+            in_fileno = conn.fileno()
+            self.insocks[in_fileno] = conn
+            fileno = in_fileno
+            print('input Connection from %s (%s)' % (in_fileno, address))
+        elif stream==OUT:
+            conn, (address, out_fileno) = self.outsock.accept()
+            out_fileno = conn.fileno()
+            self.outsocks[out_fileno] = conn
+            fileno = out_fileno
+            print('output Connection from %s (%s)' % (out_fileno, address))
+        else:
+            raise HandleAcceptError('unknnowsn stream %s' % stream)
+        
         conn.setblocking(0)
-        in_fileno = conn.fileno()
-        self.insocks[in_fileno] = conn
         
         if address not in self.address_buf:
-            self.address_buf[address] = in_fileno
+            self.address_buf[address] = fileno
         else:
-            out_fileno = self.address_buf[address]
+            if stream==IN:
+                out_fileno = self.address_buf[address]
+            else:
+                in_fileno = self.address_buf[address]
             del self.address_buf[address]
             self.accept_client(address, in_fileno, out_fileno)
         
-    def handle_accept_out(self):
-        conn, (address, out_fileno) = self.outsock.accept()
-        print('output Connection from %s (%s)' % (out_fileno, address))
-        conn.setblocking(0)
-        out_fileno = conn.fileno()
-        self.outsocks[out_fileno] = conn
-        if address not in self.address_buf:
-            self.address_buf[address] = out_fileno
-        else:
-            in_fileno = self.address_buf[address]
-            del self.address_buf[address]
-            self.accept_client(address, in_fileno, out_fileno)
     
     def accept_client(self, address, in_fileno, out_fileno):
         address = address + str(self.counter)
         self.counter+=1
         print 'accepting_client', address
         
-        self.clients[address] = (in_fileno, out_fileno)
+        self.clients[address] = fileno_tuple(in_fileno, out_fileno)
         self.requests[address] = []
         self.responses[address] = []
         self.in_buffers[address] = []
@@ -120,8 +128,7 @@ class EpollServer:
         #реагируем на появление нового клиента
         self.accept(address)
     
-    def get_fileno(self, address):
-        return self.clients[address]
+  
 
     
     def get_address(self, fileno):
@@ -144,10 +151,10 @@ class EpollServer:
                     try:
                         if fileno==self.in_fileno:
                             print 'self.handle_accept_in(%s)' % fileno
-                            self.handle_accept_in()
+                            self.handle_accept(IN)
                         elif fileno==self.out_fileno:
                             print 'self.handle_accept_out(%s)' % fileno
-                            self.handle_accept_out()
+                            self.handle_accept(OUT)
                         elif (event & select.EPOLLIN): 
                             print 'self.handle_read(%s)' % fileno
                             self.handle_read(fileno)
@@ -171,7 +178,7 @@ class EpollServer:
         except FilenoError:
             print 'handle_close fileno_error %s with %s' % (fileno, str(self.clients))
         else:
-            in_fileno, out_fileno = self.get_fileno(address)
+            in_fileno, out_fileno = self.clients[address]
             
             self.poll.unregister(in_fileno)
             self.poll.unregister(out_fileno)

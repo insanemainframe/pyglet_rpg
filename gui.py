@@ -78,6 +78,8 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
 
     
     def update(self, dt):
+        if self.vector:
+            self.send(self.vector)
         delta = self.get_delta()
         vector = self.shift*delta
         self.shift = self.shift - vector
@@ -100,7 +102,6 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
         self.force_complete()
         #net
         self.loop()
-        self.send(self.vector)
         self.vector = Point(0,0)
         if self.in_messages:
             message = self.in_messages.pop(0)
@@ -112,10 +113,8 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
             self.land.update()
             self.land.insert(newtiles)
             self.objects.insert(objects, objects_update)
-        #self.objects.update()
         self.set_timer()
         logger.debug('>\n')
-        #print self.objects.updates
         
 
         

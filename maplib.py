@@ -14,27 +14,36 @@ class Map:
         if cord > self.size:
             return cord - self.size
         else:
-            return cord
-    def resize_point(self, point):
-        point = point
-        return Point(self.resize(point.x), self.resize(point.y))
-
-        
+            return cord        
 
 class MetaMap:
     "разделяемое состояние объектов карты"
     @staticmethod
-    def set_map():
-        if not (hasattr(MetaMap,'map') and hasattr(MetaMap,'size')):
+    def init():
+        cls = MetaMap
+        if not hasattr(cls,'created'):
             worldmap, size = load_map()
-            MetaMap.map = worldmap
-            MetaMap.size = size
+            cls.map = worldmap
+            cls.size = size
+            cls.objects = []
+            cls.objects_updates = []
+            cls.created = True
+    @staticmethod
+    def add_object(name):
+        cls = MetaMap
+        cls.objects.append(name)
+    @staticmethod
+    def move_on_map(name, vector):
+        cls = MetaMap
+        cls.objects_updates
+        
+            
         
     
 class World(MetaMap, Map):
     "класс карты как со стороны ссервера"
     def __init__(self):
-        self.set_map()
+        self.init()
         print 'server world size', self.size
 
             
