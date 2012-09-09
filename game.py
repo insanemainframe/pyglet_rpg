@@ -11,7 +11,7 @@ from sys import exit
 
 from engine_lib import Game
 from math_lib import Point
-from gui_lib import TimerObject, Drawable, InputHandle
+from gui_lib import *
 from map_lib import Map
 from client_lib import Client
 from protocol_lib import *
@@ -42,10 +42,7 @@ class GameWindow():
         for name in names:
             image = pyglet.image.load('images/%s' % name, decoder=PNGImageDecoder()).get_texture()
             cls.tiledict[name[:-4]] = image
-    @staticmethod
-    def create_tile(point, tilename):
-        "создае тайл"
-        return (tilename, point.get())
+
     
     @staticmethod
     def set_position(position):
@@ -68,34 +65,49 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
         self.shift = Point(0,0)
         self.vector = Point(0,0)
         
+        self.loading = create_loading(self.center)
+        
         self.fps_display = pyglet.clock.ClockDisplay()
         
         #net
-        world_size, position, tiles, objects = self.wait_for_accept()
+        self.accepted = False
+    
+    def accept(self):
+        if not self.accepted:
+            data = self.wait_for_accept()
+            if data:
+                world_size, position, tiles, objects = data
+                
+                print 'accepteed'
         
-        print 'accepteed'
-
-        self.land = LandView(world_size, position, tiles)
-        self.objects.insert(objects)
+                self.land = LandView(world_size, position, tiles)
+                self.objects.insert(objects)
+                self.accepted = True
+                self.loading = False
+                return True
+            else:
+                return False
+        else:
+            return True
         
     def send_vector(self, vector):
         self.send(vector)
     
     def update(self, dt):
-        self.loop()
-        delta = self.get_delta()
-        vector = self.shift*delta
-        if vector> self.shift:
-            vector = self.shift
-        self.shift = self.shift - vector
-        self.land.move_position(vector)
-        self.land.update()
-        self.objects.update(delta)
+        if self.accept():
+            self.loop()
+            delta = self.get_delta()
+            vector = self.shift*delta
+            if vector> self.shift:
+                vector = self.shift
+            self.shift = self.shift - vector
+            self.land.move_position(vector)
+            self.land.update()
+            self.objects.update(delta)
         
     def force_complete(self):
         "завершает перемщение по вектору"
         if self.shift:
-            print self.shift
             self.land.move_position(self.shift)
             self.shift = Point(0,0)
             self.land.update()
@@ -103,20 +115,21 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
     
     def round_update(self, dt):
         "обращение к движку"
-        self.force_complete()
-        #net
+        if self.accept():
+            self.force_complete()
+            #net
+            
+            for message in self.in_messages:
+                move_vector, newtiles, objects, objects_update = message
+                #/net
+                self.shift += move_vector
         
-        for message in self.in_messages:
-            move_vector, newtiles, objects, objects_update = message
-            #/net
-            self.shift += move_vector
-    
-            self.land.update()
-            self.land.insert(newtiles)
-            self.objects.insert(objects, objects_update)
-        self.in_messages = []
-        self.set_timer()
-        logger.debug('>\n')
+                self.land.update()
+                self.land.insert(newtiles)
+                self.objects.insert(objects, objects_update)
+            self.in_messages = []
+            self.set_timer()
+            logger.debug('>\n')
         
 
         
@@ -126,8 +139,11 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         self.clear()
-        self.land.draw()
-        self.objects.draw()
+        if self.loading:
+            self.loading.draw()
+        if self.accept():
+            self.land.draw()
+            self.objects.draw()
         self.fps_display.draw()
         
     def run(self):
@@ -189,7 +205,7 @@ class LandView(GameWindow,  Drawable, Map):
         "обноление на каждом фрейме"
         looked = self.look_around(self.rad)
         logger.debug('looked len %s' % len(looked))
-        self.tiles = [self.create_tile(point+self.center, tile_type) for point, tile_type in looked]
+        self.tiles = [create_tile(point+self.center, tile_type) for point, tile_type in looked]
 
 
 
@@ -234,8 +250,10 @@ class ObjectsView(GameWindow, Drawable):
             if diff<0:
                 tilename = game_object['tilename']
                 position = point - self.position +self.center - Point(TILESIZE/2,TILESIZE/2)
-                tile = self.create_tile(position, tilename)
+                tile = create_tile(position, tilename)
                 self.tiles.append(tile)
+                label = create_label(object_name, position)
+                self.tiles.append(label)
     
 
 

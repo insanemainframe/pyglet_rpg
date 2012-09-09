@@ -3,8 +3,7 @@
 import socket, sys, os, select
 from protocol_lib import *
 
-from config import HOSTNAME, IN_PORT, OUT_PORT
-EOL = '\n'
+from config import EOL, HOSTNAME, IN_PORT, OUT_PORT
 
 class SelectClient:
     def __init__(self):
@@ -23,8 +22,6 @@ class SelectClient:
         self.insock.setblocking(0)
         self.in_fileno = self.insock.fileno()
         print 'input connection'
-        
-        
     
     def handle_write(self):
         if self.out_messages:
@@ -58,11 +55,10 @@ class SelectClient:
                     self.buff=''
             for message in messages:
                 if not self.accept_message:
-                    self.accept(message)
+                    self.accept_(message)
                 else:
                     self.receive(message)
 
-    
     def loop(self):
         #input events
         inevents , outevents, expevents = select.select([self.insock],[self.outsock],[])
@@ -89,7 +85,6 @@ class SelectClient:
         print Error
         sys.exit()
     
-            
 class Client(SelectClient):
     def __init__(self):
         SelectClient.__init__(self)
@@ -99,13 +94,14 @@ class Client(SelectClient):
     
     def wait_for_accept(self):
         print 'waiting for accept'
-        while 1:
-            self.loop()
-            if self.accept_message:
-                print 'accepted'
-                return self.accept_message
+        self.loop()
+        if self.accept_message:
+            print 'accepted'
+            return self.accept_message
+        else:
+            return False
     
-    def accept(self, message):
+    def accept_(self, message):
         self.accept_message = unpack_server_accept(message)
         
     def send(self, vector):

@@ -3,9 +3,25 @@
 from config import TILESIZE, ANIMATED_TILES, ROUND_TIMER
 from math_lib import Point
 from pyglet.window.key import UP, DOWN, LEFT, RIGHT
+import pyglet
 
 from time import time
 
+def create_label(text, point):
+    x,y = point.get()
+    return (text, point.get(), 'label')
+
+def create_tile(point, tilename):
+        "создае тайл"
+        return (tilename, point.get(), None)
+
+def create_loading(point):
+    x,y = point.get()
+    return pyglet.text.Label('Waiting for server response',
+                          font_name='Times New Roman',
+                          font_size=10,
+                          x=x, y=y,
+                          anchor_x='center', anchor_y='center').draw()
 class TimerObject:
     "объект с таймером и deltatime"
     def __init__(self):
@@ -52,6 +68,7 @@ class InputHandle:
             self.send_vector(self.vectors[symbol])
             
             
+            
         
     
     def on_mouse_press(self, x, y, button, modifiers):
@@ -60,6 +77,8 @@ class InputHandle:
         if button==1:
             vector = (Point(x,y) - self.center)
             self.send_vector(vector)
+        
+
 
             
 class Drawable:
@@ -77,11 +96,19 @@ class Drawable:
             
         self.animation*=-1
     def draw(self):
-        for tilename, (x,y) in self.tiles:
+        for tilename, (x,y), tiletype in self.tiles:
             if tilename in ANIMATED_TILES:
                 if self.animation==-1:
                     tilename = tilename+'_'
                 self.animation_tick()
-            self.tiledict[tilename].blit(x,y, width=TILESIZE, height=TILESIZE)
+            if tiletype:
+                pyglet.text.Label(tilename,
+                          font_name='Times New Roman',
+                          font_size=10,
+                          x=x, y=y,
+                          anchor_x='center', anchor_y='center').draw()
+            else:
+                self.tiledict[tilename].blit(x,y, width=TILESIZE, height=TILESIZE)
+    
 
     

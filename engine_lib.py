@@ -20,6 +20,7 @@ class Game(GameObject):
         world = World()
         self.configure(world, look_size)
         player_position = Point(randrange(self.size)*TILESIZE-look_size,randrange(self.size)*TILESIZE-look_size)
+        player_position = Point(self.size*TILESIZE/2, self.size*TILESIZE/2)
         self.player = Player(player_position, look_size)
 
     def accept(self):
@@ -27,7 +28,7 @@ class Game(GameObject):
         position = self.player.position
         land, objects = self.player.look()
         world_size = self.world.size
-        return  world_size, position, land, {'Player':(position,'player')}
+        return  world_size, position, land #, {'Player':(position,'player')}
     
     def go(self, vector):
         move_vector = self.player.go(vector)
@@ -35,7 +36,7 @@ class Game(GameObject):
         
     def look(self):
         land, objects = self.player.look()
-        return self.player.move_vector, land, {},{'Player':self.player.move_vector}
+        return self.player.move_vector, land #, {'Player':self.player.move_vector}
         
         
     

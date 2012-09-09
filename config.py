@@ -10,6 +10,8 @@ HOSTNAME = '127.0.0.1' #'89.105.156.179' #
 IN_PORT = 1488
 OUT_PORT = 1489
 PROFILE = False
+EOL = '\n'
+
 
 #logging
 import os.path
