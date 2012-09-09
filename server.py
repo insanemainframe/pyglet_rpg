@@ -6,8 +6,6 @@ from time import sleep
 from select import epoll, EPOLLIN, EPOLLOUT
 from collections import namedtuple
 
-import signal
-
 from config import HOSTNAME, IN_PORT, OUT_PORT, SERVER_TIMER
 from engine_lib import *
 from math_lib import Point
