@@ -1,10 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import os, socket, select
+import socket
+import thread
+from time import sleep
+from select import epoll, EPOLLIN, EPOLLOUT
 from collections import namedtuple
 
-from config import HOSTNAME, IN_PORT, OUT_PORT
+import signal
+
+from config import HOSTNAME, IN_PORT, OUT_PORT, SERVER_TIMER
 from engine_lib import *
+from math_lib import Point
 from protocol_lib import *
 
 EOL = '\n'
@@ -19,10 +25,25 @@ class FilenoError(Exception):
 class HandleAcceptError(Exception):
     pass
         
+class TimerCallable:
+    def __init__(self, timer_value=SERVER_TIMER):
+        self.timer_value = timer_value
+        
+    def start_timer(self):
+        print 'timer starting'
+        thread.start_new_thread(self.timer_thread,())
+        
+    def timer_thread(self):
+        print 'timer started'
+        while 1:
+            sleep(self.timer_value)
+            self.timer_handler()
+        
 
 class EpollServer:
     def __init__(self, host=HOSTNAME, listen_num=10):
-        self.poll = select.epoll()
+        
+        self.poll = epoll()
         self.listen_num = listen_num
         
         self.insock, self.in_fileno = self.create_socket(host, IN_PORT)
@@ -40,36 +61,39 @@ class EpollServer:
         self.out_buffers = {}
         
         self.counter = 0
-        
-        self.log = open('/tmp/game.log','w')
-    
+            
     def create_socket(self, host, port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.setblocking(0)
         sock.bind((host, port))
         fileno = sock.fileno()
-        self.poll.register(fileno, select.EPOLLIN)
+        self.poll.register(fileno, EPOLLIN)
         return sock, fileno
     
     def put_message(self, address, message):
-        print 'put_message', str(message) if len(message)<50 else type(message), len(message)
+        print 'put_message', type(message), len(message)
         self.responses[address].append(message)
         out_fileno = self.clients[address].out_
-        self.poll.modify(out_fileno, select.EPOLLOUT)
+        self.poll.modify(out_fileno, EPOLLOUT)
     
     def handle_write(self, fileno):
         address = self.get_address(fileno)
+        self.write(address)
+        if not self.responses[address]:
+            return 
         fileno = self.clients[address].out_
         if self.responses[address]:
             response = (EOL.join(self.responses[address])+EOL)
-            print('Sending', str(response) if len(response)<50 else type(response), len(response),'to', fileno)
+            print('Sending', type(response), len(response),'to', fileno)
             self.responses[address] = []
             self.outsocks[fileno].send(response)
     
     def handle_read(self, fileno):
         address = self.get_address(fileno)
         data = self.insocks[fileno].recv(1024)
+        if not data:
+            self.handle_close(address)
         messages = []
         for char in data:
             if char!=EOL[0]:
@@ -77,13 +101,11 @@ class EpollServer:
             else:
                 messages.append(''.join(self.in_buffers[address]))
                 self.in_buffers[address] = []
-        #print 'handle_read ', 'buffer'+''.join(self.in_buffers[address]) if len(messages)<20 else type(messages), len(messages)
-        self.read(messages, address)
+        self.read(address, messages)
         
 
     
     def handle_accept(self, stream):
-        
         if stream==IN:
             conn, (address, in_fileno) = self.insock.accept()
             in_fileno = conn.fileno()
@@ -123,12 +145,11 @@ class EpollServer:
         self.in_buffers[address] = []
         self.out_buffers[address] = []
         #регистрируем
-        self.poll.register(in_fileno, select.EPOLLIN)
-        self.poll.register(out_fileno, select.EPOLLOUT)
+        self.poll.register(in_fileno, EPOLLIN)
+        self.poll.register(out_fileno, EPOLLOUT)
         #реагируем на появление нового клиента
         self.accept(address)
-    
-  
+
 
     
     def get_address(self, fileno):
@@ -137,11 +158,9 @@ class EpollServer:
                 return address
         raise FilenoError(fileno, 'FilenoError')
     
-    def has_reponse(self, fileno):
-        address = self.get_address(fileno)
-        return bool(self.responses[address])
 
     def run(self):
+        print 'Server running at %s:(%s,%s)' % (HOSTNAME, IN_PORT, OUT_PORT)
         self.insock.listen(self.listen_num)
         self.outsock.listen(self.listen_num)
         try:
@@ -150,61 +169,55 @@ class EpollServer:
                 for fileno, event in events:
                     try:
                         if fileno==self.in_fileno:
-                            print 'self.handle_accept_in(%s)' % fileno
+                            #print 'self.handle_accept_in(%s)' % fileno
                             self.handle_accept(IN)
                         elif fileno==self.out_fileno:
-                            print 'self.handle_accept_out(%s)' % fileno
+                            #print 'self.handle_accept_out(%s)' % fileno
                             self.handle_accept(OUT)
-                        elif (event & select.EPOLLIN): 
-                            print 'self.handle_read(%s)' % fileno
+                        elif event==EPOLLIN: 
+                            #print 'self.handle_read(%s)' % fileno
                             self.handle_read(fileno)
-                        elif (event & select.EPOLLOUT) and self.has_reponse(fileno):
-                            print 'self.handle_write(%s) %s' % (fileno, str( self.responses))
+                        elif event==EPOLLOUT:
+                            #print 'self.handle_write(%s) %s' % (fileno, str(len(self.responses)))
                             self.handle_write(fileno)
-                        elif event & select.EPOLLHUP: 
-                            print 'self.handle_close(%s)' % fileno
-                            self.handle_close(fileno)
                     except socket.error as Error:
                         self.handle_error(Error, fileno, event)
                     except FilenoError, excp:
                         print excp
                         self.handle_close(excp.fileno)
+
         finally:
             self.stop()
     
-    def handle_close(self, fileno):
-        try:
-            address = self.get_address(fileno)
-        except FilenoError:
-            print 'handle_close fileno_error %s with %s' % (fileno, str(self.clients))
-        else:
-            in_fileno, out_fileno = self.clients[address]
-            
-            self.poll.unregister(in_fileno)
-            self.poll.unregister(out_fileno)
-            print 'unregister', in_fileno, out_fileno
-            
-            self.insocks[in_fileno].close()
-            del self.insocks[in_fileno]
-            self.outsocks[out_fileno].close()
-            del self.outsocks[out_fileno]
-            
-            del self.clients[address]
-            del self.requests[address]
-            del self.responses[address]
-            del self.in_buffers[address]
-            del self.out_buffers[address]
-            try:
-                self.address_list.remove(address)
-            except ValueError:
-                pass
+    def handle_close(self, address):
+        self.close(address)
+        in_fileno, out_fileno = self.clients[address]
         
-            self.close(address)
-            print('Closing %s(%s,%s)' % (address, in_fileno, out_fileno))
+        self.poll.unregister(in_fileno)
+        self.poll.unregister(out_fileno)
+        print 'unregister', in_fileno, out_fileno
+        
+        self.insocks[in_fileno].close()
+        del self.insocks[in_fileno]
+        self.outsocks[out_fileno].close()
+        del self.outsocks[out_fileno]
+        
+        del self.clients[address]
+        del self.requests[address]
+        del self.responses[address]
+        del self.in_buffers[address]
+        del self.out_buffers[address]
+        try:
+            self.address_list.remove(address)
+        except ValueError:
+            pass
+    
+        
+        print('Closing %s(%s,%s)' % (address, in_fileno, out_fileno))
     
     def handle_error(self, error, fileno, event):
+        print '%s error %s' % (fileo, error)
         self.handle_close(fileno)
-        self.log.write(str(fileno, event) + '\n')
     
     def stop(self):
         self.poll.unregister(self.in_fileno)
@@ -212,44 +225,74 @@ class EpollServer:
         self.poll.close()
         self.insock.close()
         self.outsock.close()
-        self.log.close()
         print('Stopped')
         if PROFILE:
             print 'profile'
             stats = pstats.Stats('/tmp/server_pyglet.stat')
             stats.sort_stats('cumulative')
             stats.print_stats()
+    
 
-class GameServer(EpollServer):
+
+class GameServer(EpollServer, TimerCallable):
     def __init__(self):
         EpollServer.__init__(self)
+        TimerCallable.__init__(self)
         self.games = {}
         self.player_list = []
+        self.client_requestes = {}
+        self.client_responses = {}
+    
+    def timer_handler(self):
+        for client, game in self.games.items():
+            try:
+                vector = self.client_requestes[client].pop()
+            except IndexError:
+                vector = Point(0,0)
+            self.games[client].go(vector)
+            self.client_responses[client].append(self.games[client].look())
         
-    def accept(self, address):
+        
+    def accept(self, client):
         "вызывается при подключении клиента"
-        self.games[address] = Game(16)
-        message = pack_server_accept(*self.games[address].accept())
+        self.games[client] = Game(16)
+        message = pack_server_accept(*self.games[client].accept())
         print 'accept_data', type(message), len(message)
-        self.put_message(address, message)
+        self.client_requestes[client] = []
+        self.client_responses[client] = []
+        self.put_message(client, message)
 
 
-    def read(self, messages, address):
+    def write(self, client):
+        if self.client_responses[client]:
+            print 'write', len(self.client_responses[client])
+            for response in self.client_responses[client]:
+                data = pack_server_message(*response)
+                self.put_message(client, data)
+            self.client_responses[client] = []
+    
+    def read(self, client, messages):
+        if messages:
+            print 'read', messages
         for message in messages:
-            vector = unpack_client_message(message)
-            self.games[address].go(vector)
-            data = pack_server_message(*self.games[address].look())
-            print 'read_data', message, '->', data
-            self.put_message(address, data)
-
+            request = unpack_client_message(message)
+            self.client_requestes[client].append(request)
     
     def close(self, address):
         del self.games[address]
-        print 'closing game', address
+        del self.client_requestes[address]
+        del self.client_responses[address]
+    
+    def start(self):
+        self.start_timer()
+        self.run()
+
+
+        
 
 def main():
     server = GameServer()
-    server.run()
+    server.start()
 
 if __name__ == '__main__':
     PROFILE = 0

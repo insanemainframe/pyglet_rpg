@@ -49,7 +49,7 @@ class SelectClient:
                 return []
         else:
             messages = []
-            print 'handle_read', data
+            #print 'handle_read', data
             for char in data:
                 if char!=EOL:
                     self.buff+=char
@@ -79,7 +79,10 @@ class SelectClient:
                 self.handle_error(Error)
        
         
-    
+    def close_conn(self):
+        self.insock.close()
+        self.outsock.close()
+        
     def handle_close(self):
         print 'connection closed'
     def handle_error(self, Error):

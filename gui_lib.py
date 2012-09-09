@@ -49,9 +49,8 @@ class InputHandle:
     def on_key_press(self, symbol, modifiers):
         "движение с помощью клавиатуры"
         if symbol in (UP,DOWN, LEFT,RIGHT):
-            self.vector = self.vectors[symbol]
-            self.key_pressed  = symbol
-            self.key_timer = time()
+            self.send_vector(self.vectors[symbol])
+            
             
         
     
@@ -60,7 +59,7 @@ class InputHandle:
         #левая кнопка - движение
         if button==1:
             vector = (Point(x,y) - self.center)
-            self.vector = vector
+            self.send_vector(vector)
 
             
 class Drawable:

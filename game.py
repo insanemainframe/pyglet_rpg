@@ -6,13 +6,15 @@ from pyglet.gl import *
 
 from os import listdir
 from math import hypot
-
+from sys import exit
 from engine_lib import Game
 from math_lib import Point
 from gui_lib import TimerObject, Drawable, InputHandle
 from map_lib import Map
 from client_lib import Client
 from protocol_lib import *
+
+
 
 
 from config import *
@@ -41,9 +43,6 @@ class GameWindow():
     @staticmethod
     def create_tile(point, tilename):
         "создае тайл"
-        #tile = pyglet.sprite.Sprite(GameWindow.tiledict[tilename])
-        #tile.x, tile.y = point.round().get()
-        #return tile
         return (tilename, point.get())
     
     @staticmethod
@@ -77,11 +76,11 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
         self.land = LandView(world_size, position, tiles)
         self.objects.insert(objects)
         
-
+    def send_vector(self, vector):
+        self.send(vector)
     
     def update(self, dt):
-        if self.vector:
-            self.send(self.vector)
+        self.loop()
         delta = self.get_delta()
         vector = self.shift*delta
         self.shift = self.shift - vector
@@ -100,18 +99,17 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
         "обращение к движку"
         self.force_complete()
         #net
-        self.loop()
-        self.vector = Point(0,0)
-        if self.in_messages:
-            message = self.in_messages.pop(0)
+        
+        for message in self.in_messages:
             print 'receive', message
             move_vector, newtiles, objects, objects_update = message
             #/net
-            self.shift = move_vector
+            self.shift += move_vector
     
             self.land.update()
             self.land.insert(newtiles)
             self.objects.insert(objects, objects_update)
+        self.in_messages = []
         self.set_timer()
         logger.debug('>\n')
         
@@ -134,6 +132,11 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
         pyglet.clock.schedule_interval(self.round_update, self.timer_value)
         
         pyglet.app.run()
+    
+    def on_close(self):
+        print 'closing'
+        self.close_conn()
+        exit()
 
 
 class LandView(GameWindow,  Drawable, Map):

@@ -5,6 +5,7 @@ PLAYERSPEED = 80
 BLOCKTILES = ['stone', 'water', 'forest']
 ANIMATED_TILES = [] #['player']
 ROUND_TIMER = 0.1
+SERVER_TIMER = 0.1
 HOSTNAME = '127.0.0.1' #'89.105.156.179' #
 IN_PORT = 1488
 OUT_PORT = 1489

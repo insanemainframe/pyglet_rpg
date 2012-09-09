@@ -43,9 +43,9 @@ def pack_client_message(vector):
 def unpack_client_message(message):
     try:
         x,y = loads(message)
-    except ValueError:
-        print 'unpack_client_message', message
-        raise ValueError
+    except (ValueError, TypeError), exception:
+        print 'unpack_client_message for %s with %s' % (message, exception)
+        raise type(exception)
     return Point(x,y)
 
 
