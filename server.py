@@ -255,7 +255,7 @@ class GameServer(EpollServer, TimerCallable):
         
     def accept(self, client):
         "вызывается при подключении клиента"
-        self.games[client] = Game(16)
+        self.games[client] = Game(7)
         message = pack_server_accept(*self.games[client].accept())
         print 'accept_data', type(message), len(message)
         self.client_requestes[client] = []

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from random import randrange
+
 from math_lib import *
 from map_lib import World, MetaMap
 
@@ -17,8 +19,8 @@ class Game(GameObject):
     def __init__(self, look_size):
         world = World()
         self.configure(world, look_size)
-
-        self.player = Player(Point(self.size/2*TILESIZE, self.size/2*TILESIZE), look_size)
+        player_position = Point(randrange(self.size)*TILESIZE-look_size,randrange(self.size)*TILESIZE-look_size)
+        self.player = Player(player_position, look_size)
 
     def accept(self):
         "впервое обращение клиента, возвращает размер карты, позицию и первые тайлы "

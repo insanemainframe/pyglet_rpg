@@ -4,9 +4,11 @@ import pyglet
 from pyglet.image.codecs.png import PNGImageDecoder
 from pyglet.gl import *
 
+
 from os import listdir
 from math import hypot
 from sys import exit
+
 from engine_lib import Game
 from math_lib import Point
 from gui_lib import TimerObject, Drawable, InputHandle
@@ -83,6 +85,8 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
         self.loop()
         delta = self.get_delta()
         vector = self.shift*delta
+        if vector> self.shift:
+            vector = self.shift
         self.shift = self.shift - vector
         self.land.move_position(vector)
         self.land.update()
@@ -91,9 +95,11 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
     def force_complete(self):
         "завершает перемщение по вектору"
         if self.shift:
+            print self.shift
             self.land.move_position(self.shift)
             self.shift = Point(0,0)
             self.land.update()
+            self.objects.update(0)
     
     def round_update(self, dt):
         "обращение к движку"
@@ -101,7 +107,6 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
         #net
         
         for message in self.in_messages:
-            print 'receive', message
             move_vector, newtiles, objects, objects_update = message
             #/net
             self.shift += move_vector
@@ -169,7 +174,10 @@ class LandView(GameWindow,  Drawable, Map):
         for i in xrange(I-rad, I+rad):
             for j in xrange(J-rad, J+rad):
                 i,j = self.resize(i), self.resize(j)
-                tile_type = self.map[i][j]
+                try:
+                    tile_type = self.map[i][j]
+                except IndexError:
+                    tile_type = False
                 if not tile_type:
                     tile_type = 'fog'
                 point = (Point(i,j)*TILESIZE)-self.position
@@ -183,7 +191,8 @@ class LandView(GameWindow,  Drawable, Map):
         logger.debug('looked len %s' % len(looked))
         self.tiles = [self.create_tile(point+self.center, tile_type) for point, tile_type in looked]
 
-    
+
+
 class ObjectsView(GameWindow, Drawable):
     def __init__(self):
         Drawable.__init__(self)
@@ -206,13 +215,15 @@ class ObjectsView(GameWindow, Drawable):
     def update(self, delta):
         if self.updates:
             for object_name, vector in self.updates.items():
-                move_vector = vector * delta
-                mod_vector = vector - move_vector
-                if abs(mod_vector)>0:
-                    self.objects[object_name]['position']+= move_vector
-                    self.updates[object_name] = mod_vector
+                if delta:
+                    move_vector = vector * delta
+                    if move_vector>vector:
+                        move_vector = vector
                 else:
-                    self.objects[object_name]['position'] += vector
+                    move_vector = vector
+                if  vector:
+                        self.objects[object_name]['position']+= move_vector
+                        self.updates[object_name]-= move_vector
         
         #отображение объектов
         self.tiles = []

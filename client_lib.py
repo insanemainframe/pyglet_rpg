@@ -114,7 +114,7 @@ class Client(SelectClient):
         
     
     def receive(self, message):
-        print 'client.receive', message
+        #print 'client.receive', message
         move_vector, land, objects, objects_updates = unpack_server_message(message)
         self.in_messages.append((move_vector, land, objects, objects_updates))
               

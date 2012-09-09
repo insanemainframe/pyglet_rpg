@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from math_lib import Point
+
 from anyjson import serialize as dumps, deserialize as loads
 
 
