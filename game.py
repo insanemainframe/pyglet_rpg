@@ -14,11 +14,11 @@ from protocol_lib import *
 
 from config import *
 
-class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window, AskHostname): 
+class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Window, AskHostname): 
     def __init__(self,size):
         AskHostname.__init__(self)
         pyglet.window.Window.__init__(self, size, size)
-        TimerObject.__init__(self)
+        DeltaTimerObject.__init__(self)
         InputHandle.__init__(self)
         Client.__init__(self)
         
@@ -113,15 +113,12 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window, As
         
     def run(self):
         "старт"
-        print 'loop'
         pyglet.clock.schedule(self.update)
         pyglet.clock.schedule_interval(self.round_update, self.timer_value)
-        
         pyglet.app.run()
     
     def on_close(self):
-        print 'closing'
-        self.close_conn()
+        self.close_connection()
         exit()
 
 

@@ -39,13 +39,13 @@ class TimerCallable:
         
 
 class EpollServer:
-    def __init__(self, host=HOSTNAME, listen_num=10):
+    def __init__(self, listen_num=10):
         
         self.poll = epoll()
         self.listen_num = listen_num
         
-        self.insock, self.in_fileno = self.create_socket(host, IN_PORT)
-        self.outsock, self.out_fileno = self.create_socket(host, OUT_PORT)
+        self.insock, self.in_fileno = self.create_socket(IN_PORT)
+        self.outsock, self.out_fileno = self.create_socket(OUT_PORT)
         
         
         self.address_buf = {}
@@ -59,11 +59,11 @@ class EpollServer:
         self.out_buffers = {}
         
             
-    def create_socket(self, host, port):
+    def create_socket(self, port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.setblocking(0)
-        sock.bind((host, port))
+        sock.bind((self.hostname, port))
         fileno = sock.fileno()
         self.poll.register(fileno, EPOLLIN)
         return sock, fileno

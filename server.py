@@ -4,11 +4,13 @@ from engine_lib import Player, GameObject
 from math_lib import Point
 from protocol_lib import *
 from server_lib import EpollServer, TimerCallable
+from gui_lib import AskHostname
 
 from config import PROFILE, TILESIZE
 
-class GameServer(EpollServer, TimerCallable, GameObject):
+class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
     def __init__(self):
+        AskHostname.__init__(self)
         EpollServer.__init__(self)
         TimerCallable.__init__(self)
         self.player_list = []
@@ -36,7 +38,6 @@ class GameServer(EpollServer, TimerCallable, GameObject):
         self.client_responses[client] = []
         
         message = pack_server_accept(*self.players[client].accept())
-        print 'accept_data', type(message), len(message)
         
         self.put_message(client, message) 
 

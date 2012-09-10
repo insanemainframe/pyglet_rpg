@@ -79,7 +79,7 @@ class AskHostname:
             return False
         
             
-class TimerObject:
+class DeltaTimerObject:
     "объект с таймером и deltatime"
     def __init__(self):
         self.timer_value = ROUND_TIMER

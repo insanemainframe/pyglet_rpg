@@ -8,21 +8,17 @@ from config import EOL, HOSTNAME, IN_PORT, OUT_PORT
 class SelectClient:
     def __init__(self):
         self.buff = ''
+        self.outsock, self.out_fileno = self.create_sock(IN_PORT)
+        self.insock, self.in_fileno = self.create_sock(OUT_PORT)
         
-        self.outsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.outsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.outsock.connect((self.hostname,IN_PORT))
-        self.outsock.setblocking(0)
-        self.out_fileno = self.outsock.fileno()
-        print 'output connection'
-        
-        self.insock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.insock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.insock.connect((self.hostname,OUT_PORT))
-        self.insock.setblocking(0)
-        self.in_fileno = self.insock.fileno()
-        print 'input connection'
-    
+    def create_sock(self, port):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.connect((self.hostname,port))
+        sock.setblocking(0)
+        fileno = sock.fileno()
+        return sock, fileno
+            
     def handle_write(self):
         if self.out_messages:
             messages = EOL.join(self.out_messages) + EOL
@@ -45,6 +41,9 @@ class SelectClient:
             else:
                 return []
         else:
+            if not data:
+                self.handle_close()
+                return
             messages = []
             #print 'handle_read', data
             for char in data:
@@ -75,12 +74,15 @@ class SelectClient:
                 self.handle_error(Error)
        
         
-    def close_conn(self):
+    def close_connection(self):
         self.insock.close()
         self.outsock.close()
+        print 'connection closed'
         
     def handle_close(self):
+        self.on_close()
         print 'connection closed'
+    
     def handle_error(self, Error):
         print Error
         sys.exit()
@@ -93,7 +95,7 @@ class Client(SelectClient):
         self.out_messages = []
     
     def wait_for_accept(self):
-        print 'waiting for accept'
+        print 'waiting for acception'
         self.loop()
         if self.accept_message:
             print 'accepted'
