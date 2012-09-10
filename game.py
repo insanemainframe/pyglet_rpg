@@ -6,7 +6,6 @@ from pyglet.gl import *
 from math import hypot
 from sys import exit
 
-from engine_lib import Game
 from math_lib import Point
 from gui_lib import *
 from map_lib import Map

@@ -3,50 +3,38 @@
 from random import randrange
 
 from math_lib import *
-from map_lib import World, MetaMap
+from map_lib import World
 
 from config import TILESIZE, PLAYERSPEED, BLOCKTILES ,logger
 
 class GameObject:
+    "разделяемое состоние объектов карты"
     @staticmethod
-    def configure(world,rad):
-        GameObject.world = world
-        GameObject.size = world.size
-        GameObject.rad = rad
-        print 'create game', world.size
+    def init():
+        cls = GameObject
+        if not hasattr(cls,'created'):
+            cls.world =  World()
+            cls.size = cls.world.size
+            cls.players = {}
+            cls.new_objects = {}
+            cls.object_updates = {}
+            cls.created = True
+            print 'create world', cls.world.size
+    @staticmethod
+    def init_player(name, player_position):
+        cls = GameObject
+        cls.players[name] = player_position
+        
+    @staticmethod
+    def add_object(name):
+        cls = MetaMap
+        cls.objects.append(name)
+    @staticmethod
+    def move_on_map(name, vector):
+        cls = MetaMap
+        cls.objects_updates
 
-class Game(GameObject):
-    def __init__(self, look_size):
-        world = World()
-        self.configure(world, look_size)
-        player_position = Point(randrange(self.size)*TILESIZE-look_size,randrange(self.size)*TILESIZE-look_size)
-        player_position = Point(self.size*TILESIZE/2, self.size*TILESIZE/2)
-        self.player = Player(player_position, look_size)
-
-    def accept(self):
-        "впервое обращение клиента, возвращает размер карты, позицию и первые тайлы "
-        position = self.player.position
-        land, objects = self.player.look()
-        world_size = self.world.size
-        return  world_size, position, land #, {'Player':(position,'player')}
-    
-    def go(self, vector):
-        move_vector = self.player.go(vector)
-        self.player.move_vector = move_vector
-    
-    def get_vector(self):
-        return self.player.move_vector
-    
-    def get_position(self):
-        return self.player.position
-        
-    def look(self):
-        land, objects = self.player.look()
-        return self.player.move_vector, land #, {'Player':self.player.move_vector}
-        
-        
-    
-class Movable(MetaMap):
+class Movable(GameObject):
     def __init__(self, position, speed):
         self.vector  = Point(0,0)
         self.speed = speed
@@ -62,41 +50,76 @@ class Movable(MetaMap):
         if self.vector:
             #проверка столкновения
             i,j = get_cross(self.position, self.vector)
-            cross_tile =  self.map[i][j]
+            cross_tile =  self.world.map[i][j]
             if cross_tile in BLOCKTILES:
                 self.vector = Point(0,0)
                 return self.vector
             part = self.speed / abs(self.vector) # доля пройденного пути в векторе
             move_vector = self.vector * part if part<1 else self.vector
             self.vector = self.vector - move_vector
-            self.position = self.position + move_vector
-            return move_vector
+            self.move_vector = move_vector
         else:
-            return self.vector
-    
-
+            self.move_vector = self.vector
+        self.position+=self.move_vector
 
 class Player(Movable, GameObject):
-    def __init__(self, position, rad):
-        Movable.__init__(self, position, PLAYERSPEED)
-        self.rad = rad
+    def __init__(self, name, player_position, look_size):
+        Movable.__init__(self, player_position, PLAYERSPEED)
+        self.name = name
+        self.look_size = look_size
+        self.init_player(name,  self.position)
+        self.new_objects[name] = {}
+        self.object_updates[name] = {}
         self.prev_looked = set()
+
+    def accept(self):
+        """впервое обращение клиента, возвращает размер карты, позицию и первые тайлы"""
+        looked = self.world.look(self.position, self.look_size)
+        new_looked = looked - self.prev_looked
+        self.prev_looked = looked
         
+        world_size = self.world.size
+        objects = {name:(position,'player') for name,position in self.players.items()}
+        #оповещаем всех о своем появлении
+        for name in self.players.keys():
+            if name!=self.name:
+                self.new_objects[name][self.name] = self.position
+                
+        return  world_size, self.position, looked, objects
     
     def go(self, vector):
-        #print 'GO', vector
-        return self.move(vector)
+        self.move(vector)
+        self.players[self.name]+=self.position
+        for client, update_dict in self.object_updates.items():
+            self.object_updates[client][self.name] = self.move_vector
     
+
+        
     def look(self):
-        #получаем видимые тайлы
-        looked =self.world.look(self.position, self.rad)
-        #print 'GAME', len(looked), len(self.prev_looked), self.position
-        
+        #получаем новые видимые тайлы
+        looked =self.world.look(self.position, self.look_size)
         new_looked = looked - self.prev_looked
-
         self.prev_looked = looked
-            
         
+        #ищем новые объекты
+        new_objects = {}
+        for name, position in self.new_objects[self.name].items():
+            if name!=self.name:
+                new_objects[name] = (position,'player')
+        self.new_objects[self.name] = {}
+        #ищем бновления объектов
+        updates = self.object_updates[self.name]
+        self.object_updates[self.name] = {}
+        return self.move_vector, new_looked, new_objects, updates
+    
+    def __del__(self):
+        del self.players[self.name]
+        del self.new_objects[self.name]
+        del self.object_updates[self.name]
+        #оповещаем других игроков о выходе
+        for client, update_dict in self.object_updates.items():
+            self.object_updates[client][self.name] = 'remove'
+        
+    
 
-        return (new_looked, {})
             

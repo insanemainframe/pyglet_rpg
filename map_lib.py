@@ -15,35 +15,11 @@ class Map:
             return cord - self.size
         else:
             return cord        
-
-class MetaMap:
-    "разделяемое состояние объектов карты"
-    @staticmethod
-    def init():
-        cls = MetaMap
-        if not hasattr(cls,'created'):
-            worldmap, size = load_map()
-            cls.map = worldmap
-            cls.size = size
-            cls.objects = []
-            cls.objects_updates = []
-            cls.created = True
-    @staticmethod
-    def add_object(name):
-        cls = MetaMap
-        cls.objects.append(name)
-    @staticmethod
-    def move_on_map(name, vector):
-        cls = MetaMap
-        cls.objects_updates
-        
-            
-        
     
-class World(MetaMap, Map):
+class World(Map):
     "класс карты как со стороны ссервера"
     def __init__(self):
-        self.init()
+        self.map, self.size = load_map()
         print 'server world size', self.size
 
             

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 TILESIZE = 40
-PLAYERSPEED = 80
+PLAYERSPEED = 40
 BLOCKTILES = ['stone', 'water', 'forest']
 ANIMATED_TILES = [] #['player']
 ROUND_TIMER = 0.1

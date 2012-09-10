@@ -168,16 +168,12 @@ class EpollServer:
                 for fileno, event in events:
                     try:
                         if fileno==self.in_fileno:
-                            #print 'self.handle_accept_in(%s)' % fileno
                             self.handle_accept(IN)
                         elif fileno==self.out_fileno:
-                            #print 'self.handle_accept_out(%s)' % fileno
                             self.handle_accept(OUT)
                         elif event==EPOLLIN: 
-                            #print 'self.handle_read(%s)' % fileno
                             self.handle_read(fileno)
                         elif event==EPOLLOUT:
-                            #print 'self.handle_write(%s) %s' % (fileno, str(len(self.responses)))
                             self.handle_write(fileno)
                     except socket.error as Error:
                         self.handle_error(Error, fileno, event)
