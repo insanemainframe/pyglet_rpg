@@ -7,18 +7,17 @@ from server_lib import EpollServer, TimerCallable
 
 from config import PROFILE, TILESIZE
 
-class GameServer(EpollServer, TimerCallable):
+class GameServer(EpollServer, TimerCallable, GameObject):
     def __init__(self):
         EpollServer.__init__(self)
         TimerCallable.__init__(self)
-        self.games = {}
         self.player_list = []
         self.client_requestes = {}
         self.client_responses = {}
-        GameObject.init()
+        self.init()
     
     def timer_handler(self):
-        for client, game in self.games.items():
+        for client, game in self.players.items():
             try:
                 vector = self.client_requestes[client].pop()
             except IndexError:
@@ -32,11 +31,11 @@ class GameServer(EpollServer, TimerCallable):
         "вызывается при подключении клиента"
         #player_position = Point(randrange(self.size)*TILESIZE-look_size,randrange(self.size)*TILESIZE-look_size)
         player_position = Point(GameObject.size*TILESIZE/2, GameObject.size*TILESIZE/2)
-        self.games[client] = Player(client, player_position,7)
+        self.players[client] = Player(client, player_position,7)
         self.client_requestes[client] = []
         self.client_responses[client] = []
         
-        message = pack_server_accept(*self.games[client].accept())
+        message = pack_server_accept(*self.players[client].accept())
         print 'accept_data', type(message), len(message)
         
         self.put_message(client, message) 
@@ -58,7 +57,9 @@ class GameServer(EpollServer, TimerCallable):
             self.client_requestes[client].append(request)
     
     def close(self, client):
-        del self.games[client]
+        from sys import getrefcount
+        print getrefcount(self.players[client])
+        del self.players[client]
         del self.client_requestes[client]
         del self.client_responses[client]
 

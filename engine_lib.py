@@ -25,14 +25,6 @@ class GameObject:
         cls = GameObject
         cls.players[name] = player_position
         
-    @staticmethod
-    def add_object(name):
-        cls = MetaMap
-        cls.objects.append(name)
-    @staticmethod
-    def move_on_map(name, vector):
-        cls = MetaMap
-        cls.objects_updates
 
 class Movable(GameObject):
     def __init__(self, position, speed):
@@ -53,11 +45,11 @@ class Movable(GameObject):
             cross_tile =  self.world.map[i][j]
             if cross_tile in BLOCKTILES:
                 self.vector = Point(0,0)
-                return self.vector
-            part = self.speed / abs(self.vector) # доля пройденного пути в векторе
-            move_vector = self.vector * part if part<1 else self.vector
-            self.vector = self.vector - move_vector
-            self.move_vector = move_vector
+            else:
+                part = self.speed / abs(self.vector) # доля пройденного пути в векторе
+                move_vector = self.vector * part if part<1 else self.vector
+                self.vector = self.vector - move_vector
+                self.move_vector = move_vector
         else:
             self.move_vector = self.vector
         self.position+=self.move_vector
@@ -67,7 +59,6 @@ class Player(Movable, GameObject):
         Movable.__init__(self, player_position, PLAYERSPEED)
         self.name = name
         self.look_size = look_size
-        self.init_player(name,  self.position)
         self.new_objects[name] = {}
         self.object_updates[name] = {}
         self.prev_looked = set()
@@ -79,7 +70,7 @@ class Player(Movable, GameObject):
         self.prev_looked = looked
         
         world_size = self.world.size
-        objects = {name:(position,'player') for name,position in self.players.items()}
+        objects = {name:(player.position,'player') for name, player in self.players.items()}
         #оповещаем всех о своем появлении
         for name in self.players.keys():
             if name!=self.name:
@@ -89,7 +80,6 @@ class Player(Movable, GameObject):
     
     def go(self, vector):
         self.move(vector)
-        self.players[self.name]+=self.position
         for client, update_dict in self.object_updates.items():
             self.object_updates[client][self.name] = self.move_vector
     
@@ -113,12 +103,14 @@ class Player(Movable, GameObject):
         return self.move_vector, new_looked, new_objects, updates
     
     def __del__(self):
-        del self.players[self.name]
         del self.new_objects[self.name]
         del self.object_updates[self.name]
+        #удаляем себя из списка объектов
         #оповещаем других игроков о выходе
         for client, update_dict in self.object_updates.items():
             self.object_updates[client][self.name] = 'remove'
+        print '__del__ %s' % self.name
+        
         
     
 
