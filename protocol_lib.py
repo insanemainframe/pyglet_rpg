@@ -2,7 +2,15 @@
 # -*- coding: utf-8 -*-
 from math_lib import Point
 
-from anyjson import serialize as dumps, deserialize as loads
+from anyjson import serialize as dumps, deserialize as jloads
+
+def loads(s):
+    try:
+        return jloads(s)
+    except Exception, exception:
+        print s
+        print exception
+        raise exception
 
 def pack_server_accept(world_size, position, land, objects):
     land = [point.get()+(tilename,) for point, tilename in land]
@@ -19,27 +27,35 @@ def unpack_server_accept(data):
     objects = {object_name :(Point(x,y), tilename) for object_name, (x,y), tilename in objects}
     return world_size, position, land, objects
     
-def pack_server_message(move_vector, land, objects, objects_updates):
+def pack_server_message(move_vector, land, objects, updates):
     move_vector = move_vector.get()
     land = [point.get()+(tilename,) for point, tilename in land]
-    new_objects = [(object_name, position.get(), tilename) for object_name, (position, tilename) in objects.items()]
-    objects_updates = [(object_name, vector.get()) for object_name, vector in objects_updates.items()]
-    data = move_vector, land, new_objects, objects_updates
+    new_objects = [(name, position.get(), tile) for name, (position, tile) in objects.items()]
+    updates = [(name,update) if update is 'remove' else (name, update.get()) for name, update in updates.items()]
+    data = move_vector, land, new_objects, updates
+    return dumps(data)
+
+def f(update):
     try:
-        return dumps(data)
-    except:
-        print data
+        if isinstance(update, list):
+            return Point(*update)
+        else:
+            return update
+    except Exception ,exception:
+        print update
+        print exception
+        raise exception
 
 def unpack_server_message(data):
     if not data:
         return None
-    (x,y), land, objects, objects_updates = loads(data)
+    (x,y), land, objects, updates = loads(data)
     move_vector = Point(x,y)
     land =  [(Point(x,y),tilename) for x,y, tilename in land]
     objects = {object_name:(Point(x,y), tilename) for object_name, (x,y), tilename in objects}
-    objects_updates = {object_name:Point(x,y) for object_name, (x,y) in objects_updates}
+    updates = {name:f(update) for name, update in updates}
     
-    return move_vector, land, objects, objects_updates
+    return move_vector, land, objects, updates
     
 def pack_client_message(vector):
     return dumps(vector.get())

@@ -72,6 +72,11 @@ class GameServer(EpollServer, TimerCallable):
             if name!=client_name:
                 print 'elf.new_objects[%s[%s] %s' % (name, client_name, position)
                 self.new_objects[name][client_name] = position
+    
+    def alarm_close(self, client_name):
+        for client, update_dict in self.object_updates.items():
+            self.object_updates[client][client_name] = 'remove'
+        
             
 
 
@@ -96,6 +101,7 @@ class GameServer(EpollServer, TimerCallable):
         del self.client_responses[client]
         del self.new_objects[client]
         del self.object_updates[client]
+        self.alarm_close(client)
 
     
     def start(self):

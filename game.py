@@ -86,7 +86,7 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
                 move_vector, newtiles, objects, objects_update = message
                 if move_vector or objects or objects_update:
                     t = (self.position, move_vector, objects, objects_update)
-                    print 'selfposition %s + %s objects %s objects_update %s' % t
+                    #print 'selfposition %s + %s objects %s objects_update %s' % t
                 self.shift += move_vector
         
                 self.land.update()
@@ -185,7 +185,10 @@ class ObjectsView(GameWindow, Drawable):
         if updates:
             for object_name, vector in updates.items():
                 if object_name in self.updates:
-                    self.updates[object_name] += vector
+                    if isinstance(vector,Point):
+                        self.updates[object_name] += vector
+                    else:
+                        self.updates[object_name] = vector
                 else:
                      self.updates[object_name] = vector
         if new_objects:
@@ -195,16 +198,21 @@ class ObjectsView(GameWindow, Drawable):
             
     def update(self, delta):
         if self.updates:
-            for object_name, vector in self.updates.items():
-                if delta:
-                    move_vector = vector * delta
-                    if move_vector>vector:
+            for object_name, update in self.updates.items():
+                if isinstance(update,Point):
+                    vector = update
+                    if delta:
+                        move_vector = vector * delta
+                        if move_vector>vector:
+                            move_vector = vector
+                    else:
                         move_vector = vector
+                    if  vector:
+                            self.objects[object_name]['position']+= move_vector
+                            self.updates[object_name]-= move_vector
                 else:
-                    move_vector = vector
-                if  vector:
-                        self.objects[object_name]['position']+= move_vector
-                        self.updates[object_name]-= move_vector
+                    del self.updates[object_name]
+                    del self.objects[object_name]
         
         #отображение объектов
         self.tiles = []
