@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import pyglet
-from pyglet.image.codecs.png import PNGImageDecoder
 from pyglet.gl import *
 
-
-from os import listdir
 from math import hypot
 from sys import exit
 
@@ -16,41 +13,7 @@ from map_lib import Map
 from client_lib import Client
 from protocol_lib import *
 
-
-
-
 from config import *
-
-class GameWindow():
-    "разделяемое состояние элементов gui"
-    @staticmethod
-    def configure(size):
-        cls = GameWindow
-        cls.size = size
-        cls.window_size = size
-        cls.center = Point(cls.window_size/2,cls.window_size/2)
-        print 'window center',cls.center
-        cls.rad = (size/2)
-        cls.clock_setted = False
-        cls.complete = 0
-        
-    @staticmethod
-    def gentiles():
-        cls = GameWindow
-        names = listdir('images')
-        cls.tiledict = {}
-        for name in names:
-            image = pyglet.image.load('images/%s' % name, decoder=PNGImageDecoder()).get_texture()
-            cls.tiledict[name[:-4]] = image
-
-    
-    @staticmethod
-    def set_position(position):
-        GameWindow.position = position
-
-
-        
-        
 
 class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window): 
     def __init__(self,size):
@@ -68,7 +31,7 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
         self.loading = create_loading(self.center)
         
         self.fps_display = pyglet.clock.ClockDisplay()
-        
+                
         #net
         self.accepted = False
     
@@ -78,7 +41,7 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
             if data:
                 world_size, position, tiles, objects = data
                 
-                print 'accepteed'
+                print 'accepteed position %s objects %s' % (position, objects)
         
                 self.land = LandView(world_size, position, tiles)
                 self.objects.insert(objects)
@@ -121,7 +84,9 @@ class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window):
             
             for message in self.in_messages:
                 move_vector, newtiles, objects, objects_update = message
-                #/net
+                if move_vector or objects or objects_update:
+                    t = (self.position, move_vector, objects, objects_update)
+                    print 'selfposition %s + %s objects %s objects_update %s' % t
                 self.shift += move_vector
         
                 self.land.update()
@@ -171,11 +136,11 @@ class LandView(GameWindow,  Drawable, Map):
         self.tiles = []
         if tiles:
             self.insert(tiles)
-        self.set_position(position)
+        self.set_camera_position(position)
         
     def move_position(self, vector):
         "перемещаем камеру"
-        self.set_position(self.position + vector)
+        self.set_camera_position(self.position + vector)
         
     def insert(self, tiles):
         "обновляет карту, добавляя новые тайлы, координаты - расстояние от стартовой точки"

@@ -32,7 +32,10 @@ class TimerCallable:
         print 'timer started'
         while 1:
             sleep(self.timer_value)
-            self.timer_handler()
+            try:
+                self.timer_handler()
+            except Exception, exception:
+                print exception
         
 
 class EpollServer:

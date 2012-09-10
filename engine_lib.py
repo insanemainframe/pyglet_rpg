@@ -33,6 +33,12 @@ class Game(GameObject):
     def go(self, vector):
         move_vector = self.player.go(vector)
         self.player.move_vector = move_vector
+    
+    def get_vector(self):
+        return self.player.move_vector
+    
+    def get_position(self):
+        return self.player.position
         
     def look(self):
         land, objects = self.player.look()

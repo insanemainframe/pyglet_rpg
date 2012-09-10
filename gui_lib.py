@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from config import TILESIZE, ANIMATED_TILES, ROUND_TIMER
-from math_lib import Point
 from pyglet.window.key import UP, DOWN, LEFT, RIGHT
+from pyglet.image.codecs.png import PNGImageDecoder
 import pyglet
 
 from time import time
+from os import listdir
+
+from math_lib import Point
+
+from config import TILESIZE, ANIMATED_TILES, ROUND_TIMER
+
 
 def create_label(text, point):
     x,y = point.get()
@@ -22,6 +27,33 @@ def create_loading(point):
                           font_size=10,
                           x=x, y=y,
                           anchor_x='center', anchor_y='center').draw()
+class GameWindow():
+    "разделяемое состояние элементов gui"
+    @staticmethod
+    def configure(size):
+        cls = GameWindow
+        cls.size = size
+        cls.window_size = size
+        cls.center = Point(cls.window_size/2,cls.window_size/2)
+        print 'window center',cls.center
+        cls.rad = (size/2)
+        cls.clock_setted = False
+        cls.complete = 0
+        
+    @staticmethod
+    def gentiles():
+        cls = GameWindow
+        names = listdir('images')
+        cls.tiledict = {}
+        for name in names:
+            image = pyglet.image.load('images/%s' % name, decoder=PNGImageDecoder()).get_texture()
+            cls.tiledict[name[:-4]] = image
+
+    
+    @staticmethod
+    def set_camera_position(position):
+        GameWindow.position = position
+
 class TimerObject:
     "объект с таймером и deltatime"
     def __init__(self):

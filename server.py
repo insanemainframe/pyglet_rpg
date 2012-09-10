@@ -16,7 +16,7 @@ class GameServer(EpollServer, TimerCallable):
         self.client_requestes = {}
         self.client_responses = {}
         self.new_objects = {}
-        self.updates = {}
+        self.object_updates = {}
     
     def timer_handler(self):
         for client, game in self.games.items():
@@ -24,12 +24,20 @@ class GameServer(EpollServer, TimerCallable):
                 vector = self.client_requestes[client].pop()
             except IndexError:
                 vector = Point(0,0)
-            self.games[client].go(vector)
-            looked = self.games[client].look()
+            #хдим, смотрим
+            game.go(vector)
+            looked = game.look()
+            #оповещаем остальных о своих передвижениях
+            self.alarm_updates(client, game.get_vector())
+            #ищем новые объекты
             new_objects = {}
             for name, position in self.new_objects[client].items():
-                new_objects[client] = (position,'player')
-            updates = {client:game.player.move_vector}
+                if name!=client:
+                    new_objects[name] = (position,'player')
+            self.new_objects[client] = {}
+            #ищем обновления объектов
+            updates = self.object_updates[client] #{client: game.get_vector()}
+            self.object_updates[client] = {}
             self.client_responses[client].append(looked + (new_objects, updates))
         
         
@@ -39,27 +47,30 @@ class GameServer(EpollServer, TimerCallable):
         self.client_requestes[client] = []
         self.client_responses[client] = []
         self.new_objects[client] = {}
-        self.updates[client] = {}
+        self.object_updates[client] = {}
         
         accept_data = self.games[client].accept() + (self.get_objects(client),)
         message = pack_server_accept(*accept_data)
         print 'accept_data', type(message), len(message)
         
-        
-        
-        self.alarm_new_object(client, self.games[client].player.position)
+        self.alarm_new_object(client, self.games[client].get_position())
         self.put_message(client, message)
     
     def get_objects(self, client):
         new_objects = {}
         for name, game in self.games.items():
-            position = game.player.position
-            new_objects[name]=(position,'player')
+            new_objects[name]=(game.get_position(),'player')
         return new_objects
+    
+    def alarm_updates(self, name, vector):
+        for client, update_dict in self.object_updates.items():
+            #print "self.object_updates[%s][%s] = %s" % (client, name, vector)
+            self.object_updates[client][name] = vector
     
     def alarm_new_object(self, client_name, position):
         for name, game in self.games.items():
             if name!=client_name:
+                print 'elf.new_objects[%s[%s] %s' % (name, client_name, position)
                 self.new_objects[name][client_name] = position
             
 
@@ -79,10 +90,13 @@ class GameServer(EpollServer, TimerCallable):
             request = unpack_client_message(message)
             self.client_requestes[client].append(request)
     
-    def close(self, address):
-        del self.games[address]
-        del self.client_requestes[address]
-        del self.client_responses[address]
+    def close(self, client):
+        del self.games[client]
+        del self.client_requestes[client]
+        del self.client_responses[client]
+        del self.new_objects[client]
+        del self.object_updates[client]
+
     
     def start(self):
         self.start_timer()

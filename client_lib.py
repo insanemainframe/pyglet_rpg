@@ -27,12 +27,12 @@ class SelectClient:
         if self.out_messages:
             messages = EOL.join(self.out_messages) + EOL
             self.out_messages = []
-            print 'sending message', messages
+            #print 'sending message', messages
             self.outsock.send(messages)
             
     
     def put_message(self, message):
-        print 'put_message', message
+        #print 'put_message', message
         self.out_messages.append(message)
     
     def handle_read(self):
