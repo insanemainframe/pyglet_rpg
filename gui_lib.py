@@ -6,10 +6,11 @@ import pyglet
 
 from time import time
 from os import listdir
+import re
 
 from math_lib import Point
 
-from config import TILESIZE, ANIMATED_TILES, ROUND_TIMER
+from config import TILESIZE, ANIMATED_TILES, ROUND_TIMER, HOSTNAME
 
 
 def create_label(text, point):
@@ -54,6 +55,30 @@ class GameWindow():
     def set_camera_position(position):
         GameWindow.position = position
 
+class AskHostname:
+    def __init__(self):
+        self.default = HOSTNAME
+        self.pattern = '^\d+\.\d+\.\d+\.\d+$'
+        message = 'Enter hostname or press Enter for default %s: ' % HOSTNAME
+        while 1:
+            result = raw_input(message)
+            if not result:
+                self.hostname = self.default
+                break
+            elif self.check(result):
+                self.hostname = result
+                break
+            else:
+                print 'invalid value: %s' % self.error
+    
+    def check(self, message):
+        if re.match(self.pattern, message):
+            return True
+        else:
+            self.error = 'wrong format'        
+            return False
+        
+            
 class TimerObject:
     "объект с таймером и deltatime"
     def __init__(self):

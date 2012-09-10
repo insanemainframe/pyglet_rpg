@@ -5,6 +5,7 @@ from math_lib import Point
 from anyjson import serialize as dumps, deserialize as jloads
 
 def loads(s):
+    print s
     try:
         return jloads(s)
     except Exception, exception:

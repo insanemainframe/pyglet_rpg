@@ -14,8 +14,9 @@ from protocol_lib import *
 
 from config import *
 
-class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window): 
+class Gui(GameWindow, TimerObject, Client, InputHandle, pyglet.window.Window, AskHostname): 
     def __init__(self,size):
+        AskHostname.__init__(self)
         pyglet.window.Window.__init__(self, size, size)
         TimerObject.__init__(self)
         InputHandle.__init__(self)

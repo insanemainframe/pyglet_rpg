@@ -11,14 +11,14 @@ class SelectClient:
         
         self.outsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.outsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.outsock.connect((HOSTNAME,IN_PORT))
+        self.outsock.connect((self.hostname,IN_PORT))
         self.outsock.setblocking(0)
         self.out_fileno = self.outsock.fileno()
         print 'output connection'
         
         self.insock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.insock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.insock.connect((HOSTNAME,OUT_PORT))
+        self.insock.connect((self.hostname,OUT_PORT))
         self.insock.setblocking(0)
         self.in_fileno = self.insock.fileno()
         print 'input connection'
