@@ -24,7 +24,7 @@ class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
                 vector = self.client_requestes[client].pop()
             except IndexError:
                 vector = Point(0,0)
-            #хдим, смотрим
+            #ходим, смотрим
             game.go(vector)
             self.client_responses[client].append(game.look())
         
@@ -50,16 +50,12 @@ class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
             self.client_responses[client] = []
     
     def read(self, client, messages):
-        if messages:
-            #print 'read', messages
-            pass
         for message in messages:
             request = unpack_client_message(message)
             self.client_requestes[client].append(request)
     
     def close(self, client):
         from sys import getrefcount
-        print getrefcount(self.players[client])
         del self.players[client]
         del self.client_requestes[client]
         del self.client_responses[client]

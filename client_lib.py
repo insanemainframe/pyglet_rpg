@@ -23,12 +23,10 @@ class SelectClient:
         if self.out_messages:
             messages = EOL.join(self.out_messages) + EOL
             self.out_messages = []
-            #print 'sending message', messages
             self.outsock.send(messages)
             
     
     def put_message(self, message):
-        #print 'put_message', message
         self.out_messages.append(message)
     
     def handle_read(self):
@@ -45,7 +43,6 @@ class SelectClient:
                 self.handle_close()
                 return
             messages = []
-            #print 'handle_read', data
             for char in data:
                 if char!=EOL:
                     self.buff+=char
@@ -84,7 +81,7 @@ class SelectClient:
         print 'connection closed'
     
     def handle_error(self, Error):
-        print Error
+        print 'error', Error
         sys.exit()
     
 class Client(SelectClient):
@@ -112,7 +109,6 @@ class Client(SelectClient):
         
     
     def receive(self, message):
-        #print 'client.receive', message
         move_vector, land, objects, objects_updates = unpack_server_message(message)
         self.in_messages.append((move_vector, land, objects, objects_updates))
               

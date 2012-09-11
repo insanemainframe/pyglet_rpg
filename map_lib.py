@@ -57,17 +57,8 @@ class World(Map):
 
 
 
-def test_client():
-    world = ClientWorld()
-    world.position = Point(10*TILESIZE,10*TILESIZE)
-    for i in xrange(20):
-        for j in xrange(20):
-            world.insert([(Point(i,j),'n')])
-    world.move_position(Point(20,20))
-    print world.look_around(3*TILESIZE)
+
     
 if __name__=='__main__':
     world = World()
-    print len(world.look(Point(999,1001), 12))
-    #test_client()
     

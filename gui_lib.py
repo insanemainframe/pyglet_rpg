@@ -21,13 +21,17 @@ def create_tile(point, tilename):
         "создае тайл"
         return (tilename, point.get(), None)
 
-def create_loading(point):
-    x,y = point.get()
-    return pyglet.text.Label('Waiting for server response',
+class LoadingScreen:
+    def __init__(self, point):
+        x,y = point.get()
+        self.label = pyglet.text.Label('Waiting for server response',
                           font_name='Times New Roman',
                           font_size=10,
                           x=x, y=y,
-                          anchor_x='center', anchor_y='center').draw()
+                          anchor_x='center', anchor_y='center')
+    def draw(self):
+        self.label.draw()
+
 class GameWindow():
     "разделяемое состояние элементов gui"
     @staticmethod
@@ -36,13 +40,13 @@ class GameWindow():
         cls.width = width
         cls.height = height
         cls.center = Point(cls.width/2,cls.height/2)
-        print 'window center',cls.center
         cls.rad_h = cls.height/2
         cls.rad_w = cls.width/2
         cls.clock_setted = False
         cls.complete = 0
         cls.position = Point(0,0)
-        cls.prev_position = Point(0,0)
+        cls.prev_position = False
+        
         
     @staticmethod
     def gentiles():
@@ -127,10 +131,6 @@ class InputHandle:
         "движение с помощью клавиатуры"
         if symbol in (UP,DOWN, LEFT,RIGHT):
             self.send_vector(self.vectors[symbol])
-            
-            
-            
-        
     
     def on_mouse_press(self, x, y, button, modifiers):
         "перехватывавем нажатие мышки"
@@ -139,8 +139,6 @@ class InputHandle:
             vector = (Point(x,y) - self.center)
             self.send_vector(vector)
         
-
-
             
 class Drawable:
     "рисуемые объекты"
@@ -149,19 +147,9 @@ class Drawable:
         self.animation_counter = 0
         self.aps = 15
     
-    def animation_tick(self):
-        if self.animation_counter==self.aps:
-            self.animation*=-1
-            self.animation_counter = 0
-        self.animation_counter+=1
-            
-        self.animation*=-1
     def draw(self):
         for tilename, (x,y), tiletype in self.tiles:
-            if tilename in ANIMATED_TILES:
-                if self.animation==-1:
-                    tilename = tilename+'_'
-                self.animation_tick()
+
             if tiletype:
                 pyglet.text.Label(tilename,
                           font_name='Times New Roman',

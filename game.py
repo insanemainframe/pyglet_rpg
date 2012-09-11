@@ -16,6 +16,7 @@ from config import *
 
 class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Window, AskHostname): 
     def __init__(self, height, width):
+        #инициализация родтельских классов
         AskHostname.__init__(self)
         pyglet.window.Window.__init__(self, width, height)
         DeltaTimerObject.__init__(self)
@@ -28,8 +29,10 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
         self.shift = Point(0,0)
         self.vector = Point(0,0)
         
-        self.loading = create_loading(self.center)
+        #текст загрузки
+        self.loading = LoadingScreen(self.center)
         
+        #счетчик фпс
         self.fps_display = pyglet.clock.ClockDisplay()
                 
         #net
@@ -40,8 +43,8 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
             data = self.wait_for_accept()
             if data:
                 world_size, position, tiles, objects = data
-                
-                print 'accepteed position %s objects %s' % (position, objects)
+            
+                print 'accepteed position %s tiles %s' % (position, len(tiles))
         
                 self.land = LandView(world_size, position, tiles)
                 self.objects.insert(objects)
@@ -84,9 +87,6 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
             
             for message in self.in_messages:
                 move_vector, newtiles, objects, objects_update = message
-                if move_vector or objects or objects_update:
-                    t = (self.position, move_vector, objects, objects_update)
-                    #print 'selfposition %s + %s objects %s objects_update %s' % t
                 self.shift += move_vector
         
                 self.land.update()
@@ -128,12 +128,12 @@ class LandView(GameWindow,  Drawable, Map):
         Drawable.__init__(self)
         size = world_size
         self.world_size = world_size
-        print 'clientworld size', size
         self.map = [[None for j in xrange(size)] for i in xrange(size)]
         self.tiles = []
         if tiles:
             self.insert(tiles)
         self.set_camera_position(position)
+        self.prev_position = position/2
         
     def move_position(self, vector):
         "перемещаем камеру"
@@ -170,10 +170,8 @@ class LandView(GameWindow,  Drawable, Map):
         "обноление на каждом фрейме"
         #если положение не изменилось то ничего не делаем
         if self.prev_position==self.position:
-            print 'prev'
             return
         looked = self.look_around()
-        logger.debug('looked len %s' % len(looked))
         self.tiles = [create_tile(point+self.center, tile_type) for point, tile_type in looked]
 
 

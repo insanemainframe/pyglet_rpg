@@ -2,16 +2,8 @@
 # -*- coding: utf-8 -*-
 from math_lib import Point
 
-from anyjson import serialize as dumps, deserialize as jloads
+from anyjson import serialize as dumps, deserialize as loads
 
-def loads(s):
-    print s
-    try:
-        return jloads(s)
-    except Exception, exception:
-        print s
-        print exception
-        raise exception
 
 def pack_server_accept(world_size, position, land, objects):
     land = [point.get()+(tilename,) for point, tilename in land]
@@ -37,15 +29,11 @@ def pack_server_message(move_vector, land, objects, updates):
     return dumps(data)
 
 def f(update):
-    try:
-        if isinstance(update, list):
-            return Point(*update)
-        else:
-            return update
-    except Exception ,exception:
-        print update
-        print exception
-        raise exception
+    if isinstance(update, list):
+        return Point(*update)
+    else:
+        return update
+
 
 def unpack_server_message(data):
     if not data:

@@ -19,7 +19,7 @@ class GameObject:
             cls.new_objects = {}
             cls.object_updates = {}
             cls.created = True
-            print 'create world', cls.world.size
+            print 'created world', cls.world.size
     @staticmethod
     def init_player(name, player_position):
         cls = GameObject
@@ -32,7 +32,7 @@ class Movable(GameObject):
         self.speed = speed
         self.position = position
         self.move_vector = Point(0,0)
-        self.prev_position = position
+        self.prev_position = False
         
     def move(self, vector):
         #если вектор на входе определен, до определяем вектор движения объекта
@@ -68,17 +68,15 @@ class Player(Movable, GameObject):
     def accept(self):
         """впервое обращение клиента, возвращает размер карты, позицию и первые тайлы"""
         looked = self.world.look(self.position, self.look_size)
-        new_looked = looked - self.prev_looked
         self.prev_looked = looked
         
-        world_size = self.world.size
         objects = {name:(player.position,'player') for name, player in self.players.items()}
         #оповещаем всех о своем появлении
         for name in self.players.keys():
             if name!=self.name:
                 self.new_objects[name][self.name] = self.position
                 
-        return  world_size, self.position, looked, objects
+        return  self.world.size, self.position, looked, objects
     
     def go(self, vector):
         self.move(vector)
@@ -114,7 +112,6 @@ class Player(Movable, GameObject):
         #оповещаем других игроков о выходе
         for client, update_dict in self.object_updates.items():
             self.object_updates[client][self.name] = 'remove'
-        print '__del__ %s' % self.name
         
         
     
