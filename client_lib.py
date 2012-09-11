@@ -7,6 +7,7 @@ from config import EOL, HOSTNAME, IN_PORT, OUT_PORT
 
 class SelectClient:
     def __init__(self):
+        self.hostname = HOSTNAME
         self.buff = ''
         self.outsock, self.out_fileno = self.create_sock(IN_PORT)
         self.insock, self.in_fileno = self.create_sock(OUT_PORT)

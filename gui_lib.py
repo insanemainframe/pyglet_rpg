@@ -4,6 +4,7 @@ from pyglet.window.key import UP, DOWN, LEFT, RIGHT
 from pyglet.image.codecs.png import PNGImageDecoder
 import pyglet
 
+from abc import ABCMeta, abstractmethod, abstractproperty
 from time import time
 from os import listdir
 import re
@@ -47,7 +48,6 @@ class GameWindow():
         cls.position = Point(0,0)
         cls.prev_position = False
         
-        
     @staticmethod
     def gentiles():
         cls = GameWindow
@@ -56,7 +56,6 @@ class GameWindow():
         for name in names:
             image = pyglet.image.load('images/%s' % name, decoder=PNGImageDecoder()).get_texture()
             cls.tiledict[name[:-4]] = image
-
     
     @staticmethod
     def set_camera_position(position):
@@ -124,6 +123,10 @@ class DeltaTimerObject:
 
 class InputHandle:
     "перехват устройств ввода"
+    #__metaclass__=ABCMeta
+    @abstractmethod
+    def send_vector():
+        ""
     def __init__(self):
         self.vectors = {UP:Point(0,40), DOWN: Point(0,-40), LEFT : Point(-40,0), RIGHT : Point(40,0)}
             
@@ -142,6 +145,10 @@ class InputHandle:
             
 class Drawable:
     "рисуемые объекты"
+    #__metaclass__ = ABCMeta
+    @abstractproperty
+    def tiles():
+        ""
     def __init__(self):
         self.animation = 1
         self.animation_counter = 0

@@ -213,8 +213,11 @@ class ObjectsView(GameWindow, Drawable):
                             self.objects[object_name]['position']+= move_vector
                             self.updates[object_name]-= move_vector
                 else:
-                    del self.updates[object_name]
-                    del self.objects[object_name]
+                    try:
+                        del self.updates[object_name]
+                        del self.objects[object_name]
+                    except:
+                        print object_name
         
         #отображение объектов
         self.tiles = []

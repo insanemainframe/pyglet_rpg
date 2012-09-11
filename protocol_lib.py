@@ -3,6 +3,7 @@
 from math_lib import Point
 
 from anyjson import serialize as dumps, deserialize as loads
+#from marshal import loads , dumps
 
 
 def pack_server_accept(world_size, position, land, objects):
@@ -32,6 +33,7 @@ def f(update):
     if isinstance(update, list):
         return Point(*update)
     else:
+        print update
         return update
 
 

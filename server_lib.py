@@ -6,6 +6,7 @@ from time import sleep, time
 from select import epoll, EPOLLIN, EPOLLOUT
 from collections import namedtuple
 
+
 from config import HOSTNAME, IN_PORT, OUT_PORT, SERVER_TIMER, PROFILE, EOL
 
 
@@ -54,9 +55,6 @@ class EpollServer:
         self.clients = {}
         self.responses = {}
         self.requests = {}
-        
-
-        
             
     def create_socket(self, port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

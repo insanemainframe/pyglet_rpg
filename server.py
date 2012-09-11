@@ -6,11 +6,13 @@ from protocol_lib import *
 from server_lib import EpollServer, TimerCallable
 from gui_lib import AskHostname
 
-from config import PROFILE, TILESIZE
+from config import PROFILE, TILESIZE, HOSTNAME
 
 class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
+    hostname = None
     def __init__(self):
         AskHostname.__init__(self)
+        
         EpollServer.__init__(self)
         TimerCallable.__init__(self)
         self.player_list = []
@@ -55,7 +57,6 @@ class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
             self.client_requestes[client].append(request)
     
     def close(self, client):
-        from sys import getrefcount
         del self.players[client]
         del self.client_requestes[client]
         del self.client_responses[client]

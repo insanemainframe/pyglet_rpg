@@ -10,7 +10,7 @@ HOSTNAME = '127.0.0.1'
 IN_PORT = 1488
 OUT_PORT = 1489
 PROFILE = 0
-EOL = '\t'
+EOL = '\n'
 
 
 #logging
