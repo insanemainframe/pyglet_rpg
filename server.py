@@ -78,13 +78,11 @@ def main():
     server.start()
 
 if __name__ == '__main__':
-    PROFILE = 1
     if PROFILE:
-        import cProfile, pstats
+        print 'profile'
+        import cProfile
         cProfile.run('main()', '/tmp/game_server.stat')
-        stats = pstats.Stats('/tmp/game_server.stat')
-        stats.sort_stats('cumulative')
-        stats.print_stats()
+        
 
     else:
         main()

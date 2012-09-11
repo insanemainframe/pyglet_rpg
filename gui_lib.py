@@ -31,15 +31,18 @@ def create_loading(point):
 class GameWindow():
     "разделяемое состояние элементов gui"
     @staticmethod
-    def configure(size):
+    def configure(height, width):
         cls = GameWindow
-        cls.size = size
-        cls.window_size = size
-        cls.center = Point(cls.window_size/2,cls.window_size/2)
+        cls.width = width
+        cls.height = height
+        cls.center = Point(cls.width/2,cls.height/2)
         print 'window center',cls.center
-        cls.rad = (size/2)
+        cls.rad_h = cls.height/2
+        cls.rad_w = cls.width/2
         cls.clock_setted = False
         cls.complete = 0
+        cls.position = Point(0,0)
+        cls.prev_position = Point(0,0)
         
     @staticmethod
     def gentiles():
@@ -53,6 +56,7 @@ class GameWindow():
     
     @staticmethod
     def set_camera_position(position):
+        GameWindow.prev_position = GameWindow.position
         GameWindow.position = position
 
 class AskHostname:

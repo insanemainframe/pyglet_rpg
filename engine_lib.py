@@ -32,6 +32,7 @@ class Movable(GameObject):
         self.speed = speed
         self.position = position
         self.move_vector = Point(0,0)
+        self.prev_position = position
         
     def move(self, vector):
         #если вектор на входе определен, до определяем вектор движения объекта
@@ -52,6 +53,7 @@ class Movable(GameObject):
                 self.move_vector = move_vector
         else:
             self.move_vector = self.vector
+        self.prev_position = self.position
         self.position+=self.move_vector
 
 class Player(Movable, GameObject):
@@ -87,9 +89,12 @@ class Player(Movable, GameObject):
         
     def look(self):
         #получаем новые видимые тайлы
-        looked =self.world.look(self.position, self.look_size)
-        new_looked = looked - self.prev_looked
-        self.prev_looked = looked
+        if self.prev_position == self.position:
+            new_looked = [] #self.prev_looked
+        else:
+            looked =self.world.look(self.position, self.look_size)
+            new_looked = looked - self.prev_looked
+            self.prev_looked = looked
         
         #ищем новые объекты
         new_objects = {}

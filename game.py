@@ -15,14 +15,14 @@ from protocol_lib import *
 from config import *
 
 class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Window, AskHostname): 
-    def __init__(self,size):
+    def __init__(self, height, width):
         AskHostname.__init__(self)
-        pyglet.window.Window.__init__(self, size, size)
+        pyglet.window.Window.__init__(self, width, height)
         DeltaTimerObject.__init__(self)
         InputHandle.__init__(self)
         Client.__init__(self)
         
-        self.configure(size)
+        self.configure(height, width)
         self.gentiles()
         self.objects = ObjectsView()
         self.shift = Point(0,0)
@@ -139,19 +139,22 @@ class LandView(GameWindow,  Drawable, Map):
         "перемещаем камеру"
         self.set_camera_position(self.position + vector)
         
+        
     def insert(self, tiles):
         "обновляет карту, добавляя новые тайлы, координаты - расстояние от стартовой точки"
         for point, tile_type in tiles:
             self.map[point.x][point.y] = tile_type
             
-    def look_around(self, rad):
+    def look_around(self):
         "список тайлов в поле зрения (координаты в тайлах от позиции камеры, тип)"
-        rad = int(rad/TILESIZE)+2
+        rad_h = int(self.rad_h/TILESIZE)+2
+        rad_w = int(self.rad_w/TILESIZE)+2
+        
         I,J = (self.position/TILESIZE).get()
         looked = set()
-        for i in xrange(I-rad, I+rad):
-            for j in xrange(J-rad, J+rad):
-                i,j = self.resize(i), self.resize(j)
+        for i in xrange(I-rad_w, I+rad_w):
+            for j in xrange(J-rad_h, J+rad_h):
+                i,j = self.resize_d(i,'height'), self.resize_d(j,'width')
                 try:
                     tile_type = self.map[i][j]
                 except IndexError:
@@ -165,7 +168,11 @@ class LandView(GameWindow,  Drawable, Map):
         
     def update(self):
         "обноление на каждом фрейме"
-        looked = self.look_around(self.rad)
+        #если положение не изменилось то ничего не делаем
+        if self.prev_position==self.position:
+            print 'prev'
+            return
+        looked = self.look_around()
         logger.debug('looked len %s' % len(looked))
         self.tiles = [create_tile(point+self.center, tile_type) for point, tile_type in looked]
 
@@ -215,15 +222,12 @@ class ObjectsView(GameWindow, Drawable):
         self.tiles = []
         for object_name, game_object in self.objects.items():
             point = game_object['position']
-            #проверяем находится ои объект в радиусе обзора
-            diff = hypot(self.position.x - point.x, self.position.y - point.y) - self.rad*TILESIZE
-            if diff<0:
-                tilename = game_object['tilename']
-                position = point - self.position +self.center - Point(TILESIZE/2,TILESIZE/2)
-                tile = create_tile(position, tilename)
-                self.tiles.append(tile)
-                label = create_label(object_name, position)
-                self.tiles.append(label)
+            tilename = game_object['tilename']
+            position = point - self.position +self.center - Point(TILESIZE/2,TILESIZE/2)
+            tile = create_tile(position, tilename)
+            self.tiles.append(tile)
+            label = create_label(object_name, position)
+            self.tiles.append(label)
     
 
 
@@ -231,8 +235,9 @@ class ObjectsView(GameWindow, Drawable):
 
     
 def main():
-    g = Gui(size=600)
+    g = Gui(480, 680)
     g.run()
+
 if __name__=='__main__':
     if PROFILE:
         import cProfile, pstats

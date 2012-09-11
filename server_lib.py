@@ -46,17 +46,18 @@ class EpollServer:
         
         self.insock, self.in_fileno = self.create_socket(IN_PORT)
         self.outsock, self.out_fileno = self.create_socket(OUT_PORT)
+        self.insocks, self.outsocks = {}, {}
+        self.in_buffers, self.out_buffers = {}, {}
         
         
         self.address_buf = {}
         self.address_list = []
-        self.insocks = {}
-        self.outsocks = {}
+        
         self.clients = {}
         self.responses = {}
         self.requests = {}
-        self.in_buffers = {}
-        self.out_buffers = {}
+        
+
         
             
     def create_socket(self, port):
@@ -73,6 +74,12 @@ class EpollServer:
         self.responses[address].append(message)
         out_fileno = self.clients[address].out_
         self.poll.modify(out_fileno, EPOLLOUT)
+    
+    def has_responses(self):
+        for response in self.responses.values():
+            if response:
+                return True
+        return False
     
     def handle_write(self, fileno):
         address = self.get_address(fileno)
@@ -173,7 +180,7 @@ class EpollServer:
                             self.handle_accept(OUT)
                         elif event==EPOLLIN: 
                             self.handle_read(fileno)
-                        elif event==EPOLLOUT:
+                        elif self.has_responses and event==EPOLLOUT:
                             self.handle_write(fileno)
                     except socket.error as Error:
                         self.handle_error(Error, fileno, event)
@@ -223,8 +230,9 @@ class EpollServer:
         self.outsock.close()
         print('Stopped')
         if PROFILE:
+            import pstats
             print 'profile'
-            stats = pstats.Stats('/tmp/server_pyglet.stat')
+            stats = pstats.Stats('/tmp/game_server.stat')
             stats.sort_stats('cumulative')
             stats.print_stats()
 

@@ -7,6 +7,20 @@ from mapgen import load_map
 
 class Map:
     "методы работы с картой"
+    def resize_d(self, cord, dimension):
+        "меняем координаты в случае превышения размера карты"
+        if dimension=='width':
+            size = self.width
+        elif dimension=='height':
+            size = self.height
+        else:
+            raise ValueError
+        if cord < 0:
+            return size + cord
+        if cord > size:
+            return size
+        else:
+            return cord        
     def resize(self, cord):
         "меняем координаты в случае превышения размера карты"
         if cord < 0:
@@ -14,7 +28,7 @@ class Map:
         if cord > self.size:
             return cord - self.size
         else:
-            return cord        
+            return cord      
     
 class World(Map):
     "класс карты как со стороны ссервера"
