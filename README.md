@@ -1,6 +1,6 @@
 python client-server rpg
 
-dependencies: python 2.7, python-pyglet, python-simplejson
+dependencies: python 2.7, python-pyglet
 
 run:
     python server.py
