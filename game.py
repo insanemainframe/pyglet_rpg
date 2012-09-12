@@ -23,7 +23,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
         InputHandle.__init__(self)
         Client.__init__(self)
         
-        self.configure(height, width)
+        self.configure(width, height)
         self.gentiles()
         self.objects = ObjectsView()
         self.shift = Point(0,0)

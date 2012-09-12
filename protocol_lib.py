@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 from math_lib import Point
 
-from anyjson import serialize as dumps, deserialize as loads
-#from marshal import loads , dumps
+from json import dumps, loads
 
 
 def pack_server_accept(world_size, position, land, objects):

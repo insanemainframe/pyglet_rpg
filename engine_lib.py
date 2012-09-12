@@ -46,6 +46,7 @@ class Movable(GameObject):
             cross_tile =  self.world.map[i][j]
             if cross_tile in BLOCKTILES:
                 self.vector = Point(0,0)
+                self.move_vector = Point(0,0)
             else:
                 part = self.speed / abs(self.vector) # доля пройденного пути в векторе
                 move_vector = self.vector * part if part<1 else self.vector
