@@ -211,11 +211,8 @@ class ObjectsView(GameWindow, Drawable):
                             self.objects[object_name]['position']+= move_vector
                             self.updates[object_name]-= move_vector
                 else:
-                    try:
-                        del self.updates[object_name]
-                        del self.objects[object_name]
-                    except:
-                        print object_name
+                    self.remove_object(object_name)
+
         
         #отображение объектов
         self.tiles = []
@@ -227,6 +224,9 @@ class ObjectsView(GameWindow, Drawable):
             self.tiles.append(tile)
             label = create_label(object_name, position)
             self.tiles.append(label)
+    def remove_object(self, name):
+        del self.updates[name]
+        del self.objects[name]
     
 
 

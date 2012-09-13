@@ -11,8 +11,7 @@ from config import PROFILE, TILESIZE, HOSTNAME
 class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
     hostname = None
     def __init__(self):
-        #AskHostname.__init__(self)
-        self.hostname = HOSTNAME
+        AskHostname.__init__(self)
         EpollServer.__init__(self)
         TimerCallable.__init__(self)
         self.player_list = []

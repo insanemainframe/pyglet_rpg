@@ -52,6 +52,7 @@ def pack(data, action):
     elif action=='accept':
         return dumps((action, pack_server_accept(*data)))
     else:
+        print action, data
         raise ValueError('unknown action %s' % action )
 
 def unpack(sdata):

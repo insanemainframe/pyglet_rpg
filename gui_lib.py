@@ -7,6 +7,7 @@ import pyglet
 from abc import ABCMeta, abstractmethod, abstractproperty
 from time import time
 from os import listdir
+from sys import argv
 import re
 
 from math_lib import Point
@@ -66,6 +67,10 @@ class AskHostname:
     def __init__(self):
         self.default = HOSTNAME
         self.pattern = '^\d+\.\d+\.\d+\.\d+$'
+        if len(argv)>1:
+            if argv[1]=='-d':
+                self.hostname = self.default
+                return
         message = 'Enter hostname or press Enter for default %s: ' % HOSTNAME
         while 1:
             result = raw_input(message)
