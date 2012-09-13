@@ -8,7 +8,7 @@ path.append('../')
 from game_lib.math_lib import *
 from game_lib.map_lib import World
 
-from config import TILESIZE, PLAYERSPEED, BALLSPEED, BALLLIFETIME, BLOCKTILES ,logger
+from config import *
 
 class GameObject:
     "разделяемое состоние объектов карты"
@@ -29,8 +29,9 @@ class GameObject:
         cls.players[name] = player_position
     
     def alarm(self):
-        for name in self.players.keys():
-            if name!=self.name:
+        "ововестить остальных о своем появлении"
+        for name, player in self.players.items():
+            if name!=self.name and player.guided:
                 self.new_objects[name][self.name] = (self.position, self.tilename)
         
         
@@ -47,7 +48,6 @@ class Movable(GameObject):
         #если вектор на входе определен, до определяем вектор движения объекта
         if vector:
             self.vector = vector
-
         #если вектор движения не достиг нуля, то продолжить движение
         if self.vector:
             #проверка столкновения
@@ -73,16 +73,17 @@ class Movable(GameObject):
                 self.object_updates[client][self.name] = self.move_vector
 
 class Player(Movable):
+    tilename = 'player'
+    fragile = False
+    guided = True
+    prev_looked = set()
+    alive = True
     def __init__(self, name, player_position, look_size):
         Movable.__init__(self, player_position, PLAYERSPEED)
-        self.fragile = False
-        self.guided = True
         self.name = name
         self.look_size = look_size
         self.new_objects[name] = {}
         self.object_updates[name] = {}
-        self.prev_looked = set()
-        self.tilename = 'player'
         self.alarm()
 
     def accept(self):
@@ -91,13 +92,12 @@ class Player(Movable):
         self.prev_looked = looked
         
         objects = {name:(player.position,'player') for name, player in self.players.items()}
-                
+        
+        print '%s accept %s' % (self.name, self.position)
         return  self.world.size, self.position, looked, objects
     
     def go(self, vector=Point(0,0)):
         self.move(vector)
-    
-
         
     def look(self):
         #получаем новые видимые тайлы
@@ -119,30 +119,50 @@ class Player(Movable):
         self.object_updates[self.name] = {}
         return self.move_vector, new_looked, new_objects, updates
     
+    def respawn(self):
+        new_position = Point(GameObject.size*TILESIZE/2, GameObject.size*TILESIZE/2)
+        for client in self.players:
+            if self.players[client].guided:
+                self.object_updates[client][self.name] = new_position - self.position
+        self.position = new_position
+        return self.position
+    
     def __del__(self):
+        #удаляем себя из списка объектов
         del self.new_objects[self.name]
         del self.object_updates[self.name]
-        #удаляем себя из списка объектов
         #оповещаем других игроков о выходе
         for client, update_dict in self.object_updates.items():
             self.object_updates[client][self.name] = 'remove'
         
         
 class Ball(Movable, GameObject):
-    def __init__(self, name, position, direct):
+    tilename = 'ball'
+    guided = False
+    fragile = True
+    def __init__(self, name, position, direct, striker_name):
         Movable.__init__(self, position, BALLSPEED)
-        self.fragile = True
-        self.guided = False
         self.lifetime = BALLLIFETIME
         self.name = name
+        self.striker =  striker_name
         one_step = Point(BALLSPEED,BALLSPEED)
-        self.direct = direct/(abs(direct)/abs(one_step))
-        self.tilename = 'ball'
+        self.direct = direct*(abs(one_step)/abs(direct))
+        print abs(direct)
+        self.radius = BALLRADIUS
         #оповещаем
         self.alarm()
-       
+    
+    def collision(self):
+        for name, player in self.players.items():
+            if player.guided and name!=self.striker:
+                dist = abs(self.position-player.position)
+                if dist<self.radius:
+                    self.players[name].alive= False
+                    print 'BOMB %s' % name
     def go(self):
         self.move(self.direct)
+        self.collision()
+    
     def __del__(self):
         for client, update_dict in self.object_updates.items():
             self.object_updates[client][self.name] = 'remove'

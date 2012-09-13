@@ -14,7 +14,10 @@ from game_lib.protocol_lib import *
 
 from config import *
 
-class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Window, AskHostname): 
+class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Window, AskHostname):
+    accepted = False
+    shift = Point(0,0)
+    vector = Point(0,0)
     def __init__(self, height, width):
         #инициализация родтельских классов
         AskHostname.__init__(self)
@@ -26,17 +29,12 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
         self.configure(width, height)
         self.gentiles()
         self.objects = ObjectsView()
-        self.shift = Point(0,0)
-        self.vector = Point(0,0)
         
         #текст загрузки
         self.loading = LoadingScreen(self.center)
         
         #счетчик фпс
         self.fps_display = pyglet.clock.ClockDisplay()
-                
-        #net
-        self.accepted = False
     
     def accept(self):
         if not self.accepted:
@@ -80,18 +78,22 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
     def round_update(self, dt):
         "обращение к движку"
         if self.accept():
-            self.force_complete()
-            #net
-            
+            self.force_complete()            
             for message in self.in_messages:
                 action, message = message
-                if action=='server_message':
+                if action=='look':
                     move_vector, newtiles, objects, objects_update = message
+
                     self.shift += move_vector
             
                     self.land.update()
                     self.land.insert(newtiles)
                     self.objects.insert(objects, objects_update)
+                elif action=='respawn':
+                    print 'respawn'
+                    new_position = message
+                    self.set_camera_position(new_position)
+                    self.land.update()
             self.in_messages = []
             self.set_timer()
             logger.debug('>\n')

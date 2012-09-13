@@ -33,7 +33,13 @@ class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
                         self.strike_ball(client_name, vector)
                 else:
                     player.go()
-                self.client_responses[client_name].append(player.look())
+                if player.alive:
+                    self.client_responses[client_name].append(('look',player.look()))
+                else:
+                    self.client_responses[client_name].append(('respawn',player.respawn()))
+                    self.client_responses[client_name].append(('look',player.look()))
+                    player.alive = True
+                    
             else:
                 #
                 if player.lifetime:
@@ -51,7 +57,8 @@ class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
         self.client_requestes[client] = []
         self.client_responses[client] = []
         
-        message = pack(self.players[client].accept(),'accept')
+        message = self.players[client].accept()
+        message = pack(message, 'accept')
         
         self.put_message(client, message) 
     
@@ -59,13 +66,13 @@ class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
         name = 'ball%s' % self.ball_counter
         self.ball_counter+=1
         position = self.players[client_name].position
-        self.players[name] = Ball(name, position, vector)
+        self.players[name] = Ball(name, position, vector, client_name)
 
 
     def write(self, client):
         if self.client_responses[client]:
-            for response in self.client_responses[client]:
-                data = pack(response, 'server_message')
+            for action, response in self.client_responses[client]:
+                data = pack(response, action)
                 self.put_message(client, data)
             self.client_responses[client] = []
     

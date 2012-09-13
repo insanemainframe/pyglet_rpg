@@ -96,7 +96,7 @@ class EpollServer:
             self.handle_close(address)
         messages = []
         for char in data:
-            if char!=EOL[0]:
+            if char!=EOL:
                 self.in_buffers[address].append(char)
             else:
                 messages.append(''.join(self.in_buffers[address]))
@@ -208,7 +208,7 @@ class EpollServer:
         print('Closing %s(%s,%s)' % (address, in_fileno, out_fileno))
     
     def handle_error(self, error, fileno, event):
-        print '%s error %s' % (fileo, error)
+        print '%s error %s' % (fileno, error)
         self.handle_close(fileno)
     
     def stop(self):

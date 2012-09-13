@@ -109,6 +109,7 @@ class Client(SelectClient):
     def accept_(self, message):
         action, message = unpack(message)
         if action=='accept':
+            #print 'Client.accept %s' % str(message)
             self.accept_message = message
         
     def send_move(self, vector):
