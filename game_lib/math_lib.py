@@ -6,6 +6,7 @@ path.append('../')
 from config import TILESIZE
 
 class Point:
+    "класс точек и векторов"
     def __init__(self,x=0,y=0):
         try:
             self.x = int(x)
@@ -69,10 +70,12 @@ def roundup(x):
     else:
         return floor(x)
 
-def get_cross(point, vector):
-    single_move = vector*(TILESIZE-1)/abs(vector)
-    new_point = point + single_move
-    i,j = (new_point/TILESIZE).get()
+def get_cross(position, vector):
+    single_move = vector*(TILESIZE/abs(vector))
+    new_position = position + single_move
+    if new_position/TILESIZE == position/TILESIZE:
+        new_position = position + single_move*1.5
+    i,j = (new_position/TILESIZE).get()
     return i,j
 
 
