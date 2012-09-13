@@ -8,7 +8,7 @@ path.append('../')
 from game_lib.math_lib import *
 from game_lib.map_lib import World
 
-from config import TILESIZE, PLAYERSPEED, BLOCKTILES ,logger
+from config import TILESIZE, PLAYERSPEED, BALLSPEED, BALLLIFETIME, BLOCKTILES ,logger
 
 class GameObject:
     "разделяемое состоние объектов карты"
@@ -27,6 +27,12 @@ class GameObject:
     def init_player(name, player_position):
         cls = GameObject
         cls.players[name] = player_position
+    
+    def alarm(self):
+        for name in self.players.keys():
+            if name!=self.name:
+                self.new_objects[name][self.name] = (self.position, self.tilename)
+        
         
 
 class Movable(GameObject):
@@ -50,6 +56,8 @@ class Movable(GameObject):
             if cross_tile in BLOCKTILES:
                 self.vector = Point(0,0)
                 self.move_vector = Point(0,0)
+                if self.fragile:
+                    del self.players[self.name]
             else:
                 part = self.speed / abs(self.vector) # доля пройденного пути в векторе
                 move_vector = self.vector * part if part<1 else self.vector
@@ -59,15 +67,23 @@ class Movable(GameObject):
             self.move_vector = self.vector
         self.prev_position = self.position
         self.position+=self.move_vector
+        #оповещаем других освоем движении
+        for client, update_dict in self.object_updates.items():
+            if self.players[client].guided:
+                self.object_updates[client][self.name] = self.move_vector
 
-class Player(Movable, GameObject):
+class Player(Movable):
     def __init__(self, name, player_position, look_size):
         Movable.__init__(self, player_position, PLAYERSPEED)
+        self.fragile = False
+        self.guided = True
         self.name = name
         self.look_size = look_size
         self.new_objects[name] = {}
         self.object_updates[name] = {}
         self.prev_looked = set()
+        self.tilename = 'player'
+        self.alarm()
 
     def accept(self):
         """впервое обращение клиента, возвращает размер карты, позицию и первые тайлы"""
@@ -75,17 +91,11 @@ class Player(Movable, GameObject):
         self.prev_looked = looked
         
         objects = {name:(player.position,'player') for name, player in self.players.items()}
-        #оповещаем всех о своем появлении
-        for name in self.players.keys():
-            if name!=self.name:
-                self.new_objects[name][self.name] = self.position
                 
         return  self.world.size, self.position, looked, objects
     
-    def go(self, vector):
+    def go(self, vector=Point(0,0)):
         self.move(vector)
-        for client, update_dict in self.object_updates.items():
-            self.object_updates[client][self.name] = self.move_vector
     
 
         
@@ -100,9 +110,9 @@ class Player(Movable, GameObject):
         
         #ищем новые объекты
         new_objects = {}
-        for name, position in self.new_objects[self.name].items():
+        for name, (position, tilename) in self.new_objects[self.name].items():
             if name!=self.name:
-                new_objects[name] = (position,'player')
+                new_objects[name] = (position, tilename)
         self.new_objects[self.name] = {}
         #ищем бновления объектов
         updates = self.object_updates[self.name]
@@ -118,6 +128,26 @@ class Player(Movable, GameObject):
             self.object_updates[client][self.name] = 'remove'
         
         
-    
+class Ball(Movable, GameObject):
+    def __init__(self, name, position, direct):
+        Movable.__init__(self, position, BALLSPEED)
+        self.fragile = True
+        self.guided = False
+        self.lifetime = BALLLIFETIME
+        self.name = name
+        one_step = Point(BALLSPEED,BALLSPEED)
+        self.direct = direct/(abs(direct)/abs(one_step))
+        self.tilename = 'ball'
+        #оповещаем
+        self.alarm()
+       
+    def go(self):
+        self.move(self.direct)
+    def __del__(self):
+        for client, update_dict in self.object_updates.items():
+            self.object_updates[client][self.name] = 'remove'
+        
+        
+        
 
             

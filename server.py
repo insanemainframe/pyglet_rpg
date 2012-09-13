@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from game_lib.engine_lib import Player, GameObject
+from game_lib.engine_lib import Player, Ball, GameObject
 from game_lib.math_lib import Point
 from game_lib.protocol_lib import *
 from game_lib.server_lib import EpollServer, TimerCallable
@@ -18,16 +18,29 @@ class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
         self.client_requestes = {}
         self.client_responses = {}
         self.init()
+        self.ball_counter=0
     
     def timer_handler(self):
-        for client, game in self.players.items():
-            try:
-                vector = self.client_requestes[client].pop()
-            except IndexError:
-                vector = Point(0,0)
-            #ходим, смотрим
-            game.go(vector)
-            self.client_responses[client].append(game.look())
+        for client_name, player in self.players.items():
+            if player.guided:
+                #обрабатываем управляемые объекты(игроков)
+                if len(self.client_requestes[client_name])>0:
+                    action, vector = self.client_requestes[client_name].pop()
+                    #ходим, смотрим
+                    if action=='move_message':
+                        player.go(vector)
+                    elif action=='ball_message':
+                        self.strike_ball(client_name, vector)
+                else:
+                    player.go()
+                self.client_responses[client_name].append(player.look())
+            else:
+                #
+                if player.lifetime:
+                    player.go()
+                    player.lifetime-=1
+                else:
+                    del self.players[player.name]
         
         
     def accept(self, client):
@@ -41,6 +54,12 @@ class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
         message = pack(self.players[client].accept(),'accept')
         
         self.put_message(client, message) 
+    
+    def strike_ball(self,client_name, vector):
+        name = 'ball%s' % self.ball_counter
+        self.ball_counter+=1
+        position = self.players[client_name].position
+        self.players[name] = Ball(name, position, vector)
 
 
     def write(self, client):

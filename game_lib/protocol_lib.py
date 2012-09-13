@@ -37,16 +37,26 @@ def unpack_server_message(data):
     
     return move_vector, land, objects, updates
     
-def pack_client_message(vector):
+def pack_client_move(vector):
     return vector.get()
 
-def unpack_client_message(message):
+def unpack_client_move(message):
     x,y = message
     return Point(x,y)
 
+def pack_client_ball(vector):
+    return vector.get()
+
+def unpack_client_ball(message):
+    x,y = message
+    return Point(x,y)
+
+
 def pack(data, action):
-    if action=='client_message':
-        return dumps((action, pack_client_message(data)))
+    if action=='move_message':
+        return dumps((action, pack_client_move(data)))
+    elif action=='ball_message':
+        return dumps((action, pack_client_ball(data)))
     elif action=='server_message':
         return dumps((action, pack_server_message(*data)))
     elif action=='accept':
@@ -58,12 +68,14 @@ def pack(data, action):
 def unpack(sdata):
     data = loads(sdata)
     action, data = data
-    if action=='client_message':
-        return unpack_client_message(data)
+    if action=='move_message':
+        return action, unpack_client_move(data)
+    elif action=='ball_message':
+        return action, unpack_client_ball(data)
     elif action=='server_message':
-        return unpack_server_message(data)
+        return action, unpack_server_message(data)
     elif action=='accept':
-        return unpack_server_accept(data)
+        return action, unpack_server_accept(data)
     else:
         print sdata
         raise ValueError('unknown action %s' % action )

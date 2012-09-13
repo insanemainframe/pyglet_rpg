@@ -104,21 +104,25 @@ class Client(SelectClient):
             return self.accept_message
         else:
             return False
-    
-    def send_vector(self, vector):
-        self.send(vector)
+
     
     def accept_(self, message):
-        self.accept_message = unpack(message)
+        action, message = unpack(message)
+        if action=='accept':
+            self.accept_message = message
         
-    def send(self, vector):
-        message = pack(vector,'client_message')
+    def send_move(self, vector):
+        message = pack(vector,'move_message')
+        self.put_message(message)
+        
+    def send_ball(self, vector):
+        message = pack(vector,'ball_message')
         self.put_message(message)
         
     
     def receive(self, message):
-        move_vector, land, objects, objects_updates = unpack(message)
-        self.in_messages.append((move_vector, land, objects, objects_updates))
+        action, message = unpack(message)
+        self.in_messages.append((action, message))
               
     
 

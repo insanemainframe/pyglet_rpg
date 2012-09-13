@@ -84,12 +84,14 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
             #net
             
             for message in self.in_messages:
-                move_vector, newtiles, objects, objects_update = message
-                self.shift += move_vector
-        
-                self.land.update()
-                self.land.insert(newtiles)
-                self.objects.insert(objects, objects_update)
+                action, message = message
+                if action=='server_message':
+                    move_vector, newtiles, objects, objects_update = message
+                    self.shift += move_vector
+            
+                    self.land.update()
+                    self.land.insert(newtiles)
+                    self.objects.insert(objects, objects_update)
             self.in_messages = []
             self.set_timer()
             logger.debug('>\n')
@@ -175,6 +177,7 @@ class LandView(GameWindow,  Drawable, Map):
 
 
 class ObjectsView(GameWindow, Drawable):
+    "отображение объектов"
     def __init__(self):
         Drawable.__init__(self)
         self.objects = {}
@@ -225,8 +228,11 @@ class ObjectsView(GameWindow, Drawable):
             label = create_label(object_name, position)
             self.tiles.append(label)
     def remove_object(self, name):
-        del self.updates[name]
-        del self.objects[name]
+        try:
+            del self.updates[name]
+            del self.objects[name]
+        except KeyError, excp:
+            print excp, name
     
 
 

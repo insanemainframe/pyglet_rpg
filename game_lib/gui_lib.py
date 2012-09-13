@@ -138,14 +138,19 @@ class InputHandle:
     def on_key_press(self, symbol, modifiers):
         "движение с помощью клавиатуры"
         if symbol in (UP,DOWN, LEFT,RIGHT):
-            self.send_vector(self.vectors[symbol])
+            self.send_move(self.vectors[symbol])
     
     def on_mouse_press(self, x, y, button, modifiers):
-        "перехватывавем нажатие мышки"
+        "перехватывавем нажатие левой кнопки мышки"
         #левая кнопка - движение
         if button==1:
             vector = (Point(x,y) - self.center)
-            self.send_vector(vector)
+            self.send_move(vector)
+        elif button==4:
+            vector = (Point(x,y) - self.center)
+            self.send_ball(vector)
+
+        
         
             
 class Drawable:

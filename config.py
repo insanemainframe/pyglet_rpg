@@ -1,14 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-TILESIZE = 40
-PLAYERSPEED = 80
-BLOCKTILES = ['stone', 'water', 'forest']
-ANIMATED_TILES = [] #['player']
-ROUND_TIMER = 0.1
-SERVER_TIMER = 0.1
+#
 HOSTNAME = '127.0.0.1'
 IN_PORT = 1488
 OUT_PORT = 1489
+#
+TILESIZE = 40
+PLAYERSPEED = 80
+BALLSPEED = 10
+BALLLIFETIME = 30
+BLOCKTILES = ['stone', 'water', 'forest']
+ANIMATED_TILES = [] #['player']
+#
+ROUND_TIMER = 0.1
+SERVER_TIMER = 0.1
+
 PROFILE = 0
 EOL = '\n'
 
