@@ -19,6 +19,7 @@ class SelectClient:
         sock.setblocking(0)
         fileno = sock.fileno()
         return sock, fileno
+    
             
     def handle_write(self):
         if self.out_messages:
@@ -101,16 +102,19 @@ class Client(SelectClient):
         else:
             return False
     
+    def send_vector(self, vector):
+        self.send(vector)
+    
     def accept_(self, message):
-        self.accept_message = unpack_server_accept(message)
+        self.accept_message = unpack(message)
         
     def send(self, vector):
-        message = pack_client_message(vector)
+        message = pack(vector,'client_message')
         self.put_message(message)
         
     
     def receive(self, message):
-        move_vector, land, objects, objects_updates = unpack_server_message(message)
+        move_vector, land, objects, objects_updates = unpack(message)
         self.in_messages.append((move_vector, land, objects, objects_updates))
               
     

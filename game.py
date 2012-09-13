@@ -55,9 +55,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
                 return False
         else:
             return True
-        
-    def send_vector(self, vector):
-        self.send(vector)
+    
     
     def update(self, dt):
         if self.accept():

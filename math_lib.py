@@ -4,8 +4,12 @@ from config import TILESIZE
 
 class Point:
     def __init__(self,x=0,y=0):
-        self.x = int(x)
-        self.y = int(y)
+        try:
+            self.x = int(x)
+            self.y = int(y)
+        except TypeError:
+            print x,y
+            raise TypeError
     def __nonzero__(self):
         if self.x or self.y:
             return True

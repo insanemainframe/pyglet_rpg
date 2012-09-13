@@ -223,3 +223,7 @@ class EpollServer:
             stats.sort_stats('cumulative')
             stats.print_stats()
 
+if __name__=='__main__':
+    t = TimerCallable()
+    t.timer_handler = lambda: None
+    t.start_timer()

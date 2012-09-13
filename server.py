@@ -11,8 +11,8 @@ from config import PROFILE, TILESIZE, HOSTNAME
 class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
     hostname = None
     def __init__(self):
-        AskHostname.__init__(self)
-        
+        #AskHostname.__init__(self)
+        self.hostname = HOSTNAME
         EpollServer.__init__(self)
         TimerCallable.__init__(self)
         self.player_list = []
@@ -39,7 +39,7 @@ class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
         self.client_requestes[client] = []
         self.client_responses[client] = []
         
-        message = pack_server_accept(*self.players[client].accept())
+        message = pack(self.players[client].accept(),'accept')
         
         self.put_message(client, message) 
 
@@ -47,13 +47,13 @@ class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
     def write(self, client):
         if self.client_responses[client]:
             for response in self.client_responses[client]:
-                data = pack_server_message(*response)
+                data = pack(response, 'server_message')
                 self.put_message(client, data)
             self.client_responses[client] = []
     
     def read(self, client, messages):
         for message in messages:
-            request = unpack_client_message(message)
+            request = unpack(message)
             self.client_requestes[client].append(request)
     
     def close(self, client):
