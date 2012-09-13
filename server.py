@@ -10,15 +10,15 @@ from config import PROFILE, TILESIZE, HOSTNAME
 
 class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
     hostname = None
+    player_list = []
+    client_requestes = {}
+    client_responses = {}
+    ball_counter=0
     def __init__(self):
         AskHostname.__init__(self)
         EpollServer.__init__(self)
         TimerCallable.__init__(self)
-        self.player_list = []
-        self.client_requestes = {}
-        self.client_responses = {}
         self.init()
-        self.ball_counter=0
     
     def timer_handler(self):
         for client_name, player in self.players.items():
@@ -41,11 +41,12 @@ class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
                     player.alive = True
                     
             else:
-                #
+                #если объект не управляемый
                 if player.lifetime:
                     player.go()
                     player.lifetime-=1
                 else:
+                    #если срок жизни кончился - убиваем
                     del self.players[player.name]
         
         

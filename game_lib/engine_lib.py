@@ -147,7 +147,6 @@ class Ball(Movable, GameObject):
         self.striker =  striker_name
         one_step = Point(BALLSPEED,BALLSPEED)
         self.direct = direct*(abs(one_step)/abs(direct))
-        print abs(direct)
         self.radius = BALLRADIUS
         #оповещаем
         self.alarm()

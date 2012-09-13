@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from math_lib import Point
-from random import random
+from collections import namedtuple
 
-from json import dumps, loads as jloads
+from json import dumps, loads as json_loads
 
 class ActionError(Exception):
     def __init__(self, action):
@@ -16,12 +16,13 @@ class JSONError(Exception):
 
 def loads(data):
     try:
-        return jloads(data)
+        return json_loads(data)
     except Exception, excp:
         raise JSONError(excp.message)
 
 #инициализация
-def pack_accept(world_size, position, land, objects):
+def pack_accept(data):
+    world_size, position, land, objects = data
     pid = hash(random())
     x,y = position.get()
     print 'pack_server_accept %s:%s %s' % (x,y, pid)
@@ -39,7 +40,8 @@ def unpack_accept(data):
     return world_size, position, land, objects
 
 #обзор
-def pack_look(move_vector, land, objects, updates):
+def pack_look(data):
+    move_vector, land, objects, updates = data
     move_vector = move_vector.get()
     land = [point.get()+(tilename,) for point, tilename in land]
     new_objects = [(name, position.get(), tile) for name, (position, tile) in objects.items()]
@@ -81,38 +83,28 @@ def unpack_respawn(message):
     x,y = message
     return Point(x,y)
 
+#словарь хэндлеров на действия
+apair = namedtuple('action_pair',['pack','unpack'])
+action_dict = {'move_message': apair(pack_client_move, unpack_client_move),
+                'ball_message': apair(pack_client_ball, unpack_client_ball),
+                'look' : apair(pack_look, unpack_look),
+                'accept': apair(pack_accept, unpack_accept),
+                'respawn': apair(pack_respawn, unpack_respawn)}
+
 def pack(data, action):
-    if action=='move_message':
-        return dumps((action, pack_client_move(data)))
-    elif action=='ball_message':
-        return dumps((action, pack_client_ball(data)))
-    elif action=='look':
-        return dumps((action, pack_look(*data)))
-    elif action=='accept':
-        return dumps((action, pack_accept(*data)))
-    elif action=='respawn':
-        return dumps((action, pack_respawn(data)))
+    "упаковщик данных"
+    if action in action_dict:
+        return dumps((action, action_dict[action][0](data)))
     else:
-        raise ValueError('unknown action %s' % action )
+        raise ActionError(action)
 
 def unpack(sdata):
+    "распаковщик"
     data = loads(sdata)
     action, data = data
-    try:
-        if action=='move_message':
-            return action, unpack_client_move(data)
-        elif action=='ball_message':
-            return action, unpack_client_ball(data)
-        elif action=='look':
-            return action, unpack_look(data)
-        elif action=='accept':
-            return action, unpack_accept(data)
-        elif action=='respawn':
-            return (action, unpack_respawn(data))
-        else:
-            raise ActionError(action)
-    except JSONError, excp:
-        raise excp
+    if action in action_dict:
+        return action, action_dict[action][1](data)
+    else:
+        raise ActionError(action)
 
-if __name__=='__main__':
-    pass
+
