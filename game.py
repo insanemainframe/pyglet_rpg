@@ -6,11 +6,11 @@ from pyglet.gl import *
 from math import hypot
 from sys import exit
 
-from math_lib import Point
-from gui_lib import *
-from map_lib import Map
-from client_lib import Client
-from protocol_lib import *
+from game_lib.math_lib import Point
+from game_lib.gui_lib import *
+from game_lib.map_lib import Map
+from game_lib.client_lib import Client
+from game_lib.protocol_lib import *
 
 from config import *
 

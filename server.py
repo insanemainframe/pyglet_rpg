@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from engine_lib import Player, GameObject
-from math_lib import Point
-from protocol_lib import *
-from server_lib import EpollServer, TimerCallable
-from gui_lib import AskHostname
+from game_lib.engine_lib import Player, GameObject
+from game_lib.math_lib import Point
+from game_lib.protocol_lib import *
+from game_lib.server_lib import EpollServer, TimerCallable
+from game_lib.gui_lib import AskHostname
 
 from config import PROFILE, TILESIZE, HOSTNAME
 

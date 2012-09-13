@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#from PIL import Image
 from random import choice, randrange
 def generate(size):
     tileset =  [tile[:-4] for tile in listdir('data')]
@@ -43,12 +42,14 @@ import os
 from cPickle import load, dump
 
 def load_map():
-    if os.path.exists('data/map.data'):
-        mapfile = open('data/map.data','r')
+    if os.path.exists('../data/map.data'):
+        mapfile = open('../data/map.data','r')
         tmap = load(mapfile)
         mapfile.close()
         print 'map loaded from pickle'
         return tmap
+    from PIL import Image
+
     image = Image.open('data/map.png')
     size = image.size
     m =image.load()
