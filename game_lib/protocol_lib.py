@@ -23,18 +23,15 @@ def loads(data):
 #инициализация
 def pack_accept(data):
     world_size, position, land, objects = data
-    pid = hash(random())
     x,y = position.get()
-    print 'pack_server_accept %s:%s %s' % (x,y, pid)
     land = [point.get()+(tilename,) for point, tilename in land]
     objects = [(object_name, position.get(), tilename) for object_name, (position, tilename) in objects.items()]
-    data = (world_size, (x,y), land, objects, pid)
+    data = (world_size, (x,y), land, objects)
     return data
 
 def unpack_accept(data):
-    world_size, (x,y), land, objects, pid = data
+    world_size, (x,y), land, objects = data
     position = Point(x,y)
-    print 'unpack_server_accept %s:%s %s' % (x,y, pid)
     land = [(Point(x,y),tilename) for x,y, tilename in land]
     objects = {object_name :(Point(x,y), tilename) for object_name, (x,y), tilename in objects}
     return world_size, position, land, objects

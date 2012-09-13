@@ -12,10 +12,11 @@ from config import *
 
 class GameObject:
     "разделяемое состоние объектов карты"
+    created = False
     @staticmethod
     def init():
         cls = GameObject
-        if not hasattr(cls,'created'):
+        if not cls.created:
             cls.world =  World()
             cls.size = cls.world.size
             cls.players = {}
@@ -32,7 +33,22 @@ class GameObject:
         "ововестить остальных о своем появлении"
         for name, player in self.players.items():
             if name!=self.name and player.guided:
-                self.new_objects[name][self.name] = (self.position, self.tilename)
+                if name==self.striker:
+                    tilename = self.tilename+'_self'
+                else:
+                    tilename = self.tilename
+                self.new_objects[name][self.name] = (self.position, tilename)
+    @staticmethod
+    def choice_position():
+        cls = GameObject
+        while 1:
+            start = cls.size/2 - cls.size/10
+            end = cls.size/2 + cls.size/10
+            position = Point(randrange(start, end), randrange(start, end))
+            i,j = position.get()
+            if not cls.world.map[i][j] in BLOCKTILES:
+                position = position*TILESIZE
+                return position
         
         
 
@@ -53,7 +69,8 @@ class Movable(GameObject):
             #проверка столкновения
             i,j = get_cross(self.position, self.vector)
             cross_tile =  self.world.map[i][j]
-            if cross_tile in BLOCKTILES:
+            
+            if cross_tile in BLOCKTILES or (cross_tile in TRANSTILES and not self.crossing):
                 self.vector = Point(0,0)
                 self.move_vector = Point(0,0)
                 if self.fragile:
@@ -75,9 +92,11 @@ class Movable(GameObject):
 class Player(Movable):
     tilename = 'player'
     fragile = False
+    crossing = False
     guided = True
     prev_looked = set()
     alive = True
+    striker = False
     def __init__(self, name, player_position, look_size):
         Movable.__init__(self, player_position, PLAYERSPEED)
         self.name = name
@@ -91,7 +110,8 @@ class Player(Movable):
         looked = self.world.look(self.position, self.look_size)
         self.prev_looked = looked
         
-        objects = {name:(player.position,'player') for name, player in self.players.items()}
+        objects = {name:(player.position, self.tilename+'_self' if name==self.name else self.tilename)
+                    for name, player in self.players.items()}
         
         print '%s accept %s' % (self.name, self.position)
         return  self.world.size, self.position, looked, objects
@@ -120,7 +140,7 @@ class Player(Movable):
         return self.move_vector, new_looked, new_objects, updates
     
     def respawn(self):
-        new_position = Point(GameObject.size*TILESIZE/2, GameObject.size*TILESIZE/2)
+        new_position = self.choice_position()
         for client in self.players:
             if self.players[client].guided:
                 self.object_updates[client][self.name] = new_position - self.position
@@ -137,6 +157,7 @@ class Player(Movable):
         
         
 class Ball(Movable, GameObject):
+    crossing = True
     tilename = 'ball'
     guided = False
     fragile = True

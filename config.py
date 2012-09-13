@@ -12,7 +12,8 @@ BALLSPEED = 100
 BALLLIFETIME = 10
 BALLRADIUS = 40
 
-BLOCKTILES = ['stone', 'water', 'forest']
+BLOCKTILES = ['stone', 'forest']
+TRANSTILES = ['water']
 ANIMATED_TILES = [] #['player']
 #
 ROUND_TIMER = 0.1

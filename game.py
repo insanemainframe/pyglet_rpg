@@ -227,8 +227,9 @@ class ObjectsView(GameWindow, Drawable):
             position = point - self.position +self.center - Point(TILESIZE/2,TILESIZE/2)
             tile = create_tile(position, tilename)
             self.tiles.append(tile)
-            label = create_label(object_name, position)
-            self.tiles.append(label)
+            if tilename not in ['ball','ball_self']:
+                label = create_label(object_name, position)
+                self.tiles.append(label)
     def remove_object(self, name):
         try:
             del self.updates[name]

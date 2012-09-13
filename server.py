@@ -6,7 +6,9 @@ from game_lib.protocol_lib import *
 from game_lib.server_lib import EpollServer, TimerCallable
 from game_lib.gui_lib import AskHostname
 
-from config import PROFILE, TILESIZE, HOSTNAME
+from random import randrange
+
+from config import PROFILE, TILESIZE, HOSTNAME, BLOCKTILES
 
 class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
     hostname = None
@@ -52,16 +54,16 @@ class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
         
     def accept(self, client):
         "вызывается при подключении клиента"
-        #player_position = Point(randrange(self.size)*TILESIZE-look_size,randrange(self.size)*TILESIZE-look_size)
-        player_position = Point(GameObject.size*TILESIZE/2, GameObject.size*TILESIZE/2)
-        self.players[client] = Player(client, player_position,7)
+        self.players[client] = Player(client, self.choice_position(), 7)
         self.client_requestes[client] = []
         self.client_responses[client] = []
         
         message = self.players[client].accept()
         message = pack(message, 'accept')
         
-        self.put_message(client, message) 
+        self.put_message(client, message)
+    
+    
     
     def strike_ball(self,client_name, vector):
         name = 'ball%s' % self.ball_counter
