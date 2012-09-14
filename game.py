@@ -40,7 +40,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
         if not self.accepted:
             data = self.wait_for_accept()
             if data:
-                world_size, position, tiles, objects = data
+                world_size, position, tiles, objects, steps = data
             
                 print 'accepteed position %s tiles %s' % (position, len(tiles))
         
@@ -82,7 +82,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
             for message in self.in_messages:
                 action, message = message
                 if action=='look':
-                    move_vector, newtiles, objects, objects_update = message
+                    move_vector, newtiles, objects, objects_update, steps = message
 
                     self.shift += move_vector
             
@@ -145,6 +145,7 @@ class LandView(GameWindow,  Drawable, Map):
     def insert(self, tiles):
         "обновляет карту, добавляя новые тайлы, координаты - расстояние от стартовой точки"
         for point, tile_type in tiles:
+
             self.map[point.x][point.y] = tile_type
             
     def look_around(self):

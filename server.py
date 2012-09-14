@@ -3,14 +3,14 @@
 from game_lib.engine_lib import Player, Ball, GameObject
 from game_lib.math_lib import Point
 from game_lib.protocol_lib import *
-from game_lib.server_lib import EpollServer, TimerCallable
+from game_lib.server_lib import *
 from game_lib.gui_lib import AskHostname
 
 from random import randrange
 
 from config import PROFILE, TILESIZE, HOSTNAME, BLOCKTILES
 
-class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
+class GameServer(SocketServer, TimerCallable, GameObject, AskHostname):
     hostname = None
     player_list = []
     client_requestes = {}
@@ -23,6 +23,7 @@ class GameServer(EpollServer, TimerCallable, GameObject, AskHostname):
         self.init()
     
     def timer_handler(self):
+        #self.steps.update()
         for client_name, player in self.players.items():
             if player.guided:
                 #обрабатываем управляемые объекты(игроков)

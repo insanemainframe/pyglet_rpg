@@ -5,7 +5,6 @@ from sys import path
 path.append('../')
 
 from time import sleep, time
-from select import epoll, EPOLLIN, EPOLLOUT
 from collections import namedtuple
 
 
@@ -14,6 +13,7 @@ from config import HOSTNAME, IN_PORT, OUT_PORT, SERVER_TIMER, PROFILE, EOL
 
 IN, OUT = 0,1
 fileno_tuple = namedtuple('fileno_tuple',('in_','out_'))
+
 
 class FilenoError(Exception):
     def __init__(self, fileno, text = ''):
@@ -225,6 +225,12 @@ class EpollServer:
             stats.sort_stats('cumulative')
             stats.print_stats()
 
+try:
+    from select import epoll, EPOLLIN, EPOLLOUT
+except ImportError:
+    raise ImportError
+else:
+    SocketServer = EpollServer
 if __name__=='__main__':
     t = TimerCallable()
     t.timer_handler = lambda: None

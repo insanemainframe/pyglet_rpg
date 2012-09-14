@@ -22,39 +22,43 @@ def loads(data):
 
 #инициализация
 def pack_accept(data):
-    world_size, position, land, objects = data
+    world_size, position, land, objects, steps = data
     x,y = position.get()
     land = [point.get()+(tilename,) for point, tilename in land]
     objects = [(object_name, position.get(), tilename) for object_name, (position, tilename) in objects.items()]
-    data = (world_size, (x,y), land, objects)
+    steps = [(point.get(), step) for point, step in steps]
+    data = (world_size, (x,y), land, objects, steps)
     return data
 
 def unpack_accept(data):
-    world_size, (x,y), land, objects = data
+    world_size, (x,y), land, objects, steps = data
     position = Point(x,y)
     land = [(Point(x,y),tilename) for x,y, tilename in land]
     objects = {object_name :(Point(x,y), tilename) for object_name, (x,y), tilename in objects}
-    return world_size, position, land, objects
+    steps = [(Point(x,y), step) for (x,y), step in steps]
+    return world_size, position, land, objects, steps
 
 #обзор
 def pack_look(data):
-    move_vector, land, objects, updates = data
+    move_vector, land, objects, updates, steps = data
     move_vector = move_vector.get()
     land = [point.get()+(tilename,) for point, tilename in land]
     new_objects = [(name, position.get(), tile) for name, (position, tile) in objects.items()]
     updates = [(name,update) if update is 'remove' else (name, update.get()) for name, update in updates.items()]
-    data = move_vector, land, new_objects, updates
+    steps = [(point.get(), step) for point, step in steps]
+    data = move_vector, land, new_objects, updates, steps
     return data
 
 def unpack_look(data):
     f = lambda update: Point(*update) if isinstance(update, list) else update
-    (x,y), land, objects, updates = data
+    (x,y), land, objects, updates, steps = data
     move_vector = Point(x,y)
     land =  [(Point(x,y),tilename) for x,y, tilename in land]
     objects = {object_name:(Point(x,y), tilename) for object_name, (x,y), tilename in objects}
     updates = {name:f(update) for name, update in updates}
+    steps = [(Point(x,y), step) for (x,y), step in steps]
     
-    return move_vector, land, objects, updates
+    return move_vector, land, objects, updates, steps
 
 #передвижение
 def pack_client_move(vector):

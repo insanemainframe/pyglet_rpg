@@ -6,7 +6,7 @@ from sys import path
 path.append('../')
 
 from game_lib.math_lib import *
-from game_lib.map_lib import World
+from game_lib.map_lib import World, Steps
 
 from config import *
 
@@ -19,6 +19,7 @@ class GameObject:
         if not cls.created:
             cls.world =  World()
             cls.size = cls.world.size
+            cls.steps = Steps(cls.size)
             cls.players = {}
             cls.new_objects = {}
             cls.object_updates = {}
@@ -113,11 +114,13 @@ class Player(Movable):
         objects = {name:(player.position, self.tilename+'_self' if name==self.name else self.tilename)
                     for name, player in self.players.items()}
         
+        steps =  [] #steps = self.steps.look(self.position, self.look_size)
         print '%s accept %s' % (self.name, self.position)
-        return  self.world.size, self.position, looked, objects
+        return  self.world.size, self.position, looked, objects, []
     
     def go(self, vector=Point(0,0)):
         self.move(vector)
+        self.steps.step(self.position)
         
     def look(self):
         #получаем новые видимые тайлы
@@ -137,7 +140,9 @@ class Player(Movable):
         #ищем бновления объектов
         updates = self.object_updates[self.name]
         self.object_updates[self.name] = {}
-        return self.move_vector, new_looked, new_objects, updates
+        #steps
+        steps = [] #self.steps.look(self.position, self.look_size)
+        return self.move_vector, new_looked, new_objects, updates, steps
     
     def respawn(self):
         new_position = self.choice_position()
