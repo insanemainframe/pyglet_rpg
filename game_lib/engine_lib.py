@@ -10,7 +10,7 @@ from game_lib.map_lib import *
 
 from config import *
 
-class GameObject(World, Map, MapObject):
+class GameObject(World, Map):
     "разделяемое состоние объектов карты"
     created = False
     def __init__(self):
@@ -23,6 +23,7 @@ class GameObject(World, Map, MapObject):
         cls.object_updates = {}
         cls.created = True
         print 'created world', self.size
+    
     @staticmethod
     def choice_position():
         cls = GameObject
@@ -41,9 +42,9 @@ class Movable(GameObject):
         self.speed = speed
         self.position = position
         self.move_vector = Point(0,0)
-        self.prev_position = False
+        self.prev_position = Point(-1,-1)
         
-    def move(self, vector):
+    def move(self, vector=Point(0,0)):
         #если вектор на входе определен, до определяем вектор движения объекта
         if vector:
             self.vector = vector
@@ -67,10 +68,10 @@ class Movable(GameObject):
             self.move_vector = self.vector
         self.prev_position = self.position
         self.position+=self.move_vector
-        #оповещаем других освоем движении
+        
         return self.move_vector
 
-class Player(Movable):
+class Player(Movable, GameObject, MapObserver):
     tilename = 'player'
     fragile = False
     crossing = False
@@ -78,6 +79,7 @@ class Player(Movable):
     prev_looked = set()
     alive = True
     striker = False
+    
     def __init__(self, name, player_position, look_size):
         Movable.__init__(self, player_position, PLAYERSPEED)
         self.name = name
@@ -86,20 +88,6 @@ class Player(Movable):
     def go(self, vector):
         #self.steps.step(self.position)
         return self.move(vector)
-        
-    def _look(self):
-        #ищем новые объекты
-        new_objects = {}
-        for name, (position, tilename) in self.new_objects[self.name].items():
-            if name!=self.name:
-                new_objects[name] = (position, tilename)
-        self.new_objects[self.name] = {}
-        #ищем бновления объектов
-        updates = self.object_updates[self.name]
-        self.object_updates[self.name] = {}
-        #steps
-        steps = [] #self.steps.look(self.position, self.look_size)
-        return self.move_vector, new_looked, new_objects, updates, steps
     
     def respawn(self):
         new_position = self.choice_position()
@@ -108,17 +96,10 @@ class Player(Movable):
                 self.object_updates[client][self.name] = new_position - self.position
         self.position = new_position
         return self.position
-    
-    def __del__(self):
-        #удаляем себя из списка объектов
-        del self.new_objects[self.name]
-        del self.object_updates[self.name]
-        #оповещаем других игроков о выходе
-        for client, update_dict in self.object_updates.items():
-            self.object_updates[client][self.name] = 'remove'
+
         
         
-class Ball(Movable, GameObject):
+class Ball(Movable, GameObject, MapObserver):
     crossing = True
     tilename = 'ball'
     guided = False
@@ -132,7 +113,6 @@ class Ball(Movable, GameObject):
         self.direct = direct*(abs(one_step)/abs(direct))
         self.radius = BALLRADIUS
         #оповещаем
-        self.alarm()
     
     def collision(self):
         for name, player in self.players.items():
@@ -146,9 +126,6 @@ class Ball(Movable, GameObject):
         self.collision()
         return result
     
-    def __del__(self):
-        for client, update_dict in self.object_updates.items():
-            self.object_updates[client][self.name] = 'remove'
         
         
 class Game(GameObject):
@@ -168,27 +145,24 @@ class Game(GameObject):
         #обзор
         tiles = [(Point(i,j), tilename) for ((i,j), tilename) in player.look()]
         #новые объекты
-        s_name, s_tilename, s_position = name, player.tilename, player.position
-        objects = {name:(s_position, s_tilename+'_self' if name==s_name else s_tilename)
+        s_name =  name
+        objects = {name:(player.position, player.tilename+'_self' if name==s_name else player.tilename)
                     for name, player in self.players.items()}
         return world_size, position, tiles, objects, []
     
-    def process_action(self, messages):
+    def process_action(self):
         "совершаем действия игроками, возвращает векторы игрокам и устанавливает обновления"
-        #print 'process_action'
         self.updates = {}
         for name, player in self.players.items():
             if player.guided:
-                try:
-                    for action, message in messages[name]:
-                        vector = None
-                        if action=='move_message':
-                             vector = message
-                        elif action=='ball_message':
-                            self.strike_ball(message)
-                        self.updates[name] = player.go(vector)
-                except:
-                    print 'guided action error %s' % messages[name]
+                vector = Point(0,0)
+                if self.client_requestes[name]:
+                    action, message = self.client_requestes[name].pop()
+                    if action=='move_message':
+                         vector = message
+                    elif action=='ball_message':
+                        self.strike_ball(name, message)
+                self.updates[name] = player.go(vector)
             else:
                 if player.lifetime:
                     self.updates[name] = player.go()
@@ -197,66 +171,79 @@ class Game(GameObject):
                     #если срок жизни кончился - убиваем
                     del self.players[name]
                     self.updates[name] = 'remove'
-        
-        #print 'process_action complete'
+            #очищаем
+            self.client_requestes[name] = []
     
     def process_look(self):
         "смотрим"
-        #print 'process_look'
         messages = {}
         for name, player in self.players.items():
-            tiles = player.look()
-            new_objects = self.new_objects
-            updates = {}
-            print 'looking for updates'
-            for ((i,j), tilename) in tiles:
-                updates.update(self.filter_updates(i,j))
-            print 'looking for updates complete'
-            new_looked = tiles # - player.prev_looked
-            player.prev_looked = tiles
-            move_vector = player.move_vector
-            #
-            updates = self.updates
-            #
-            message = (move_vector, new_looked, new_objects, updates, [])
-            print 'move %s' % move_vector
-            messages[name]=(('look', message))
-        #print 'process_look complete'
+            if player.guided:
+                new_objects = self.new_objects
+                updates = {}
+                #lloking fo map
+                if player.prev_position == player.position:
+                    new_looked = []
+                    
+                else:
+                    self.f_updates = []
+                    tiles = player.look()
+                    new_looked = tiles  - player.prev_looked
+                    new_looked = [(Point(i,j),tilename) for (i,j), tilename in new_looked]
+                    player.prev_looked = tiles
+    
+                move_vector = player.move_vector
+                updates = self.updates
+                #
+                message = (move_vector, new_looked, new_objects, updates, [])
+                self.client_responses[name].append((('look', message)))
         self.new_objects = {}
+        self.updates = {}
         return messages
     
     def filter_updates(self, i,j):
-        #print 'filter update'
-        updates = {}
+        self.updates = {}
         for name, vector in self.updates.items():
-            if vector/TILESIZE==Point(i,j):
-                updates[name] = vector
-        #print 'filter_update complete'
+            if isinstance(vector, Point):
+                if vector/TILESIZE==Point(i,j):
+                    updates[name] = vector
         return updates
     
-    def strike_ball(self,name, vector):
-        name = 'ball%s' % self.ball_counter
+    def strike_ball(self,player_name, vector):
+        ball_name = 'ball%s' % self.ball_counter
         self.ball_counter+=1
-        position = self.players[client_name].position
-        self.players[name] = Ball(name, position, vector, client_name)
+        player_position = self.players[player_name].position
+        ball = Ball(ball_name, player_position, vector, player_name)
+        self.players[ball_name] = ball
+        self.new_objects[ball_name] = (player_position, ball.tilename)
     
     def close_player(self,name):
         print 'close_player'
-        del self.players[name]
-        del self.updates[name]
-        for player_name in self.players:
-            self.updates[player_name][name] = 'remove'
+        self.updates[name]= 'remove'
+        try:
+            del self.players[name]
+            del self.updates[name]
+        except KeyError:
+            print 'close_player keyerrror %s' % str(name)
+
         print 'close_player complete'
 
 
 
-
-
-
-
-
-
-
+if __name__=='__main__':
+    GameObject()
+    m = Movable(Point(3000,3000), PLAYERSPEED)
+    m.fragile = False
+    m.crossing = True
+    V = Point(-200,-200)
+    v = m.move(V)
+    while 1:
+        mv = m.move(Point(0,0))
+        v+=mv
+        print 'mself.move_vector %s' % m.move_vector
+        print 'mself.vector %s' % m.vector
+        
+        raw_input()
 
 
 

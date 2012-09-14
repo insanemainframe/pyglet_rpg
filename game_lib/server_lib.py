@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import socket, thread
+import socket
+import threading
 from sys import path
 path.append('../')
 
@@ -23,12 +24,14 @@ class FilenoError(Exception):
 class HandleAcceptError(Exception):
     pass
         
-class TimerCallable:
+class TimerCallable():
     def __init__(self, timer_value=SERVER_TIMER):
         self.timer_value = timer_value
         
     def start_timer(self):
-        thread.start_new_thread(self.timer_thread,())
+        thread = threading.Thread(target=self.timer_thread)
+        thread.daemon=True
+        thread.start()
         
     def timer_thread(self):
         while 1:

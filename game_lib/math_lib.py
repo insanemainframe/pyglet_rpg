@@ -12,8 +12,7 @@ class Point:
             self.x = int(x)
             self.y = int(y)
         except TypeError:
-            print x,y
-            raise TypeError
+            raise TypeError("%s %s not int or float" % (str(x),str(y)))
     def __nonzero__(self):
         if self.x or self.y:
             return True
@@ -21,32 +20,47 @@ class Point:
             return False
             
     def __eq__(self, point):
-        return self.x==point.x and self.y==point.y
-    def __lt__(self, other):
+        if isinstance(point, Point):
+            return self.x==point.x and self.y==point.y
+        else:
+            raise TypeError(" __eq__ %s  isn't Point instance" % str(point))
+    def __lt__(self, point):
         "<"
-        return abs(self)<abs(other)
-    def __le__(self, other):
+        if isinstance(point, Point):
+            return abs(self)<abs(point)
+        else:
+            raise TypeError("__lt__ %s point isn't Point instance" % str(point))
+    def __le__(self, point):
         "<="
-        return abs(self)<=abs(other)
-    def __gt__(self, other):
+        if isinstance(point, Point):
+            return abs(self)<=abs(point)
+        else:
+            raise TypeError("__le__ %s point isn't Point instance" % str(point))
+    def __gt__(self, point):
         ">"
-        return abs(self)>abs(other)
-    def __ge__(self, other):
+        if isinstance(point, Point):
+            return abs(self)>abs(point)
+        else:
+            raise TypeError("__gt__ %s point isn't Point instance" % str(point))
+    def __ge__(self, point):
         ">="
-        return abs(self)>=abs(other)
-        
+        if isinstance(point, Point):
+            return abs(self)>=abs(point)
+        else:
+            raise TypeError("__ge__ %s point isn't Point instance" % str(point))
     def __abs__(self):
         return hypot(self.x,self.y)
     def __add__(self, point):
         if isinstance(point, Point):
             return Point(self.x + point.x, self.y + point.y)
         else:
-            raise TypeError
+            raise TypeError("__add__ %s point isn't Point instance" % str(point))
     def __sub__(self, point):
+        "-"
         if isinstance(point, Point):
             return Point(self.x - point.x, self.y - point.y)
         else:
-            raise TypeError
+            raise TypeError("__sub__ %s point isn't Point instance" % str(point))
     def __neg__(self):
         return Point(-self.x, -self.y)
     def __mul__(self, number):

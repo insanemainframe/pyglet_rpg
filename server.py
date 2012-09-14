@@ -21,14 +21,11 @@ class GameServer(SocketServer, TimerCallable, Game, AskHostname):
         Game.__init__(self)
     
     def timer_handler(self):
-        #self.steps.update()
-        self.process_action(self.client_requestes)
-        #print 'looking'
+        self.process_action()
         look =  self.process_look()
-        #print 'looking complete', look
-        for name, messages in self.process_look().items():
+        for name, messages in look.items():
             self.client_responses[name].append(messages)
-            print 'append to responses %s' % messages
+        
 
     def accept(self, client):
         "вызывается при подключении клиента"
@@ -42,31 +39,24 @@ class GameServer(SocketServer, TimerCallable, Game, AskHostname):
 
     def write(self, client):
         if self.client_responses[client]:
-            print 'write %s' % str(self.client_responses[client])
             try:
-                #print 'write loop'
                 for action, response in self.client_responses[client]:
-                    #print 'response' 
-                    #print response
                     data = pack(response, action)
-                    #print 'pack complete'
                     self.put_message(client, data)
             except Exception, excp:
                 print 'server.writ eror %s \n %s' % (excp, str(self.client_responses[client][0]))
                 raise excp
-            self.client_responses[client] = []
-            print 'writing complete'
+            finally:
+                self.client_responses[client] = []
     
     def read(self, client, messages):
-        #if messages:
-        #    #print 'read'
         for message in messages:
             request = unpack(message)
             self.client_requestes[client].append(request)
-        #if messages:
-        #    #print 'read complete'
+
     
     def close(self, client):
+        print 'server close %s' % str(client)
         self.close_player(client)
         del self.client_requestes[client]
         del self.client_responses[client]
@@ -85,6 +75,7 @@ def main():
     server.start()
 
 if __name__ == '__main__':
+    PROFILE = 1
     if PROFILE:
         print 'profile'
         import cProfile

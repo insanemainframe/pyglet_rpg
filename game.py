@@ -216,8 +216,11 @@ class ObjectsView(GameWindow, Drawable):
                     else:
                         move_vector = vector
                     if  vector:
+                        try:
                             self.objects[object_name]['position']+= move_vector
                             self.updates[object_name]-= move_vector
+                        except KeyError:
+                            print 'ObjectsView KeyError %s' % object_name
                 else:
                     self.remove_object(object_name)
 

@@ -115,6 +115,7 @@ class Client(SelectClient):
     def send_move(self, vector):
         message = pack(vector,'move_message')
         self.put_message(message)
+        print 'send move %s' % vector
         
     def send_ball(self, vector):
         message = pack(vector,'ball_message')

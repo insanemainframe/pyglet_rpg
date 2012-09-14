@@ -41,13 +41,16 @@ class World:
         World.map, World.size = load_map()
         print 'server world size',World.size
 
-class MapObject(Map):
+class MapObserver(Map):
     def look(self):
         "возвращает список координат видимых клеток из позиции position, с координаами относительно начала карты"
         position = self.position
         rad = self.look_size
         I,J = (position/TILESIZE).get()
-        looked = set()
+        tiles = set()
+        #
+        updates = []
+        #
         for i in xrange(I-rad, I+rad):
             for j in xrange(J-rad, J+rad):
                 diff = hypot(I-i,J-j) - rad
@@ -58,8 +61,9 @@ class MapObject(Map):
                     except IndexError, excp:
                         pass
                     else:
-                        looked.add(((i,j), tile_type))
-        return looked
+                        
+                        tiles.add(((i,j), tile_type))
+        return tiles
 
 
 

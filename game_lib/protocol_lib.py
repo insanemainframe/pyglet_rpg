@@ -22,7 +22,6 @@ def loads(data):
 
 #инициализация
 def pack_accept(data):
-    print 'pack'
     world_size, position, land, objects, steps = data
     x,y = position.get()
     land = [point.get()+(tilename,) for point, tilename in land]
@@ -95,27 +94,26 @@ action_dict = {'move_message': apair(pack_client_move, unpack_client_move),
 
 def pack(data, action):
     "упаковщик данных"
-    #print 'pack %s' % action
     if action in action_dict:
         try:
             return dumps((action, action_dict[action][0](data)))
         except Exception, excp:
             print 'PackError %s' % str(data)
-            print excp
+            raise excp
     else:
         print 'ActionError'
         raise ActionError(action)
 
 def unpack(sdata):
     "распаковщик"
-    #print 'unpack'
     data = loads(sdata)
     action, data = data
     if action in action_dict:
         try:
             message = action_dict[action][1](data)
-        except:
-            print 'unpack errror %s' % message
+        except Exception, excp:
+            print 'unpack errror %s' % str(message)
+            raise excp
         else:
             return action, message
     else:
