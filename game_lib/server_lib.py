@@ -38,7 +38,7 @@ class TimerCallable:
             except Exception, exception:
                 print exception
         
-
+    
 class EpollServer:
     def __init__(self, listen_num=10):
         
@@ -68,6 +68,7 @@ class EpollServer:
         return sock, fileno
     
     def put_message(self, address, message):
+        #print 'put message'
         self.responses[address].append(message)
         out_fileno = self.clients[address].out_
         self.poll.modify(out_fileno, EPOLLOUT)

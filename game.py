@@ -18,9 +18,10 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
     accepted = False
     shift = Point(0,0)
     vector = Point(0,0)
+    hostname = HOSTNAME
     def __init__(self, height, width):
         #инициализация родтельских классов
-        AskHostname.__init__(self)
+        #AskHostname.__init__(self)
         pyglet.window.Window.__init__(self, width, height)
         DeltaTimerObject.__init__(self)
         InputHandle.__init__(self)
@@ -83,7 +84,8 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
                 action, message = message
                 if action=='look':
                     move_vector, newtiles, objects, objects_update, steps = message
-
+                    print 'move %s' % move_vector
+                    
                     self.shift += move_vector
             
                     self.land.update()

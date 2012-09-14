@@ -35,15 +35,17 @@ class Map:
         else:
             return cord      
     
-class World(Map):
+class World:
     "класс карты как со стороны ссервера"
     def __init__(self):
-        self.map, self.size = load_map()
-        print 'server world size', self.size
+        World.map, World.size = load_map()
+        print 'server world size',World.size
 
-            
-    def look(self, position, rad):
+class MapObject(Map):
+    def look(self):
         "возвращает список координат видимых клеток из позиции position, с координаами относительно начала карты"
+        position = self.position
+        rad = self.look_size
         I,J = (position/TILESIZE).get()
         looked = set()
         for i in xrange(I-rad, I+rad):
@@ -56,8 +58,9 @@ class World(Map):
                     except IndexError, excp:
                         pass
                     else:
-                        looked.add(tuple((Point(i,j), tile_type)))
+                        looked.add(((i,j), tile_type))
         return looked
+
 
 
 class Steps(Map):
