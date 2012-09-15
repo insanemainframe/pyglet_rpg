@@ -84,7 +84,6 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
                 action, message = message
                 if action=='look':
                     move_vector, newtiles, objects, objects_update, steps = message
-                    print 'move %s' % move_vector
                     
                     self.shift += move_vector
             
@@ -220,8 +219,10 @@ class ObjectsView(GameWindow, Drawable):
                             self.objects[object_name]['position']+= move_vector
                             self.updates[object_name]-= move_vector
                         except KeyError:
-                            print 'ObjectsView KeyError %s' % object_name
+                            #print 'ObjectsView KeyError %s' % object_name
+                            pass
                 else:
+                    print 'remove %s' % object_name
                     self.remove_object(object_name)
 
         
@@ -236,6 +237,7 @@ class ObjectsView(GameWindow, Drawable):
             if tilename not in ['ball','ball_self']:
                 label = create_label(object_name, position)
                 self.tiles.append(label)
+    
     def remove_object(self, name):
         try:
             del self.updates[name]

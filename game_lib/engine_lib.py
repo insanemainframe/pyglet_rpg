@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from random import randrange
-
+from abc import ABCMeta, abstractproperty
 from sys import path
 path.append('../')
 
@@ -10,11 +10,11 @@ from game_lib.map_lib import *
 
 from config import *
 
-class GameObject(World, Map):
+class GameShare(World, Map):
     "разделяемое состоние объектов карты"
     created = False
     def __init__(self):
-        cls = GameObject
+        cls = GameShare
         World.__init__(self)
         
         cls.steps = Steps(self.size)
@@ -26,17 +26,32 @@ class GameObject(World, Map):
     
     @staticmethod
     def choice_position():
-        cls = GameObject
+        cls = GameShare
         while 1:
-            start = cls.size/2 - cls.size/10
-            end = cls.size/2 + cls.size/10
+            start = cls.size/2 - 7
+            end = cls.size/2 + 7
             position = Point(randrange(start, end), randrange(start, end))
             i,j = position.get()
-            if not cls.map[i][j] in BLOCKTILES:
+            if not cls.map[i][j] in BLOCKTILES+TRANSTILES:
                 position = position*TILESIZE
                 return position        
+class GameObject:
+    __metaclass__ = ABCMeta
+    @abstractproperty
+    def fragile():
+        ""
+    @abstractproperty
+    def radius():
+        ""
+    @abstractproperty
+    def crossing():
+        ""
+    @abstractproperty
+    def guided():
+        ""
+    
 
-class Movable(GameObject):
+class Movable(GameShare):
     def __init__(self, position, speed):
         self.vector  = Point(0,0)
         self.speed = speed
@@ -58,7 +73,7 @@ class Movable(GameObject):
                 self.vector = Point(0,0)
                 self.move_vector = Point(0,0)
                 if self.fragile:
-                    del self.players[self.name]
+                    self.REMOVE = True
             else:
                 part = self.speed / abs(self.vector) # доля пройденного пути в векторе
                 move_vector = self.vector * part if part<1 else self.vector
@@ -71,10 +86,13 @@ class Movable(GameObject):
         
         return self.move_vector
 
-class Player(Movable, GameObject, MapObserver):
+class Player(Movable, MapObserver):
     tilename = 'player'
+    mortal = False
+    human = True
     fragile = False
     crossing = False
+    radius = TILESIZE/2
     guided = True
     prev_looked = set()
     alive = True
@@ -91,160 +109,37 @@ class Player(Movable, GameObject, MapObserver):
     
     def respawn(self):
         new_position = self.choice_position()
-        for client in self.players:
-            if self.players[client].guided:
-                self.object_updates[client][self.name] = new_position - self.position
+        vector = new_position - self.position
         self.position = new_position
-        return self.position
+        return vector, self.position
 
         
-        
-class Ball(Movable, GameObject, MapObserver):
+class Ball(Movable, MapObserver):
     crossing = True
     tilename = 'ball'
+    mortal = True
+    human = False
     guided = False
     fragile = True
+    radius = TILESIZE/2
+    lifetime = BALLLIFETIME
     def __init__(self, name, position, direct, striker_name):
         Movable.__init__(self, position, BALLSPEED)
-        self.lifetime = BALLLIFETIME
         self.name = name
         self.striker =  striker_name
         one_step = Point(BALLSPEED,BALLSPEED)
         self.direct = direct*(abs(one_step)/abs(direct))
-        self.radius = BALLRADIUS
-        #оповещаем
-    
-    def collision(self):
-        for name, player in self.players.items():
-            if player.guided and name!=self.striker:
-                dist = abs(self.position-player.position)
-                if dist<self.radius:
-                    self.players[name].alive= False
-                    print 'BOMB %s' % name
+
+                    
     def go(self):
         result = self.move(self.direct)
-        self.collision()
         return result
     
-        
-        
-class Game(GameObject):
-    updates = {}
-    new_objects = {}
-    ball_counter=0
-    def __init__(self):
-        GameObject.__init__(self)
-    
-    def create_player(self, name):
-        self.players[name] = Player(name, self.choice_position(), 7)
-        player =  self.players[name]
-        world_size = self.size
-        position = player.position
-        #
-        self.new_objects[name] = (position, player.tilename)
-        #обзор
-        tiles = [(Point(i,j), tilename) for ((i,j), tilename) in player.look()]
-        #новые объекты
-        s_name =  name
-        objects = {name:(player.position, player.tilename+'_self' if name==s_name else player.tilename)
-                    for name, player in self.players.items()}
-        return world_size, position, tiles, objects, []
-    
-    def process_action(self):
-        "совершаем действия игроками, возвращает векторы игрокам и устанавливает обновления"
-        self.updates = {}
-        for name, player in self.players.items():
-            if player.guided:
-                vector = Point(0,0)
-                if self.client_requestes[name]:
-                    action, message = self.client_requestes[name].pop()
-                    if action=='move_message':
-                         vector = message
-                    elif action=='ball_message':
-                        self.strike_ball(name, message)
-                self.updates[name] = player.go(vector)
-            else:
-                if player.lifetime:
-                    self.updates[name] = player.go()
-                    player.lifetime-=1
-                else:
-                    #если срок жизни кончился - убиваем
-                    del self.players[name]
-                    self.updates[name] = 'remove'
-            #очищаем
-            self.client_requestes[name] = []
-    
-    def process_look(self):
-        "смотрим"
-        messages = {}
-        for name, player in self.players.items():
-            if player.guided:
-                new_objects = self.new_objects
-                updates = {}
-                #lloking fo map
-                if player.prev_position == player.position:
-                    new_looked = []
-                    
-                else:
-                    self.f_updates = []
-                    tiles = player.look()
-                    new_looked = tiles  - player.prev_looked
-                    new_looked = [(Point(i,j),tilename) for (i,j), tilename in new_looked]
-                    player.prev_looked = tiles
-    
-                move_vector = player.move_vector
-                updates = self.updates
-                #
-                message = (move_vector, new_looked, new_objects, updates, [])
-                self.client_responses[name].append((('look', message)))
-        self.new_objects = {}
-        self.updates = {}
-        return messages
-    
-    def filter_updates(self, i,j):
-        self.updates = {}
-        for name, vector in self.updates.items():
-            if isinstance(vector, Point):
-                if vector/TILESIZE==Point(i,j):
-                    updates[name] = vector
-        return updates
-    
-    def strike_ball(self,player_name, vector):
-        ball_name = 'ball%s' % self.ball_counter
-        self.ball_counter+=1
-        player_position = self.players[player_name].position
-        ball = Ball(ball_name, player_position, vector, player_name)
-        self.players[ball_name] = ball
-        self.new_objects[ball_name] = (player_position, ball.tilename)
-    
-    def close_player(self,name):
-        print 'close_player'
-        self.updates[name]= 'remove'
-        try:
-            del self.players[name]
-            del self.updates[name]
-        except KeyError:
-            print 'close_player keyerrror %s' % str(name)
-
-        print 'close_player complete'
-
 
 
 if __name__=='__main__':
-    GameObject()
+    GameShare()
     m = Movable(Point(3000,3000), PLAYERSPEED)
-    m.fragile = False
-    m.crossing = True
-    V = Point(-200,-200)
-    v = m.move(V)
-    while 1:
-        mv = m.move(Point(0,0))
-        v+=mv
-        print 'mself.move_vector %s' % m.move_vector
-        print 'mself.vector %s' % m.vector
-        
-        raw_input()
-
 
 
 

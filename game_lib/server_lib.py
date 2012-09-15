@@ -18,8 +18,9 @@ fileno_tuple = namedtuple('fileno_tuple',('in_','out_'))
 
 class FilenoError(Exception):
     def __init__(self, fileno, text = ''):
-        self.fileno = fileno
-        Exception.__init__(self, '%s %s' % (fileno,text))
+        self.text = 'FilenoError %s "%s"'
+    def __str__(self):
+        return self.text
 
 class HandleAcceptError(Exception):
     pass
@@ -39,7 +40,9 @@ class TimerCallable():
             try:
                 self.timer_handler()
             except Exception, exception:
+                print 'EXCEPTION IN THREAD', type(exception)
                 print exception
+                raise exception
         
     
 class EpollServer:
@@ -71,7 +74,6 @@ class EpollServer:
         return sock, fileno
     
     def put_message(self, address, message):
-        #print 'put message'
         self.responses[address].append(message)
         out_fileno = self.clients[address].out_
         self.poll.modify(out_fileno, EPOLLOUT)
@@ -158,8 +160,8 @@ class EpollServer:
 
     
     def get_address(self, fileno):
-        for address, filenos in self.clients.items():
-            if fileno in filenos:
+        for address in self.clients:
+            if fileno in self.clients[address]:
                 return address
         raise FilenoError(fileno, 'FilenoError')
     
@@ -212,7 +214,7 @@ class EpollServer:
         print('Closing %s(%s,%s)' % (address, in_fileno, out_fileno))
     
     def handle_error(self, error, fileno, event):
-        print '%s error %s' % (fileno, error)
+        print '%s handle error %s' % (fileno, error)
         self.handle_close(fileno)
     
     def stop(self):
