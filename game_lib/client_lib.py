@@ -13,7 +13,6 @@ from config import HOSTNAME, IN_PORT, OUT_PORT, TILESIZE
 class SocketClient:
     "класс работы с сокетами и селектом"
     def __init__(self):
-        self.hostname = HOSTNAME
         self.buff = ''
         self.outsock, self.out_fileno = self.create_sock(IN_PORT)
         self.insock, self.in_fileno = self.create_sock(OUT_PORT)
@@ -21,9 +20,11 @@ class SocketClient:
     def create_sock(self, port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        print 'connect to %s:%s' % (self.hostname,port)
         sock.connect((self.hostname,port))
         sock.setblocking(0)
         fileno = sock.fileno()
+        
         return sock, fileno
     
     def handle_write(self):
