@@ -8,7 +8,7 @@ from math import hypot
 from math_lib import Point
 from mapgen import load_map
 
-from config import TILESIZE, logger
+from config import TILESIZE
 
 class Map:
     "методы работы с картой"
@@ -42,14 +42,15 @@ class World:
         print 'server world size',World.size
 
 class MapObserver(Map):
-    def look(self):
+    
+    def look(self, updates):
         "возвращает список координат видимых клеток из позиции position, с координаами относительно начала карты"
         position = self.position
         rad = self.look_size
         I,J = (position/TILESIZE).get()
         tiles = set()
         #
-        updates = []
+        new_updates = {}
         #
         for i in xrange(I-rad, I+rad):
             for j in xrange(J-rad, J+rad):
@@ -61,9 +62,11 @@ class MapObserver(Map):
                     except IndexError, excp:
                         pass
                     else:
-                        
                         tiles.add(((i,j), tile_type))
-        return tiles
+                        if (i,j) in updates:
+                            name,(position, vector, tilename) = updates[(i,j)]
+                            new_updates[name] = (position, vector, tilename)
+        return tiles, new_updates
 
 
 

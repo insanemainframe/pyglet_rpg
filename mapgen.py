@@ -42,12 +42,15 @@ import os
 from cPickle import load, dump
 
 def load_map():
-    if os.path.exists('../data/map.data'):
-        mapfile = open('../data/map.data','r')
+    map_file = 'data/map.data'
+    if os.path.exists(map_file):
+        mapfile = open(map_file,'r')
         tmap = load(mapfile)
         mapfile.close()
         print 'map loaded from pickle'
         return tmap
+    
+    print '/data/map.data doesnt exist'
     from PIL import Image
 
     image = Image.open('data/map.png')
@@ -67,7 +70,7 @@ def load_map():
             row.append(item)
         tilemap.append(row)
     print 'map loaded',size
-    mapfile = open('data/map.data','w')
+    mapfile = open(map_file,'w')
     dump((tilemap, size[0]), mapfile)
     mapfile.close()
     return tilemap, size[0]

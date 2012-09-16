@@ -7,8 +7,6 @@ import pyglet
 from abc import ABCMeta, abstractmethod, abstractproperty
 from time import time
 from os import listdir
-from sys import argv
-import re
 
 from math_lib import Point
 
@@ -62,33 +60,6 @@ class GameWindow():
     def set_camera_position(position):
         GameWindow.prev_position = GameWindow.position
         GameWindow.position = position
-
-class AskHostname:
-    def __init__(self):
-        self.default = HOSTNAME
-        self.pattern = '^\d+\.\d+\.\d+\.\d+$'
-        if len(argv)>1:
-            if argv[1]=='-d':
-                self.hostname = self.default
-                return
-        message = 'Enter hostname or press Enter for default %s: ' % HOSTNAME
-        while 1:
-            result = raw_input(message)
-            if not result:
-                self.hostname = self.default
-                break
-            elif self.check(result):
-                self.hostname = result
-                break
-            else:
-                print 'invalid value: %s' % self.error
-    
-    def check(self, message):
-        if re.match(self.pattern, message):
-            return True
-        else:
-            self.error = 'wrong format'        
-            return False
         
             
 class DeltaTimerObject:
@@ -128,37 +99,54 @@ class DeltaTimerObject:
 
 class InputHandle:
     "перехват устройств ввода"
-    #__metaclass__=ABCMeta
-    @abstractmethod
+    pressed = False
     def send_vector():
         ""
     def __init__(self):
-        self.vectors = {UP:Point(0,40), DOWN: Point(0,-40), LEFT : Point(-40,0), RIGHT : Point(40,0)}
+        step = TILESIZE/2
+        self.vectors = {UP:Point(0,step), DOWN: Point(0,-step),
+                        LEFT : Point(-step,0), RIGHT : Point(step,0)}
             
     def on_key_press(self, symbol, modifiers):
         "движение с помощью клавиатуры"
         if symbol in (UP,DOWN, LEFT,RIGHT):
-            self.send_move(self.vectors[symbol])
+            self.pressed = symbol
+            
+    
+    def on_key_release(self, symbol, modifiers):
+        if symbol==self.pressed:
+            self.pressed = False
     
     def on_mouse_press(self, x, y, button, modifiers):
         "перехватывавем нажатие левой кнопки мышки"
         #левая кнопка - движение
         if button==1:
-            vector = (Point(x,y) - self.center)
-            self.send_move(vector)
+            self.vector = (Point(x,y) - self.center)
+            
         elif button==4:
             vector = (Point(x,y) - self.center)
             self.send_ball(vector)
-
-        
-        
+    
+    def on_mouse_release(self, x, y, button, modifiers):
+        if button==1:
+            self.vector = False
+    
+    def on_mouse_drag(self, x, y, dx, dy, button, modifiers):
+        if button==1:
+            self.vector = (Point(x,y) - self.center)
             
+        
+    
+    def handle_input(self):
+        if self.pressed:
+            symbol = self.pressed
+            self.send_move(self.vectors[symbol])
+        elif self.vector:
+            self.send_move(self.vector)
+            
+
 class Drawable:
     "рисуемые объекты"
-    #__metaclass__ = ABCMeta
-    @abstractproperty
-    def tiles():
-        ""
     def __init__(self):
         self.animation = 1
         self.animation_counter = 0

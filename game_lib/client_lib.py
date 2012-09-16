@@ -2,13 +2,16 @@
 # -*- coding: utf-8 -*-
 import socket, sys, os, select
 
-from protocol_lib import *
+from protocol_lib import pack, unpack, send, receive
+from math_lib import Point
 
 from sys import path
 path.append('../')
-from config import EOL, HOSTNAME, IN_PORT, OUT_PORT
+from config import HOSTNAME, IN_PORT, OUT_PORT, TILESIZE
 
-class SelectClient:
+#####################################################################
+class SocketClient:
+    "класс работы с сокетами и селектом"
     def __init__(self):
         self.hostname = HOSTNAME
         self.buff = ''
@@ -23,44 +26,25 @@ class SelectClient:
         fileno = sock.fileno()
         return sock, fileno
     
-            
     def handle_write(self):
         if self.out_messages:
-            messages = EOL.join(self.out_messages) + EOL
+            for message in self.out_messages:
+                send(self.outsock, message)
             self.out_messages = []
-            self.outsock.send(messages)
             
-    
     def put_message(self, message):
         self.out_messages.append(message)
     
     def handle_read(self):
-        try:
-            data = self.insock.recv(1024)
-        except socket.error, err:
-            print 'socket.error', err
-            if err[0]!=11:
-                raise err
+        data = receive(self.insock)
+        if data:
+            if self.accept_message:
+                self.read(data)
             else:
-                return []
-        else:
-            if not data:
-                self.handle_close()
-                return
-            messages = []
-            for char in data:
-                if char!=EOL:
-                    self.buff+=char
-                else:
-                    messages.append(self.buff)
-                    self.buff=''
-            for message in messages:
-                if not self.accept_message:
-                    self.accept_(message)
-                else:
-                    self.receive(message)
+                self.accept_(data)
 
-    def loop(self):
+
+    def socket_loop(self):
         #input events
         inevents , outevents, expevents = select.select([self.insock],[self.outsock],[])
         for fileno in inevents:
@@ -75,7 +59,6 @@ class SelectClient:
             except socket.error as Error:
                 self.handle_error(Error)
        
-        
     def close_connection(self):
         self.insock.close()
         self.outsock.close()
@@ -88,46 +71,59 @@ class SelectClient:
     def handle_error(self, Error):
         print 'error', Error
         sys.exit()
+
+#####################################################################
+#
+class Client(SocketClient):
+    "полуение и распаковка сообщений, антилаг"
+    antilag= False
+    antilag_shift = Point(0,0)   
+    accept_message = False
+    in_messages = []
+    out_messages = []
     
-class Client(SelectClient):
     def __init__(self):
-        SelectClient.__init__(self)
-        self.accept_message = False
-        self.in_messages = []
-        self.out_messages = []
-    
+        SocketClient.__init__(self)
+
     def wait_for_accept(self):
         print 'waiting for acception'
-        self.loop()
+        self.socket_loop()
         if self.accept_message:
             print 'accepted'
             return self.accept_message
         else:
             return False
 
-    
     def accept_(self, message):
+        print 'accept_'
         action, message = unpack(message)
-        if action=='accept':
+        if action=='server_accept':
             #print 'Client.accept %s' % str(message)
             self.accept_message = message
         
     def send_move(self, vector):
         message = pack(vector,'move_message')
         self.put_message(message)
-        print 'send move %s' % vector
+        #предварительное движение
+        if vector and not self.shift and not self.antilag:
+                step = vector * ((TILESIZE/5) / abs(vector))
+                if step<vector:
+                    shift = step
+                else:
+                    shift = vector
+                self.antilag_init(shift)
+                self.antilag_shift = shift
+                self.antilag = True
         
     def send_ball(self, vector):
         message = pack(vector,'ball_message')
         self.put_message(message)
         
-    
-    def receive(self, message):
-        action, message = unpack(message)
-        self.in_messages.append((action, message))
+    def read(self, package):
+        if package:
+            action, message = unpack(package)
+            self.in_messages.append((action, message))
               
-    
-
     
 def main():
 	c = Client()

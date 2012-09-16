@@ -19,20 +19,6 @@ ANIMATED_TILES = [] #['player']
 ROUND_TIMER = 0.1
 SERVER_TIMER = 0.1
 
-PROFILE = 0
-EOL = '\n'
+PROFILE_CLIENT = False
+PROFILE_SERVER = False
 
-
-#logging
-import os.path
-logfile = '/tmp/rpg.log'
-if os.path.exists(logfile):
-    from os import remove
-    remove(logfile)
-import logging
-logger = logging.getLogger('myapp')
-hdlr = logging.FileHandler(logfile)
-formatter = logging.Formatter('%(message)s')
-hdlr.setFormatter(formatter)
-logger.addHandler(hdlr)
-logger.setLevel(logging.DEBUG)

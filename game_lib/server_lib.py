@@ -1,243 +1,179 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#SOCKET LAYER
 import socket
-import threading
+from time import time
 from sys import path
 path.append('../')
 
-from time import sleep, time
-from collections import namedtuple
-
-
-from config import HOSTNAME, IN_PORT, OUT_PORT, SERVER_TIMER, PROFILE, EOL
+from poll_lib import PollServer
+from protocol_lib import send, receive
+from config import HOSTNAME, IN_PORT, OUT_PORT, SERVER_TIMER, PROFILE_SERVER
 
 
 IN, OUT = 0,1
-fileno_tuple = namedtuple('fileno_tuple',('in_','out_'))
-
-
-class FilenoError(Exception):
-    def __init__(self, fileno, text = ''):
-        self.text = 'FilenoError %s "%s"'
-    def __str__(self):
-        return self.text
+PORTS = {IN:IN_PORT, OUT:OUT_PORT}
 
 class HandleAcceptError(Exception):
     pass
-        
-class TimerCallable():
-    def __init__(self, timer_value=SERVER_TIMER):
+
+class SocketError:
+    def __init__(self, error):
+        self.error = error
+    def __str__(self):
+        return 'SocketError: %s' %self.error
+
+class SocketServer(PollServer):
+    def __init__(self, timer_value=SERVER_TIMER, listen_num=10):
+        PollServer.__init__(self)
+        self.listen_num = listen_num
         self.timer_value = timer_value
         
-    def start_timer(self):
-        thread = threading.Thread(target=self.timer_thread)
-        thread.daemon=True
-        thread.start()
-        
-    def timer_thread(self):
-        while 1:
-            sleep(self.timer_value)
-            try:
-                self.timer_handler()
-            except Exception, exception:
-                print 'EXCEPTION IN THREAD', type(exception)
-                print exception
-                raise exception
-        
-    
-class EpollServer:
-    def __init__(self, listen_num=10):
-        
-        self.poll = epoll()
-        self.listen_num = listen_num
-        
-        self.insock, self.in_fileno = self.create_socket(IN_PORT)
-        self.outsock, self.out_fileno = self.create_socket(OUT_PORT)
+        self.insock, self.in_fileno = self.create_socket(IN)
+        self.outsock, self.out_fileno = self.create_socket(OUT)
         self.insocks, self.outsocks = {}, {}
-        self.in_buffers, self.out_buffers = {}, {}
-        
         
         self.address_buf = {}
-        self.address_list = []
         
-        self.clients = {}
         self.responses = {}
         self.requests = {}
             
-    def create_socket(self, port):
+    def create_socket(self, stream):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.setblocking(0)
-        sock.bind((self.hostname, port))
+        sock.bind((self.hostname, PORTS[stream]))
         fileno = sock.fileno()
-        self.poll.register(fileno, EPOLLIN)
+        self.register_accept(fileno, stream)
         return sock, fileno
     
-    def put_message(self, address, message):
-        self.responses[address].append(message)
-        out_fileno = self.clients[address].out_
-        self.poll.modify(out_fileno, EPOLLOUT)
+    def put_messages(self, address, messages):
+        self.responses[address]+=messages
     
-    def has_responses(self):
-        for response in self.responses.values():
-            if response:
+    def handle_write(self):
+        if self.responses:
+            for address in self.responses:
+                responses = self.responses[address]
+                for response in responses:
+                    self.send(address, response)
+                self.responses[address] = []
+    
+    def handle_read(self, address):
+        try:
+            message = self.receive(address)
+        except socket.error as Error:
+            print 'handle read socket error %s' % Error
+            errno = Error[0]
+            if Error[0]==104:
+                self.handle_close(address)
+                return False
+            return True
+            
+        else:
+            if message:
+                self.read(address, message)
                 return True
-        return False
-    
-    def handle_write(self, fileno):
-        address = self.get_address(fileno)
-        self.write(address)
-        if not self.responses[address]:
-            return 
-        fileno = self.clients[address].out_
-        if self.responses[address]:
-            response = (EOL.join(self.responses[address])+EOL)
-            self.responses[address] = []
-            self.outsocks[fileno].send(response)
-    
-    def handle_read(self, fileno):
-        address = self.get_address(fileno)
-        data = self.insocks[fileno].recv(1024)
-        if not data:
             self.handle_close(address)
-        messages = []
-        for char in data:
-            if char!=EOL:
-                self.in_buffers[address].append(char)
-            else:
-                messages.append(''.join(self.in_buffers[address]))
-                self.in_buffers[address] = []
-        self.read(address, messages)
+            return False
+            
         
-
-    
     def handle_accept(self, stream):
+        "прием одного из двух соединений"
         if stream==IN:
-            conn, (address, in_fileno) = self.insock.accept()
-            in_fileno = conn.fileno()
-            self.insocks[in_fileno] = conn
-            fileno = in_fileno
-            print('input Connection from %s (%s)' % (in_fileno, address))
+            conn, (address, fileno) = self.insock.accept()
+            conn.setblocking(0)
+            print('input Connection from %s (%s)' % (fileno, address))
+            
         elif stream==OUT:
-            conn, (address, out_fileno) = self.outsock.accept()
-            out_fileno = conn.fileno()
-            self.outsocks[out_fileno] = conn
-            fileno = out_fileno
-            print('output Connection from %s (%s)' % (out_fileno, address))
+            conn, (address, fileno) = self.outsock.accept()
+            conn.setblocking(0)
+            print('output Connection from %s (%s)' % (fileno, address))
         else:
             raise HandleAcceptError('unknnowsn stream %s' % stream)
         
         conn.setblocking(0)
         
         if address not in self.address_buf:
-            self.address_buf[address] = fileno
+            self.address_buf[address] = conn
+            return True
         else:
             if stream==IN:
-                out_fileno = self.address_buf[address]
+                insock = conn
+                outsock = self.address_buf[address]
+                
             else:
-                in_fileno = self.address_buf[address]
+                 outsock = conn
+                 insock = self.address_buf[address]
+                 
             del self.address_buf[address]
-            self.accept_client(address, in_fileno, out_fileno)
-        
-    
-    def accept_client(self, address, in_fileno, out_fileno):
-        address = str(abs(hash((address, time()))))
-        self.clients[address] = fileno_tuple(in_fileno, out_fileno)
-        
-        print 'accepting_client %s %s' % ( self.get_address(in_fileno), self.clients[address])
-        
+            infileno = insock.fileno()
+            return self.accept_client(infileno, address,insock, outsock)   
+                 
+    def accept_client(self, fileno, sock_address, insock, outsock):
+        "регистрация клиента, после того как он подключился к обоим сокетам"
+        address = str(abs(hash((sock_address, time()))))
+        self.insocks[address] = insock
+        self.outsocks[address] = outsock
+        in_fileno, out_fileno = self.insocks[address].fileno(), self.outsocks[address].fileno()
         
         self.requests[address] = []
         self.responses[address] = []
-        self.in_buffers[address] = []
-        self.out_buffers[address] = []
+        
+        print 'accepting_client %s' % address
         #регистрируем
-        self.poll.register(in_fileno, EPOLLIN)
-        self.poll.register(out_fileno, EPOLLOUT)
+        self.register_read(in_fileno, address)
+        self.register(address, in_fileno, out_fileno)
         #реагируем на появление нового клиента
         self.accept(address)
-
-
-    
-    def get_address(self, fileno):
-        for address in self.clients:
-            if fileno in self.clients[address]:
-                return address
-        raise FilenoError(fileno, 'FilenoError')
-    
+        return True
 
     def run(self):
-        print 'Server running at %s:(%s,%s)' % (HOSTNAME, IN_PORT, OUT_PORT)
+        print 'Server running at %s:(%s,%s) with %s' % (self.hostname, IN_PORT, OUT_PORT, self.poll_engine)
         self.insock.listen(self.listen_num)
         self.outsock.listen(self.listen_num)
         try:
-            while 1:
-                events = self.poll.poll()
-                for fileno, event in events:
-                    try:
-                        if fileno==self.in_fileno:
-                            self.handle_accept(IN)
-                        elif fileno==self.out_fileno:
-                            self.handle_accept(OUT)
-                        elif event==EPOLLIN: 
-                            self.handle_read(fileno)
-                        elif self.has_responses and event==EPOLLOUT:
-                            self.handle_write(fileno)
-                    except socket.error as Error:
-                        self.handle_error(Error, fileno, event)
+            self.run_poll()
         finally:
             self.stop()
     
     def handle_close(self, address):
+        print 'Closing %s' % address
         self.close(address)
-        in_fileno, out_fileno = self.clients[address]
         
-        self.poll.unregister(in_fileno)
-        self.poll.unregister(out_fileno)
+        in_fileno, out_fileno = self.insocks[address].fileno(), self.outsocks[address].fileno()
         
-        self.insocks[in_fileno].close()
-        del self.insocks[in_fileno]
-        self.outsocks[out_fileno].close()
-        del self.outsocks[out_fileno]
+        self.insocks[address].close()
+        del self.insocks[address]
+        self.outsocks[address].close()
+        del self.outsocks[address]
         
-        del self.clients[address]
         del self.requests[address]
         del self.responses[address]
-        del self.in_buffers[address]
-        del self.out_buffers[address]
-        try:
-            self.address_list.remove(address)
-        except ValueError:
-            pass
+       
+        return self.unregister(address, in_fileno, out_fileno)
     
-        
-        print('Closing %s(%s,%s)' % (address, in_fileno, out_fileno))
-    
-    def handle_error(self, error, fileno, event):
-        print '%s handle error %s' % (fileno, error)
-        self.handle_close(fileno)
+    def handle_error(self, error, address):
+        print '%s handle error %s' % (address, error)
+        self.handle_close(address)
     
     def stop(self):
-        self.poll.unregister(self.in_fileno)
-        self.poll.unregister(self.out_fileno)
-        self.poll.close()
+        self.stop_poll()
         self.insock.close()
         self.outsock.close()
         print('Stopped')
-        if PROFILE:
+        if PROFILE_SERVER:
             import pstats
             print 'profile'
             stats = pstats.Stats('/tmp/game_server.stat')
             stats.sort_stats('cumulative')
             stats.print_stats()
+    
+    def send(self, address, data):
+        sock = self.outsocks[address]
+        send(sock,data)
+        
+    def receive(self, address):
+        sock = sock = self.insocks[address]
+        return receive(sock)
 
-try:
-    from select import epoll, EPOLLIN, EPOLLOUT
-except ImportError:
-    raise ImportError
-else:
-    SocketServer = EpollServer
-if __name__=='__main__':
-    t = TimerCallable()
-    t.timer_handler = lambda: None
-    t.start_timer()
+
