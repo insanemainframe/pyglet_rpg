@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 #
 HOSTNAME = '127.0.0.1'
-IN_PORT = 1488
-OUT_PORT = 1489
+IN_PORT = 8888
+OUT_PORT = 8889
 #
 TILESIZE = 40
 PLAYERSPEED = 60

@@ -39,10 +39,13 @@ class ZlibError:
 #####################################################################
 #упаковка и распаковка пакетов для сокетов
 def send(channel, data):
-    value = htonl(len(data))
-    size = struct.pack("L",value)
-    channel.send(size)
-    channel.send(data)
+    try:
+        value = htonl(len(data))
+        size = struct.pack("L",value)
+        channel.send(size)
+        channel.send(data)
+    except socket_error as Error:
+        print 'send socket error %s' % Error
     
 
 def receive(channel):
