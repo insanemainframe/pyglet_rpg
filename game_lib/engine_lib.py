@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from random import randrange
+from collections import defaultdict
 from abc import ABCMeta, abstractproperty
 from sys import path
 path.append('../')
+
 
 from game_lib.math_lib import *
 from game_lib.map_lib import *
@@ -21,10 +23,13 @@ class GameShare(World, MapTools):
         
         cls.steps = Steps(self.size)
         cls.players = {}
-        cls.updates = {}
-        cls.new_objects = {}
-        cls.object_updates = {}
+        cls.updates = defaultdict(list)
         print 'created game: world size %s' % self.size
+    @staticmethod
+    def add_update(name, prev_position, move_vector, tilename):
+        map_position = (prev_position/TILESIZE).get()
+        GameShare.updates[map_position].append((name, ( prev_position, move_vector, tilename)))
+            
     
     @staticmethod
     def choice_position():
@@ -83,10 +88,10 @@ class MapObserver(MapTools, GameShare):
                         looked.add((Point(i,j), tile_type))
                         observed.add((i,j))
                         if (i,j) in self.updates:
-                            name,(position, vector, tilename) = self.updates[(i,j)]
-                            if name==self.name:
-                                tilename = 'self'
-                            new_updates[name] = (position, vector, tilename)
+                            for name,(position, vector, tilename) in self.updates[(i,j)]:
+                                if name==self.name:
+                                    tilename = 'self'
+                                new_updates[name] = (position, vector, tilename)
 
         new_looked = looked - self.prev_looked
         self.prev_looked = looked
@@ -131,7 +136,7 @@ class Movable(GameShare):
         self.prev_position = self.position
         self.position+=self.move_vector
         
-        return {(self.prev_position/TILESIZE).get(): (self.name, (self.prev_position, self.move_vector, self.tilename))}
+        return self.name, self.prev_position, self.move_vector, self.tilename
 
 #####################################################################
 class Player(Movable, MapObserver, GameShare):

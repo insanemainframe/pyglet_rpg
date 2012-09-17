@@ -39,7 +39,7 @@ class Game(GameShare):
         #добавляем обновление
         key = (player.position/TILESIZE).get()
         update = (player.name, (player.position, player.move_vector, player.tilename))
-        self.updates[key] = update
+        self.add_update(player.name, player.position, player.move_vector, player.tilename)
     
     def process_action(self, messages):
         "совершаем действия игроками, возвращает векторы игрокам и устанавливает обновления"
@@ -53,10 +53,10 @@ class Game(GameShare):
                          vector = message
                     elif action=='ball':
                         self.strike_ball(name, message)
-                self.updates.update(player.go(vector))
+                self.add_update(*player.go(vector))
             else:
                 if player.lifetime:
-                    self.updates.update(player.go())
+                    self.add_update(*player.go())
                     player.lifetime-=1
                 else:
                     #если срок жизни кончился - убиваем
@@ -75,7 +75,7 @@ class Game(GameShare):
                 if not player.alive:
                     vector, new_position = player.respawn()
                     messages[name].append(('respawn', new_position))
-                    self.updates.update({player.position.get(): (name,(player.position, vector, player.tilename))})
+                    self.add_update(name,player.position, vector, player.tilename)
                     player.alive = True
                 #смотрим карту
                 new_looked, observed, updates = player.look()
@@ -116,9 +116,7 @@ class Game(GameShare):
     
     def remove_object(self,name):
         player = self.players[name]
-        update = (player.name,(player.prev_position, 'remove', 'REMOVED'))
-        key = (player.prev_position/TILESIZE).get()
-        self.updates.update({key:update})
+        self.add_update(player.name, player.prev_position, 'remove', 'REMOVED')
         del self.players[name]
 
 
