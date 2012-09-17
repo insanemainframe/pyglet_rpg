@@ -9,6 +9,7 @@ from zlib import compress, decompress
 
 from math_lib import Point
 from collections import namedtuple
+from logger import PROTOCOLLOG as LOG
 
 #####################################################################
 #исключения для ошибок работы протокола
@@ -45,7 +46,7 @@ def send(channel, data):
         channel.send(size)
         channel.send(data)
     except socket_error as Error:
-        print 'send socket error %s' % Error
+        LOG.error('protocol_lib.send error %s' % Error)
     
 
 def receive(channel):
@@ -53,7 +54,7 @@ def receive(channel):
     try:
         size = ntohl(struct.unpack("L", size)[0])
     except struct.error, e:
-        print 'struct error %s size %s' % (e,size)
+        LOG.error('protocol_lib.receive struct error %s size %s' % (e,size))
         return ''
     
     data = ""
@@ -63,7 +64,7 @@ def receive(channel):
         except socket_error as Error:
             errno = Error[0]
             if errno!=11:
-                print 'PollServer.send error %s' % Error
+                LOG.error('protocol_lib.receive error %s' % Error)
                 self.handle_error(Error, address)
                 return ''
     return data
@@ -188,7 +189,7 @@ def pack(data, action):
         try:
             return dumps((action, action_dict[action][0](data)))
         except Exception as excp:
-            print 'PackError: %s %s %s' % (action, excp, str(data))
+            LOG.error('PackError: %s %s %s' % (action, excp, str(data)))
             raise excp
     else:
         print 'ActionError'
@@ -202,7 +203,7 @@ def unpack(sdata):
         try:
             message = action_dict[action][1](data)
         except Exception, excp:
-            print 'Unpack errror:%s %s %s' % (action, excp, str(data))
+            LOG.error('Unpack errror:%s %s %s' % (action, excp, str(data)))
             raise excp
         else:
             return action, message

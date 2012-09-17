@@ -9,10 +9,13 @@ from game_lib.math_lib import *
 from game_lib.map_lib import *
 
 from config import *
+from logger import ENGINELOG as LOG
 
 class GameShare(World, Map):
     "разделяемое состоние объектов карты"
     created = False
+    updates = {}
+    new_objects = {}
     def __init__(self):
         cls = GameShare
         World.__init__(self)
@@ -86,7 +89,7 @@ class Movable(GameShare):
         
         return self.move_vector
 
-class Player(Movable, MapObserver):
+class Player(Movable, MapObserver, GameShare):
     tilename = 'player'
     mortal = False
     human = True

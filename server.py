@@ -7,6 +7,8 @@ from game_lib.ask_hostname import AskHostname
 
 
 from config import PROFILE_SERVER, HOSTNAME
+from game_lib.logger import SERVERLOG as LOG
+
 
 class GameServer(SocketServer, Game, AskHostname):
     hostname = None

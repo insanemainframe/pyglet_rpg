@@ -11,10 +11,10 @@ from game_lib.engine_lib import *
 
 
 from config import *
+from game_lib.logger import ENGINELOG as LOG
+
 
 class Game(GameShare):
-    updates = {}
-    new_objects = {}
     ball_counter=0
     def __init__(self):
         GameShare.__init__(self)
@@ -27,14 +27,13 @@ class Game(GameShare):
         #
         self.new_objects[name] = {}
         #обзор
-        looked = new_player.look({})[0]
-        observed = [(i,j) for (i,j), tilename in looked]
-        tiles = [(Point(i,j), tilename) for ((i,j), tilename) in looked]
+        looked, observed, updates = new_player.look()
+        looked = [(Point(i,j), tilename) for ((i,j), tilename) in looked]
         #уже существующие объекты
         objects = {name:(player.position, 'self' if name==new_player.name else player.tilename)
                     for name, player in self.players.items()}
                 
-        return world_size, new_player.position, tiles, observed, objects, []
+        return world_size, new_player.position, looked, observed, objects, []
     
     def new_object(self, player):
         "ововестить всех о новом объекте"
@@ -54,10 +53,10 @@ class Game(GameShare):
                          vector = message
                     elif action=='ball_message':
                         self.strike_ball(name, message)
-                self.updates[name] = (player.position, player.go(vector), player.tilename)
+                self.updates[name] = (player.prev_position, player.go(vector), player.tilename)
             else:
                 if player.lifetime:
-                    self.updates[name] = (player.position, player.go(), player.tilename)
+                    self.updates[name] = (player.prev_position, player.go(), player.tilename)
                     player.lifetime-=1
                 else:
                     #если срок жизни кончился - убиваем
@@ -69,31 +68,23 @@ class Game(GameShare):
         "смотрим"
         messages = {}
         #подготавливаем обновления для выборочного обзора
-        updates_for_look = {(position/TILESIZE).get():(name,(position, vector, tilename))
+        self.updates = {(position/TILESIZE).get():(name,(position, vector, tilename))
                             for name,(position, vector, tilename) in self.updates.items()}
         for name, player in self.players.items():
             if player.guided:
                 messages[name] = []
                 #если игрок умер - респавн
                 if not player.alive:
-                    old_position = player.position
                     vector, new_position = player.respawn()
                     messages[name].append(('respawn', new_position))
-                    self.updates[name] = (old_position, vector, player.tilename)
+                    self.updates[name] = (player.position, vector, player.tilename)
                     player.alive = True
                 #новые для игрока объекты
                 new_objects = self.new_objects[name]
                 self.new_objects[name] = {}
                 #смотрим карту
-                #if player.prev_position == player.position:
-                #    new_looked = []
-                #    
-                #else:
-                looked, updates = player.look(updates_for_look)
-                observed = [(i,j) for (i,j), tilename in looked]
-                new_looked = looked  - player.prev_looked
+                new_looked, observed, updates = player.look()
                 new_looked = [(Point(i,j),tilename) for (i,j), tilename in new_looked]
-                player.prev_looked = looked
                 #ветор движения на этом ходе
                 move_vector = player.move_vector
                 
@@ -126,7 +117,7 @@ class Game(GameShare):
         self.new_object(ball)
     
     def remove_object(self,name):
-        self.updates[name] = (self.players[name].position, 'remove', 'REMOVED')
+        self.updates[name] = (self.players[name].prev_position, 'remove', 'REMOVED')
         if self.players[name].guided:
             del self.new_objects[name]
         del self.players[name]

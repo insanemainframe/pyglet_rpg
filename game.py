@@ -14,6 +14,7 @@ from game_lib.client_lib import Client
 from game_lib.protocol_lib import pack, unpack
 
 from config import *
+from game_lib.logger import CLIENTLOG as LOG
 
 class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Window, AskHostname):
     accepted = False
@@ -52,9 +53,6 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
             self.loading = False
             #устанавливаем обновление на каждом кадре
             pyglet.clock.schedule(self.update)
-
-
-    
     
     def update(self, dt):
         #перехвт ввода
@@ -148,7 +146,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
         exit()
 
 
-class LandView(GameWindow,  Drawable, Map):
+class LandView(GameWindow,  Drawable, MapTools):
     "клиентская карта"
     def __init__(self, world_size, position, tiles=[], observed=[]):
         Drawable.__init__(self)

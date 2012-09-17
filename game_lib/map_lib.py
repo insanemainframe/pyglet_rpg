@@ -10,7 +10,7 @@ from mapgen import load_map
 
 from config import TILESIZE
 
-class Map:
+class MapTools:
     "методы работы с картой"
     def resize_d(self, cord, dimension):
         "меняем координаты в случае превышения размера карты"
@@ -41,17 +41,19 @@ class World:
         World.map, World.size = load_map()
         print 'server world size',World.size
 
-class MapObserver(Map):
+class MapObserver(MapTools):
+    prev_looked = set()
     
-    def look(self, updates):
+    def look(self):
         "возвращает список координат видимых клеток из позиции position, с координаами относительно начала карты"
         position = self.position
         rad = self.look_size
         I,J = (position/TILESIZE).get()
-        tiles = set()
         #
         new_updates = {}
         #
+        observed = set()
+        looked = set()
         for i in xrange(I-rad, I+rad):
             for j in xrange(J-rad, J+rad):
                 diff = hypot(I-i,J-j) - rad
@@ -62,15 +64,18 @@ class MapObserver(Map):
                     except IndexError, excp:
                         pass
                     else:
-                        tiles.add(((i,j), tile_type))
-                        if (i,j) in updates:
-                            name,(position, vector, tilename) = updates[(i,j)]
+                        looked.add(((i,j), tile_type))
+                        observed.add((i,j))
+                        if (i,j) in self.updates:
+                            name,(position, vector, tilename) = self.updates[(i,j)]
                             new_updates[name] = (position, vector, tilename)
-        return tiles, new_updates
+        new_looked = looked - self.prev_looked
+        self.prev_looked = looked
+        return new_looked, observed, new_updates
 
 
 
-class Steps(Map):
+class Steps(MapTools):
     def __init__(self,size):
         self.size = size
         self.map = {}
