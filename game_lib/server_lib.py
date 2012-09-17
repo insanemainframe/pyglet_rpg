@@ -23,6 +23,7 @@ class SocketError:
     def __str__(self):
         return 'SocketError: %s' %self.error
 
+#####################################################################
 class SocketServer(PollServer):
     def __init__(self, timer_value=SERVER_TIMER, listen_num=10):
         PollServer.__init__(self)

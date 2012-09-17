@@ -11,7 +11,8 @@ PLAYERSPEED = 60
 BALLSPEED = 100
 BALLLIFETIME = 10
 BALLRADIUS = 40
-
+#
+TILESDIR = 'images/'
 BLOCKTILES = ['stone', 'forest']
 TRANSTILES = ['water']
 ANIMATED_TILES = [] #['player']

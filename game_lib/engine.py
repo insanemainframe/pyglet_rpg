@@ -13,50 +13,50 @@ from game_lib.engine_lib import *
 from config import *
 from game_lib.logger import ENGINELOG as LOG
 
-
+#####################################################################
 class Game(GameShare):
+    "класс игры"
     ball_counter=0
     def __init__(self):
         GameShare.__init__(self)
     
     def create_player(self, name):
+        "создание нового игрока"
         position = self.choice_position()
         new_player = Player(name, position , 7)
         self.new_object(new_player)
         world_size = self.size
         #
-        self.new_objects[name] = {}
         #обзор
         looked, observed, updates = new_player.look()
-        looked = [(Point(i,j), tilename) for ((i,j), tilename) in looked]
         #уже существующие объекты
-        objects = {name:(player.position, 'self' if name==new_player.name else player.tilename)
-                    for name, player in self.players.items()}
                 
-        return world_size, new_player.position, looked, observed, objects, []
+        return world_size, new_player.position, looked, observed, updates, []
     
     def new_object(self, player):
         "ововестить всех о новом объекте"
         self.players[player.name] = player
-        for name in self.players:
-            if self.players[name].guided and player.name!=name:
-                self.new_objects[name][player.name] = (player.position, player.tilename)
+        #добавляем обновление
+        key = (player.position/TILESIZE).get()
+        update = (player.name, (player.position, player.move_vector, player.tilename))
+        self.updates[key] = update
     
     def process_action(self, messages):
         "совершаем действия игроками, возвращает векторы игрокам и устанавливает обновления"
         for name, player in self.players.items():
+            #если это игрок
             if player.guided:
                 vector = Point(0,0)
                 if messages[name]:
                     action, message = messages[name].pop()
-                    if action=='move_message':
+                    if action=='move':
                          vector = message
-                    elif action=='ball_message':
+                    elif action=='ball':
                         self.strike_ball(name, message)
-                self.updates[name] = (player.prev_position, player.go(vector), player.tilename)
+                self.updates.update(player.go(vector))
             else:
                 if player.lifetime:
-                    self.updates[name] = (player.prev_position, player.go(), player.tilename)
+                    self.updates.update(player.go())
                     player.lifetime-=1
                 else:
                     #если срок жизни кончился - убиваем
@@ -68,8 +68,6 @@ class Game(GameShare):
         "смотрим"
         messages = {}
         #подготавливаем обновления для выборочного обзора
-        self.updates = {(position/TILESIZE).get():(name,(position, vector, tilename))
-                            for name,(position, vector, tilename) in self.updates.items()}
         for name, player in self.players.items():
             if player.guided:
                 messages[name] = []
@@ -77,23 +75,21 @@ class Game(GameShare):
                 if not player.alive:
                     vector, new_position = player.respawn()
                     messages[name].append(('respawn', new_position))
-                    self.updates[name] = (player.position, vector, player.tilename)
+                    self.updates.update({player.position.get(): (name,(player.position, vector, player.tilename))})
                     player.alive = True
-                #новые для игрока объекты
-                new_objects = self.new_objects[name]
-                self.new_objects[name] = {}
                 #смотрим карту
                 new_looked, observed, updates = player.look()
-                new_looked = [(Point(i,j),tilename) for (i,j), tilename in new_looked]
                 #ветор движения на этом ходе
                 move_vector = player.move_vector
                 
-                message = (move_vector, new_looked, observed, new_objects, updates, [])
+                message = (move_vector, new_looked, observed, updates, [])
                 messages[name].append(('look', message))
-        self.updates = {}
+        
+        self.updates.clear()
         return messages
     
     def detect_collisions(self):
+        "определяем коллизии"
         for Name, Player in self.players.items():
             for name, player in self.players.items():
                 if name!=Name:
@@ -104,12 +100,14 @@ class Game(GameShare):
                             player.alive = False
                 
     def clean(self):
+        "удаляем объекты отмеченыне меткой REMOVE"
         for name in self.players:
             if hasattr(self.players[name], REMOVE):
                 if self.players[name].REMOVE:
                     self.remove_object(name)
     
     def strike_ball(self,player_name, vector):
+        "игрока стреляет снарядом"
         ball_name = 'ball%s' % self.ball_counter
         self.ball_counter+=1
         player_position = self.players[player_name].position
@@ -117,9 +115,10 @@ class Game(GameShare):
         self.new_object(ball)
     
     def remove_object(self,name):
-        self.updates[name] = (self.players[name].prev_position, 'remove', 'REMOVED')
-        if self.players[name].guided:
-            del self.new_objects[name]
+        player = self.players[name]
+        update = (player.name,(player.prev_position, 'remove', 'REMOVED'))
+        key = (player.prev_position/TILESIZE).get()
+        self.updates.update({key:update})
         del self.players[name]
 
 

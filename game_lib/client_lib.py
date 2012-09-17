@@ -103,7 +103,7 @@ class Client(SocketClient):
             self.accept_message = message
         
     def send_move(self, vector):
-        message = pack(vector,'move_message')
+        message = pack(vector,'move')
         self.put_message(message)
         #предварительное движение
         if vector and not self.shift and not self.antilag:
@@ -117,7 +117,7 @@ class Client(SocketClient):
                 self.antilag = True
         
     def send_ball(self, vector):
-        message = pack(vector,'ball_message')
+        message = pack(vector,'ball')
         self.put_message(message)
         
     def read(self, package):

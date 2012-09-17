@@ -2,37 +2,62 @@
 # -*- coding: utf-8 -*-
 #
 from math_lib import Point
-####
+#########################################################################
+#общие методы классов протоколов
+
 class Updates:
     def pack_updates(self, updates):
-        result = {}
-        for name, action, args in updates:
-            if action=='move':
-                result[name] = args
-                
-#инициализация
-class ServerAccept(Updates):
-    @staticmethod
-    def pack(data):
         f = lambda update: update.get() if  isinstance(update, Point)  else update
-        world_size, position, land, observed, updates, steps = data
-        x,y = position.get()
-        land = [point.get()+(tilename,) for point, tilename in land]
-        observed = [(i,j) for (i,j) in observed]
-        updates = [(name,(position.get(), f(update), tilename))  for name, (position, update, tilename) in updates.items()]
-        steps = [(point.get(), step) for point, step in steps]
-        data = (world_size, (x,y), land, observed, updates, steps)
-        return data
-
-    @staticmethod
-    def unpack(data):
+        return [(name,(position.get(), f(update), tilename))  for name, (position, update, tilename) in updates.items()]
+    
+    def unpack_updates(self, updates):
         f = lambda update: Point(*update) if isinstance(update, (list,tuple)) else update
+        return {name:(Point(x,y), f(update), tilename) for name, ((x,y),update, tilename) in updates}
+
+class Observed:
+    def pack_observed(self, observed):
+        return [(i,j) for (i,j) in observed]
+    def unpack_observed(self, observed):
+        return [(i,j) for (i,j) in observed]
+
+class Land:
+    def pack_land(self, land):
+        return [point.get()+(tilename,) for point, tilename in land]
+    def unpack_land(self, land):
+        return [(Point(x,y),tilename) for x,y, tilename in land]
+
+class Steps:
+    def pack_steps(self, steps):
+        return [(point.get(), step) for point, step in steps]
+    def unpack_steps(self, steps):
+        return [(Point(x,y), step) for (x,y), step in steps]
+
+
+#########################################################################
+#классы протоколов
+
+#инициализация
+class ServerAccept(Updates, Land, Observed, Steps):
+    def pack(self, data):
+        world_size, position, land, observed, updates, steps = data
+        
+        x,y = position.get()
+        land = self.pack_land(land)
+        observed = self.pack_observed(observed)
+        updates = self.pack_updates(updates)
+        steps = self.pack_steps(steps)
+        
+        return (world_size, (x,y), land, observed, updates, steps)
+
+    def unpack(self, data):
         world_size, (x,y), land, observed, updates, steps = data
+        
         position = Point(x,y)
-        land = [(Point(x,y),tilename) for x,y, tilename in land]
-        observed = [(i,j) for (i,j) in observed]
-        updates = {name:(Point(x,y), f(update), tilename) for name, ((x,y),update, tilename) in updates}
-        steps = [(Point(x,y), step) for (x,y), step in steps]
+        land = self.unpack_land(land)
+        observed =  self.unpack_observed(observed)
+        updates = self.unpack_updates(updates)
+        steps = self.unpack_steps(steps)
+        
         return world_size, position, land, observed, updates, steps
 
 #
@@ -48,28 +73,26 @@ class ClientAccept:
         name = data
         return name
 #обзор
-class Look(Updates):
-    @staticmethod
-    def pack(data):
-        f = lambda update: update.get() if  isinstance(update, Point)  else update
+class Look(Updates, Land, Observed, Steps):
+    def pack(self, data):
         move_vector, land, observed, updates, steps = data
+        
         move_vector = move_vector.get()
-        land = [point.get()+(tilename,) for point, tilename in land]
-        observed = [(i,j) for (i,j) in observed]
-        updates = [(name,(position.get(), f(update), tilename))  for name, (position, update, tilename) in updates.items()]
-        steps = [(point.get(), step) for point, step in steps]
-        data = move_vector, land, observed, updates, steps
-        return data
+        land = self.pack_land(land)
+        observed =  self.pack_observed(observed)
+        updates = self.pack_updates(updates)
+        steps = self.pack_steps(steps)
+        
+        return move_vector, land, observed, updates, steps
 
-    @staticmethod
-    def unpack(data):
-        f = lambda update: Point(*update) if isinstance(update, (list,tuple)) else update
+    def unpack(self, data):
         (x,y), land, observed, updates, steps = data
+        
         move_vector = Point(x,y)
-        land =  [(Point(x,y),tilename) for x,y, tilename in land]
-        observed = [(i,j) for (i,j) in observed]
-        updates = {name:(Point(x,y), f(update), tilename) for name, ((x,y),update, tilename) in updates}
-        steps = [(Point(x,y), step) for (x,y), step in steps]
+        land =  self.unpack_land(land)
+        observed =  self.unpack_observed(observed)
+        updates = self.unpack_updates(updates)
+        steps = self.unpack_steps(steps)
         
         return move_vector, land, observed, updates, steps
 
@@ -103,3 +126,22 @@ class Respawn:
     def unpack(message):
         x,y = message
         return Point(x,y)
+#
+#словарь хэндлеров на действия
+method_handlers = {'move': Move(),
+                'ball': Strike(),
+                'look' : Look(),
+                'server_accept': ServerAccept(),
+                'respawn': Respawn()}
+                
+                
+
+
+
+
+
+
+
+
+
+

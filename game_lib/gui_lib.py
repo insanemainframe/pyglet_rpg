@@ -10,7 +10,7 @@ from os import listdir
 
 from math_lib import Point
 
-from config import TILESIZE, ANIMATED_TILES, ROUND_TIMER, HOSTNAME
+from config import TILESIZE, TILESDIR, ANIMATED_TILES, ROUND_TIMER, HOSTNAME
 
 
 def create_label(text, point):
@@ -50,10 +50,10 @@ class GameWindow():
     @staticmethod
     def gentiles():
         cls = GameWindow
-        names = listdir('images')
+        names = listdir(TILESDIR)
         cls.tiledict = {}
         for name in names:
-            image = pyglet.image.load('images/%s' % name, decoder=PNGImageDecoder()).get_texture()
+            image = pyglet.image.load(TILESDIR+name, decoder=PNGImageDecoder()).get_texture()
             cls.tiledict[name[:-4]] = image
     
     @staticmethod

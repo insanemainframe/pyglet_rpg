@@ -3,6 +3,7 @@
 #POLLING LAYER
 #классы для работы с событиями сокетов и таймеров
 #
+#####################################################################
 #EVENT poller
 class EventServer:
     poll_engine = 'event(libevent)'
@@ -26,6 +27,7 @@ class EventServer:
     def run_poll(self):
         event.timeout(self.timer_value, self.timer_handler)
         event.dispatch()
+#####################################################################
 ####EPOLLL poller
 class EpollServer:
     poll_engine = 'linux epoll'
@@ -85,7 +87,7 @@ class EpollServer:
                 except socket.error as Error:
                     self.handle_error(Error, fileno, event)
         
-        
+#####################################################################        
 #выбираем подходящий полер
 try:
     import event

@@ -9,7 +9,7 @@ from sys import exit
 from game_lib.math_lib import Point, collinear
 from game_lib.gui_lib import *
 from game_lib.ask_hostname import AskHostname
-from game_lib.map_lib import Map
+from game_lib.map_lib import MapTools
 from game_lib.client_lib import Client
 from game_lib.protocol_lib import pack, unpack
 
@@ -42,13 +42,12 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
     def accept(self):
         data = self.wait_for_accept()
         if data:
-            world_size, position, tiles, observed, objects, steps = data
+            world_size, position, tiles, observed, updates, steps = data
         
             print 'accepteed position %s tiles %s' % (position, len(tiles))
-            print 'objects %s' % objects
     
             self.land = LandView(world_size, position, tiles, observed)
-            self.objects.insert(objects)
+            self.objects.insert(updates)
             self.accepted = True
             self.loading = False
             #устанавливаем обновление на каждом кадре
@@ -86,7 +85,6 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
         self.antilag = False
         self.antilag_shift = Point(0,0)
         
-        
     def force_complete(self):
         "завершает перемщение по вектору"
         if self.shift:
@@ -103,10 +101,10 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
             for message in self.in_messages:
                 action, message = message
                 if action=='look':
-                    move_vector, newtiles, observed, objects, objects_updates, steps = message
+                    move_vector, newtiles, observed, updates, steps = message
                     self.antilag_handle(move_vector)
                     self.land.insert(newtiles, observed)
-                    self.objects.insert(objects, objects_updates)
+                    self.objects.insert(updates)
                 #если произошел респавн игрока
                 elif action=='respawn':
                     new_position = message
@@ -118,8 +116,6 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
             self.set_timer()
         else:
             self.accept()
-        
-
         
     def on_draw(self):
         "прорисовка спрайтов"
@@ -212,7 +208,7 @@ class ObjectsView(GameWindow, Drawable):
         self.updates = {}
         self.focus_object = False
     
-    def insert(self, new_objects=[], updates=[]):
+    def insert(self, updates=[]):
         #обновления объектов
         if updates:
             for object_name, (position, vector, tilename) in updates.items():
@@ -220,6 +216,7 @@ class ObjectsView(GameWindow, Drawable):
                     if object_name not in self.updates:
                         self.updates[object_name] = Point(0,0)
                     if isinstance(vector,Point):
+                        print 'update %s %s' % (object_name, vector)
                         self.updates[object_name] += vector
                     elif vector=='remove':
                         print 'finding removing %s' % object_name
@@ -227,22 +224,17 @@ class ObjectsView(GameWindow, Drawable):
                 else:
                     print 'new object by update %s %s' % (object_name, vector)
                     self.objects[object_name] = {'position':position,'tilename': tilename}
-            #убираем объекты, для которых не получено обновлений
-            new_self_objects = {}
-            for name, value in self.objects.items():
-                if name in updates:
-                    new_self_objects[name] = value
-                else:
-                    print '%s not in updates. removing' % name
-            self.objects = new_self_objects
+        #убираем объекты, для которых не получено обновлений
+        new_self_objects = {}
+        for name, value in self.objects.items():
+            if name in updates:
+                new_self_objects[name] = value
+            else:
+                print '%s not in updates. removing' % name
+        self.objects = new_self_objects
                     
         #новые бъекты
-        if new_objects:
-            for object_name, (position, tilename) in new_objects.items():
-                print 'new object %s' % object_name
-                self.objects[object_name] = {'position':position,'tilename': tilename}
-                if tilename=='self':
-                    self.focus_object = object_name
+
 
             
     def update(self, delta):
@@ -287,7 +279,7 @@ class ObjectsView(GameWindow, Drawable):
 
 
 def main():
-    g = Gui(480, 680)
+    g = Gui(600, 600)
     g.run()
 
 if __name__=='__main__':

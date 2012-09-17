@@ -11,10 +11,9 @@ from game_lib.map_lib import *
 from config import *
 from logger import ENGINELOG as LOG
 
-class GameShare(World, Map):
+#####################################################################
+class GameShare(World, MapTools):
     "разделяемое состоние объектов карты"
-    created = False
-    updates = {}
     new_objects = {}
     def __init__(self):
         cls = GameShare
@@ -22,10 +21,10 @@ class GameShare(World, Map):
         
         cls.steps = Steps(self.size)
         cls.players = {}
+        cls.updates = {}
         cls.new_objects = {}
         cls.object_updates = {}
-        cls.created = True
-        print 'created world', self.size
+        print 'created game: world size %s' % self.size
     
     @staticmethod
     def choice_position():
@@ -37,7 +36,9 @@ class GameShare(World, Map):
             i,j = position.get()
             if not cls.map[i][j] in BLOCKTILES+TRANSTILES:
                 position = position*TILESIZE
-                return position        
+                return position
+
+#####################################################################
 class GameObject:
     __metaclass__ = ABCMeta
     @abstractproperty
@@ -52,9 +53,52 @@ class GameObject:
     @abstractproperty
     def guided():
         ""
-    
 
+#####################################################################
+class MapObserver(MapTools, GameShare):
+    "класс объекта видящего карту"
+    prev_looked = set()
+    prev_observed = set()
+    
+    def look(self):
+        "возвращает список координат видимых клеток из позиции position, с координаами относительно начала карты"
+        position = self.position
+        rad = self.look_size
+        I,J = (position/TILESIZE).get()
+        #
+        new_updates = {}
+        #
+        observed = set()
+        looked = set()
+        for i in xrange(I-rad, I+rad):
+            for j in xrange(J-rad, J+rad):
+                diff = hypot(I-i,J-j) - rad
+                if diff<0:
+                    i,j = self.resize(i), self.resize(j)
+                    try:
+                        tile_type = self.map[i][j]
+                    except IndexError, excp:
+                        pass
+                    else:
+                        looked.add((Point(i,j), tile_type))
+                        observed.add((i,j))
+                        if (i,j) in self.updates:
+                            name,(position, vector, tilename) = self.updates[(i,j)]
+                            if name==self.name:
+                                tilename = 'self'
+                            new_updates[name] = (position, vector, tilename)
+
+        new_looked = looked - self.prev_looked
+        self.prev_looked = looked
+        self.prev_observed = observed
+        return new_looked, observed, new_updates
+    
+    def get_observed(self):
+        pass    
+
+#####################################################################
 class Movable(GameShare):
+    "класс движущихся объектов"
     def __init__(self, position, speed):
         self.vector  = Point(0,0)
         self.speed = speed
@@ -87,9 +131,11 @@ class Movable(GameShare):
         self.prev_position = self.position
         self.position+=self.move_vector
         
-        return self.move_vector
+        return {(self.prev_position/TILESIZE).get(): (self.name, (self.prev_position, self.move_vector, self.tilename))}
 
+#####################################################################
 class Player(Movable, MapObserver, GameShare):
+    "класс игрока"
     tilename = 'player'
     mortal = False
     human = True
@@ -116,8 +162,10 @@ class Player(Movable, MapObserver, GameShare):
         self.position = new_position
         return vector, self.position
 
-        
+
+#####################################################################        
 class Ball(Movable, MapObserver):
+    "класс снаряда"
     crossing = True
     tilename = 'ball'
     mortal = True
@@ -135,11 +183,10 @@ class Ball(Movable, MapObserver):
 
                     
     def go(self):
-        result = self.move(self.direct)
-        return result
+        return self.move(self.direct)
     
 
-
+#####################################################################
 if __name__=='__main__':
     GameShare()
     m = Movable(Point(3000,3000), PLAYERSPEED)

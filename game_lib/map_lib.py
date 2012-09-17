@@ -41,37 +41,7 @@ class World:
         World.map, World.size = load_map()
         print 'server world size',World.size
 
-class MapObserver(MapTools):
-    prev_looked = set()
-    
-    def look(self):
-        "возвращает список координат видимых клеток из позиции position, с координаами относительно начала карты"
-        position = self.position
-        rad = self.look_size
-        I,J = (position/TILESIZE).get()
-        #
-        new_updates = {}
-        #
-        observed = set()
-        looked = set()
-        for i in xrange(I-rad, I+rad):
-            for j in xrange(J-rad, J+rad):
-                diff = hypot(I-i,J-j) - rad
-                if diff<0:
-                    i,j = self.resize(i), self.resize(j)
-                    try:
-                        tile_type = self.map[i][j]
-                    except IndexError, excp:
-                        pass
-                    else:
-                        looked.add(((i,j), tile_type))
-                        observed.add((i,j))
-                        if (i,j) in self.updates:
-                            name,(position, vector, tilename) = self.updates[(i,j)]
-                            new_updates[name] = (position, vector, tilename)
-        new_looked = looked - self.prev_looked
-        self.prev_looked = looked
-        return new_looked, observed, new_updates
+
 
 
 
