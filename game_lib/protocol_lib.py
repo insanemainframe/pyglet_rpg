@@ -14,8 +14,8 @@ from logger import PROTOCOLLOG as LOG
 
 class MethodError(Exception):
     "неизвестное действие"
-    def __init__(self, action):
-        self.error = 'unknown method %s' % action
+    def __init__(self, action, data=''):
+        self.error = 'unknown method %s data \n %s' % (action, data)
     def __str__(self):
         return self.error
 
@@ -107,7 +107,7 @@ def pack(data, method):
         try:
             data = method_handlers[method].pack(data)
         except Exception as error:
-            print 'pack error in method %s' % method
+            print 'pack error in method %s with %s' % (method, data)
             raise error
         else:
             try:
@@ -117,7 +117,7 @@ def pack(data, method):
                 raise excp
     else:
         print 'MethodError'
-        raise MethodError(method)
+        raise MethodError(method, data)
 
 def unpack(data):
     "распаковщик"
@@ -136,6 +136,6 @@ def unpack(data):
             else:
                 return method, message
         else:
-            raise MethodError(method)
+            raise MethodError(method,data)
 
 

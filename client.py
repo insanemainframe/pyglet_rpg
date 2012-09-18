@@ -5,6 +5,7 @@ from pyglet.gl import *
 
 from math import hypot
 from sys import exit
+from collections import defaultdict
 
 from game_lib.math_lib import Point, collinear
 from game_lib.gui_lib import *
@@ -38,6 +39,8 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
         
         #счетчик фпс
         self.fps_display = pyglet.clock.ClockDisplay()
+        #
+        self.accept()
     
     def accept(self):
         data = self.wait_for_accept()
@@ -51,6 +54,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
             self.accepted = True
             self.loading = False
             #устанавливаем обновление на каждом кадре
+            pyglet.clock.schedule_interval(self.round_update, self.timer_value)
             pyglet.clock.schedule(self.update)
     
     def update(self, dt):
@@ -95,27 +99,24 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
     
     def round_update(self, dt):
         "обращение к движку"
-        if self.accepted:
-            self.force_complete()
-            self.land.update()
-            for message in self.in_messages:
-                action, message = message
-                if action=='look':
-                    move_vector, newtiles, observed, updates, steps = message
-                    self.antilag_handle(move_vector)
-                    self.land.insert(newtiles, observed)
-                    self.objects.insert(updates)
-                #если произошел респавн игрока
-                elif action=='respawn':
-                    new_position = message
-                    print 'respawn from %s to %s' % (self.land.position,new_position )
-                    
-                    self.set_camera_position(new_position)
-                    self.land.update()
-            self.in_messages = []
-            self.set_timer()
-        else:
-            self.accept()
+        self.force_complete()
+        for message in self.in_messages:
+            action, message = message
+            if action=='look':
+                move_vector, newtiles, observed, updates, steps = message
+                self.antilag_handle(move_vector)
+                self.land.insert(newtiles, observed)
+                self.objects.insert(updates)
+            #если произошел респавн игрока
+            elif action=='respawn':
+                new_position = message
+                print 'respawn from %s to %s' % (self.land.position,new_position )
+                
+                self.set_camera_position(new_position)
+                self.land.update()
+        self.in_messages = []
+        self.set_timer()
+
         
     def on_draw(self):
         "прорисовка спрайтов"
@@ -132,7 +133,6 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
         
     def run(self):
         "старт"
-        pyglet.clock.schedule_interval(self.round_update, self.timer_value)
         pyglet.app.run()
         name = hash(random())
         self.put_message(pack(name, 'client_accept'))
@@ -148,7 +148,7 @@ class LandView(GameWindow,  Drawable, MapTools):
         Drawable.__init__(self)
         size = world_size
         self.world_size = world_size
-        self.map = [[None for j in xrange(size)] for i in xrange(size)]
+        self.map = defaultdict(lambda: defaultdict(lambda: 'fog'))
         self.tiles = []
         if tiles:
             self.insert(tiles, observed)
@@ -168,27 +168,16 @@ class LandView(GameWindow,  Drawable, MapTools):
             
     def look_around(self):
         "список тайлов в поле зрения (координаты в тайлах от позиции камеры, тип)"
-        rad_h = int(self.rad_h/TILESIZE)+2
-        rad_w = int(self.rad_w/TILESIZE)+2
+        rad_h = int(self.rad_h/TILESIZE)
+        rad_w = int(self.rad_w/TILESIZE)
         
         I,J = (self.position/TILESIZE).get()
-        looked = set()
-        for i in xrange(I-rad_w, I+rad_w):
-            for j in xrange(J-rad_h, J+rad_h):
-                i,j = self.resize_d(i,'height'), self.resize_d(j,'width')
-                try:
-                    tile_type = self.map[i][j]
-                except IndexError:
-                    tile_type = False
-                if not tile_type:
-                    tile_type = 'fog'
-                point = (Point(i,j)*TILESIZE)-self.position
-                #если не в списке видимых- добавляем туман
-                if not ((i,j) in self.observed or tile_type=='fog'):
-                    tile_type = tile_type+'_fog'
-                looked.add((point, tile_type))
-        i, j = self.position.get()
-        return looked
+
+        range_i = xrange(I-rad_w-1, I+rad_w+2)
+        range_j = xrange(J-rad_h-1, J+rad_h+2)
+        return [((Point(i,j)*TILESIZE)-self.position,
+            self.map[i][j]+'_fog' if not ((i,j) in self.observed or self.map[i][j]=='fog') else self.map[i][j]) 
+            for j in range_j for i in range_i]
         
     def update(self):
         "обноление на каждом фрейме"
@@ -210,31 +199,22 @@ class ObjectsView(GameWindow, Drawable):
     
     def insert(self, updates=[]):
         #обновления объектов
+        update_names = []
         if updates:
-            for object_name, (position, vector, tilename) in updates.items():
-                if object_name in self.objects:
-                    if object_name not in self.updates:
-                        self.updates[object_name] = Point(0,0)
-                    if isinstance(vector,Point):
-                        #print 'update %s %s' % (object_name, vector)
-                        self.updates[object_name] += vector
-                    elif vector=='remove':
-                        #print 'finding removing %s' % object_name
-                        self.updates[object_name] = vector
+            for name, position, vector, action, args in updates:
+                update_names.append(name)
+                if name in self.objects:
+                    if name not in self.updates:
+                        self.updates[name] = Point(0,0)
+                        self.objects[name] =  {'position':position,'tilename': args}
+                    if action=='move':
+                        self.updates[name] += vector
+                    elif action=='remove':
+                        self.remove_object(name)
                 else:
-                    #print 'new object by update %s %s' % (object_name, vector)
-                    self.objects[object_name] = {'position':position,'tilename': tilename}
+                    self.objects[name] = {'position':position,'tilename': args}
         #убираем объекты, для которых не получено обновлений
-        new_self_objects = {}
-        for name, value in self.objects.items():
-            if name in updates:
-                new_self_objects[name] = value
-            else:
-                pass
-                #print '%s not in updates. removing' % name
-        self.objects = new_self_objects
-                    
-        #новые бъекты
+        self.objects = {name:self.objects[name] for name in self.objects if name in update_names}
 
 
             
@@ -257,7 +237,6 @@ class ObjectsView(GameWindow, Drawable):
                             pass
                             #print 'ObjectsView KeyError %s' % object_name
                 elif update=='remove':
-                    print 'remove %s' % object_name
                     self.remove_object(object_name)
         #отображение объектов
         self.tiles = []

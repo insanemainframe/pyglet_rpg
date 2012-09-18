@@ -16,7 +16,8 @@ class SocketClient:
         self.buff = ''
         self.outsock, self.out_fileno = self.create_sock(IN_PORT)
         self.insock, self.in_fileno = self.create_sock(OUT_PORT)
-        
+        self.out_messages = []
+        self.in_messages = []        
     def create_sock(self, port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -80,8 +81,7 @@ class Client(SocketClient):
     antilag= False
     antilag_shift = Point(0,0)   
     accept_message = False
-    in_messages = []
-    out_messages = []
+    
     
     def __init__(self):
         SocketClient.__init__(self)

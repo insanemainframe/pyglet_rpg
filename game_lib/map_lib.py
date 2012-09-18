@@ -6,7 +6,7 @@ path.append('../')
 from math import hypot
 
 from math_lib import Point
-from mapgen import load_map
+import game
 
 from config import TILESIZE
 
@@ -25,22 +25,17 @@ class MapTools:
         if cord > size:
             return size
         else:
-            return cord        
+            return cord    
+    
     def resize(self, cord):
         "меняем координаты в случае превышения размера карты"
         if cord < 0:
-            return self.size + cord
-        if cord > self.size:
-            return cord - self.size
+            return game.size + cord
+        if cord > game.size:
+            return cord - game.size
         else:
             return cord      
     
-class World:
-    "класс карты как со стороны ссервера"
-    def __init__(self):
-        World.map, World.size = load_map()
-        print 'server world size',World.size
-
 
 
 

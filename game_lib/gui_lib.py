@@ -121,7 +121,6 @@ class InputHandle:
     def on_mouse_press(self, x, y, button, modifiers):
         "перехватывавем нажатие левой кнопки мышки"
         #левая кнопка - движение
-        print 'mouse press'
         if button==1:
             self.vector = (Point(x,y) - self.center)
             
@@ -159,16 +158,19 @@ class Drawable:
         self.aps = 15
     
     def draw(self):
+        c = 0
         for tilename, (x,y), tiletype in self.tiles:
-
-            if tiletype:
+            if not tiletype:
+                if -TILESIZE<x<self.width and -TILESIZE<x<self.height:
+                    self.tiledict[tilename].blit(x,y, width=TILESIZE, height=TILESIZE)
+                    c+=1
+            else:
                 pyglet.text.Label(tilename,
                           font_name='Times New Roman',
                           font_size=10,
                           x=x, y=y,
                           anchor_x='center', anchor_y='center').draw()
-            else:
-                self.tiledict[tilename].blit(x,y, width=TILESIZE, height=TILESIZE)
+                
     
 
     

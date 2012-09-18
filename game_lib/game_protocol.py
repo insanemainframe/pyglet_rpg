@@ -6,13 +6,14 @@ from math_lib import Point
 #общие методы классов протоколов
 
 class Updates:
+    #name, position, vector, action, args=()
     def pack_updates(self, updates):
-        f = lambda update: update.get() if  isinstance(update, Point)  else update
-        return [(name,(position.get(), f(update), tilename))  for name, (position, update, tilename) in updates.items()]
+        return [(uid, (name, position.get(), vector.get(), action, args)) 
+                for uid, (name, position, vector, action, args) in updates.items()]
     
     def unpack_updates(self, updates):
-        f = lambda update: Point(*update) if isinstance(update, (list,tuple)) else update
-        return {name:(Point(x,y), f(update), tilename) for name, ((x,y),update, tilename) in updates}
+        return [(name, Point(px,py), Point(vx, vy), action, args)
+            for uid, (name, (px, py), (vx, vy), action, args) in updates]
 
 class Observed:
     def pack_observed(self, observed):

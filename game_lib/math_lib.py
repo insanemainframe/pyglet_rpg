@@ -80,6 +80,7 @@ class Point:
     def __hash__(self):
         return hash((self.x, self.y))
         
+NullPoint = Point(0,0)
 
 def get_cross(position, vector):
     "выдает координаты следующего пересекаемого тайла(требует доработки)"

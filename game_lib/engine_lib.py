@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from random import randrange
-from collections import defaultdict
 from abc import ABCMeta, abstractproperty
 from sys import path
 path.append('../')
@@ -9,42 +7,18 @@ path.append('../')
 
 from game_lib.math_lib import *
 from game_lib.map_lib import *
+from game_lib import game
+
 
 from config import *
 from logger import ENGINELOG as LOG
 
-#####################################################################
-class GameShare(World, MapTools):
-    "разделяемое состоние объектов карты"
-    new_objects = {}
-    def __init__(self):
-        cls = GameShare
-        World.__init__(self)
-        
-        cls.steps = Steps(self.size)
-        cls.players = {}
-        cls.updates = defaultdict(list)
-        print 'created game: world size %s' % self.size
-    @staticmethod
-    def add_update(name, prev_position, move_vector, tilename):
-        map_position = (prev_position/TILESIZE).get()
-        GameShare.updates[map_position].append((name, ( prev_position, move_vector, tilename)))
-        if move_vector and isinstance(move_vector,Point):
-            alt_position = ((prev_position+move_vector)/TILESIZE).get()
-            GameShare.updates[alt_position].append((name, ( prev_position, move_vector, tilename)))
-            
-    
-    @staticmethod
-    def choice_position():
-        cls = GameShare
-        while 1:
-            start = cls.size/2 - 7
-            end = cls.size/2 + 7
-            position = Point(randrange(start, end), randrange(start, end))
-            i,j = position.get()
-            if not cls.map[i][j] in BLOCKTILES+TRANSTILES:
-                position = position*TILESIZE
-                return position
+class UnknownAction(Exception):
+    pass
+
+
+class ActionDenied(Exception):
+    pass
 
 #####################################################################
 class GameObject:
@@ -63,7 +37,7 @@ class GameObject:
         ""
 
 #####################################################################
-class MapObserver(MapTools, GameShare):
+class MapObserver(MapTools):
     "класс объекта видящего карту"
     prev_looked = set()
     prev_observed = set()
@@ -84,17 +58,17 @@ class MapObserver(MapTools, GameShare):
                 if diff<0:
                     i,j = self.resize(i), self.resize(j)
                     try:
-                        tile_type = self.map[i][j]
+                        tile_type = game.world.map[i][j]
                     except IndexError, excp:
                         pass
                     else:
                         looked.add((Point(i,j), tile_type))
                         observed.add((i,j))
-                        if (i,j) in self.updates:
-                            for name,(position, vector, tilename) in self.updates[(i,j)]:
+                        if (i,j) in game.updates:
+                            for uid, (name, position, vector, action, args) in game.updates[(i,j)]:
                                 if name==self.name:
                                     tilename = 'self'
-                                new_updates[name] = (position, vector, tilename)
+                                new_updates[uid] = (name, position, vector, action, args)
 
         new_looked = looked - self.prev_looked
         self.prev_looked = looked
@@ -105,16 +79,19 @@ class MapObserver(MapTools, GameShare):
         pass    
 
 #####################################################################
-class Movable(GameShare):
+class Movable:
     "класс движущихся объектов"
     def __init__(self, position, speed):
-        self.vector  = Point(0,0)
+        self.vector  = NullPoint
         self.speed = speed
         self.position = position
-        self.move_vector = Point(0,0)
+        self.move_vector = NullPoint
         self.prev_position = Point(-1,-1)
+        self.moved = False
         
-    def move(self, vector=Point(0,0)):
+    def move(self, vector=NullPoint):
+        if self.moved:
+            raise ActionDenied
         #если вектор на входе определен, до определяем вектор движения объекта
         if vector:
             self.vector = vector
@@ -122,11 +99,11 @@ class Movable(GameShare):
         if self.vector:
             #проверка столкновения
             i,j = get_cross(self.position, self.vector)
-            cross_tile =  self.map[i][j]
+            cross_tile =  game.world.map[i][j]
             
             if cross_tile in BLOCKTILES or (cross_tile in TRANSTILES and not self.crossing):
-                self.vector = Point(0,0)
-                self.move_vector = Point(0,0)
+                self.vector = NullPoint
+                self.move_vector = NullPoint
                 if self.fragile:
                     self.REMOVE = True
             else:
@@ -138,11 +115,34 @@ class Movable(GameShare):
             self.move_vector = self.vector
         self.prev_position = self.position
         self.position+=self.move_vector
-        
-        return self.name, self.prev_position, self.move_vector, self.tilename
-
+        self.moved = True
+        #name, position, vector, action, args
+        return self.name, self.prev_position, self.move_vector, 'move', self.tilename
+    
+    def complete_round(self):
+        self.moved = False
 #####################################################################
-class Player(Movable, MapObserver, GameShare):
+class Striker:
+    def __init__(self):
+        self.striked = False
+    
+    def strike_ball(self, vector):
+        if self.striked:
+            raise ActionDenied
+        else:
+            ball_name = 'ball%s' % game.ball_counter
+            game.ball_counter+=1
+            ball = Ball(ball_name, self.position, vector, self.name)
+            game.new_object(ball)
+            self.striked = True
+    
+    def complete_round(self):
+        self.striked = False
+        
+        
+    
+#####################################################################
+class Player(Movable, MapObserver, Striker):
     "класс игрока"
     tilename = 'player'
     mortal = False
@@ -157,6 +157,7 @@ class Player(Movable, MapObserver, GameShare):
     
     def __init__(self, name, player_position, look_size):
         Movable.__init__(self, player_position, PLAYERSPEED)
+        Striker.__init__(self)
         self.name = name
         self.look_size = look_size
     
@@ -165,10 +166,16 @@ class Player(Movable, MapObserver, GameShare):
         return self.move(vector)
     
     def respawn(self):
-        new_position = self.choice_position()
+        new_position = game.choice_position()
         vector = new_position - self.position
         self.position = new_position
-        return vector, self.position
+        update = (self.name, self.prev_position, NullPoint, 'remove')
+        message = 'respawn', self.position
+        return message, update
+    
+    def complete_round(self):
+        Movable.complete_round(self)
+        Striker.complete_round(self)
 
 
 #####################################################################        

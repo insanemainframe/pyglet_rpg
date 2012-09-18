@@ -18,13 +18,12 @@ class GameServer(SocketServer, Game, AskHostname):
     def __init__(self):
         AskHostname.__init__(self, HOSTNAME)
         SocketServer.__init__(self)
-        Game.__init__(self)
     
     def timer_handler(self):
-        self.process_action(self.client_requestes)
+        self.handle_requests(self.client_requestes)
         self.client_requestes = {client: [] for client in self.client_list}
-        self.detect_collisions()
-        look =  self.process_look()
+        self.handle_middle()
+        look =  self.handle_responses()
         for name, messages in look.items():
             responses = [pack(response, action) for action, response in messages]
             self.put_messages(name, responses)
@@ -50,7 +49,7 @@ class GameServer(SocketServer, Game, AskHostname):
     def close(self, client):
         print 'server close %s' % str(client)
         self.client_list.remove(client)
-        self.remove_object(client)
+        self.handle_quit(client)
         del self.client_requestes[client]
         del self.client_responses[client]
 
