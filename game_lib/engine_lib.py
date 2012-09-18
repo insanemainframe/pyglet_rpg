@@ -29,6 +29,9 @@ class GameShare(World, MapTools):
     def add_update(name, prev_position, move_vector, tilename):
         map_position = (prev_position/TILESIZE).get()
         GameShare.updates[map_position].append((name, ( prev_position, move_vector, tilename)))
+        if move_vector and isinstance(move_vector,Point):
+            alt_position = ((prev_position+move_vector)/TILESIZE).get()
+            GameShare.updates[alt_position].append((name, ( prev_position, move_vector, tilename)))
             
     
     @staticmethod

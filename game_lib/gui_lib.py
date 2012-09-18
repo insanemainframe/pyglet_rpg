@@ -99,27 +99,29 @@ class DeltaTimerObject:
 
 class InputHandle:
     "перехват устройств ввода"
-    pressed = False
+    pressed = {}
     def send_vector():
         ""
     def __init__(self):
         step = TILESIZE/2
         self.vectors = {UP:Point(0,step), DOWN: Point(0,-step),
                         LEFT : Point(-step,0), RIGHT : Point(step,0)}
+        self.control_keys = [UP, DOWN, LEFT, RIGHT]
             
     def on_key_press(self, symbol, modifiers):
         "движение с помощью клавиатуры"
-        if symbol in (UP,DOWN, LEFT,RIGHT):
-            self.pressed = symbol
+        if symbol in self.control_keys:
+            self.pressed[symbol] = True
             
     
     def on_key_release(self, symbol, modifiers):
-        if symbol==self.pressed:
-            self.pressed = False
-    
+        if symbol in self.control_keys:
+            del self.pressed[symbol]
+        
     def on_mouse_press(self, x, y, button, modifiers):
         "перехватывавем нажатие левой кнопки мышки"
         #левая кнопка - движение
+        print 'mouse press'
         if button==1:
             self.vector = (Point(x,y) - self.center)
             
@@ -139,8 +141,12 @@ class InputHandle:
     
     def handle_input(self):
         if self.pressed:
-            symbol = self.pressed
-            self.send_move(self.vectors[symbol])
+            #получаемсписок векторов соответствующим нажатым клавишам
+            vectors = [self.vectors[symbol] for symbol in self.pressed if symbol in self.vectors]
+            #получаем их сумму и если она не равна нулю - посылаем
+            vector = sum(vectors, Point(0,0))
+            if vector:
+                self.send_move(vector)
         elif self.vector:
             self.send_move(self.vector)
             

@@ -216,13 +216,13 @@ class ObjectsView(GameWindow, Drawable):
                     if object_name not in self.updates:
                         self.updates[object_name] = Point(0,0)
                     if isinstance(vector,Point):
-                        print 'update %s %s' % (object_name, vector)
+                        #print 'update %s %s' % (object_name, vector)
                         self.updates[object_name] += vector
                     elif vector=='remove':
-                        print 'finding removing %s' % object_name
+                        #print 'finding removing %s' % object_name
                         self.updates[object_name] = vector
                 else:
-                    print 'new object by update %s %s' % (object_name, vector)
+                    #print 'new object by update %s %s' % (object_name, vector)
                     self.objects[object_name] = {'position':position,'tilename': tilename}
         #убираем объекты, для которых не получено обновлений
         new_self_objects = {}
@@ -230,7 +230,8 @@ class ObjectsView(GameWindow, Drawable):
             if name in updates:
                 new_self_objects[name] = value
             else:
-                print '%s not in updates. removing' % name
+                pass
+                #print '%s not in updates. removing' % name
         self.objects = new_self_objects
                     
         #новые бъекты
@@ -253,7 +254,8 @@ class ObjectsView(GameWindow, Drawable):
                             self.objects[object_name]['position']+= move_vector
                             self.updates[object_name]-= move_vector
                         except KeyError:
-                            print 'ObjectsView KeyError %s' % object_name
+                            pass
+                            #print 'ObjectsView KeyError %s' % object_name
                 elif update=='remove':
                     print 'remove %s' % object_name
                     self.remove_object(object_name)
