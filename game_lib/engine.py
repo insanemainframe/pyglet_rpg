@@ -16,8 +16,7 @@ from game_lib.logger import ENGINELOG as LOG
 #####################################################################
 class Game:
     "класс игры"
-    
-    def create_player(self, name):
+    def handle_connect(self, name):
         "создание нового игрока"
         position = game.choice_position()
         new_player = Player(name, position , 7)
@@ -28,7 +27,7 @@ class Game:
         looked, observed, updates = new_player.look()
         #уже существующие объекты
                 
-        return world_size, new_player.position, looked, observed, updates, []
+        return (world_size, new_player.position, looked, observed, updates, []), 'server_accept'
     
     def handle_requests(self, messages):
         "совершаем действия игроками, возвращает векторы игрокам и устанавливает обновления"
@@ -93,8 +92,8 @@ class Game:
                     distance = abs(Player.position - player.position)
                     if distance <= Player.radius+player.radius:
                         if Player.mortal and player.human and player.name!=Player.striker:
-                            print 'colission'
                             player.alive = False
+                            Player.REMOVE = True
     
     def handle_quit(self, name):
         game.remove_object(name)

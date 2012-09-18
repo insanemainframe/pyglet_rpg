@@ -76,8 +76,8 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
     
     def antilag_init(self, shift):
         self.shift = shift
-        #if self.objects.focus_object:
-        #    self.objects.insert(updates={self.objects.focus_object:self.antilag_shift})
+        if self.objects.focus_object:
+            self.objects.antilag(self.antilag_shift)
     
     def antilag_handle(self, move_vector):
         if self.antilag:
@@ -140,7 +140,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
         self.close_connection()
         exit()
 
-
+########################################################################
 class LandView(GameWindow,  Drawable, MapTools):
     "клиентская карта"
     def __init__(self, world_size, position, tiles=[], observed=[]):
@@ -157,7 +157,6 @@ class LandView(GameWindow,  Drawable, MapTools):
     def move_position(self, vector):
         "перемещаем камеру"
         self.set_camera_position(self.position + vector)
-        
         
     def insert(self, tiles, observed):
         "обновляет карту, добавляя новые тайлы, координаты - расстояние от стартовой точки"
@@ -186,6 +185,11 @@ class LandView(GameWindow,  Drawable, MapTools):
             self.tiles = [create_tile(point+self.center, tile) for point, tile in looked]
 
 
+########################################################################
+class Object:
+    def __init__(self, position, tilename):
+        self.position = position
+        self.tilename = tilename
 
 class ObjectsView(GameWindow, Drawable):
     "отображение объектов"
@@ -196,27 +200,28 @@ class ObjectsView(GameWindow, Drawable):
         self.updates = {}
         self.focus_object = False
     
+    def antilag(self, shift):
+        if self.focus_object:
+            self.updates[self.focus_object]+=shift
+    
     def insert(self, updates=[]):
         #обновления объектов
-        update_names = []
+        self.updates = {name:update for name, update in self.updates.items() if name==self.focus_object}
         if updates:
             for name, position, vector, action, args in updates:
-                update_names.append(name)
-                if name in self.objects:
-                    if name not in self.updates:
-                        self.updates[name] = Point(0,0)
-                        self.objects[name] =  {'position':position,'tilename': args}
-                    if action=='move':
+                if action=='move':
+                    if name in self.updates:
                         self.updates[name] += vector
-                    elif action=='remove':
-                        self.remove_object(name)
-                else:
-                    self.objects[name] = {'position':position,'tilename': args}
+                    elif not name in self.updates:
+                        self.updates[name] = vector
+                        self.objects[name] =  Object(position,args)
+                        if args=='self':
+                            self.focus_object = name                         
+                elif action=='remove':
+                    self.remove_object(name)
         #убираем объекты, для которых не получено обновлений
-        self.objects = {name:self.objects[name] for name in self.objects if name in update_names}
+        self.objects = {name:self.objects[name] for name in self.objects if name in self.updates}
 
-
-            
     def update(self, delta):
         if self.updates:
             for object_name, update in self.updates.items():
@@ -229,32 +234,27 @@ class ObjectsView(GameWindow, Drawable):
                     else:
                         move_vector = vector
                     if  vector:
-                        try:
-                            self.objects[object_name]['position']+= move_vector
-                            self.updates[object_name]-= move_vector
-                        except KeyError:
-                            pass
-                            #print 'ObjectsView KeyError %s' % object_name
-                elif update=='remove':
-                    self.remove_object(object_name)
+                        self.objects[object_name].position+= move_vector
+                        self.updates[object_name]-= move_vector
+
         #отображение объектов
         self.tiles = []
         for object_name, game_object in self.objects.items():
-            point = game_object['position']
-            tilename = game_object['tilename']
+            point = game_object.position
+            tilename = game_object.tilename
             position = point - self.position +self.center - Point(TILESIZE/2,TILESIZE/2)
             tile = create_tile(position, tilename)
             self.tiles.append(tile)
-            if tilename not in ['ball','ball_self']:
+            if tilename not in ['ball']:
                 label = create_label(object_name, position)
                 self.tiles.append(label)
     
     def remove_object(self, name):
-        try:
+        if name in self.updates:
             del self.updates[name]
+        if name in self.objects:
             del self.objects[name]
-        except KeyError, excp:
-            print excp, name
+
     
 
 

@@ -37,7 +37,7 @@ class GameServer(SocketServer, Game, AskHostname):
         self.client_list.add(client)
         self.client_requestes[client] = []
         self.client_responses[client] = []
-        message = pack(self.create_player(client), 'server_accept')
+        message = pack(*self.handle_connect(client))
         self.put_messages(client, [message])
 
     

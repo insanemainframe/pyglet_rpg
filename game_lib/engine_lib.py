@@ -66,8 +66,8 @@ class MapObserver(MapTools):
                         observed.add((i,j))
                         if (i,j) in game.updates:
                             for uid, (name, position, vector, action, args) in game.updates[(i,j)]:
-                                if name==self.name:
-                                    tilename = 'self'
+                                if action=='move' and name==self.name:
+                                    args = 'self'
                                 new_updates[uid] = (name, position, vector, action, args)
 
         new_looked = looked - self.prev_looked
