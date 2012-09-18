@@ -100,20 +100,18 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
     def round_update(self, dt):
         "обращение к движку"
         self.force_complete()
-        for message in self.in_messages:
-            action, message = message
-            if action=='look':
-                move_vector, newtiles, observed, updates, steps = message
-                self.antilag_handle(move_vector)
-                self.land.insert(newtiles, observed)
-                self.objects.insert(updates)
+        for action, message in self.in_messages:
             #если произошел респавн игрока
-            elif action=='respawn':
+            if action=='respawn':
                 new_position = message
                 print 'respawn from %s to %s' % (self.land.position,new_position )
                 
                 self.set_camera_position(new_position)
-                self.land.update()
+            elif action=='look':
+                move_vector, newtiles, observed, updates, steps = message
+                self.antilag_handle(move_vector)
+                self.land.insert(newtiles, observed)
+                self.objects.insert(updates)
         self.in_messages = []
         self.set_timer()
 
@@ -123,7 +121,8 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
         #включаем отображение альфа-канала
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        self.clear()
+        #очищаем экран
+        #self.clear()
         if self.accepted:
             self.land.draw()
             self.objects.draw()
