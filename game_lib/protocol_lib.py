@@ -3,6 +3,8 @@
 import struct
 from socket import htonl, ntohl, error as socket_error
 from marshal import loads as marshal_loads, dumps as marshal_dumps
+#from cPickle import loads as marshal_loads, dumps as marshal_dumps
+
 from zlib import compress, decompress
 
 
@@ -84,6 +86,7 @@ def dumps(data):
     try:
         data = marshal_dumps(data)
     except Exception as excp:
+        print data
         raise MarshalError(excp.message)
     else:
         try:
@@ -111,9 +114,10 @@ def pack(data, method):
             raise error
         else:
             try:
-                return dumps((method, data))
+                result = dumps((method, data))
+                return result
             except Exception as excp:
-                raise MarshalError(Error, data)
+                raise MarshalError(excp, data)
                 raise excp
     else:
         print 'MethodError'

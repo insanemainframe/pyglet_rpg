@@ -24,6 +24,7 @@ world = World()
 size = world.size
     
 updates = defaultdict(list)
+update_counter = 0
 ball_counter = 0
 
 
@@ -31,30 +32,28 @@ class UnknownAction(Exception):
     pass
 
 
-def add_update(name, position, vector, action, *args):
-    uid = hash((name, position, vector, action, args))
-    map_position = (position/TILESIZE).get()
-    if action=='move':
-        tilename = args[0]
-        update = (uid, (name, position, vector, 'move', tilename))
-    elif action=='remove':
-        update = (uid, (name, position, vector, 'remove', ()))
-    else:
-        raise UnknownAction(action)
+def add_update(name, position, altposition, action, args=[]):
+    global update_counter
+    if action:
+        uid = update_counter
+        update_counter += 1
+        map_position = (position/TILESIZE).get()
+        object_type = players[name].object_type
         
-    updates[map_position].append(update)
-    
-    if vector:
-        alt_position = ((position+vector)/TILESIZE).get()
-        updates[alt_position].append(update)
+        update = (uid, (name, object_type, position, action, args))
+            
+        updates[map_position].append(update)
+        
+        if altposition:
+            alt_key = (altposition/TILESIZE).get()
+            updates[alt_key].append(update)
 
 def new_object(player):
     "ововестить всех о новом объекте"
     players[player.name] = player
     #добавляем обновление
     key = (player.position/TILESIZE).get()
-    update = (player.name, (player.position, player.move_vector, player.tilename))
-    add_update(player.name, player.position, player.move_vector, 'move', player.tilename)
+    add_update(player.name, player.position, False, 'move', [NullPoint.get()])
 
 def choice_position():
     while 1:
@@ -76,8 +75,21 @@ def detect_collisions():
                         if Player.mortal and player.human and player.name!=Player.striker:
                             player.alive = False
                             Player.REMOVE = True
-            
+def clear():
+        "удаляем объекты отмеченыне меткой REMOVE"
+        remove_list = []
+        for name in players:
+            if hasattr(players[name], 'REMOVE'):
+                if players[name].REMOVE:
+                    remove_list.append(name)
+        #
+        for name in remove_list:
+            remove_object(name)
+
 def remove_object(name):
     player = players[name]
+    last_update, args = player.die()
+    if last_update:
+        add_update(player.name, player.prev_position, NullPoint, last_update, args)
     add_update(player.name, player.prev_position, NullPoint, 'remove')
     del players[name]

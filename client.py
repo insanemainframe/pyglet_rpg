@@ -8,11 +8,13 @@ from sys import exit
 from collections import defaultdict
 
 from game_lib.math_lib import Point, collinear
-from game_lib.gui_lib import *
 from game_lib.ask_hostname import AskHostname
 from game_lib.map_lib import MapTools
-from game_lib.client_lib import Client
 from game_lib.protocol_lib import pack, unpack
+
+from client_lib.client_objects import object_dict
+from client_lib.gui_lib import *
+from client_lib.client_lib import Client
 
 from config import *
 from game_lib.logger import CLIENTLOG as LOG
@@ -98,11 +100,12 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
             self.land.move_position(self.shift)
             self.shift = Point(0,0)
             self.land.update()
-            self.objects.update(0)
+            self.objects.force_complete()
     
     def round_update(self, dt):
         "обращение к движку"
         self.force_complete()
+        self.objects.round_update()
         for action, message in self.in_messages:
             #если произошел респавн игрока
             if action=='respawn':
@@ -190,45 +193,7 @@ class LandView(GameWindow,  Drawable, MapTools):
 
 
 ########################################################################
-class Object:
-    "класс игрового объекта на карте"
-    def __init__(self, name, position, tilename):
-        print 'create %s' % name
-        self.position = position
-        self.name = name
-        self._tilename = tilename
-        self.tilename = tilename
-        self.moving = False
-        self.animation = 1
-    
-    def draw(self, shift):
-        position = self.position - shift - Point(TILESIZE/2,TILESIZE/2)
-        if self.moving:
-            if self.animation>0:
-                tilename = self.tilename+'_move'
-            else:
-                tilename = self.tilename+'_move_'
-            self.animation*=-1
-        else:
-            tilename = self.tilename
-        tiles = [create_tile(position, tilename)]
-        if self.tilename not in ['ball','ball_move']:
-                label = create_label(self.name, position)
-                tiles.append(label)
-        return tiles
-    
-    def update(self):
-        if self.moving:
-            self.moving = False
-            
-    def move(self, vector):
-        if vector:
-            self.moving = True
-            self.position +=vector
 
-    
-    def __del__(self):
-        print 'remove %s' % self.name
             
 
 class ObjectsView(GameWindow, Drawable):
@@ -237,67 +202,82 @@ class ObjectsView(GameWindow, Drawable):
         Drawable.__init__(self)
         self.objects = {}
         self.tiles = []
-        self.updates = {}
+        self.updates = defaultdict(list)
         self.focus_object = False
     
+    def create_object(self, name, object_type, position):
+        print 'create %s' % name
+        game_object = object_dict[object_type](name, position)
+        self.objects[name] = game_object
+        
     def antilag(self, shift):
         if self.focus_object:
             self.updates[self.focus_object]+=shift
     
     def insert(self, updates=[]):
-        #обновления объектов
-        self.updates = {name:update for name, update in self.updates.items() if name==self.focus_object}
+        self.updates.clear()
         if updates:
-            for name, position, vector, action, args in updates:
-                if action=='move':
-                    if name in self.updates:
-                        self.updates[name] += vector
-                    elif not name in self.updates:
-                        self.updates[name] = vector
-                        self.objects[name] =  Object(name, position,args)
+            for name, object_type, position, action, args in updates:
+                if action=='create':
+                     self.create_object(name, object_type, position)
+                else:
+                    if name in name in self.objects:
+                        self.updates[name].append((position, object_type, action, args))
+                        
+                    else:
+                        self.updates[name].append((position, object_type, action, args))
+                        self.create_object(name, object_type, position)
                         if args=='self':
-                            self.focus_object = name                         
-                elif action=='remove':
-                    self.remove_object(name)
+                            self.focus_object = name          
         #убираем объекты, для которых не получено обновлений
         new_objects = {}
         for name in self.objects:
-            if name in self.updates:
+            if name in self.updates and not self.objects[name].REMOVE:
                 new_objects[name] = self.objects[name]
+            else:
+                print 'filter %s' % name
         self.objects = new_objects
+        #выполняем апдейты
+        if self.updates:
+            for object_name, update_list in self.updates.items():
+                for position, object_type, action ,args in update_list:
+                    if not object_name in self.objects:
+                        self.create_object(object_name, object_type, position)
+                    if not self.objects[object_name].REMOVE:
+                        self.objects[object_name].handle_action(action, args)
+                    else:
+                        self.remove_object(object_name)
+                
 
     def update(self, delta):
-        if self.updates:
-            for object_name, update in self.updates.items():
-                if isinstance(update,Point):
-                    vector = update
-                    if delta:
-                        move_vector = vector * delta
-                        if move_vector>vector:
-                            move_vector = vector
-                    else:
-                        move_vector = vector
-                    if  vector:
-                        self.objects[object_name].move(move_vector)
-                        self.updates[object_name]-= move_vector
-
+        #обновляем объекты
+        [game_object.update(delta) for game_object in self.objects.values()]
+        
         #отображение объектов
         self.tiles = []
         for object_name, game_object in self.objects.items():
             self.tiles.extend(game_object.draw(self.position -self.center))
-        #обновляем объекты
-        [game_object.update() for game_object in self.objects.values()]
+    
+    def round_update(self):
+        [game_object.round_update() for game_object in self.objects.values()]
+    def force_complete(self):
+        [game_object.force_complete() for game_object in self.objects.values()]
+        
             
     
     def clear(self):
-        self.objects = {}
-        self.updates = {}
+        self.updates.clear()
+        self.objects.clear()
     
     def remove_object(self, name):
-        if name in self.updates:
-            del self.updates[name]
-        if name in self.objects:
-            del self.objects[name]
+        if self.objects[name].DELAY:
+            self.objects[name].DELAY-=1
+        else:
+            print 'remove %s' % name
+            if name in self.updates:
+                del self.updates[name]
+            if name in self.objects:
+                del self.objects[name]
 
     
 

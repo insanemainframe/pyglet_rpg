@@ -6,14 +6,14 @@ from math_lib import Point
 #общие методы классов протоколов
 
 class Updates:
-    #name, position, vector, action, args=()
+    #name, object_type, action, args=()
     def pack_updates(self, updates):
-        return [(uid, (name, position.get(), vector.get(), action, args)) 
-                for uid, (name, position, vector, action, args) in updates.items()]
+        return [(name, object_type, position.get(), action, args)
+                for uid, (name, object_type, position, action, args) in updates.items()]
     
     def unpack_updates(self, updates):
-        return [(name, Point(px,py), Point(vx, vy), action, args)
-            for uid, (name, (px, py), (vx, vy), action, args) in updates]
+        return [(name, object_type,  Point(x,y), action, args)
+            for (name, object_type, (x,y), action, args) in updates]
 
 class Observed:
     def pack_observed(self, observed):

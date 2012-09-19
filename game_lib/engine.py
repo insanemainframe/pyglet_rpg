@@ -60,6 +60,7 @@ class Game:
     def handle_middle(self):
         "запускается между обработкой запросов и ответов"
         game.detect_collisions()
+        game.clear()
             
     def handle_responses(self):
         "смотрим"
@@ -70,9 +71,10 @@ class Game:
                 messages[name] = []
                 #если игрок умер - респавн
                 if not player.alive:
-                    message, update = player.respawn()
+                    message, update1, update2 = player.respawn()
                     messages[name].append(message)
-                    game.add_update(*update)
+                    game.add_update(*update1)
+                    game.add_update(*update2)
                     player.alive = True
                 #смотрим карту
                 new_looked, observed, updates = player.look()
@@ -90,12 +92,6 @@ class Game:
     def handle_quit(self, name):
         game.remove_object(name)
                 
-    def clean(self):
-        "удаляем объекты отмеченыне меткой REMOVE"
-        for name in game.players:
-            if hasattr(game.players[name], REMOVE):
-                if game.players[name].REMOVE:
-                    game.remove_object(name)
     
     
 

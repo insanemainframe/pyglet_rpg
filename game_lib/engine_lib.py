@@ -65,10 +65,10 @@ class MapObserver(MapTools):
                         looked.add((Point(i,j), tile_type))
                         observed.add((i,j))
                         if (i,j) in game.updates:
-                            for uid, (name, position, vector, action, args) in game.updates[(i,j)]:
-                                if action=='move' and name==self.name:
-                                    args = 'self'
-                                new_updates[uid] = (name, position, vector, action, args)
+                            for uid, (name, object_type, position, action, args) in game.updates[(i,j)]:
+                                if name==self.name:
+                                    object_type = 'self'
+                                new_updates[uid] = (name, object_type, position, action, args)
 
         new_looked = looked - self.prev_looked
         self.prev_looked = looked
@@ -106,6 +106,7 @@ class Movable:
                 self.move_vector = NullPoint
                 if self.fragile:
                     self.REMOVE = True
+                    print 'COLLISION'
             else:
                 part = self.speed / abs(self.vector) # доля пройденного пути в векторе
                 move_vector = self.vector * part if part<1 else self.vector
@@ -117,7 +118,8 @@ class Movable:
         self.position+=self.move_vector
         self.moved = True
         #name, position, vector, action, args
-        return self.name, self.prev_position, self.move_vector, 'move', self.tilename
+        altposition = self.position
+        return self.name, self.prev_position, altposition, 'move', [self.move_vector.get()]
     
     def complete_round(self):
         self.moved = False
@@ -154,6 +156,7 @@ class Player(Movable, MapObserver, Striker):
     prev_looked = set()
     alive = True
     striker = False
+    object_type = 'Player'
     
     def __init__(self, name, player_position, look_size):
         Movable.__init__(self, player_position, PLAYERSPEED)
@@ -169,13 +172,17 @@ class Player(Movable, MapObserver, Striker):
         new_position = game.choice_position()
         vector = new_position - self.position
         self.position = new_position
-        update = (self.name, self.prev_position, NullPoint, 'remove')
+        update1 = (self.name, self.prev_position, NullPoint, 'remove')
+        update2 = (self.name, self.position, NullPoint, 'move', [NullPoint.get()])
         message = 'respawn', self.position
-        return message, update
+        return message, update1, update2
     
     def complete_round(self):
         Movable.complete_round(self)
         Striker.complete_round(self)
+    
+    def die(self):
+        return None, None
 
 
 #####################################################################        
@@ -189,6 +196,7 @@ class Ball(Movable, MapObserver):
     fragile = True
     radius = TILESIZE/2
     lifetime = BALLLIFETIME
+    object_type = 'Ball'
     def __init__(self, name, position, direct, striker_name):
         Movable.__init__(self, position, BALLSPEED)
         self.name = name
@@ -199,6 +207,9 @@ class Ball(Movable, MapObserver):
                     
     def go(self):
         return self.move(self.direct)
+    
+    def die(self):
+        return 'explode', []
     
 
 #####################################################################
