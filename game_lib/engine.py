@@ -58,7 +58,8 @@ class Game:
             player.complete_round()
     
     def handle_middle(self):
-        self.detect_collisions()
+        "запускается между обработкой запросов и ответов"
+        game.detect_collisions()
             
     def handle_responses(self):
         "смотрим"
@@ -84,16 +85,7 @@ class Game:
         game.updates.clear()
         return messages
     
-    def detect_collisions(self):
-        "определяем коллизии"
-        for Name, Player in game.players.items():
-            for name, player in game.players.items():
-                if name!=Name:
-                    distance = abs(Player.position - player.position)
-                    if distance <= Player.radius+player.radius:
-                        if Player.mortal and player.human and player.name!=Player.striker:
-                            player.alive = False
-                            Player.REMOVE = True
+    
     
     def handle_quit(self, name):
         game.remove_object(name)

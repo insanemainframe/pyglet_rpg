@@ -36,7 +36,7 @@ class LoadingScreen:
 class GameWindow():
     "разделяемое состояние элементов gui"
     @staticmethod
-    def configure(width, height):
+    def __init__(width, height):
         cls = GameWindow
         cls.width = width
         cls.height = height
@@ -47,6 +47,7 @@ class GameWindow():
         cls.complete = 0
         cls.position = Point(0,0)
         cls.prev_position = False
+        cls.gentiles()
         
     @staticmethod
     def gentiles():

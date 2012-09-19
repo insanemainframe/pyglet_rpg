@@ -26,12 +26,11 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
         #инициализация родтельских классов
         AskHostname.__init__(self, HOSTNAME)
         pyglet.window.Window.__init__(self, width, height)
+        GameWindow.__init__(width, height)
         DeltaTimerObject.__init__(self)
         InputHandle.__init__(self)
         Client.__init__(self)
         
-        self.configure(width, height)
-        self.gentiles()
         self.objects = ObjectsView()
         
         #текст загрузки
@@ -43,9 +42,9 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
         self.accept()
     
     def accept(self):
-        data = self.wait_for_accept()
-        if data:
-            world_size, position, tiles, observed, updates, steps = data
+        accept_data = self.wait_for_accept()
+        if accept_data:
+            world_size, position, tiles, observed, updates, steps = accept_data
         
             print 'accepteed position %s tiles %s' % (position, len(tiles))
     
@@ -56,6 +55,8 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
             #устанавливаем обновление на каждом кадре
             pyglet.clock.schedule_interval(self.round_update, self.timer_value)
             pyglet.clock.schedule(self.update)
+        else:
+            print 'Accepting failed'
     
     def update(self, dt):
         #перехвт ввода
@@ -75,11 +76,13 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
         self.objects.update(delta)
     
     def antilag_init(self, shift):
+        "заранее перемещаем камеру по вектору движения"
         self.shift = shift
         if self.objects.focus_object:
             self.objects.antilag(self.antilag_shift)
     
     def antilag_handle(self, move_vector):
+        "если камера была перемещена заранее - то вычитаем антилаг-смещение из смещения камеры, полученного с сервера"
         if self.antilag:
             vector = move_vector - self.antilag_shift 
             self.shift += vector
@@ -90,7 +93,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
         self.antilag_shift = Point(0,0)
         
     def force_complete(self):
-        "завершает перемщение по вектору"
+        "экстренно завершает все обновления"
         if self.shift:
             self.land.move_position(self.shift)
             self.shift = Point(0,0)
@@ -107,6 +110,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
                 print 'respawn from %s to %s' % (self.land.position,new_position )
                 
                 self.set_camera_position(new_position)
+                self.objects.clear()
             elif action=='look':
                 move_vector, newtiles, observed, updates, steps = message
                 self.antilag_handle(move_vector)
@@ -159,13 +163,13 @@ class LandView(GameWindow,  Drawable, MapTools):
         self.set_camera_position(self.position + vector)
         
     def insert(self, tiles, observed):
-        "обновляет карту, добавляя новые тайлы, координаты - расстояние от стартовой точки"
+        "обновляет карту, добавляя новые тайлы, и видимые на этом ходе тайлы"
         self.observed = observed
         for point, tile_type in tiles:
             self.map[point.x][point.y] = tile_type
             
     def look_around(self):
-        "список тайлов в поле зрения (координаты в тайлах от позиции камеры, тип)"
+        "список тайлов в поле зрения"
         rad_h = int(self.rad_h/TILESIZE)
         rad_w = int(self.rad_w/TILESIZE)
         
@@ -187,9 +191,45 @@ class LandView(GameWindow,  Drawable, MapTools):
 
 ########################################################################
 class Object:
-    def __init__(self, position, tilename):
+    "класс игрового объекта на карте"
+    def __init__(self, name, position, tilename):
+        print 'create %s' % name
         self.position = position
+        self.name = name
+        self._tilename = tilename
         self.tilename = tilename
+        self.moving = False
+        self.animation = 1
+    
+    def draw(self, shift):
+        position = self.position - shift - Point(TILESIZE/2,TILESIZE/2)
+        if self.moving:
+            if self.animation>0:
+                tilename = self.tilename+'_move'
+            else:
+                tilename = self.tilename+'_move_'
+            self.animation*=-1
+        else:
+            tilename = self.tilename
+        tiles = [create_tile(position, tilename)]
+        if self.tilename not in ['ball','ball_move']:
+                label = create_label(self.name, position)
+                tiles.append(label)
+        return tiles
+    
+    def update(self):
+        if self.moving:
+            self.moving = False
+            
+    def move(self, vector):
+        if vector:
+            self.moving = True
+            self.position +=vector
+
+    
+    def __del__(self):
+        print 'remove %s' % self.name
+            
 
 class ObjectsView(GameWindow, Drawable):
     "отображение объектов"
@@ -214,13 +254,17 @@ class ObjectsView(GameWindow, Drawable):
                         self.updates[name] += vector
                     elif not name in self.updates:
                         self.updates[name] = vector
-                        self.objects[name] =  Object(position,args)
+                        self.objects[name] =  Object(name, position,args)
                         if args=='self':
                             self.focus_object = name                         
                 elif action=='remove':
                     self.remove_object(name)
         #убираем объекты, для которых не получено обновлений
-        self.objects = {name:self.objects[name] for name in self.objects if name in self.updates}
+        new_objects = {}
+        for name in self.objects:
+            if name in self.updates:
+                new_objects[name] = self.objects[name]
+        self.objects = new_objects
 
     def update(self, delta):
         if self.updates:
@@ -234,20 +278,20 @@ class ObjectsView(GameWindow, Drawable):
                     else:
                         move_vector = vector
                     if  vector:
-                        self.objects[object_name].position+= move_vector
+                        self.objects[object_name].move(move_vector)
                         self.updates[object_name]-= move_vector
 
         #отображение объектов
         self.tiles = []
         for object_name, game_object in self.objects.items():
-            point = game_object.position
-            tilename = game_object.tilename
-            position = point - self.position +self.center - Point(TILESIZE/2,TILESIZE/2)
-            tile = create_tile(position, tilename)
-            self.tiles.append(tile)
-            if tilename not in ['ball']:
-                label = create_label(object_name, position)
-                self.tiles.append(label)
+            self.tiles.extend(game_object.draw(self.position -self.center))
+        #обновляем объекты
+        [game_object.update() for game_object in self.objects.values()]
+            
+    
+    def clear(self):
+        self.objects = {}
+        self.updates = {}
     
     def remove_object(self, name):
         if name in self.updates:

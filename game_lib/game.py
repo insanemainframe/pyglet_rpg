@@ -65,7 +65,18 @@ def choice_position():
         if not world.map[i][j] in BLOCKTILES+TRANSTILES:
             position = position*TILESIZE
             return position
-    
+
+def detect_collisions():
+        "определяем коллизии"
+        for Name, Player in players.items():
+            for name, player in players.items():
+                if name!=Name:
+                    distance = abs(Player.position - player.position)
+                    if distance <= Player.radius+player.radius:
+                        if Player.mortal and player.human and player.name!=Player.striker:
+                            player.alive = False
+                            Player.REMOVE = True
+            
 def remove_object(name):
     player = players[name]
     add_update(player.name, player.prev_position, NullPoint, 'remove')
