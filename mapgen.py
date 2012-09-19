@@ -64,8 +64,9 @@ def load_map():
             if item==(255,0,0): item='stone'
             elif item==(0,255,0): item='grass'
             elif item==(0,128,0): item='forest'
-            elif item==(128,128,0): item='forest2'
+            elif item==(128,128,0): item='bush'
             elif item==(0,0,255): item='water'
+            elif item==(0,0,128): item='ocean'
             else: item='grass'
             row.append(item)
         tilemap.append(row)
