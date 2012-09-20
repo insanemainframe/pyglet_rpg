@@ -12,7 +12,7 @@ RUN:
 
     for game server
     
-    python game.py
+    python client.py
 
     for game client
     
@@ -39,25 +39,32 @@ game_lib/
 
 	ask_hostname.py - asking hostname when server or client running
 
-	client_lib.py - clientside network classes
-
-	engine_lib.py - game engine classes
+	engine_lib.py - game-objects classes
 
 	engine.py - main game engie class
+    
+    game_protocol.py  - packaging/unpackaging game messages
+    
+    game.py - game engine share state
+    
+    map_lib.py - map tools
 
-	game_protocol.py  - packaging/unpackaging game messages
+	math_lib.py - math, algorithms
+    
+    protocol_lib.py - data packaging and exhange
+    
+clientside/
 
-	game.py - game engine share state
+	network.py - clientside network classes
+    
+    client_objects.py -  clientside gameobject classes
 
 	gui_lib.py - clientside interface tools
 
-	map_lib.py - map tools
-
-	math_lib.py - math, algorithms
+	
+serverside/
 
 	poll_lib.py - poll(epoll/libevent) poller class
-
-	protocol_lib.py - data packaging and exhange
 
 	server_lib.py - socket server
 
