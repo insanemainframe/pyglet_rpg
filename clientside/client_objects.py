@@ -18,13 +18,11 @@ class Object:
     DELAY = 0
     "класс игрового объекта на карте"
     def __init__(self, name, position):
-        #print 'create %s' % name
         self.position = position
         self.name = name
     
     def handle_action(self, action, args):
         if hasattr(self, action):
-            #print 'handle %s %s' % (action, str(args))
             getattr(self, action)(*args)
         else:
             raise ActionError('no action %s' % action)
@@ -80,7 +78,6 @@ class Movable:
     
     def force_complete(self):
         if self.vector:
-            print 'force move %s for %s' % (self.name, self.vector)
             self.position+=self.vector
             self.vector = NullPoint
 
@@ -103,7 +100,6 @@ class Animated:
     
     def update(self, delta):
         if self.animation_counter==self.frames*self.freq:
-            print 'clear counter'
             self.DELAY = 0
         else:
             self.animation_counter+=1
