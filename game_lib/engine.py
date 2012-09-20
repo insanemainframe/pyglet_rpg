@@ -60,6 +60,7 @@ class Game:
         "запускается между обработкой запросов и ответов"
         game.detect_collisions()
         game.clear()
+        [player.update() for player in game.players.values()]
             
     def handle_responses(self):
         "смотрим"

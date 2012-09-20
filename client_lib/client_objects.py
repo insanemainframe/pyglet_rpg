@@ -53,13 +53,13 @@ class Movable:
             self.moving = True
             
             
-    def draw(self, shift):
+    def draw(self, shift, prefix=''):
         position = self.position - shift - Point(TILESIZE/2,TILESIZE/2)
         if self.moving:
             if self.animation>0:
-                tilename = self.tilename+'_move'
+                tilename = self.tilename+'_move' + prefix
             else:
-                tilename = self.tilename+'_move_'
+                tilename = self.tilename+'_move_'+ prefix
             self.animation*=-1
         else:
             tilename = self.tilename
@@ -110,20 +110,36 @@ class Animated:
         
         
             
+class Sweemer:
+    def update(self, delta):
+        i,j = (self.position/TILESIZE).get()
+        if Sweemer.map[i][j]=='water':
+            self.inwater= True
+            self.prefix = '_water'
+        else:
+            self.inwater = False
+            self.prefix = ''
+    
+
         
         
     
-class Player(Movable, Object):
+class Player(Sweemer, Movable, Object):
     tilename = 'player'
     def __init__(self, name, position):
         Object.__init__(self, name, position)
         Movable.__init__(self)
     
-    def draw(self, shift):
-        tiles = Movable.draw(self,shift)
+    def draw(self, shift, prefix=[]):
+        tiles = Movable.draw(self,shift, self.prefix)
         label  = create_label(self.name, Point(*tiles[0][1]))
         return tiles + [label]
+        
+    def update(self, dt):
+        Sweemer.update(self, dt)
+        Movable.update(self, dt)
     
+
     def die(self):
         self.tilename = 'player_die'
         self.DELAY = 5
@@ -135,6 +151,9 @@ class Player(Movable, Object):
 
 class SelfPlayer(Player):
     tilename = 'self'
+    def update(self, dt):
+        Sweemer.update(self, dt)
+        Player.update(self, dt)
 
 
 class Ball(Movable, Object, Animated):

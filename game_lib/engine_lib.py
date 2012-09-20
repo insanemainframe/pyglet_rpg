@@ -37,6 +37,12 @@ class GameObject:
         ""
 
 #####################################################################
+class GameObject:
+    def __init__(self, name):
+        self.name = name
+    
+    def update(self):
+        pass
 class MapObserver(MapTools):
     "класс объекта видящего карту"
     prev_looked = set()
@@ -82,6 +88,7 @@ class MapObserver(MapTools):
 class Movable:
     "класс движущихся объектов"
     BLOCKTILES = []
+    SLOWTILES = {}
     def __init__(self, position, speed):
         self.vector  = NullPoint
         self.speed = speed
@@ -104,6 +111,7 @@ class Movable:
             #
             crossed = get_cross(self.position, move_vector)
             #print 'crossed', crossed
+            resist = 1
             for (i,j), cross_position in crossed:
                 cross_tile =  game.world.map[i][j]
                 if cross_tile in self.BLOCKTILES:
@@ -113,6 +121,9 @@ class Movable:
                     if self.fragile:
                         self.REMOVE = True
                     break
+                if cross_tile in self.SLOWTILES:
+                    resist = self.SLOWTILES[cross_tile]
+            move_vector *= resist
             self.vector = self.vector - move_vector
             self.move_vector = move_vector
         else:
@@ -128,18 +139,22 @@ class Movable:
         self.moved = False
 #####################################################################
 class Striker:
-    def __init__(self):
-        self.striked = False
+    def __init__(self, strike_speed):
+        self.strike_counter = 0
+        self.strike_speed = strike_speed
     
     def strike_ball(self, vector):
-        if self.striked:
+        if self.strike_counter>self.strike_speed:
             raise ActionDenied
         else:
             ball_name = 'ball%s' % game.ball_counter
             game.ball_counter+=1
             ball = Ball(ball_name, self.position, vector, self.name)
             game.new_object(ball)
-            self.striked = True
+            self.strike_counter+=1
+            
+    def update(self):
+        self.strike_counter = 0
     
     def complete_round(self):
         self.striked = False
@@ -147,7 +162,7 @@ class Striker:
         
     
 #####################################################################
-class Player(Movable, MapObserver, Striker):
+class Player(Movable, MapObserver, Striker, GameObject):
     "класс игрока"
     tilename = 'player'
     mortal = False
@@ -159,12 +174,14 @@ class Player(Movable, MapObserver, Striker):
     alive = True
     striker = False
     object_type = 'Player'
-    BLOCKTILES = ['stone', 'forest', 'water', 'ocean']
+    BLOCKTILES = ['stone', 'forest', 'ocean']
+    SLOWTILES = {'water':0.5, 'bush':0.3}
 
     
     def __init__(self, name, player_position, look_size):
+        GameObject.__init__(self, name)
         Movable.__init__(self, player_position, PLAYERSPEED)
-        Striker.__init__(self)
+        Striker.__init__(self,1)
         self.name = name
         self.look_size = look_size
     
@@ -190,7 +207,7 @@ class Player(Movable, MapObserver, Striker):
 
 
 #####################################################################        
-class Ball(Movable, MapObserver):
+class Ball(Movable, MapObserver, GameObject):
     "класс снаряда"
     tilename = 'ball'
     mortal = True
@@ -202,8 +219,8 @@ class Ball(Movable, MapObserver):
     object_type = 'Ball'
     BLOCKTILES = ['stone', 'forest']
     def __init__(self, name, position, direct, striker_name):
+        GameObject.__init__(self, name)
         Movable.__init__(self, position, BALLSPEED)
-        self.name = name
         self.striker =  striker_name
         one_step = Point(BALLSPEED,BALLSPEED)
         self.direct = direct*(abs(one_step)/abs(direct))

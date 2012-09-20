@@ -51,6 +51,8 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
             print 'accepteed position %s tiles %s' % (position, len(tiles))
     
             self.land = LandView(world_size, position, tiles, observed)
+            from client_lib.client_objects import Sweemer
+            Sweemer.map = self.land.map
             self.objects.insert(updates)
             self.accepted = True
             self.loading = False
