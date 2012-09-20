@@ -4,7 +4,7 @@ from game_lib.engine import Game
 from game_lib.protocol_lib import pack, unpack
 from game_lib.ask_hostname import AskHostname
 
-from server_lib.server_lib import SocketServer
+from serverside.server_lib import SocketServer
 
 
 

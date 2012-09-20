@@ -12,9 +12,9 @@ from game_lib.ask_hostname import AskHostname
 from game_lib.map_lib import MapTools
 from game_lib.protocol_lib import pack, unpack
 
-from client_lib.client_objects import object_dict
-from client_lib.gui_lib import *
-from client_lib.client_lib import Client
+from clientside.client_objects import object_dict
+from clientside.gui_lib import *
+from clientside.network import Client
 
 from config import *
 from game_lib.logger import CLIENTLOG as LOG
@@ -51,7 +51,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
             print 'accepteed position %s tiles %s' % (position, len(tiles))
     
             self.land = LandView(world_size, position, tiles, observed)
-            from client_lib.client_objects import Sweemer
+            from clientside.client_objects import Sweemer
             Sweemer.map = self.land.map
             self.objects.insert(updates)
             self.accepted = True
