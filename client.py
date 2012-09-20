@@ -206,7 +206,6 @@ class ObjectsView(GameWindow, Drawable):
         self.focus_object = False
     
     def create_object(self, name, object_type, position):
-        print 'create %s' % name
         game_object = object_dict[object_type](name, position)
         self.objects[name] = game_object
         
@@ -229,13 +228,14 @@ class ObjectsView(GameWindow, Drawable):
                         self.create_object(name, object_type, position)
                         if args=='self':
                             self.focus_object = name          
+        #удаяем объекты с мтеокй REMOVE
+        [self.remove_object(name) for name in self.objects.keys() if self.objects[name].REMOVE]
         #убираем объекты, для которых не получено обновлений
         new_objects = {}
-        for name in self.objects:
-            if name in self.updates and not self.objects[name].REMOVE:
-                new_objects[name] = self.objects[name]
-            else:
-                print 'filter %s' % name
+        for name, game_object in self.objects.items():
+            if name in self.updates or game_object.REMOVE:
+                new_objects[name] = game_object
+                
         self.objects = new_objects
         #выполняем апдейты
         if self.updates:
@@ -273,7 +273,6 @@ class ObjectsView(GameWindow, Drawable):
         if self.objects[name].DELAY:
             self.objects[name].DELAY-=1
         else:
-            print 'remove %s' % name
             if name in self.updates:
                 del self.updates[name]
             if name in self.objects:

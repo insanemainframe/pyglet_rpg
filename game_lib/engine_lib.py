@@ -98,20 +98,22 @@ class Movable:
         #если вектор движения не достиг нуля, то продолжить движение
         if self.vector:
             #проверка столкновения
-            i,j = get_cross(self.position, self.vector)
-            cross_tile =  game.world.map[i][j]
-            
-            if cross_tile in BLOCKTILES or (cross_tile in TRANSTILES and not self.crossing):
-                self.vector = NullPoint
-                self.move_vector = NullPoint
-                if self.fragile:
-                    self.REMOVE = True
-                    print 'COLLISION'
-            else:
-                part = self.speed / abs(self.vector) # доля пройденного пути в векторе
-                move_vector = self.vector * part if part<1 else self.vector
-                self.vector = self.vector - move_vector
-                self.move_vector = move_vector
+            part = self.speed / abs(self.vector) # доля пройденного пути в векторе
+            move_vector = self.vector * part if part<1 else self.vector
+            #
+            crossed = get_cross(self.position, move_vector)
+            #print 'crossed', crossed
+            for (i,j), cross_position in crossed:
+                cross_tile =  game.world.map[i][j]
+                if cross_tile in BLOCKTILES or (cross_tile in TRANSTILES and not self.crossing):
+                    move_vector = (cross_position - self.position)*0.99
+                    self.vector = move_vector
+                    #если объект хрупкий - отмечаем для удаления
+                    if self.fragile:
+                        self.REMOVE = True
+                    break
+            self.vector = self.vector - move_vector
+            self.move_vector = move_vector
         else:
             self.move_vector = self.vector
         self.prev_position = self.position

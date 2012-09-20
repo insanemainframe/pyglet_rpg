@@ -25,7 +25,7 @@ def number_wrap(func):
     
 class Point:
     "класс точек и векторов"
-    def __init__(self,x=0,y=0):
+    def __init__(self,x,y):
         try:
             self.x = int(x)
             self.y = int(y)
@@ -82,14 +82,78 @@ class Point:
         
 NullPoint = Point(0,0)
 
+########################################################################
+from config import *
+
+
+
+def intersec_point(A,B,C,D):
+    "ищет точку пересечения двух векторов"
+    vector = (B-A)
+    if vector.y:
+        div = vector.x.__truediv__(vector.y)
+        divx = True
+    elif vector.x:
+        div = vector.y.__truediv__(vector.x)
+        divx = False
+    if C.x==D.x:
+        x = C.x - A.x
+        y = x/div if divx else x*div
+        return A+ Point(x,y)
+    elif C.y == D.y:
+        y = C.y - A.y
+        x = y*div if divx else y/div
+        return A + Point(x,y)
+
+def interception(A,B,C,D):
+    "пересекаются ли отрезки"
+    def ccw(A,B,C):
+        return (C.y-A.y)*(B.x-A.x) > (B.y-A.y)*(C.x-A.x)
+    return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
+
+
+def cross_tile(A, B, tilecord):
+    "выдает соседние тайлы с которыми пересекается вектор и координаты пересечения"
+    start = tilecord*TILESIZE
+    null, CELL = 0 , TILESIZE
+    cds = {tilecord + Point(0,1) : (start + Point(null ,CELL), start+Point(CELL,CELL)),
+                tilecord + Point(1,0) : (start + Point(CELL, CELL), start + Point(CELL, null)),
+                tilecord + Point(0,-1) : (start, start + Point(CELL, null)),
+                tilecord + Point(-1,0) : (start, start + Point(null, CELL))}
+    
+    return [(ij, intersec_point(A,B,C, D)) for ij,(C, D) in cds.items() if interception(A,B,C,D)]
+        
+
 def get_cross(position, vector):
-    "выдает координаты следующего пересекаемого тайла(требует доработки)"
-    single_move = vector*(TILESIZE/abs(vector))
-    new_position = position + single_move
-    if new_position/TILESIZE == position/TILESIZE:
-        new_position = position + single_move*1.5
-    i,j = (new_position/TILESIZE).get()
-    return i,j
+    "возвращает i,j пересекаемых векторов тайлов и координаты этих пересечений"
+    end_cord = (position+vector)/TILESIZE #i,j конечнй точки
+    results = []
+    cur_tile = position/TILESIZE
+    crossed = [cur_tile]
+    while 1:
+        counter = 0
+        crossed_tiles = cross_tile(position, position+vector, cur_tile)
+        #print 'loop', crossed_tiles, position, vector
+        if crossed_tiles:
+            for ij, cross in crossed_tiles:
+                if not ij in crossed:
+                    counter+=1
+                    crossed.append(ij)
+                    results.append((ij.get(), cross))
+                    cur_tile = ij
+                    if ij == end_cord:
+                        return results
+            if not counter:
+                #print 'COUNTER BREAK'
+                return results
+        else:
+            #print 'BREAK'
+            return results
+    return results
+
+
+            
+        
 
 def collinear(vector1, vector2):
     "проверяет сонаправленность векторов(приблизительно для простоты алгоритма)"
@@ -107,6 +171,10 @@ def collinear(vector1, vector2):
         raise TypeError("collinear: some of %s %s isn't Point instance")
 
 if __name__=='__main__':
-    p = Point(30,26)
-    p2 = Point(-1251,-1251)
-    print abs(p)
+    #A,B,C,D = Point(2,2), Point(5,6), Point(0,0), Point(4,0)
+    #print interception(A,B,C,D)
+    #6243:6085 117:106
+
+    position, vector = Point(6243,6085), Point(117,106)
+    print 'result', get_cross(position, vector)
+    

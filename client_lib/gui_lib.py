@@ -110,6 +110,7 @@ class InputHandle:
     MOVE_BUTTON = 1
     STRIKE_BUTTON = 4
     control_keys = [UP, DOWN, LEFT, RIGHT, RSHIFT]
+    striking = False
     
     def __init__(self):
         step = TILESIZE/2
@@ -135,14 +136,19 @@ class InputHandle:
         elif button==self.STRIKE_BUTTON:
             vector = (Point(x,y) - self.center)
             self.send_ball(vector)
+            self.striking = vector
     
     def on_mouse_release(self, x, y, button, modifiers):
         if button==self.MOVE_BUTTON:
             self.vector = False
+        elif button==self.STRIKE_BUTTON:
+            self.striking = False
     
     def on_mouse_drag(self, x, y, dx, dy, button, modifiers):
         if button==self.MOVE_BUTTON:
             self.vector = (Point(x,y) - self.center)
+        elif button==self.STRIKE_BUTTON:
+            self.striking = (Point(x,y) - self.center)
             
         
     
@@ -160,6 +166,8 @@ class InputHandle:
                 self.send_move(vector)
         elif self.vector:
             self.send_move(self.vector)
+        if self.striking:
+            self.send_ball(self.striking)
             
 
 class Drawable:

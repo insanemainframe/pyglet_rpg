@@ -18,7 +18,7 @@ class Object:
     DELAY = 0
     "класс игрового объекта на карте"
     def __init__(self, name, position):
-        print 'create %s' % name
+        #print 'create %s' % name
         self.position = position
         self.name = name
     
@@ -83,6 +83,35 @@ class Movable:
             print 'force move %s for %s' % (self.name, self.vector)
             self.position+=self.vector
             self.vector = NullPoint
+
+from math import ceil
+class Animated:
+    def __init__(self, tilename, frames, freq=1):
+        self.frames = frames
+        self.freq = float(freq)
+        self.animation_counter = 1
+        self.animation_tilename = tilename
+        self.DELAY = frames * freq
+    
+    def draw(self, shift):
+        position = self.position - shift - Point(TILESIZE/2,TILESIZE/2)
+        n = int(ceil(self.animation_counter/self.freq))
+        tilename = self.animation_tilename+'_%s' % n
+        
+        
+        return [create_tile(position, tilename)]
+    
+    def update(self, delta):
+        if self.animation_counter==self.frames*self.freq:
+            print 'clear counter'
+            self.DELAY = 0
+        else:
+            self.animation_counter+=1
+        
+        
+            
+        
+        
     
 class Player(Movable, Object):
     tilename = 'player'
@@ -91,9 +120,9 @@ class Player(Movable, Object):
         Movable.__init__(self)
     
     def draw(self, shift):
-        tile = Movable.draw(self,shift)
-        label  = create_label(self.name, Point(*tile[0][1]))
-        return tile + [label]
+        tiles = Movable.draw(self,shift)
+        label  = create_label(self.name, Point(*tiles[0][1]))
+        return tiles + [label]
     
     def die(self):
         self.tilename = 'player_die'
@@ -108,26 +137,28 @@ class SelfPlayer(Player):
     tilename = 'self'
 
 
-class Ball(Movable, Object):
+class Ball(Movable, Object, Animated):
     tilename = 'ball'
     def __init__(self, name, position):
         Object.__init__(self, name, position)
         Movable.__init__(self)
-    
-    def update(self, delta):
-        if self.REMOVE:
-            self.explode_c+=1
-            self.tilename = 'ball_explode_%s' % self.explode_c
+        
+    def update(self, dt):
+        if not self.REMOVE:
+            return Movable.update(self, dt)
         else:
-            Movable.update(self, delta)
+            return Animated.update(self, dt)
+    
+    def draw(self, shift):
+        if not self.REMOVE:
+            return Movable.draw(self, shift)
+        else:
+            return Animated.draw(self, shift)
     
     def explode(self):
-        self.explode_c = 1
-        self.tilename = 'ball_explode_%s' % self.explode_c
-        self.DELAY = 5
+        Animated.__init__(self, 'ball_explode',7,3)
         self.REMOVE = True
         self.moving = False
-        print 'ball explosion'
     
    
 
