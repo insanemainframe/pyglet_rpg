@@ -13,9 +13,7 @@ BALLLIFETIME = 10
 BALLRADIUS = 40
 #
 TILESDIR = 'images/'
-BLOCKTILES = ['stone', 'forest']
-TRANSTILES = ['water']
-ANIMATED_TILES = [] #['player']
+
 #
 ROUND_TIMER = 0.1
 SERVER_TIMER = 0.1

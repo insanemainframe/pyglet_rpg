@@ -81,6 +81,7 @@ class MapObserver(MapTools):
 #####################################################################
 class Movable:
     "класс движущихся объектов"
+    BLOCKTILES = []
     def __init__(self, position, speed):
         self.vector  = NullPoint
         self.speed = speed
@@ -105,7 +106,7 @@ class Movable:
             #print 'crossed', crossed
             for (i,j), cross_position in crossed:
                 cross_tile =  game.world.map[i][j]
-                if cross_tile in BLOCKTILES or (cross_tile in TRANSTILES and not self.crossing):
+                if cross_tile in self.BLOCKTILES:
                     move_vector = (cross_position - self.position)*0.99
                     self.vector = move_vector
                     #если объект хрупкий - отмечаем для удаления
@@ -152,13 +153,14 @@ class Player(Movable, MapObserver, Striker):
     mortal = False
     human = True
     fragile = False
-    crossing = False
     radius = TILESIZE/2
     guided = True
     prev_looked = set()
     alive = True
     striker = False
     object_type = 'Player'
+    BLOCKTILES = ['stone', 'forest', 'water', 'ocean']
+
     
     def __init__(self, name, player_position, look_size):
         Movable.__init__(self, player_position, PLAYERSPEED)
@@ -171,7 +173,7 @@ class Player(Movable, MapObserver, Striker):
         return self.move(vector)
     
     def respawn(self):
-        new_position = game.choice_position()
+        new_position = game.choice_position(Player)
         vector = new_position - self.position
         self.position = new_position
         update1 = (self.name, self.prev_position, NullPoint, 'remove')
@@ -190,7 +192,6 @@ class Player(Movable, MapObserver, Striker):
 #####################################################################        
 class Ball(Movable, MapObserver):
     "класс снаряда"
-    crossing = True
     tilename = 'ball'
     mortal = True
     human = False
@@ -199,6 +200,7 @@ class Ball(Movable, MapObserver):
     radius = TILESIZE/2
     lifetime = BALLLIFETIME
     object_type = 'Ball'
+    BLOCKTILES = ['stone', 'forest']
     def __init__(self, name, position, direct, striker_name):
         Movable.__init__(self, position, BALLSPEED)
         self.name = name

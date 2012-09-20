@@ -13,7 +13,7 @@ from os import listdir
 
 from game_lib.math_lib import Point,NullPoint
 
-from config import TILESIZE, TILESDIR, ANIMATED_TILES, ROUND_TIMER, HOSTNAME
+from config import TILESIZE, TILESDIR, ROUND_TIMER, HOSTNAME
 
 
 def create_label(text, point):

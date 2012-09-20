@@ -55,13 +55,13 @@ def new_object(player):
     key = (player.position/TILESIZE).get()
     add_update(player.name, player.position, False, 'move', [NullPoint.get()])
 
-def choice_position():
+def choice_position(ObjectClass):
     while 1:
         start = size/2 - 7
         end = size/2 + 7
         position = Point(randrange(start, end), randrange(start, end))
         i,j = position.get()
-        if not world.map[i][j] in BLOCKTILES+TRANSTILES:
+        if not world.map[i][j] in ObjectClass.BLOCKTILES:
             position = position*TILESIZE
             return position
 

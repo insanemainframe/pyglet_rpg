@@ -17,7 +17,7 @@ class Game:
     "класс игры"
     def handle_connect(self, name):
         "создание нового игрока"
-        position = game.choice_position()
+        position = game.choice_position(Player)
         new_player = Player(name, position , 7)
         game.new_object(new_player)
         world_size = game.size
