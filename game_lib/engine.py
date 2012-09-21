@@ -8,9 +8,9 @@ from game_lib.math_lib import *
 from game_lib.map_lib import *
 from game_lib.engine_lib import *
 from game_lib import game
+from game_lib.game_objects import *
 
 from config import *
-from game_lib.logger import ENGINELOG as LOG
 
 #####################################################################
 class Game:
@@ -31,26 +31,20 @@ class Game:
     def handle_requests(self, messages):
         "совершаем действия игроками, возвращает векторы игрокам и устанавливает обновления"
         for name, player in game.players.items():
-            #если это игрок
-            if player.guided:
+            #если это игрок, то выполняем его действия
+            if isinstance(player, Guided):
                 for action, message in messages[name]:
                     try:
-                        if action=='move':
-                            vector = message
-                            game.add_update(*player.go(vector))
-                        elif action=='ball':
-                            player.strike_ball(message)
+                        player.handle_action(action, message)
                     except ActionDenied:
                         pass
-                #если игрока не двигался то двигаемся с нулевым вектором
-                if not player.moved:
-                    vector = Point(0,0)
-                    game.add_update(*player.go(vector))
-            else:
-                if player.lifetime:
-                    game.add_update(*player.go())
-                    player.lifetime-=1
-                else:
+            #если игрок не отправлял действий, то вызываем метод update
+            update = player.update()
+            if update:
+                game.add_update(*update)
+            #обрабатываем объекты с ограниченным сроком жизни
+            if isinstance(player, Temporary):
+                if not player.lifetime:
                     #если срок жизни кончился - убиваем
                     game.remove_object(name)
             #завершаем раунд для игрока
@@ -60,30 +54,20 @@ class Game:
         "запускается между обработкой запросов и ответов"
         game.detect_collisions()
         game.clear()
-        [player.update() for player in game.players.values()]
+        for player in game.players.values():
+            if not player.alive:
+                if isinstance(player, Respawnable):
+                    player.respawn()
+                    
             
     def handle_responses(self):
         "смотрим"
         messages = {}
         #подготавливаем обновления для выборочного обзора
         for name, player in game.players.items():
-            if player.guided:
-                messages[name] = []
-                #если игрок умер - респавн
-                if not player.alive:
-                    message, update1, update2 = player.respawn()
-                    messages[name].append(message)
-                    game.add_update(*update1)
-                    game.add_update(*update2)
-                    player.alive = True
-                #смотрим карту
-                new_looked, observed, updates = player.look()
-                #ветор движения на этом ходе
-                move_vector = player.move_vector
-                
-                message = (move_vector, new_looked, observed, updates, [])
-                messages[name].append(('look', message))
-        
+            if isinstance(player, Guided):
+                messages[name] = player.handle_response()
+
         game.updates.clear()
         return messages
     

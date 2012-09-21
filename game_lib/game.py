@@ -88,8 +88,6 @@ def clear():
 
 def remove_object(name):
     player = players[name]
-    last_update, args = player.die()
-    if last_update:
-        add_update(player.name, player.prev_position, NullPoint, last_update, args)
+    player.die()
     add_update(player.name, player.prev_position, NullPoint, 'remove')
     del players[name]

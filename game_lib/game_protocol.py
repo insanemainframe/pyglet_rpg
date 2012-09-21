@@ -106,7 +106,7 @@ class Move:
     @staticmethod
     def unpack(message):
         x,y = message
-        return Point(x,y)
+        return [Point(x,y)]
 
 #стрельба
 class Strike:
@@ -116,7 +116,7 @@ class Strike:
     @staticmethod
     def unpack(message):
         x,y = message
-        return Point(x,y)
+        return [Point(x,y)]
 
 #РЕСПАВН
 class Respawn:

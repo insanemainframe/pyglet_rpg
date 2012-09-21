@@ -157,6 +157,7 @@ class Ball(Movable, Object, Animated):
     def __init__(self, name, position):
         Object.__init__(self, name, position)
         Movable.__init__(self)
+        Animated.__init__(self, 'ball_explode',7,3)
         
     def update(self, dt):
         if not self.REMOVE:
@@ -171,7 +172,7 @@ class Ball(Movable, Object, Animated):
             return Animated.draw(self, shift)
     
     def explode(self):
-        Animated.__init__(self, 'ball_explode',7,3)
+        
         self.REMOVE = True
         self.moving = False
     
