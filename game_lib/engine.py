@@ -91,7 +91,7 @@ class Game:
                     distance = abs(Player.position - player.position)
                     if distance <= Player.radius+player.radius:
                         if isinstance(Player, Mortal) and isinstance(player,Human):
-                            if player.name!=Player.striker:
+                            if player.fraction!=Player.fraction:
                                 player.hit(Player.damage)
                                 if isinstance(Player, Fragile):
                                     Player.REMOVE = True

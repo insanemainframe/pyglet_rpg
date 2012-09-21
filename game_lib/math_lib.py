@@ -176,5 +176,6 @@ if __name__=='__main__':
     #6243:6085 117:106
 
     position, vector = Point(6243,6085), Point(117,106)
+    print position, vector, position+ vector, position/TILESIZE, vector/TILESIZE, (position+ vector)/TILESIZE
     print 'result', get_cross(position, vector)
     

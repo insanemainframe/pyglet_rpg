@@ -133,7 +133,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         #очищаем экран
-        #self.clear()
+        self.clear()
         if self.accepted:
             self.land.draw()
             self.objects.draw()

@@ -206,7 +206,10 @@ class Respawnable:
             return [self.respawn_message]
         else:
             print 'Respawned error'
-    
+
+class DiplomacySubject:
+    def __init__(self, fraction):
+        self.fraction = fraction
 ####################################################################
 class Temporary:
     "класс объекта с ограниченным сроком существования"

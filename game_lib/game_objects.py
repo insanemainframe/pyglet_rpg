@@ -21,7 +21,7 @@ class Striker:
         if self.strike_counter==0:
             ball_name = 'ball%s' % game.ball_counter
             game.ball_counter+=1
-            ball = self.strike_shell(ball_name, self.position, vector, self.name)
+            ball = self.strike_shell(ball_name, self.position, vector, self.fraction)
             game.new_object(ball)
             self.strike_counter+=self.strike_speed
             
@@ -34,7 +34,7 @@ class Striker:
         self.striked = False
     
 #####################################################################
-class Player(Movable, MapObserver, Striker, Guided, Respawnable, Human):
+class Player(Movable, MapObserver, Striker, Guided, Respawnable, Human, DiplomacySubject):
     "класс игрока"
     radius = TILESIZE/2
     prev_looked = set()
@@ -49,6 +49,7 @@ class Player(Movable, MapObserver, Striker, Guided, Respawnable, Human):
         Movable.__init__(self, player_position, PLAYERSPEED)
         Human.__init__(self, 10)
         Striker.__init__(self,2, Ball)
+        DiplomacySubject.__init__(self, self.name)
         
     
     def handle_response(self):
@@ -78,7 +79,7 @@ class Player(Movable, MapObserver, Striker, Guided, Respawnable, Human):
 ##################################################################### 
 from random import randrange       
 
-class MetaMonster(GameObject, Movable, Human, Respawnable, Stalker, Mortal):
+class MetaMonster(GameObject, Movable, Human, Respawnable, Stalker, Mortal, DiplomacySubject):
     speed = PLAYERSPEED/3
     object_type = 'Zombie'
     radius = TILESIZE
@@ -91,6 +92,7 @@ class MetaMonster(GameObject, Movable, Human, Respawnable, Stalker, Mortal):
         Stalker.__init__(self, self.look_size)
         Human.__init__(self, 2)
         Mortal.__init__(self, 1)
+        DiplomacySubject.__init__(self, 'monsters')
     
     def update(self):
         direct = self.hunt()
@@ -111,11 +113,13 @@ class Monster(MetaMonster, Mortal):
     def __init__(self, name, position):
         Mortal.__init__(self, 2)
         MetaMonster.__init__(self, name, position)
-class Lych(Monster, Striker):
+
+class Lych(Monster, Striker, DiplomacySubject):
     object_type = 'Lych'
     def __init__(self, name, position):
         Monster.__init__(self, name, position)
         Striker.__init__(self, 10, DarkBall)
+        DiplomacySubject.__init__(self, 'monsters')
     
     def update(self):
         direct = self.hunt()
@@ -135,18 +139,18 @@ class Lych(Monster, Striker):
         Striker.complete_round(self)
     
 #####################################################################        
-class Ball(Temporary, Movable,GameObject, Fragile, Mortal):
+class Ball(Temporary, Movable,GameObject, Fragile, Mortal, DiplomacySubject):
     "класс снаряда"
     radius = TILESIZE/2
     object_type = 'Ball'
     speed = BALLSPEED
     BLOCKTILES = ['stone', 'forest']
-    def __init__(self, name, position, direct, striker_name):
+    def __init__(self, name, position, direct, fraction):
         GameObject.__init__(self, name)
         Movable.__init__(self, position, BALLSPEED)
         Temporary.__init__(self, BALLLIFETIME)
         Mortal.__init__(self, 2)
-        self.striker =  striker_name
+        DiplomacySubject.__init__(self, fraction)
         one_step = Point(self.speed, self.speed)
         self.direct = direct*(abs(one_step)/abs(direct))
     
