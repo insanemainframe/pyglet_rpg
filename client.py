@@ -46,10 +46,11 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
     def accept(self):
         accept_data = self.wait_for_accept()
         if accept_data:
-            world_size, position, tiles, observed, updates, steps = accept_data
+            world_size, position, hp, tiles, observed, updates, steps = accept_data
         
             print 'accepteed position %s tiles %s' % (position, len(tiles))
-    
+            
+            self.hp_display = HpDisplay(hp)
             self.land = LandView(world_size, position, tiles, observed)
             from clientside.client_objects import Sweemer
             Sweemer.map = self.land.map
@@ -117,7 +118,8 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
                 self.set_camera_position(new_position)
                 self.objects.clear()
             elif action=='look':
-                move_vector, newtiles, observed, updates, steps = message
+                move_vector, hp, newtiles, observed, updates, steps = message
+                self.hp_display.set_hp(hp)
                 self.antilag_handle(move_vector)
                 self.land.insert(newtiles, observed)
                 self.objects.insert(updates)
@@ -135,6 +137,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
         if self.accepted:
             self.land.draw()
             self.objects.draw()
+            self.hp_display.draw()
         elif self.loading:
             self.loading.draw()
         self.fps_display.draw()

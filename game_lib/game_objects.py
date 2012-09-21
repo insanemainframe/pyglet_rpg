@@ -47,7 +47,8 @@ class Player(Movable, MapObserver, Striker, Guided, Respawnable, Human):
         GameObject.__init__(self, name)
         MapObserver.__init__(self, look_size)
         Movable.__init__(self, player_position, PLAYERSPEED)
-        Striker.__init__(self,5, Ball)
+        Human.__init__(self, 10)
+        Striker.__init__(self,2, Ball)
         
     
     def handle_response(self):
@@ -55,7 +56,7 @@ class Player(Movable, MapObserver, Striker, Guided, Respawnable, Human):
             move_vector = Movable.handle_request(self)
             new_looked, observed, updates = self.look()
     
-            return [('look', (move_vector, new_looked, observed, updates, []))]
+            return [('look', (move_vector, self.hp, new_looked, observed, updates, []))]
         else:
             return Respawnable.handle_response(self)
     
@@ -69,6 +70,7 @@ class Player(Movable, MapObserver, Striker, Guided, Respawnable, Human):
     def update(self):
         Movable.update(self)
         Striker.update(self)
+        Human.update(self)
     
     def die(self):
         return None, None
@@ -76,9 +78,9 @@ class Player(Movable, MapObserver, Striker, Guided, Respawnable, Human):
 ##################################################################### 
 from random import randrange       
 
-class Monster(GameObject, Movable, Human, Respawnable, Stalker):
-    speed = 20
-    object_type = 'Player'
+class MetaMonster(GameObject, Movable, Human, Respawnable, Stalker, Mortal):
+    speed = PLAYERSPEED/3
+    object_type = 'Zombie'
     radius = TILESIZE
     look_size = 10
     BLOCKTILES = ['stone', 'forest', 'ocean']
@@ -87,6 +89,8 @@ class Monster(GameObject, Movable, Human, Respawnable, Stalker):
         GameObject.__init__(self, name)
         Movable.__init__(self, player_position, self.speed)
         Stalker.__init__(self, self.look_size)
+        Human.__init__(self, 2)
+        Mortal.__init__(self, 1)
     
     def update(self):
         direct = self.hunt()
@@ -98,14 +102,20 @@ class Monster(GameObject, Movable, Human, Respawnable, Stalker):
             direct = Point(x,y)
             self.move(direct)
         Movable.update(self)
+        Human.update(self)
     
     def complete_round(self):
         Movable.complete_round(self)
-        
+
+class Monster(MetaMonster, Mortal):
+    def __init__(self, name, position):
+        Mortal.__init__(self, 2)
+        MetaMonster.__init__(self, name, position)
 class Lych(Monster, Striker):
+    object_type = 'Lych'
     def __init__(self, name, position):
         Monster.__init__(self, name, position)
-        Striker.__init__(self, 10, Arrow)
+        Striker.__init__(self, 10, DarkBall)
     
     def update(self):
         direct = self.hunt()
@@ -118,6 +128,7 @@ class Lych(Monster, Striker):
             self.move(direct)
         Movable.update(self)
         Striker.update(self)
+        Human.update(self)
     
     def complete_round(self):
         Movable.complete_round(self)
@@ -134,6 +145,7 @@ class Ball(Temporary, Movable,GameObject, Fragile, Mortal):
         GameObject.__init__(self, name)
         Movable.__init__(self, position, BALLSPEED)
         Temporary.__init__(self, BALLLIFETIME)
+        Mortal.__init__(self, 2)
         self.striker =  striker_name
         one_step = Point(self.speed, self.speed)
         self.direct = direct*(abs(one_step)/abs(direct))
@@ -146,8 +158,9 @@ class Ball(Temporary, Movable,GameObject, Fragile, Mortal):
     def die(self):
         game.add_event(self.position, NullPoint, 'explode', [])
 
-class Arrow(Ball):
+class DarkBall(Ball):
     radius = TILESIZE/3
-    object_type = 'Ball'
+    object_type = 'DarkBall'
     speed = BALLSPEED/2
+    
     

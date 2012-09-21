@@ -40,7 +40,7 @@ class Steps:
 #инициализация
 class ServerAccept(Updates, Land, Observed, Steps):
     def pack(self, data):
-        world_size, position, land, observed, updates, steps = data
+        world_size, position, hp, land, observed, updates, steps = data
         
         x,y = position.get()
         land = self.pack_land(land)
@@ -48,10 +48,10 @@ class ServerAccept(Updates, Land, Observed, Steps):
         updates = self.pack_updates(updates)
         steps = self.pack_steps(steps)
         
-        return (world_size, (x,y), land, observed, updates, steps)
+        return (world_size, (x,y), hp, land, observed, updates, steps)
 
     def unpack(self, data):
-        world_size, (x,y), land, observed, updates, steps = data
+        world_size, (x,y), hp, land, observed, updates, steps = data
         
         position = Point(x,y)
         land = self.unpack_land(land)
@@ -59,7 +59,7 @@ class ServerAccept(Updates, Land, Observed, Steps):
         updates = self.unpack_updates(updates)
         steps = self.unpack_steps(steps)
         
-        return world_size, position, land, observed, updates, steps
+        return world_size, position, hp, land, observed, updates, steps
 
 #
 #запрос на иницализацию
@@ -76,7 +76,7 @@ class ClientAccept:
 #обзор
 class Look(Updates, Land, Observed, Steps):
     def pack(self, data):
-        move_vector, land, observed, updates, steps = data
+        move_vector, hp, land, observed, updates, steps = data
         
         move_vector = move_vector.get()
         land = self.pack_land(land)
@@ -84,10 +84,10 @@ class Look(Updates, Land, Observed, Steps):
         updates = self.pack_updates(updates)
         steps = self.pack_steps(steps)
         
-        return move_vector, land, observed, updates, steps
+        return move_vector, hp, land, observed, updates, steps
 
     def unpack(self, data):
-        (x,y), land, observed, updates, steps = data
+        (x,y), hp, land, observed, updates, steps = data
         
         move_vector = Point(x,y)
         land =  self.unpack_land(land)
@@ -95,7 +95,7 @@ class Look(Updates, Land, Observed, Steps):
         updates = self.unpack_updates(updates)
         steps = self.unpack_steps(steps)
         
-        return move_vector, land, observed, updates, steps
+        return move_vector, hp, land, observed, updates, steps
 
 #передвижение
 class Move:

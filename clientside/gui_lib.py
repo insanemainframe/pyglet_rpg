@@ -191,6 +191,21 @@ class Drawable:
                           x=x, y=y,
                           anchor_x='center', anchor_y='center').draw()
                 
+
+class HpDisplay(GameWindow):
+    def __init__(self, hp):
+        self.hp = hp
+        self.display = pyglet.text.Label(str(self.hp),
+                          font_name='Times New Roman',
+                          font_size=20,
+                          x=self.width-20, y=self.height-20,
+                          anchor_x='center', anchor_y='center')
     
+    def set_hp(self, hp):
+        self.hp = hp
+        self.display.text = str(self.hp)
+        
+    def draw(self):
+        self.display.draw()
 
     

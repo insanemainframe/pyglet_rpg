@@ -22,7 +22,7 @@ class Game:
     
     def create_monsters(self, n, monster_type):
         for i in range(n):
-            position = game.choice_position(Monster)
+            position = game.choice_position(Monster, 15)
             monster = monster_type('monster%s' % self.monster_count, position)
             self.monster_count+=1
             game.new_object(monster)
@@ -37,8 +37,8 @@ class Game:
         #обзор
         looked, observed, updates = new_player.look()
         #уже существующие объекты
-                
-        return (world_size, new_player.position, looked, observed, updates, []), 'server_accept'
+        message = (world_size, new_player.position, new_player.hp, looked, observed, updates, [])
+        return (message, 'server_accept')
     
     def handle_requests(self, messages):
         "совершаем действия игроками, возвращает векторы игрокам и устанавливает обновления"
@@ -92,8 +92,9 @@ class Game:
                     if distance <= Player.radius+player.radius:
                         if isinstance(Player, Mortal) and isinstance(player,Human):
                             if player.name!=Player.striker:
-                                player.alive = False
-                                Player.REMOVE = True
+                                player.hit(Player.damage)
+                                if isinstance(Player, Fragile):
+                                    Player.REMOVE = True
     
     def handle_quit(self, name):
         game.remove_object(name)

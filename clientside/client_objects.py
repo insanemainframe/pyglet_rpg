@@ -151,13 +151,26 @@ class SelfPlayer(Player):
         Sweemer.update(self, dt)
         Player.update(self, dt)
 
-
-class Ball(Movable, Object, Animated):
-    tilename = 'ball'
+class Zombie(Movable, Object):
+    tilename = 'zombie'
     def __init__(self, name, position):
         Object.__init__(self, name, position)
         Movable.__init__(self)
-        Animated.__init__(self, 'ball_explode',7,3)
+
+class Lych(Movable, Object):
+    tilename = 'lych'
+    def __init__(self, name, position):
+        Object.__init__(self, name, position)
+        Movable.__init__(self)
+    
+
+class Ball(Movable, Object, Animated):
+    tilename = 'ball'
+    explode_tile = 'ball_explode'
+    def __init__(self, name, position):
+        Object.__init__(self, name, position)
+        Movable.__init__(self)
+        Animated.__init__(self,self.explode_tile ,7,3)
         
     def update(self, dt):
         if not self.REMOVE:
@@ -175,7 +188,10 @@ class Ball(Movable, Object, Animated):
         
         self.REMOVE = True
         self.moving = False
-    
+
+class DarkBall(Ball):
+    tilename = 'darkball'
+    explode_tile = 'darkball_explode'
    
 
-object_dict = {'Player' : Player, 'Ball': Ball, 'self': SelfPlayer}
+object_dict = {'Player' : Player, 'Ball': Ball, 'self': SelfPlayer, 'Zombie':Zombie, 'DarkBall':DarkBall, 'Lych':Lych}

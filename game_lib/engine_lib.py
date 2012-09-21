@@ -160,7 +160,20 @@ class Stalker:
         
 class Human:
     "класс для живых объекто"
-    pass
+    def __init__(self, hp, heal_speed=0.01):
+        self.hp_value = hp
+        self.hp = hp
+        self.heal_speed = heal_speed
+    
+    def hit(self, hp):
+        self.hp-=hp
+        if self.hp<=0:
+            self.alive = False
+            self.hp = self.hp_value
+    
+    def update(self):
+        if self.hp<self.hp_value:
+            self.hp+=self.heal_speed
 
 class Fragile:
     "класс для объекто разбивающихся при столкновении с тайлами"
@@ -168,14 +181,16 @@ class Fragile:
     
 class Mortal:
     "класс для объектов убивающих живых при соприкосновении"
-    pass
+    striker = None
+    def __init__(self, damage=1):
+        self.damage = damage
 ####################################################################
 
 class Respawnable:
     "класс перерождающихся объектов"
     respawned = False
     def respawn(self):
-        new_position = game.choice_position(self)
+        new_position = game.choice_position(self, 10 ,self.position)
         vector = new_position - self.position
         self.position = new_position
         game.add_event(self.name, self.prev_position, NullPoint, 'remove')

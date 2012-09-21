@@ -56,11 +56,14 @@ def new_object(player):
     key = (player.position/TILESIZE).get()
     add_event(player.name, player.position, False, 'move', [NullPoint.get()])
 
-def choice_position(player, radius=7):
+def choice_position(player, radius=7, start=False):
+    if not start:
+        start = Point(size/2,size/2)
+    else:
+        start = start/TILESIZE
     while 1:
-        start = size/2 - radius
-        end = size/2 + radius
-        position = Point(randrange(start, end), randrange(start, end))
+        
+        position = start +Point(randrange(-radius, radius), randrange(-radius, radius))
         i,j = position.get()
         if not world.map[i][j] in player.BLOCKTILES:
             position = position*TILESIZE
