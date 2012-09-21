@@ -20,6 +20,7 @@ class GameServer(SocketServer, Game, AskHostname):
     def __init__(self):
         AskHostname.__init__(self, HOSTNAME)
         SocketServer.__init__(self)
+        Game.__init__(self)
     
     def timer_handler(self):
         self.handle_requests(self.client_requestes)

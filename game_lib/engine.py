@@ -6,8 +6,8 @@ path.append('../')
 
 from game_lib.math_lib import *
 from game_lib.map_lib import *
-from game_lib.engine_lib import *
 from game_lib import game
+from game_lib.engine_lib import *
 from game_lib.game_objects import *
 
 from config import *
@@ -15,6 +15,18 @@ from config import *
 #####################################################################
 class Game:
     "класс игры"
+    monster_count = 0
+    def __init__(self):
+        self.create_monsters(10, Monster)
+        self.create_monsters(5, Lych)
+    
+    def create_monsters(self, n, monster_type):
+        for i in range(n):
+            position = game.choice_position(Monster)
+            monster = monster_type('monster%s' % self.monster_count, position)
+            self.monster_count+=1
+            game.new_object(monster)
+            
     def handle_connect(self, name):
         "создание нового игрока"
         position = game.choice_position(Player)
@@ -39,9 +51,9 @@ class Game:
                     except ActionDenied:
                         pass
             #если игрок не отправлял действий, то вызываем метод update
-            update = player.update()
-            if update:
-                game.add_update(*update)
+            event = player.update()
+            if event:
+                game.add_event(*event)
             #обрабатываем объекты с ограниченным сроком жизни
             if isinstance(player, Temporary):
                 if not player.lifetime:
@@ -52,7 +64,7 @@ class Game:
     
     def handle_middle(self):
         "запускается между обработкой запросов и ответов"
-        game.detect_collisions()
+        self.detect_collisions()
         game.clear()
         for player in game.players.values():
             if not player.alive:
@@ -71,7 +83,17 @@ class Game:
         game.updates.clear()
         return messages
     
-    
+    def detect_collisions(self):
+        "определяем коллизии"
+        for Name, Player in game.players.items():
+            for name, player in game.players.items():
+                if name!=Name:
+                    distance = abs(Player.position - player.position)
+                    if distance <= Player.radius+player.radius:
+                        if isinstance(Player, Mortal) and isinstance(player,Human):
+                            if player.name!=Player.striker:
+                                player.alive = False
+                                Player.REMOVE = True
     
     def handle_quit(self, name):
         game.remove_object(name)
