@@ -19,6 +19,7 @@ class Game:
     def __init__(self):
         self.create_monsters(10, Monster)
         self.create_monsters(5, Lych)
+        self.create_monsters(5, Ghast)
     
     def create_monsters(self, n, monster_type):
         for i in range(n):
@@ -64,7 +65,7 @@ class Game:
     
     def handle_middle(self):
         "запускается между обработкой запросов и ответов"
-        self.detect_collisions()
+        #self.detect_collisions()
         game.clear()
         for player in game.players.values():
             if not player.alive:

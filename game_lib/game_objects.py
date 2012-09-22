@@ -47,7 +47,7 @@ class Player(Movable, MapObserver, Striker, Guided, Respawnable, Human, Diplomac
         GameObject.__init__(self, name)
         MapObserver.__init__(self, look_size)
         Movable.__init__(self, player_position, PLAYERSPEED)
-        Human.__init__(self, 10)
+        Human.__init__(self, 50)
         Striker.__init__(self,2, Ball)
         DiplomacySubject.__init__(self, self.name)
         
@@ -80,15 +80,13 @@ class Player(Movable, MapObserver, Striker, Guided, Respawnable, Human, Diplomac
 from random import randrange       
 
 class MetaMonster(GameObject, Movable, Human, Respawnable, Stalker, Mortal, DiplomacySubject):
-    speed = PLAYERSPEED/3
-    object_type = 'Zombie'
     radius = TILESIZE
     look_size = 10
     BLOCKTILES = ['stone', 'forest', 'ocean']
     SLOWTILES = {'water':0.5, 'bush':0.3}
-    def __init__(self, name, player_position):
+    def __init__(self, name, player_position, speed):
         GameObject.__init__(self, name)
-        Movable.__init__(self, player_position, self.speed)
+        Movable.__init__(self, player_position, speed)
         Stalker.__init__(self, self.look_size)
         Human.__init__(self, 2)
         Mortal.__init__(self, 1)
@@ -110,9 +108,18 @@ class MetaMonster(GameObject, Movable, Human, Respawnable, Stalker, Mortal, Dipl
         Movable.complete_round(self)
 
 class Monster(MetaMonster, Mortal):
+    object_type = 'Zombie'
+    def __init__(self, name, position):
+        speed = PLAYERSPEED/3
+        Mortal.__init__(self, 2)
+        MetaMonster.__init__(self, name, position, speed)
+
+class Ghast(MetaMonster, Mortal):
+    object_type = 'Ghast'
+    speed = 10
     def __init__(self, name, position):
         Mortal.__init__(self, 2)
-        MetaMonster.__init__(self, name, position)
+        MetaMonster.__init__(self, name, position, self.speed)
 
 class Lych(Monster, Striker, DiplomacySubject):
     object_type = 'Lych'

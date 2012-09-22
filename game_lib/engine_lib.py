@@ -84,7 +84,34 @@ class MapObserver(MapTools):
     
 
 #####################################################################
-class Movable:
+class MovableShare:
+    @staticmethod
+    def new_player(player):
+        if hasattr(MovableShare, 'position_list'):
+            MovableShare.player_list[player.name] = player
+        else:
+            MovableShare.player_list = {}
+    
+    @staticmethod
+    def update_player(player):
+        MovableShare.player_list[player.name] = player
+        for Player in MovableShare.player_list.values():
+            distance = abs(Player.position - player.position)
+            if distance <= Player.radius+player.radius:
+                if isinstance(Player, Mortal) and isinstance(player,Human):
+                    if player.fraction!=Player.fraction:
+                        player.hit(Player.damage)
+                        if isinstance(Player, Fragile):
+                            Player.REMOVE = True
+        
+        
+    
+    @staticmethod
+    def remove_player(player):
+        del MovableShare.player_list[player.name]
+        
+            
+class Movable(MovableShare):
     "класс движущихся объектов"
     BLOCKTILES = []
     SLOWTILES = {}
@@ -95,7 +122,9 @@ class Movable:
         self.move_vector = NullPoint
         self.prev_position = Point(-1,-1)
         self.moved = False
-        
+        self.new_player(self)
+    
+    
     def move(self, vector=NullPoint):
         if self.moved:
             raise ActionDenied
@@ -107,33 +136,43 @@ class Movable:
             #проверка столкновения
             part = self.speed / abs(self.vector) # доля пройденного пути в векторе
             move_vector = self.vector * part if part<1 else self.vector
-            #
-            crossed = get_cross(self.position, move_vector)
-            #print 'crossed', crossed
-            resist = 1
-            for (i,j), cross_position in crossed:
-                cross_tile =  game.world.map[i][j]
-                if cross_tile in self.BLOCKTILES:
-                    move_vector = (cross_position - self.position)*0.99
-                    self.vector = move_vector
-                    #если объект хрупкий - отмечаем для удаления
-                    if isinstance(self, Fragile):
-                        self.REMOVE = True
-                    break
-                if cross_tile in self.SLOWTILES:
-                    resist = self.SLOWTILES[cross_tile]
-            move_vector *= resist
+            #определяем столкновения с тайлами
+            move_vector = self._tile_collission(move_vector)
+            
+            
+            
             self.vector = self.vector - move_vector
             self.move_vector = move_vector
         else:
             self.move_vector = self.vector
         self.prev_position = self.position
         self.position+=self.move_vector
+        
         self.moved = True
-        #name, position, vector, action, args
+        
         altposition = self.position
         #добавляем событие
         self.add_event(self.prev_position, altposition, 'move', [self.move_vector.get()])
+        self.update_player(self)
+    
+    def _tile_collission(self, move_vector):
+        "определения пересечяения вектора с непрохоодимыми и труднопроходимыми тайлами"
+        resist = 1
+        crossed = get_cross(self.position, move_vector)
+        for (i,j), cross_position in crossed:
+            cross_tile =  game.world.map[i][j]
+            if cross_tile in self.BLOCKTILES:
+                move_vector = (cross_position - self.position)*0.99
+                self.vector = move_vector
+                #если объект хрупкий - отмечаем для удаления
+                if isinstance(self, Fragile):
+                    self.REMOVE = True
+                break
+            if cross_tile in self.SLOWTILES:
+                resist = self.SLOWTILES[cross_tile]
+        move_vector *= resist
+        return move_vector
+        
     
     def complete_round(self):
         self.moved = False
@@ -144,6 +183,10 @@ class Movable:
     def update(self):
         if not self.moved:
             return self.move()
+    def __del__(self):
+        self.remove_player(self)
+        print 'remove movable'
+    
 ####################################################################
 
 class Stalker:
@@ -154,7 +197,7 @@ class Stalker:
         for player in game.players.values():
             if isinstance(player, Guided):
                 distance = player.position - self.position
-                if abs(distance/TILESIZE)<self.look_size:
+                if True: #abs(distance/TILESIZE)<self.look_size:
                     return player.position - self.position
         return None
         

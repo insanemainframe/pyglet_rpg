@@ -9,7 +9,8 @@ import pyglet
 
 from abc import ABCMeta, abstractmethod, abstractproperty
 from time import time
-from os import listdir
+from os import walk
+from os.path import join
 
 from game_lib.math_lib import Point,NullPoint
 
@@ -55,11 +56,12 @@ class GameWindow():
     @staticmethod
     def gentiles():
         cls = GameWindow
-        names = listdir(TILESDIR)
         cls.tiledict = {}
-        for name in names:
-            image = pyglet.image.load(TILESDIR+name, decoder=PNGImageDecoder()).get_texture()
-            cls.tiledict[name[:-4]] = image
+        for root, subfolders, files in walk(TILESDIR):
+            for image_file in files:
+                image = pyglet.image.load(join(root,image_file), decoder=PNGImageDecoder()).get_texture()
+                tilename = image_file[:-4]
+                cls.tiledict[tilename] = image
     
     @staticmethod
     def set_camera_position(position):

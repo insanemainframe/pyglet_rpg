@@ -265,6 +265,7 @@ class ObjectsView(GameWindow, Drawable):
     
     def round_update(self):
         [game_object.round_update() for game_object in self.objects.values()]
+        
     def force_complete(self):
         [game_object.force_complete() for game_object in self.objects.values()]
         

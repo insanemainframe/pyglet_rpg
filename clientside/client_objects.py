@@ -21,6 +21,9 @@ class Object:
         self.position = position
         self.name = name
     
+    def get_position(self, shift):
+        return self.position - shift - Point(TILESIZE/2,TILESIZE/2)
+        
     def handle_action(self, action, args):
         if hasattr(self, action):
             getattr(self, action)(*args)
@@ -36,13 +39,45 @@ class Object:
         self.REMOVE = True
     
 ########################################################################
-
-class Movable:
+from math import ceil
+class Animated:
+    animations = {}
+    
+    def create_animation(self, name, tilename, frames, freq):
+        self.animations[name] = {}
+        self.animations[name]['counter'] = 0
+        self.animations[name]['tilename'] = tilename
+        self.animations[name]['frames'] = frames
+        self.animations[name]['freq'] = freq
+        self.animations[name]['delay'] = freq*frames
+        
+        
+    
+    def get_animation(self, name):
+        counter = self.animations[name]['counter']
+        freq = self.animations[name]['freq']
+        tilename = self.animations[name]['tilename']
+        n = int(ceil(counter/freq))
+        tilename = '_'+tilename+'_%s' % n
+        print 'get_animation', tilename
+        return tilename
+    
+    def update_animation(self, name):
+        counter = self.animations[name]['counter']
+        freq = self.animations[name]['freq']
+        frames = self.animations[name]['frames']
+        if counter==frames*freq:
+            print 'update_animtion CLEAR', counter, freq, frames
+            self.animations[name]['delay'] = 0
+        else:
+            self.animations[name]['counter'] +=1
+            print 'update_animtion', self.animations[name]['counter']
+#
+class Movable(Animated):
     def __init__(self):
         self.moving = False
-        self.animation = 1
         self.vector = NullPoint
-        
+        self.create_animation('moving', 'move', 1,2)
     
     def move(self, xy):
         vector = Point(*xy)
@@ -51,17 +86,12 @@ class Movable:
             self.moving = True
             
             
-    def draw(self, shift, prefix=''):
+    def draw(self, shift):
         position = self.position - shift - Point(TILESIZE/2,TILESIZE/2)
         if self.moving:
-            if self.animation>0:
-                tilename = self.tilename+'_move' + prefix
-            else:
-                tilename = self.tilename+'_move_'+ prefix
-            self.animation*=-1
+            tilename = self.tilename + self.get_animation('moving')
         else:
             tilename = self.tilename
-    
         return [create_tile(position, tilename)]
 
     def update(self, delta):
@@ -71,8 +101,10 @@ class Movable:
                 move_vector = self.vector
             self.position += move_vector
             self.vector -=move_vector
+            self.update_animation('moving')
         else:
             self.moving = False
+    
     def round_update(self):
         self.moving = False
     
@@ -81,28 +113,7 @@ class Movable:
             self.position+=self.vector
             self.vector = NullPoint
 
-from math import ceil
-class Animated:
-    def __init__(self, tilename, frames, freq=1):
-        self.frames = frames
-        self.freq = float(freq)
-        self.animation_counter = 1
-        self.animation_tilename = tilename
-        self.DELAY = frames * freq
-    
-    def draw(self, shift):
-        position = self.position - shift - Point(TILESIZE/2,TILESIZE/2)
-        n = int(ceil(self.animation_counter/self.freq))
-        tilename = self.animation_tilename+'_%s' % n
-        
-        
-        return [create_tile(position, tilename)]
-    
-    def update(self, delta):
-        if self.animation_counter==self.frames*self.freq:
-            self.DELAY = 0
-        else:
-            self.animation_counter+=1
+
         
         
             
@@ -127,7 +138,7 @@ class Player(Sweemer, Movable, Object):
         Movable.__init__(self)
     
     def draw(self, shift, prefix=[]):
-        tiles = Movable.draw(self,shift, self.prefix)
+        tiles = Movable.draw(self,shift)
         label  = create_label(self.name, Point(*tiles[0][1]))
         return tiles + [label]
         
@@ -156,7 +167,13 @@ class Zombie(Movable, Object):
     def __init__(self, name, position):
         Object.__init__(self, name, position)
         Movable.__init__(self)
-
+        
+class Ghast(Movable, Object):
+    tilename = 'ghast'
+    def __init__(self, name, position):
+        Object.__init__(self, name, position)
+        Movable.__init__(self)
+        
 class Lych(Movable, Object):
     tilename = 'lych'
     def __init__(self, name, position):
@@ -166,23 +183,25 @@ class Lych(Movable, Object):
 
 class Ball(Movable, Object, Animated):
     tilename = 'ball'
-    explode_tile = 'ball_explode'
     def __init__(self, name, position):
         Object.__init__(self, name, position)
         Movable.__init__(self)
-        Animated.__init__(self,self.explode_tile ,7,3)
+        self.create_animation('explosion', 'explode', 7,3)
+        self.DELAY = 7*3
         
     def update(self, dt):
         if not self.REMOVE:
             return Movable.update(self, dt)
         else:
-            return Animated.update(self, dt)
+            return self.update_animation('explosion')
     
     def draw(self, shift):
         if not self.REMOVE:
             return Movable.draw(self, shift)
         else:
-            return Animated.draw(self, shift)
+            position = self.get_position(shift)
+            tilename = self.tilename + self.get_animation('explosion')
+            return [create_tile(position, tilename)]
     
     def explode(self):
         
@@ -194,4 +213,5 @@ class DarkBall(Ball):
     explode_tile = 'darkball_explode'
    
 
-object_dict = {'Player' : Player, 'Ball': Ball, 'self': SelfPlayer, 'Zombie':Zombie, 'DarkBall':DarkBall, 'Lych':Lych}
+object_dict = {'Player' : Player, 'Ball': Ball, 'self': SelfPlayer,
+            'Zombie':Zombie, 'DarkBall':DarkBall, 'Lych':Lych, 'Ghast' : Ghast}
