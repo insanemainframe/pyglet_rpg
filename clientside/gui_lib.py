@@ -18,12 +18,12 @@ from config import TILESIZE, TILESDIR, ROUND_TIMER, HOSTNAME
 
 
 def create_label(text, point):
-    x,y = point.get()
-    return (text, point.get(), 'label')
+    layer = 1
+    return (layer, text, point, 'label')
 
-def create_tile(point, tilename):
+def create_tile(point, tilename, layer=-1):
         "создае тайл"
-        return (tilename, point.get(), None)
+        return (layer, tilename, point, 'tile')
 
 class LoadingScreen:
     def __init__(self, point):
@@ -174,19 +174,28 @@ class InputHandle:
 
 class Drawable:
     "рисуемые объекты"
-    def __init__(self):
+    def __init__(self, tilemap = False):
         self.animation = 1
         self.animation_counter = 0
         self.aps = 15
+        self.tilemap = tilemap
     
     def draw(self):
         c = 0
-        for tilename, (x,y), tiletype in self.tiles:
-            if not tiletype:
+        self.tiles.sort(lambda x,y: -1 if x[0]<y[0] else 1)
+        
+        for layer,tilename, position, sptite_type in self.tiles:
+            if sptite_type=='tile':
+                width = self.tiledict[tilename].width
+                height = self.tiledict[tilename].height
+                shift =  Point(width/2, height/2)
+                x,y = (position-shift).get()
                 if -TILESIZE<x<self.width and -TILESIZE<x<self.height:
-                    self.tiledict[tilename].blit(x,y, width=TILESIZE, height=TILESIZE)
+                    self.tiledict[tilename].blit(x,y, width=width, height=height)
                     c+=1
-            else:
+            elif sptite_type=='label':
+                shift = self.center
+                x,y = (position-shift).get()
                 pyglet.text.Label(tilename,
                           font_name='Times New Roman',
                           font_size=10,

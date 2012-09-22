@@ -88,7 +88,7 @@ class MetaMonster(GameObject, Movable, Human, Respawnable, Stalker, Mortal, Dipl
         GameObject.__init__(self, name)
         Movable.__init__(self, player_position, speed)
         Stalker.__init__(self, self.look_size)
-        Human.__init__(self, 2)
+        Human.__init__(self, self.hp)
         Mortal.__init__(self, 1)
         DiplomacySubject.__init__(self, 'monsters')
     
@@ -108,6 +108,7 @@ class MetaMonster(GameObject, Movable, Human, Respawnable, Stalker, Mortal, Dipl
         Movable.complete_round(self)
 
 class Monster(MetaMonster, Mortal):
+    hp = 3
     object_type = 'Zombie'
     def __init__(self, name, position):
         speed = PLAYERSPEED/3
@@ -115,6 +116,7 @@ class Monster(MetaMonster, Mortal):
         MetaMonster.__init__(self, name, position, speed)
 
 class Ghast(MetaMonster, Mortal):
+    hp = 20
     object_type = 'Ghast'
     speed = 10
     def __init__(self, name, position):

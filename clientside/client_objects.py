@@ -20,9 +20,6 @@ class Object:
     def __init__(self, name, position):
         self.position = position
         self.name = name
-    
-    def get_position(self, shift):
-        return self.position - shift - Point(TILESIZE/2,TILESIZE/2)
         
     def handle_action(self, action, args):
         if hasattr(self, action):
@@ -57,7 +54,7 @@ class Animated:
         counter = self.animations[name]['counter']
         freq = self.animations[name]['freq']
         tilename = self.animations[name]['tilename']
-        n = int(ceil(counter/freq))
+        n = int(counter/freq)
         tilename = '_'+tilename+'_%s' % n
         print 'get_animation', tilename
         return tilename
@@ -86,8 +83,8 @@ class Movable(Animated):
             self.moving = True
             
             
-    def draw(self, shift):
-        position = self.position - shift - Point(TILESIZE/2,TILESIZE/2)
+    def draw(self):
+        position = self.position
         if self.moving:
             tilename = self.tilename + self.get_animation('moving')
         else:
@@ -137,9 +134,9 @@ class Player(Sweemer, Movable, Object):
         Object.__init__(self, name, position)
         Movable.__init__(self)
     
-    def draw(self, shift, prefix=[]):
-        tiles = Movable.draw(self,shift)
-        label  = create_label(self.name, Point(*tiles[0][1]))
+    def draw(self):
+        tiles = Movable.draw(self)
+        label  = create_label(self.name, self.position)
         return tiles + [label]
         
     def update(self, dt):
@@ -195,13 +192,12 @@ class Ball(Movable, Object, Animated):
         else:
             return self.update_animation('explosion')
     
-    def draw(self, shift):
+    def draw(self):
         if not self.REMOVE:
-            return Movable.draw(self, shift)
+            return Movable.draw(self)
         else:
-            position = self.get_position(shift)
             tilename = self.tilename + self.get_animation('explosion')
-            return [create_tile(position, tilename)]
+            return [create_tile(self.position, tilename, 1)]
     
     def explode(self):
         

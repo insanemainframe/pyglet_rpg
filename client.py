@@ -156,7 +156,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
 class LandView(GameWindow,  Drawable, MapTools):
     "клиентская карта"
     def __init__(self, world_size, position, tiles=[], observed=[]):
-        Drawable.__init__(self)
+        Drawable.__init__(self, True)
         size = world_size
         self.world_size = world_size
         self.map = defaultdict(lambda: defaultdict(lambda: 'fog'))
@@ -260,8 +260,11 @@ class ObjectsView(GameWindow, Drawable):
         
         #отображение объектов
         self.tiles = []
+        shift = self.position - self.center
         for object_name, game_object in self.objects.items():
-            self.tiles.extend(game_object.draw(self.position -self.center))
+            new_tiles = [(layer, text, position-shift,  sprite_type)
+                        for layer, text, position,  sprite_type in game_object.draw()]
+            self.tiles.extend(new_tiles)
     
     def round_update(self):
         [game_object.round_update() for game_object in self.objects.values()]
