@@ -16,8 +16,9 @@ class ActionDenied(Exception):
 #####################################################################
 class GameObject:
     alive = True
-    def __init__(self, name):
+    def __init__(self, name, position):
         self.name = name
+        self.position = position
     
     def handle_action(self, action, args):
         if hasattr(self, action):
@@ -48,6 +49,7 @@ class MapObserver(MapTools):
     prev_looked = set()
     prev_observed = set()
     def __init__(self, look_size):
+        MapTools.__init__(self, game.size, game.size)
         self.look_size = look_size
     def look(self):
         "возвращает список координат видимых клеток из позиции position, с координаами относительно начала карты"
@@ -98,7 +100,7 @@ class MovableShare:
         for Player in MovableShare.player_list.values():
             distance = abs(Player.position - player.position)
             if distance <= Player.radius+player.radius:
-                if isinstance(Player, Mortal) and isinstance(player,Human):
+                if isinstance(Player, Mortal) and isinstance(player,Deadly):
                     if player.fraction!=Player.fraction:
                         player.hit(Player.damage)
                         if isinstance(Player, Fragile):
@@ -115,10 +117,9 @@ class Movable(MovableShare):
     "класс движущихся объектов"
     BLOCKTILES = []
     SLOWTILES = {}
-    def __init__(self, position, speed):
+    def __init__(self,  speed):
         self.vector  = NullPoint
         self.speed = speed
-        self.position = position
         self.move_vector = NullPoint
         self.prev_position = Point(-1,-1)
         self.moved = False
@@ -201,7 +202,7 @@ class Stalker:
                     return player.position - self.position
         return None
         
-class Human:
+class Deadly:
     "класс для живых объекто"
     def __init__(self, hp, heal_speed=0.01):
         self.hp_value = hp

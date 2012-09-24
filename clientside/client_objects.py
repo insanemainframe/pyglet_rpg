@@ -46,29 +46,28 @@ class Animated:
         self.animations[name]['tilename'] = tilename
         self.animations[name]['frames'] = frames
         self.animations[name]['freq'] = freq
+        self.animations[name]['frame_counter'] = freq
         self.animations[name]['delay'] = freq*frames
         
         
     
     def get_animation(self, name):
-        counter = self.animations[name]['counter']
         freq = self.animations[name]['freq']
+        if self.animations[name]['frame_counter']<freq:
+            self.animations[name]['frame_counter']+=1
+        else:
+            self.animations[name]['frame_counter'] = 0
+            frames = self.animations[name]['frames']
+            if self.animations[name]['counter']< frames:
+                self.animations[name]['counter']+=1
+            else:
+                self.animations[name]['counter'] = 0
+            
         tilename = self.animations[name]['tilename']
-        n = int(counter/freq)
+        n = self.animations[name]['counter']
         tilename = '_'+tilename+'_%s' % n
-        print 'get_animation', tilename
         return tilename
     
-    def update_animation(self, name):
-        counter = self.animations[name]['counter']
-        freq = self.animations[name]['freq']
-        frames = self.animations[name]['frames']
-        if counter==frames*freq:
-            print 'update_animtion CLEAR', counter, freq, frames
-            self.animations[name]['delay'] = 0
-        else:
-            self.animations[name]['counter'] +=1
-            print 'update_animtion', self.animations[name]['counter']
 #
 class Movable(Animated):
     def __init__(self):
@@ -98,7 +97,6 @@ class Movable(Animated):
                 move_vector = self.vector
             self.position += move_vector
             self.vector -=move_vector
-            self.update_animation('moving')
         else:
             self.moving = False
     
@@ -111,6 +109,12 @@ class Movable(Animated):
             self.vector = NullPoint
 
 
+class Deadly(Animated):
+    def __init__(self, frames):
+        self.frames = frames
+    
+    def die(self):
+        self.create_animation('dying', 'die', self.frames, 3)
         
         
             
@@ -189,8 +193,6 @@ class Ball(Movable, Object, Animated):
     def update(self, dt):
         if not self.REMOVE:
             return Movable.update(self, dt)
-        else:
-            return self.update_animation('explosion')
     
     def draw(self):
         if not self.REMOVE:

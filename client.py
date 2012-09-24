@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import pyglet
-from pyglet.gl import *
 
 from math import hypot
 from sys import exit
 from collections import defaultdict
 
-from game_lib.math_lib import Point, collinear
+from game_lib.math_lib import Point
 from game_lib.ask_hostname import AskHostname
 from game_lib.map_lib import MapTools
 from game_lib.protocol_lib import pack, unpack
@@ -16,10 +15,10 @@ from clientside.client_objects import object_dict
 from clientside.gui_lib import *
 from clientside.network import Client
 
-from config import *
-from game_lib.logger import CLIENTLOG as LOG
 
-class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Window, AskHostname):
+from config import *
+
+class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, pyglet.window.Window):
     accepted = False
     shift = Point(0,0)
     vector = Point(0,0)
@@ -27,10 +26,12 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
     def __init__(self, height, width):
         #инициализация родтельских классов
         AskHostname.__init__(self, HOSTNAME)
-        pyglet.window.Window.__init__(self, width, height)
-        GameWindow.__init__(width, height)
-        DeltaTimerObject.__init__(self)
         InputHandle.__init__(self)
+        pyglet.window.Window.__init__(self, width, height)
+        GameWindow.__init__(self,width, height)
+        
+        DeltaTimerObject.__init__(self)
+        
         Client.__init__(self)
         
         self.objects = ObjectsView()
@@ -112,17 +113,17 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
         for action, message in self.in_messages:
             #если произошел респавн игрока
             if action=='respawn':
-                new_position = message
-                print 'respawn from %s to %s' % (self.land.position,new_position )
-                
+                new_position = message                
                 self.set_camera_position(new_position)
                 self.objects.clear()
+                
             elif action=='look':
                 move_vector, hp, newtiles, observed, updates, steps = message
                 self.hp_display.set_hp(hp)
                 self.antilag_handle(move_vector)
                 self.land.insert(newtiles, observed)
                 self.objects.insert(updates)
+                
         self.in_messages = []
         self.set_timer()
 
@@ -130,8 +131,8 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
     def on_draw(self):
         "прорисовка спрайтов"
         #включаем отображение альфа-канала
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        self.enable_alpha()
+        
         #очищаем экран
         self.clear()
         if self.accepted:
@@ -153,11 +154,13 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, pyglet.window.Windo
         exit()
 
 ########################################################################
+
 class LandView(GameWindow,  Drawable, MapTools):
     "клиентская карта"
     def __init__(self, world_size, position, tiles=[], observed=[]):
-        Drawable.__init__(self, True)
-        size = world_size
+        MapTools.__init__(self, world_size, world_size)
+        Drawable.__init__(self)
+        
         self.world_size = world_size
         self.map = defaultdict(lambda: defaultdict(lambda: 'fog'))
         self.tiles = []
@@ -185,9 +188,18 @@ class LandView(GameWindow,  Drawable, MapTools):
 
         range_i = xrange(I-rad_w-1, I+rad_w+2)
         range_j = xrange(J-rad_h-1, J+rad_h+2)
-        return [((Point(i,j)*TILESIZE)-self.position,
-            self.map[i][j]+'_fog' if not ((i,j) in self.observed or self.map[i][j]=='fog') else self.map[i][j]) 
-            for j in range_j for i in range_i]
+        
+        looked = []
+        for i in range_i:
+            for j in range_j:
+                position = (Point(i,j)*TILESIZE)-self.position
+                if not ((i,j) in self.observed or self.map[i][j]=='fog'):
+                    tile = self.map[i][j]+'_fog'
+                else:
+                    tile = self.map[i][j]
+                looked.append((position, tile))
+                    
+        return looked
         
     def update(self):
         "обноление на каждом фрейме"

@@ -38,6 +38,8 @@ class SocketServer(PollServer):
         
         self.responses = {}
         self.requests = {}
+        
+        self.client_counter = 0
             
     def create_socket(self, stream):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -112,7 +114,8 @@ class SocketServer(PollServer):
                  
     def accept_client(self, fileno, sock_address, insock, outsock):
         "регистрация клиента, после того как он подключился к обоим сокетам"
-        address = str(abs(hash((sock_address, time()))))
+        address = 'plaayer_%s' % self.client_counter
+        self.client_counter+=1
         self.insocks[address] = insock
         self.outsocks[address] = outsock
         in_fileno, out_fileno = self.insocks[address].fileno(), self.outsocks[address].fileno()

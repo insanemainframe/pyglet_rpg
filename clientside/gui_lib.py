@@ -5,7 +5,9 @@ path.append('../')
 
 from pyglet.window.key import UP, DOWN, LEFT, RIGHT, RSHIFT
 from pyglet.image.codecs.png import PNGImageDecoder
+
 import pyglet
+from pyglet.gl import *
 
 from abc import ABCMeta, abstractmethod, abstractproperty
 from time import time
@@ -37,11 +39,11 @@ class LoadingScreen:
         self.label.draw()
 
 ########################################################################
-class GameWindow():
+class GameWindow:
     "разделяемое состояние элементов gui"
-    @staticmethod
-    def __init__(width, height):
+    def __init__(self, width, height):
         cls = GameWindow
+        
         cls.width = width
         cls.height = height
         cls.center = Point(cls.width/2,cls.height/2)
@@ -67,6 +69,11 @@ class GameWindow():
     def set_camera_position(position):
         GameWindow.prev_position = GameWindow.position
         GameWindow.position = position
+    
+    def enable_alpha(self):
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
         
 
 ########################################################################            
@@ -156,7 +163,7 @@ class InputHandle:
     
     def handle_input(self):
         if self.pressed:
-            #получаемсписок векторов соответствующим нажатым клавишам
+            #получаем список векторов соответствующим нажатым клавишам
             if RSHIFT in self.pressed:
                 speed = 2
             else:
@@ -174,14 +181,12 @@ class InputHandle:
 
 class Drawable:
     "рисуемые объекты"
-    def __init__(self, tilemap = False):
+    def __init__(self):
         self.animation = 1
         self.animation_counter = 0
         self.aps = 15
-        self.tilemap = tilemap
     
     def draw(self):
-        c = 0
         self.tiles.sort(lambda x,y: -1 if x[0]<y[0] else 1)
         
         for layer,tilename, position, sptite_type in self.tiles:
@@ -192,7 +197,7 @@ class Drawable:
                 x,y = (position-shift).get()
                 if -TILESIZE<x<self.width and -TILESIZE<x<self.height:
                     self.tiledict[tilename].blit(x,y, width=width, height=height)
-                    c+=1
+                    
             elif sptite_type=='label':
                 shift = self.center
                 x,y = (position-shift).get()
@@ -206,6 +211,7 @@ class Drawable:
 class HpDisplay(GameWindow):
     def __init__(self, hp):
         self.hp = hp
+        print self.width, self.height
         self.display = pyglet.text.Label(str(self.hp),
                           font_name='Times New Roman',
                           font_size=20,

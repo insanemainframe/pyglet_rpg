@@ -6,18 +6,24 @@ path.append('../')
 from math import hypot
 
 from math_lib import Point
-import game
+#import game
 
 from config import TILESIZE
 
 class MapTools:
     "методы работы с картой"
+    def __init__(self, width, height):
+        self.map_width = width
+        self.map_height = height
+        if height==width:
+            self.map_size = height
+    
     def resize_d(self, cord, dimension):
         "меняем координаты в случае превышения размера карты"
         if dimension=='width':
-            size = self.width
+            size = self.map_width
         elif dimension=='height':
-            size = self.height
+            size = self.map_height
         else:
             raise ValueError
         if cord < 0:
@@ -30,9 +36,9 @@ class MapTools:
     def resize(self, cord):
         "меняем координаты в случае превышения размера карты"
         if cord < 0:
-            return game.size + cord
-        if cord > game.size:
-            return cord - game.size
+            return self.map_size + cord
+        if cord > self.map_size:
+            return cord - self.map_size
         else:
             return cord      
     

@@ -6,7 +6,7 @@ from game_lib import game
 from game_lib.engine_lib import *
 
 
-from config import *
+from config import TILESIZE
 
 
 #####################################################################
@@ -34,20 +34,21 @@ class Striker:
         self.striked = False
     
 #####################################################################
-class Player(Movable, MapObserver, Striker, Guided, Respawnable, Human, DiplomacySubject):
+class Player(Movable, MapObserver, Striker, Guided, Respawnable, Deadly, DiplomacySubject):
     "класс игрока"
     radius = TILESIZE/2
     prev_looked = set()
     alive = True
     object_type = 'Player'
+    speed = 40
     BLOCKTILES = ['stone', 'forest', 'ocean']
     SLOWTILES = {'water':0.5, 'bush':0.3}
 
     def __init__(self, name, player_position, look_size):
-        GameObject.__init__(self, name)
+        GameObject.__init__(self, name, player_position)
         MapObserver.__init__(self, look_size)
-        Movable.__init__(self, player_position, PLAYERSPEED)
-        Human.__init__(self, 50)
+        Movable.__init__(self, self.speed)
+        Deadly.__init__(self, 50)
         Striker.__init__(self,2, Ball)
         DiplomacySubject.__init__(self, self.name)
         
@@ -71,7 +72,7 @@ class Player(Movable, MapObserver, Striker, Guided, Respawnable, Human, Diplomac
     def update(self):
         Movable.update(self)
         Striker.update(self)
-        Human.update(self)
+        Deadly.update(self)
     
     def die(self):
         return None, None
@@ -79,16 +80,16 @@ class Player(Movable, MapObserver, Striker, Guided, Respawnable, Human, Diplomac
 ##################################################################### 
 from random import randrange       
 
-class MetaMonster(GameObject, Movable, Human, Respawnable, Stalker, Mortal, DiplomacySubject):
+class MetaMonster(GameObject, Movable, Deadly, Respawnable, Stalker, Mortal, DiplomacySubject):
     radius = TILESIZE
     look_size = 10
     BLOCKTILES = ['stone', 'forest', 'ocean']
     SLOWTILES = {'water':0.5, 'bush':0.3}
     def __init__(self, name, player_position, speed):
-        GameObject.__init__(self, name)
-        Movable.__init__(self, player_position, speed)
+        GameObject.__init__(self, name, player_position)
+        Movable.__init__(self, speed)
         Stalker.__init__(self, self.look_size)
-        Human.__init__(self, self.hp)
+        Deadly.__init__(self, self.hp)
         Mortal.__init__(self, 1)
         DiplomacySubject.__init__(self, 'monsters')
     
@@ -102,7 +103,7 @@ class MetaMonster(GameObject, Movable, Human, Respawnable, Stalker, Mortal, Dipl
             direct = Point(x,y)
             self.move(direct)
         Movable.update(self)
-        Human.update(self)
+        Deadly.update(self)
     
     def complete_round(self):
         Movable.complete_round(self)
@@ -111,7 +112,7 @@ class Monster(MetaMonster, Mortal):
     hp = 3
     object_type = 'Zombie'
     def __init__(self, name, position):
-        speed = PLAYERSPEED/3
+        speed = 15
         Mortal.__init__(self, 2)
         MetaMonster.__init__(self, name, position, speed)
 
@@ -141,7 +142,7 @@ class Lych(Monster, Striker, DiplomacySubject):
             self.move(direct)
         Movable.update(self)
         Striker.update(self)
-        Human.update(self)
+        Deadly.update(self)
     
     def complete_round(self):
         Movable.complete_round(self)
@@ -152,12 +153,12 @@ class Ball(Temporary, Movable,GameObject, Fragile, Mortal, DiplomacySubject):
     "класс снаряда"
     radius = TILESIZE/2
     object_type = 'Ball'
-    speed = BALLSPEED
+    speed = 60
     BLOCKTILES = ['stone', 'forest']
     def __init__(self, name, position, direct, fraction):
-        GameObject.__init__(self, name)
-        Movable.__init__(self, position, BALLSPEED)
-        Temporary.__init__(self, BALLLIFETIME)
+        GameObject.__init__(self, name, position)
+        Movable.__init__(self, self.speed)
+        Temporary.__init__(self, 10)
         Mortal.__init__(self, 2)
         DiplomacySubject.__init__(self, fraction)
         one_step = Point(self.speed, self.speed)
@@ -174,6 +175,6 @@ class Ball(Temporary, Movable,GameObject, Fragile, Mortal, DiplomacySubject):
 class DarkBall(Ball):
     radius = TILESIZE/3
     object_type = 'DarkBall'
-    speed = BALLSPEED/2
+    speed = 30
     
     
