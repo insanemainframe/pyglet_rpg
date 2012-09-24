@@ -291,13 +291,10 @@ class ObjectsView(GameWindow, Drawable):
         self.objects.clear()
     
     def remove_object(self, name):
-        if self.objects[name].DELAY:
-            self.objects[name].DELAY-=1
-        else:
-            if name in self.updates:
-                del self.updates[name]
-            if name in self.objects:
-                del self.objects[name]
+        if name in self.updates:
+            del self.updates[name]
+        if name in self.objects:
+            del self.objects[name]
 
     
 

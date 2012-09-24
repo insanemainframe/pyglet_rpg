@@ -80,8 +80,11 @@ def clear():
         for name in remove_list:
             remove_object(name)
 
-def remove_object(name):
-    player = players[name]
-    player.die()
-    add_event(player.name, player.prev_position, NullPoint, 'remove')
-    del players[name]
+def remove_object(name, force = False):
+    result = players[name].remove()
+    if result or force:
+        print 'remove %s' % name, result, force
+        player = players[name]
+        del players[name]
+    else:
+        players[name].REMOVE = False

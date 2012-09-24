@@ -103,6 +103,7 @@ class MovableShare:
                 if isinstance(Player, Mortal) and isinstance(player,Deadly):
                     if player.fraction!=Player.fraction:
                         player.hit(Player.damage)
+                        Player.collission()
                         if isinstance(Player, Fragile):
                             Player.REMOVE = True
         
@@ -191,6 +192,7 @@ class Movable(MovableShare):
 ####################################################################
 
 class Stalker:
+    "объекты охотящиеся за игроками"
     def __init__(self, look_size):
         self.look_size = look_size
     
@@ -203,21 +205,36 @@ class Stalker:
         return None
         
 class Deadly:
-    "класс для живых объекто"
-    def __init__(self, hp, heal_speed=0.01):
+    "класс для живых объектов"
+    def __init__(self, hp, heal_speed=0.01, death_time=20):
         self.hp_value = hp
         self.hp = hp
         self.heal_speed = heal_speed
+        self.alive = True
+        self.death_time = death_time
+        self.death_time_value = death_time
     
     def hit(self, hp):
         self.hp-=hp
         if self.hp<=0:
-            self.alive = False
+            self.die()
             self.hp = self.hp_value
     
     def update(self):
-        if self.hp<self.hp_value:
-            self.hp+=self.heal_speed
+        if self.alive:
+            if self.hp<self.hp_value:
+                self.hp+=self.heal_speed
+        else:
+            if self.death_time>0:
+                self.death_time-=1
+                self.add_event(self.position, NullPoint, 'die',  [])
+            else:
+                self.death_time = self.death_time_value
+                self.REMOVE = True
+    
+    def die(self):
+        self.alive = False
+
 
 class Fragile:
     "класс для объекто разбивающихся при столкновении с тайлами"
@@ -233,7 +250,12 @@ class Mortal:
 class Respawnable:
     "класс перерождающихся объектов"
     respawned = False
-    def respawn(self):
+    def __init__(self, delay, distance):
+        self.respawn_delay = delay
+        self.respawn_distance = distance
+        
+    def remove(self):
+        print 'respawning %s' % self.name
         new_position = game.choice_position(self, 10 ,self.position)
         vector = new_position - self.position
         self.position = new_position
@@ -242,14 +264,13 @@ class Respawnable:
         self.respawn_message = 'respawn', self.position
         self.alive = True
         self.respawned = True
+        return False
 
     
     def handle_response(self):
-        if self.respawned:
-            self.respawned = False
-            return [self.respawn_message]
-        else:
-            print 'Respawned error'
+        print 'respawn_message %s' % self.name
+        self.respawned = False
+        return [self.respawn_message]
 
 class DiplomacySubject:
     def __init__(self, fraction):

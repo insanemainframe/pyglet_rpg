@@ -40,7 +40,7 @@ from math import ceil
 class Animated:
     animations = {}
     
-    def create_animation(self, name, tilename, frames, freq):
+    def create_animation(self, name, tilename, frames, freq, repeat = True):
         self.animations[name] = {}
         self.animations[name]['counter'] = 0
         self.animations[name]['tilename'] = tilename
@@ -48,6 +48,7 @@ class Animated:
         self.animations[name]['freq'] = freq
         self.animations[name]['frame_counter'] = freq
         self.animations[name]['delay'] = freq*frames
+        self.animations[name]['repeat?'] = repeat
         
         
     
@@ -61,6 +62,8 @@ class Animated:
             if self.animations[name]['counter']< frames:
                 self.animations[name]['counter']+=1
             else:
+                if not self.animations[name]['repeat?']:
+                    self.REMOVE = True
                 self.animations[name]['counter'] = 0
             
         tilename = self.animations[name]['tilename']
@@ -70,7 +73,7 @@ class Animated:
     
 #
 class Movable(Animated):
-    def __init__(self):
+    def __init__(self, frames=1):
         self.moving = False
         self.vector = NullPoint
         self.create_animation('moving', 'move', 1,2)
@@ -129,14 +132,26 @@ class Sweemer:
             self.prefix = ''
     
 
-        
+class Deadly:
+    def __init__(self, frames):
+        self.dead = False
+        self.create_animation('death', 'die', frames, 3)
+    
+    def draw(self):
+        position = self.position
+        tilename = self.tilename + self.get_animation('death')
+        return [create_tile(position, tilename )]
+    
+    def die(self):
+        self.dead = True
         
     
-class Player(Sweemer, Movable, Object):
+class Player(Sweemer, Movable, Object, Deadly):
     tilename = 'player'
     def __init__(self, name, position):
         Object.__init__(self, name, position)
         Movable.__init__(self)
+        Deadly.__init__(self, 0)
     
     def draw(self):
         tiles = Movable.draw(self)
@@ -150,36 +165,46 @@ class Player(Sweemer, Movable, Object):
 
     def die(self):
         self.tilename = 'player_die'
-        self.DELAY = 5
-        self.REMOVE = True
         self.moving = False
         
     
 
 
-class SelfPlayer(Player):
+class SelfPlayer(Player, Deadly):
     tilename = 'self'
     def update(self, dt):
         Sweemer.update(self, dt)
         Player.update(self, dt)
 
-class Zombie(Movable, Object):
+class Zombie(Movable, Object, Deadly):
     tilename = 'zombie'
     def __init__(self, name, position):
         Object.__init__(self, name, position)
         Movable.__init__(self)
+        Deadly.__init__(self, 9)
+    
+    def draw(self):
+        if not self.dead:
+            return Movable.draw(self)
+        else:
+            return Deadly.draw(self)
+    
+
+
         
-class Ghast(Movable, Object):
+class Ghast(Movable, Object, Deadly):
     tilename = 'ghast'
     def __init__(self, name, position):
         Object.__init__(self, name, position)
-        Movable.__init__(self)
+        Movable.__init__(self, 2)
+        Deadly.__init__(self, 1)
         
-class Lych(Movable, Object):
+class Lych(Movable, Object, Deadly):
     tilename = 'lych'
     def __init__(self, name, position):
         Object.__init__(self, name, position)
         Movable.__init__(self)
+        Deadly.__init__(self, 1)
     
 
 class Ball(Movable, Object, Animated):
@@ -188,22 +213,22 @@ class Ball(Movable, Object, Animated):
         Object.__init__(self, name, position)
         Movable.__init__(self)
         self.create_animation('explosion', 'explode', 7,3)
-        self.DELAY = 7*3
+        self.explosion = False
         
     def update(self, dt):
-        if not self.REMOVE:
+        if not self.explosion:
             return Movable.update(self, dt)
     
     def draw(self):
-        if not self.REMOVE:
+        if not self.explosion:
             return Movable.draw(self)
         else:
             tilename = self.tilename + self.get_animation('explosion')
             return [create_tile(self.position, tilename, 1)]
     
     def explode(self):
-        
-        self.REMOVE = True
+        print 'explode'
+        self.explosion = True
         self.moving = False
 
 class DarkBall(Ball):

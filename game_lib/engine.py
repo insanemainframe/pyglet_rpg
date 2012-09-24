@@ -67,10 +67,7 @@ class Game:
         "запускается между обработкой запросов и ответов"
         #self.detect_collisions()
         game.clear()
-        for player in game.players.values():
-            if not player.alive:
-                if isinstance(player, Respawnable):
-                    player.respawn()
+
                     
             
     def handle_responses(self):
@@ -98,7 +95,7 @@ class Game:
                                     Player.REMOVE = True
     
     def handle_quit(self, name):
-        game.remove_object(name)
+        game.remove_object(name, True)
                 
     
     
