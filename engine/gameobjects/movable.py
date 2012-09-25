@@ -84,7 +84,6 @@ class Movable:
         self.prev_position = Point(-1,-1)
         self.moved = False
     
-    
     def move(self, vector=NullPoint):
         if self.moved:
             raise ActionDenied

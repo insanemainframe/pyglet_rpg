@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from engine.engine_lib import *
+from engine.mathlib import chance
 from items import *
-from config import *
 from movable import Movable
+
+from config import *
+
 
 class Unit(Solid, Movable, Deadly, DiplomacySubject):
     def __init__(self, speed, hp, corpse, fraction):
@@ -14,8 +17,9 @@ class Unit(Solid, Movable, Deadly, DiplomacySubject):
 class Lootable(Deadly):
     loot = [HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold]
     def die(self):
-        item = choice(self.loot)(self.position)
-        game.new_object(item)
+        if chance(30):
+            item = choice(self.loot)(self.position)
+            game.new_object(item)
         Deadly.die(self)
 
 
@@ -104,7 +108,7 @@ class MetaMonster(Lootable, Unit, Respawnable, Stalker, Mortal):
     
 
 
-class Zombie(MetaMonster, Mortal):
+class Zombie(Mortal, MetaMonster):
     hp = 3
     speed = 15
     def __init__(self, name, position):
@@ -114,7 +118,7 @@ class Zombie(MetaMonster, Mortal):
 
 class Ghast(MetaMonster, Mortal):
     hp = 20
-    speed = 10
+    speed = 7
     def __init__(self, name, position):
         Mortal.__init__(self, 2)
         MetaMonster.__init__(self, name, position, self.speed, self.hp)

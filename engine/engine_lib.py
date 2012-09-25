@@ -20,7 +20,28 @@ class ActionError(Exception):
     
     def __str__(self):
         return 'ActionError: %s' % self.message
-        
+
+class wrappers:
+    @staticmethod
+    def alive_only(method):
+        def wrap(self,*args):
+            if self.alive:
+                method(self, *args)
+            else:
+                ActionDenied
+        return wrap
+    
+    @staticmethod
+    def ignore_denied(method):
+        def wrap(*args):
+            try:
+                result = method(*args)
+            except ActionDenied:
+                return None
+            else:
+                return result
+        return wrap
+
 #####################################################################
 class GameObject:
     REMOVE = False            
@@ -30,10 +51,11 @@ class GameObject:
         self.position = position
     
     def handle_action(self, action, args):
-        if hasattr(self, action):
-            return getattr(self, action)(*args)
-        else:
-            raise ActionError('no action %s' % action)
+        if self.alive:
+            if hasattr(self, action):
+                return getattr(self, action)(*args)
+            else:
+                raise ActionError('no action %s' % action)
     
     def update(self):
         pass
@@ -191,9 +213,10 @@ class Mortal:
         self.damage = damage
     
     def collission(self, player):
-        if player.fraction!=self.fraction:
-            player.hit(self.damage)
-            self.alive = False
+        if isinstance(player, Deadly):
+            if player.fraction!=self.fraction:
+                player.hit(self.damage)
+                self.alive = False
 ####################################################################
 
 class Respawnable:

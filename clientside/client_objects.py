@@ -241,7 +241,7 @@ class Ball(Movable, ClientObject, Animated):
     def __init__(self, name, position):
         ClientObject.__init__(self, name, position)
         Movable.__init__(self)
-        self.create_animation('explosion', 'explode', 7,3)
+        self.create_animation('explosion', 'explode', 7,3, False)
         self.explosion = False
         
     def update(self, dt):

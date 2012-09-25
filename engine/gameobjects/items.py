@@ -53,8 +53,13 @@ class Ball(Temporary, Solid, Movable,GameObject, Fragile, Mortal, DiplomacySubje
             else:
                 self.REMOVE
     
+    def complete_round(self):
+        if self.alive:
+            Movable.complete_round(selfws390)
+    
+
     def collission(self, player):
-        if isinstance(player, Deadly):
+        if self.alive:
             Mortal.collission(self, player)
 
     
