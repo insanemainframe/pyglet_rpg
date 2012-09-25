@@ -5,22 +5,35 @@ from items import *
 from config import *
 from movable import Movable
 
+class Unit(Solid, Movable, Deadly, DiplomacySubject):
+    def __init__(self, speed, hp, corpse, fraction):
+        Movable.__init__(self, speed)
+        Deadly.__init__(self, corpse, hp)
+        DiplomacySubject.__init__(self, fraction)
+
+class Lootable(Deadly):
+    loot = [HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold]
+    def die(self):
+        item = choice(self.loot)(self.position)
+        game.new_object(item)
+        Deadly.die(self)
+
+
 #####################################################################
-class Player(Movable, MapObserver, Striker, Guided, Respawnable, Deadly, DiplomacySubject):
+class Player(Unit, MapObserver, Striker, Guided, Respawnable):
     "класс игрока"
     radius = TILESIZE/2
     prev_looked = set()
     speed = 40
+    hp = 50
     BLOCKTILES = ['stone', 'forest', 'ocean']
     SLOWTILES = {'water':0.5, 'bush':0.3}
 
     def __init__(self, name, player_position, look_size):
         GameObject.__init__(self, name, player_position)
+        Unit.__init__(self, self.speed, self.hp, Corpse, self.name)
         MapObserver.__init__(self, look_size)
-        Movable.__init__(self, self.speed)
-        Deadly.__init__(self, Corpse, 50)
         Striker.__init__(self,2, Ball)
-        DiplomacySubject.__init__(self, self.name)
         Respawnable.__init__(self, 10, 30)
         
     def handle_action(self, action, args):
@@ -60,18 +73,16 @@ class Player(Movable, MapObserver, Striker, Guided, Respawnable, Deadly, Diploma
 ##################################################################### 
 from random import randrange       
 
-class MetaMonster(GameObject, Movable, Deadly, Respawnable, Stalker, Mortal, DiplomacySubject):
+class MetaMonster(Lootable, Unit, Respawnable, Stalker, Mortal):
     radius = TILESIZE
     look_size = 10
     BLOCKTILES = ['stone', 'forest', 'ocean']
     SLOWTILES = {'water':0.5, 'bush':0.3}
-    def __init__(self, name, player_position, speed):
+    def __init__(self, name, player_position, speed, hp):
         GameObject.__init__(self, name, player_position)
-        Movable.__init__(self, speed)
+        Unit.__init__(self, speed, hp, Corpse, 'monsters')
         Stalker.__init__(self, self.look_size)
-        Deadly.__init__(self, Corpse, self.hp)
         Mortal.__init__(self, 1)
-        DiplomacySubject.__init__(self, 'monsters')
         Respawnable.__init__(self, 30, 30)
     
     def update(self):
@@ -90,21 +101,14 @@ class MetaMonster(GameObject, Movable, Deadly, Respawnable, Stalker, Mortal, Dip
     def complete_round(self):
         Movable.complete_round(self)
     
-    def die(self):
-        item = HealPotion(self.position)
-        game.new_object(item)
-        Deadly.die(self)
-    
-    def collission(self):
-        pass
+
 
 class Zombie(MetaMonster, Mortal):
     hp = 3
     speed = 15
     def __init__(self, name, position):
-        
         Mortal.__init__(self, 2)
-        MetaMonster.__init__(self, name, position, self.speed)
+        MetaMonster.__init__(self, name, position, self.speed, self.hp)
     
 
 class Ghast(MetaMonster, Mortal):
@@ -112,15 +116,14 @@ class Ghast(MetaMonster, Mortal):
     speed = 10
     def __init__(self, name, position):
         Mortal.__init__(self, 2)
-        MetaMonster.__init__(self, name, position, self.speed)
+        MetaMonster.__init__(self, name, position, self.speed, self.hp)
 
 class Lych(MetaMonster, Striker, DiplomacySubject):
     hp = 5
     speed = 15
     def __init__(self, name, position):
-        MetaMonster.__init__(self, name, position, self.speed)
+        MetaMonster.__init__(self, name, position, self.speed, self.hp)
         Striker.__init__(self, 10, DarkBall)
-        DiplomacySubject.__init__(self, 'monsters')
     
     def update(self):
         direct = self.hunt()

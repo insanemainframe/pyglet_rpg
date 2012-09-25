@@ -88,12 +88,8 @@ class MovableShare:
         for Player in MovableShare.player_list.values():
             distance = abs(Player.position - player.position)
             if distance <= Player.radius+player.radius:
-                if isinstance(Player, Mortal) and isinstance(player,Deadly):
-                    if player.fraction!=Player.fraction:
-                        player.hit(Player.damage)
-                        Player.collission()
-                        if isinstance(Player, Fragile):
-                            Player.REMOVE = True
+                if isinstance(player, Solid):
+                    Player.collission(player)
         
         
     

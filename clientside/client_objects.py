@@ -53,7 +53,6 @@ class Animated:
     
     def create_animation(self, name, tilename, frames, freq, repeat = True):
         frames-=1
-        print 'crreate_animation %s %s %s' % (name, self.__class__.__name__, frames)
         self.animations[name] = {}
         self.animations[name]['counter'] = 0
         self.animations[name]['tilename'] = tilename
@@ -79,7 +78,7 @@ class Animated:
         else:
             self.animations[name]['frame_counter'] = 0
             frames = self.animations[name]['frames']
-            if self.animations[name]['counter']< frames:
+            if self.animations[name]['counter'] < frames-1:
                 self.animations[name]['counter']+=1
             else:
                 if not self.animations[name]['repeat?']:
@@ -92,6 +91,7 @@ class Animated:
             n = self.animations[name]['counter']
             self.animations[name]['prev_frame'] = n
         tilename = '_'+tilename+'_%s' % n
+        print tilename
         return tilename
     
 #
@@ -99,7 +99,7 @@ class Movable(Animated, ClientObject):
     def __init__(self, frames=1):
         self.moving = False
         self.vector = NullPoint
-        self.create_animation('moving', 'move', 2,2)
+        self.create_animation('moving', 'move', frames,2)
     
     def move(self, xy):
         vector = Point(*xy)
@@ -167,7 +167,7 @@ class Player(Sweemer, Movable, ClientObject, Deadly):
     tilename = 'player'
     def __init__(self, name, position):
         ClientObject.__init__(self, name, position)
-        Movable.__init__(self)
+        Movable.__init__(self, 2)
         Deadly.__init__(self, 1)
     
     def draw(self):
@@ -267,6 +267,23 @@ class DarkBall(Ball):
 class Corpse(ClientObject):
     tilename = 'corpse'
 
-class HealPotion(ClientObject):
+class Item(ClientObject):
+    pass
+    
+class HealPotion(Item):
     tilename = 'heal_potion'
 
+class SpeedPotion(Item):
+    tilename = 'speed_potion'
+
+class Sword(Item):
+    tilename = 'sword'
+
+class Gold(Item):
+    tilename = 'gold'
+
+class Armor(Item):
+    tilename = 'armor'
+
+class Sceptre(Item):
+    tilename = 'sceptre'

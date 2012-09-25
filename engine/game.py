@@ -83,7 +83,6 @@ def clear():
 def remove_object(name, force = False):
     result = players[name].remove()
     if result or force:
-        print 'remove %s' % name, result, force
         player = players[name]
         del players[name]
     else:

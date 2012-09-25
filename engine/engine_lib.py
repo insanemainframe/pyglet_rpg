@@ -23,6 +23,7 @@ class ActionError(Exception):
         
 #####################################################################
 class GameObject:
+    REMOVE = False
     alive = True
     def __init__(self, name, position):
         self.name = name
@@ -56,18 +57,15 @@ class StaticObject(GameObject):
     def complete_round(self):
         pass
 
-class Item(StaticObject):
-    def __init__(self, position):
-        name = 'item_%s' % Item.counter
-        Item.counter+=1
-        StaticObject.__init__(self, name, position)
 
-Item.counter = 0
 
 class Guided(GameObject):
     "управляемый игроком объекта"
     pass
 
+class Solid(GameObject):
+    def collission(self, player):
+        pass
 #####################################################################
 
 class MapObserver(MapTools):
@@ -144,6 +142,14 @@ class Deadly:
             self.die()
             self.hp = self.hp_value
     
+    def heal(self, hp):
+        print 'HEAL %s' % hp
+        new_hp = self.hp+ hp
+        if new_hp>self.hp_value:
+            new_hp = self.hp_value
+        
+        self.hp = new_hp
+    
     def update(self):
         if self.alive:
             if self.hp<self.hp_value:
@@ -177,6 +183,9 @@ class Mortal:
     striker = None
     def __init__(self, damage=1):
         self.damage = damage
+    
+    def collission(self, player):
+        player.hit(self.damage)
 ####################################################################
 
 class Respawnable:
@@ -237,3 +246,7 @@ class Striker:
     
     def complete_round(self):
         self.striked = False
+
+from random import choice
+
+

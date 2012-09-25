@@ -12,6 +12,7 @@ from pyglet.gl import *
 from time import time
 from os import walk
 from os.path import join
+from collections import defaultdict
 
 from share.mathlib import Point,NullPoint
 
@@ -57,7 +58,9 @@ class GameWindow:
     @staticmethod
     def gentiles():
         cls = GameWindow
-        cls.tiledict = {}
+        cls.unknown = pyglet.image.load(join(TILESDIR, 'unknown.png'), decoder=PNGImageDecoder()).get_texture()
+        
+        cls.tiledict = defaultdict(lambda: cls.unknown)
         for root, subfolders, files in walk(TILESDIR):
             for image_file in files:
                 image = pyglet.image.load(join(root,image_file), decoder=PNGImageDecoder()).get_texture()
