@@ -54,7 +54,7 @@ def new_object(player):
     players[player.name] = player
     #добавляем обновление
     key = (player.position/TILESIZE).get()
-    add_event(player.name, player.position, False, 'move', [NullPoint.get()])
+    add_event(player.name, player.position, False, 'exist', [NullPoint.get()])
 
 def choice_position(player, radius=7, start=False):
     if not start:

@@ -223,5 +223,3 @@ class HpDisplay(GameWindow):
         
     def draw(self):
         self.display.draw()
-
-    

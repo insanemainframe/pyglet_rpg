@@ -25,12 +25,23 @@ class ClientObject:
         if hasattr(self, action):
             getattr(self, action)(*args)
         else:
-            raise ActionError('no action %s' % action)
+            raise ActionError('no action %s.%s' % (self.__class__.__name__, action))
+            
+    def draw(self):
+        return [create_tile( self.position, self.tilename)]
+        
     def update(self, delta):
         pass
     
+    def force_complete(self):
+        pass
+        
     def round_update(self):
         pass
+    
+    def exist(self, *args):
+        pass
+
     
     def remove(self):
         self.REMOVE = True
@@ -160,9 +171,12 @@ class Player(Sweemer, Movable, ClientObject, Deadly):
         Deadly.__init__(self, 1)
     
     def draw(self):
-        tiles = Movable.draw(self)
-        label  = create_label(self.name, self.position)
-        return tiles + [label]
+        if not self.dead:
+            tiles = Movable.draw(self)
+            label  = create_label(self.name, self.position)
+            return tiles + [label]
+        else:
+            return Deadly.draw(self)
         
     def update(self, dt):
         Sweemer.update(self, dt)
@@ -170,17 +184,15 @@ class Player(Sweemer, Movable, ClientObject, Deadly):
     
 
     def die(self):
-        self.tilename = 'player_die'
         self.moving = False
+        Deadly.die(self)
         
     
 
 
 class Self(Player, Deadly, ClientObject):
     tilename = 'self'
-    def update(self, dt):
-        Sweemer.update(self, dt)
-        Player.update(self, dt)
+
 
 class Zombie(Movable, ClientObject, Deadly):
     tilename = 'zombie'
@@ -255,4 +267,6 @@ class DarkBall(Ball):
 class Corpse(ClientObject):
     tilename = 'corpse'
 
+class HealPotion(ClientObject):
+    tilename = 'heal_potion'
 

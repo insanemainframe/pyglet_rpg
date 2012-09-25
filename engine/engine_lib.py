@@ -39,12 +39,30 @@ class GameObject:
     
     def add_event(self, *args):
         game.add_event(self.name, *args)
+    
+    
+    
     def handle_response(self):
         return []
 
 #####################################################################
+class StaticObject(GameObject):
+    def __init__(self, name, position):
+        GameObject.__init__(self, name, position)
+    
+    def update(self):
+        self.add_event(self.position, NullPoint, 'exist', [])
+    
+    def complete_round(self):
+        pass
 
+class Item(StaticObject):
+    def __init__(self, position):
+        name = 'item_%s' % Item.counter
+        Item.counter+=1
+        StaticObject.__init__(self, name, position)
 
+Item.counter = 0
 
 class Guided(GameObject):
     "управляемый игроком объекта"
@@ -214,13 +232,15 @@ class Stalker:
         
 class Deadly:
     "класс для живых объектов"
-    def __init__(self, hp, heal_speed=0.01, death_time=20):
+    def __init__(self, corpse, hp, heal_speed=0.01, death_time=20):
         self.hp_value = hp
         self.hp = hp
         self.heal_speed = heal_speed
         self.alive = True
         self.death_time = death_time
         self.death_time_value = death_time
+        self.corpse = corpse
+        self.death_counter = 0
     
     def hit(self, hp):
         self.hp-=hp
@@ -239,9 +259,17 @@ class Deadly:
             else:
                 self.death_time = self.death_time_value
                 self.REMOVE = True
+                self.create_corpse()
+    
+    def create_corpse(self):
+        name = 'corpse_%s_%s' % (self.name, self.death_counter)
+        corpse = self.corpse(name, self.position)
+        game.new_object(corpse)
     
     def die(self):
         self.alive = False
+        self.death_counter+=1
+        
 
 
 class Fragile:
@@ -291,3 +319,25 @@ class Temporary:
     
     def update(self):
         self.lifetime-=1
+
+class Striker:
+    def __init__(self, strike_speed, shell):
+        self.strike_shell = shell
+        self.strike_counter = 0
+        self.strike_speed = strike_speed
+    
+    def strike_ball(self, vector):
+        if self.strike_counter==0:
+            ball_name = 'ball%s' % game.ball_counter
+            game.ball_counter+=1
+            ball = self.strike_shell(ball_name, self.position, vector, self.fraction)
+            game.new_object(ball)
+            self.strike_counter+=self.strike_speed
+            
+            
+    def update(self):
+        if self.strike_counter>0:
+            self.strike_counter -=1
+    
+    def complete_round(self):
+        self.striked = False
