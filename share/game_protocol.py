@@ -8,15 +8,15 @@ class GameProtocol:
     pass
 #общие методы классов протоколов
 
-class Updates:
+class Events:
     #name, object_type, action, args=()
-    def pack_updates(self, updates):
+    def pack_events(self, events):
         return [(name, object_type, position.get(), action, args)
-                for uid, (name, object_type, position, action, args) in updates.items()]
+                for uid, (name, object_type, position, action, args) in events.items()]
     
-    def unpack_updates(self, updates):
+    def unpack_events(self, events):
         return [(name, object_type,  Point(x,y), action, args)
-            for (name, object_type, (x,y), action, args) in updates]
+            for (name, object_type, (x,y), action, args) in events]
 
 class Observed:
     def pack_observed(self, observed):
@@ -41,28 +41,28 @@ class Steps:
 #классы протоколов
 
 #инициализация
-class ServerAccept(GameProtocol, Updates, Land, Observed, Steps):
+class ServerAccept(GameProtocol, Events, Land, Observed, Steps):
     def pack(self, data):
-        world_size, position, hp, land, observed, updates, steps = data
+        world_size, position, hp, land, observed, events, steps = data
         
         x,y = position.get()
         land = self.pack_land(land)
         observed = self.pack_observed(observed)
-        updates = self.pack_updates(updates)
+        events = self.pack_events(events)
         steps = self.pack_steps(steps)
         
-        return (world_size, (x,y), hp, land, observed, updates, steps)
+        return (world_size, (x,y), hp, land, observed, events, steps)
 
     def unpack(self, data):
-        world_size, (x,y), hp, land, observed, updates, steps = data
+        world_size, (x,y), hp, land, observed, events, steps = data
         
         position = Point(x,y)
         land = self.unpack_land(land)
         observed =  self.unpack_observed(observed)
-        updates = self.unpack_updates(updates)
+        events = self.unpack_events(events)
         steps = self.unpack_steps(steps)
         
-        return world_size, position, hp, land, observed, updates, steps
+        return world_size, position, hp, land, observed, events, steps
 
 #
 #запрос на иницализацию
@@ -77,28 +77,28 @@ class ClientAccept(GameProtocol):
         name = data
         return name
 #обзор
-class Look(GameProtocol, Updates, Land, Observed, Steps):
+class Look(GameProtocol, Events, Land, Observed, Steps):
     def pack(self, data):
-        move_vector, hp, land, observed, updates, steps = data
+        move_vector, hp, land, observed, events, steps = data
         
         move_vector = move_vector.get()
         land = self.pack_land(land)
         observed =  self.pack_observed(observed)
-        updates = self.pack_updates(updates)
+        events = self.pack_events(events)
         steps = self.pack_steps(steps)
         
-        return move_vector, hp, land, observed, updates, steps
+        return move_vector, hp, land, observed, events, steps
 
     def unpack(self, data):
-        (x,y), hp, land, observed, updates, steps = data
+        (x,y), hp, land, observed, events, steps = data
         
         move_vector = Point(x,y)
         land =  self.unpack_land(land)
         observed =  self.unpack_observed(observed)
-        updates = self.unpack_updates(updates)
+        events = self.unpack_events(events)
         steps = self.unpack_steps(steps)
         
-        return move_vector, hp, land, observed, updates, steps
+        return move_vector, hp, land, observed, events, steps
 
 #передвижение
 class Move(GameProtocol):
