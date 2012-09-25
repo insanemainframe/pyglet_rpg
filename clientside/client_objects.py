@@ -6,14 +6,14 @@ path.append('../')
 
 from gui_lib import create_tile, create_label
 
-from game_lib.math_lib import Point, NullPoint
+from share.mathlib import Point, NullPoint
 
 from config import TILESIZE
 
 class ActionError(Exception):
     pass
 
-class Object:
+class ClientObject:
     REMOVE = False
     DELAY = 0
     "класс игрового объекта на карте"
@@ -41,6 +41,8 @@ class Animated:
     animations = {}
     
     def create_animation(self, name, tilename, frames, freq, repeat = True):
+        frames-=1
+        print 'crreate_animation %s %s %s' % (name, self.__class__.__name__, frames)
         self.animations[name] = {}
         self.animations[name]['counter'] = 0
         self.animations[name]['tilename'] = tilename
@@ -49,11 +51,18 @@ class Animated:
         self.animations[name]['frame_counter'] = freq
         self.animations[name]['delay'] = freq*frames
         self.animations[name]['repeat?'] = repeat
+        self.animations[name]['repeated'] = False
+        self.animations[name]['prev_frame'] = 0
         
         
     
     def get_animation(self, name):
         freq = self.animations[name]['freq']
+        tilename = self.animations[name]['tilename']
+        repeated = self.animations[name]['repeated']
+        need_repeat = self.animations[name]['repeat?']
+        prev_frame = self.animations[name]['prev_frame']
+        
         if self.animations[name]['frame_counter']<freq:
             self.animations[name]['frame_counter']+=1
         else:
@@ -63,20 +72,23 @@ class Animated:
                 self.animations[name]['counter']+=1
             else:
                 if not self.animations[name]['repeat?']:
-                    self.REMOVE = True
+                    self.animations[name]['repeated'] = True
                 self.animations[name]['counter'] = 0
             
-        tilename = self.animations[name]['tilename']
-        n = self.animations[name]['counter']
+        if repeated and not need_repeat:
+            n = prev_frame
+        else:
+            n = self.animations[name]['counter']
+            self.animations[name]['prev_frame'] = n
         tilename = '_'+tilename+'_%s' % n
         return tilename
     
 #
-class Movable(Animated):
+class Movable(Animated, ClientObject):
     def __init__(self, frames=1):
         self.moving = False
         self.vector = NullPoint
-        self.create_animation('moving', 'move', 1,2)
+        self.create_animation('moving', 'move', 2,2)
     
     def move(self, xy):
         vector = Point(*xy)
@@ -112,12 +124,6 @@ class Movable(Animated):
             self.vector = NullPoint
 
 
-class Deadly(Animated):
-    def __init__(self, frames):
-        self.frames = frames
-    
-    def die(self):
-        self.create_animation('dying', 'die', self.frames, 3)
         
         
             
@@ -132,7 +138,7 @@ class Sweemer:
             self.prefix = ''
     
 
-class Deadly:
+class Deadly(Animated):
     def __init__(self, frames):
         self.dead = False
         self.create_animation('death', 'die', frames, 3)
@@ -140,18 +146,18 @@ class Deadly:
     def draw(self):
         position = self.position
         tilename = self.tilename + self.get_animation('death')
-        return [create_tile(position, tilename )]
+        return [create_tile(position, tilename, -1 )]
     
     def die(self):
         self.dead = True
         
     
-class Player(Sweemer, Movable, Object, Deadly):
+class Player(Sweemer, Movable, ClientObject, Deadly):
     tilename = 'player'
     def __init__(self, name, position):
-        Object.__init__(self, name, position)
+        ClientObject.__init__(self, name, position)
         Movable.__init__(self)
-        Deadly.__init__(self, 0)
+        Deadly.__init__(self, 1)
     
     def draw(self):
         tiles = Movable.draw(self)
@@ -170,18 +176,18 @@ class Player(Sweemer, Movable, Object, Deadly):
     
 
 
-class SelfPlayer(Player, Deadly):
+class Self(Player, Deadly, ClientObject):
     tilename = 'self'
     def update(self, dt):
         Sweemer.update(self, dt)
         Player.update(self, dt)
 
-class Zombie(Movable, Object, Deadly):
+class Zombie(Movable, ClientObject, Deadly):
     tilename = 'zombie'
     def __init__(self, name, position):
-        Object.__init__(self, name, position)
+        ClientObject.__init__(self, name, position)
         Movable.__init__(self)
-        Deadly.__init__(self, 9)
+        Deadly.__init__(self, 10)
     
     def draw(self):
         if not self.dead:
@@ -192,25 +198,36 @@ class Zombie(Movable, Object, Deadly):
 
 
         
-class Ghast(Movable, Object, Deadly):
+class Ghast(Movable, ClientObject, Deadly):
     tilename = 'ghast'
     def __init__(self, name, position):
-        Object.__init__(self, name, position)
+        ClientObject.__init__(self, name, position)
         Movable.__init__(self, 2)
         Deadly.__init__(self, 1)
+    def draw(self):
+        if not self.dead:
+            return Movable.draw(self)
+        else:
+            return Deadly.draw(self)
         
-class Lych(Movable, Object, Deadly):
+class Lych(Movable, ClientObject, Deadly):
     tilename = 'lych'
     def __init__(self, name, position):
-        Object.__init__(self, name, position)
+        ClientObject.__init__(self, name, position)
         Movable.__init__(self)
         Deadly.__init__(self, 1)
     
+    def draw(self):
+        if not self.dead:
+            return Movable.draw(self)
+        else:
+            return Deadly.draw(self)
+    
 
-class Ball(Movable, Object, Animated):
+class Ball(Movable, ClientObject, Animated):
     tilename = 'ball'
     def __init__(self, name, position):
-        Object.__init__(self, name, position)
+        ClientObject.__init__(self, name, position)
         Movable.__init__(self)
         self.create_animation('explosion', 'explode', 7,3)
         self.explosion = False
@@ -234,7 +251,8 @@ class Ball(Movable, Object, Animated):
 class DarkBall(Ball):
     tilename = 'darkball'
     explode_tile = 'darkball_explode'
-   
 
-object_dict = {'Player' : Player, 'Ball': Ball, 'self': SelfPlayer,
-            'Zombie':Zombie, 'DarkBall':DarkBall, 'Lych':Lych, 'Ghast' : Ghast}
+class Corpse(ClientObject):
+    tilename = 'corpse'
+
+

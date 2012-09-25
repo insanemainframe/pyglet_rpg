@@ -4,8 +4,8 @@ import socket, sys, os, select
 from sys import path
 path.append('../')
 
-from game_lib.protocol_lib import pack, unpack, send, receive
-from game_lib.math_lib import Point
+from share.protocol_lib import Packer, send, receive
+from share.mathlib import *
 
 from config import HOSTNAME, IN_PORT, OUT_PORT, TILESIZE
 
@@ -18,6 +18,7 @@ class SocketClient:
         self.insock, self.in_fileno = self.create_sock(OUT_PORT)
         self.out_messages = []
         self.in_messages = []        
+        
     def create_sock(self, port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -76,7 +77,7 @@ class SocketClient:
 
 #####################################################################
 #
-class Client(SocketClient):
+class Client(SocketClient, Packer):
     "полуение и распаковка сообщений, антилаг"
     antilag= False
     antilag_shift = Point(0,0)   
@@ -85,6 +86,7 @@ class Client(SocketClient):
     
     def __init__(self):
         SocketClient.__init__(self)
+        Packer.__init__(self)
 
     def wait_for_accept(self):
         print 'waiting for acception'
@@ -97,13 +99,13 @@ class Client(SocketClient):
 
     def accept_(self, message):
         print 'accept_'
-        action, message = unpack(message)
-        if action=='server_accept':
+        action, message = self.unpack(message)
+        if action=='ServerAccept':
             #print 'Client.accept %s' % str(message)
             self.accept_message = message
         
     def send_move(self, vector):
-        message = pack(vector,'move')
+        message = self.pack(vector,'Move')
         self.put_message(message)
         #предварительное движение
         if vector and not self.shift and not self.antilag:
@@ -117,12 +119,12 @@ class Client(SocketClient):
                 self.antilag = True
         
     def send_ball(self, vector):
-        message = pack(vector,'ball')
+        message = self.pack(vector,'Strike')
         self.put_message(message)
         
     def read(self, package):
         if package:
-            action, message = unpack(package)
+            action, message = self.unpack(package)
             self.in_messages.append((action, message))
               
     

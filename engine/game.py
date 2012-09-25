@@ -9,7 +9,7 @@ path.append('../')
 
 from config import *
 
-from math_lib import Point, NullPoint
+from share.mathlib import Point, NullPoint
 from mapgen import load_map
 
 

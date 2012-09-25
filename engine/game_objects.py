@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from game_lib.math_lib import *
-from game_lib.map_lib import *
-from game_lib import game
-from game_lib.engine_lib import *
+from share.mathlib import *
+from share.map import *
+from engine_lib import *
+import game
+
 
 
 from config import TILESIZE
@@ -61,13 +62,19 @@ class Player(Movable, MapObserver, Striker, Guided, Respawnable, Deadly, Diploma
             move_vector = Movable.handle_request(self)
             new_looked, observed, updates = self.look()
     
-            return [('look', (move_vector, self.hp, new_looked, observed, updates, []))]
+            return [('Look', (move_vector, self.hp, new_looked, observed, updates, []))]
         else:
             return Respawnable.handle_response(self)
 
     
-    def ball(self, vector):
+    def Strike(self, vector):
         self.strike_ball(vector)
+    
+    def Move(self, vector):
+        Movable.move(self, vector)
+    
+    def Look(self):
+        return MapObserver.look(self)
     
     def complete_round(self):
         Movable.complete_round(self)
@@ -173,7 +180,7 @@ class Ball(Temporary, Movable,GameObject, Fragile, Mortal, DiplomacySubject):
         one_step = Point(self.speed, self.speed)
         self.direct = direct*(abs(one_step)/abs(direct))
         self.alive = True
-        self.explode_time = 7
+        self.explode_time = 7*3
     
     def update(self):
         if self.alive:
@@ -182,7 +189,7 @@ class Ball(Temporary, Movable,GameObject, Fragile, Mortal, DiplomacySubject):
             Temporary.update(self)
         else:
             if self.explode_time>0:
-                self.explode()
+                self.add_event(self.position, NullPoint, 'explode', [])
                 self.explode_time-=1
             else:
                 self.REMOVE
@@ -192,9 +199,8 @@ class Ball(Temporary, Movable,GameObject, Fragile, Mortal, DiplomacySubject):
     
     def remove(self):
         return True
-    
-    def explode(self):
-        self.add_event(self.position, NullPoint, 'explode', [])
+
+        
                     
 
 

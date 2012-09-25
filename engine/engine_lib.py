@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from game_lib.math_lib import *
-from game_lib.map_lib import *
-from game_lib import game
+from share.mathlib import *
+from share.map import *
+from mathlib import *
+import game
 
 #
 
@@ -13,6 +14,13 @@ class UnknownAction(Exception):
 class ActionDenied(Exception):
     pass
 
+class ActionError(Exception):
+    def __init__(self, message):
+        self.message = message
+    
+    def __str__(self):
+        return 'ActionError: %s' % self.message
+        
 #####################################################################
 class GameObject:
     alive = True
@@ -76,7 +84,7 @@ class MapObserver(MapTools):
                         if (i,j) in game.updates:
                             for uid, (name, object_type, position, action, args) in game.updates[(i,j)]:
                                 if name==self.name:
-                                    object_type = 'self'
+                                    object_type = 'Self'
                                 new_updates[uid] = (name, object_type, position, action, args)
 
         new_looked = looked - self.prev_looked
@@ -261,7 +269,7 @@ class Respawnable:
         self.position = new_position
         game.add_event(self.name, self.prev_position, NullPoint, 'remove')
         game.add_event(self.name, self.position, NullPoint, 'move', [NullPoint.get()])
-        self.respawn_message = 'respawn', self.position
+        self.respawn_message = 'Respawn', self.position
         self.alive = True
         self.respawned = True
         return False

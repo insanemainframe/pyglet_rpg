@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import struct
 from socket import htonl, ntohl, error as socket_error
 from marshal import loads as marshal_loads, dumps as marshal_dumps
-#from cPickle import loads as marshal_loads, dumps as marshal_dumps
 
 from zlib import compress, decompress
 
-
-from game_protocol import method_handlers
-from logger import PROTOCOLLOG as LOG
+from share.logger import PROTOCOLLOG as LOG
 
 #####################################################################
 #исключения для ошибок работы протокола
@@ -70,7 +68,7 @@ def receive(channel):
     return data
 
 #####################################################################
-#врапперы для маршалинга что бы детектировать ощибки
+#врапперы для маршалинга что бы детектировать ошибки
 def loads(data):
     try:
         data = decompress(data)
@@ -96,50 +94,59 @@ def dumps(data):
 
             raise error
 
+
 #####################################################################
-#                                                                   #
-#####################################################################
 
 
+class Packer:
+    "упаковщик/распаковщик данных с помощью классов из game_protocol"
+    def __init__(self):
+        "загружаем классы протоколов"
+        import game_protocol
+        from types import ClassType
+        self.method_handlers = {}
+        for name in dir(game_protocol):
+            Class = getattr(game_protocol, name)
+            if type(Class) is ClassType:
+                if issubclass(Class, game_protocol.GameProtocol):
+                    self.method_handlers[name] = Class()
 
-
-
-def pack(data, method):
-    "упаковщик данных"
-    if method in method_handlers:
-        try:
-            data = method_handlers[method].pack(data)
-        except Exception as error:
-            print 'pack error in method %s with %s' % (method, data)
-            raise error
-        else:
+    def pack(self,data, method):
+        "упаковщик данных"
+        if method in self.method_handlers:
             try:
-                result = dumps((method, data))
-                return result
-            except Exception as excp:
-                raise MarshalError(excp, data)
-                raise excp
-    else:
-        print 'MethodError'
-        raise MethodError(method, data)
-
-def unpack(data):
-    "распаковщик"
-    try:
-        data = loads(data)
-    except Exception as Error:
-        raise MarshalError(Error, data)
-    else:
-        method, data = data
-        if method in method_handlers:
-            try:
-                message = method_handlers[method].unpack(data)
-            except Exception, excp:
-                print 'Unpack errror:%s %s %s' % (method, excp, str(data))
-                raise excp
+                data = self.method_handlers[method].pack(data)
+            except Exception as error:
+                print 'pack error in method %s with %s' % (method, data)
+                raise error
             else:
-                return method, message
+                try:
+                    result = dumps((method, data))
+                    return result
+                except Exception as excp:
+                    raise MarshalError(excp, data)
+                    raise excp
         else:
-            raise MethodError(method,data)
+            print 'MethodError'
+            raise MethodError(method, data)
+    
+    def unpack(self, data):
+        "распаковщик"
+        try:
+            data = loads(data)
+        except Exception as Error:
+            raise MarshalError(Error, data)
+        else:
+            method, data = data
+            if method in self.method_handlers:
+                try:
+                    message = self.method_handlers[method].unpack(data)
+                except Exception, excp:
+                    print 'Unpack errror:%s %s %s' % (method, excp, str(data))
+                    raise excp
+                else:
+                    return method, message
+            else:
+                raise MethodError(method,data)
 
 

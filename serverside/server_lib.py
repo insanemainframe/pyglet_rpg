@@ -7,7 +7,7 @@ import socket
 from time import time
 
 from poll_lib import PollServer
-from game_lib.protocol_lib import send, receive
+from share.protocol_lib import send, receive
 from config import HOSTNAME, IN_PORT, OUT_PORT, SERVER_TIMER, PROFILE_SERVER
 
 

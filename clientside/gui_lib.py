@@ -9,12 +9,11 @@ from pyglet.image.codecs.png import PNGImageDecoder
 import pyglet
 from pyglet.gl import *
 
-from abc import ABCMeta, abstractmethod, abstractproperty
 from time import time
 from os import walk
 from os.path import join
 
-from game_lib.math_lib import Point,NullPoint
+from share.mathlib import Point,NullPoint
 
 from config import TILESIZE, TILESDIR, ROUND_TIMER, HOSTNAME
 
@@ -23,7 +22,7 @@ def create_label(text, point):
     layer = 1
     return (layer, text, point, 'label')
 
-def create_tile(point, tilename, layer=-1):
+def create_tile(point, tilename, layer=1):
         "создае тайл"
         return (layer, tilename, point, 'tile')
 
@@ -187,7 +186,7 @@ class Drawable:
         self.aps = 15
     
     def draw(self):
-        self.tiles.sort(lambda x,y: -1 if x[0]<y[0] else 1)
+        self.tiles.sort(lambda x,y: -1 if x[0]>y[0] else 1)
         
         for layer,tilename, position, sptite_type in self.tiles:
             if sptite_type=='tile':

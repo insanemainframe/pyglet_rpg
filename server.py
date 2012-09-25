@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from game_lib.engine import Game
-from game_lib.protocol_lib import pack, unpack
-from game_lib.ask_hostname import AskHostname
+from engine.engine import Game
+from share.protocol_lib import Packer
+
+from share.ask_hostname import AskHostname
 
 from serverside.server_lib import SocketServer
 
 
 
 from config import PROFILE_SERVER, HOSTNAME
-from game_lib.logger import SERVERLOG as LOG
+from share.logger import SERVERLOG as LOG
 
 
-class GameServer(SocketServer, Game, AskHostname):
+class GameServer(SocketServer, Game, AskHostname, Packer):
     hostname = None
     client_requestes = {}
     client_responses = {}
@@ -21,6 +22,7 @@ class GameServer(SocketServer, Game, AskHostname):
         AskHostname.__init__(self, HOSTNAME)
         SocketServer.__init__(self)
         Game.__init__(self)
+        Packer.__init__(self)
     
     def timer_handler(self):
         self.handle_requests(self.client_requestes)
@@ -28,7 +30,7 @@ class GameServer(SocketServer, Game, AskHostname):
         self.handle_middle()
         look =  self.handle_responses()
         for name, messages in look.items():
-            responses = [pack(response, action) for action, response in messages]
+            responses = [self.pack(response, action) for action, response in messages]
             self.put_messages(name, responses)
         self.handle_write()
         return True
@@ -40,13 +42,13 @@ class GameServer(SocketServer, Game, AskHostname):
         self.client_list.add(client)
         self.client_requestes[client] = []
         self.client_responses[client] = []
-        message = pack(*self.handle_connect(client))
+        message = self.pack(*self.handle_connect(client))
         self.put_messages(client, [message])
 
     
     def read(self, client, message):
         if message:
-            request = unpack(message)
+            request = self.unpack(message)
             self.client_requestes[client].append(request)
     
     def close(self, client):

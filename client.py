@@ -6,12 +6,10 @@ from math import hypot
 from sys import exit
 from collections import defaultdict
 
-from game_lib.math_lib import Point
-from game_lib.ask_hostname import AskHostname
-from game_lib.map_lib import MapTools
-from game_lib.protocol_lib import pack, unpack
+from share.mathlib import *
+from share.ask_hostname import AskHostname
+from share.map import MapTools
 
-from clientside.client_objects import object_dict
 from clientside.gui_lib import *
 from clientside.network import Client
 
@@ -112,12 +110,12 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, pyglet
         self.objects.round_update()
         for action, message in self.in_messages:
             #если произошел респавн игрока
-            if action=='respawn':
+            if action=='Respawn':
                 new_position = message                
                 self.set_camera_position(new_position)
                 self.objects.clear()
                 
-            elif action=='look':
+            elif action=='Look':
                 move_vector, hp, newtiles, observed, updates, steps = message
                 self.hp_display.set_hp(hp)
                 self.antilag_handle(move_vector)
@@ -221,9 +219,21 @@ class ObjectsView(GameWindow, Drawable):
         self.tiles = []
         self.updates = defaultdict(list)
         self.focus_object = False
+        self.init_object_dict()
     
+    def init_object_dict(self):
+        "создает словарь из классов клиентских объектов"
+        self.object_dict = {}
+        from clientside import client_objects
+        from types import ClassType
+        for name in dir(client_objects):
+            Class = getattr(client_objects, name)
+            if type(Class) is ClassType:
+                if issubclass(Class, client_objects.ClientObject):
+                    self.object_dict[name] = Class
+            
     def create_object(self, name, object_type, position):
-        game_object = object_dict[object_type](name, position)
+        game_object = self.object_dict[object_type](name, position)
         self.objects[name] = game_object
         
     def antilag(self, shift):

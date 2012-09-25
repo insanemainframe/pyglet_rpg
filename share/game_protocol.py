@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-from math_lib import Point
+from share.mathlib import Point
+
 #########################################################################
+class GameProtocol:
+    pass
 #общие методы классов протоколов
 
 class Updates:
@@ -38,7 +41,7 @@ class Steps:
 #классы протоколов
 
 #инициализация
-class ServerAccept(Updates, Land, Observed, Steps):
+class ServerAccept(GameProtocol, Updates, Land, Observed, Steps):
     def pack(self, data):
         world_size, position, hp, land, observed, updates, steps = data
         
@@ -63,7 +66,7 @@ class ServerAccept(Updates, Land, Observed, Steps):
 
 #
 #запрос на иницализацию
-class ClientAccept:
+class ClientAccept(GameProtocol):
     @staticmethod
     def pack_client_accept(data):
         name = data
@@ -74,7 +77,7 @@ class ClientAccept:
         name = data
         return name
 #обзор
-class Look(Updates, Land, Observed, Steps):
+class Look(GameProtocol, Updates, Land, Observed, Steps):
     def pack(self, data):
         move_vector, hp, land, observed, updates, steps = data
         
@@ -98,7 +101,7 @@ class Look(Updates, Land, Observed, Steps):
         return move_vector, hp, land, observed, updates, steps
 
 #передвижение
-class Move:
+class Move(GameProtocol):
     @staticmethod
     def pack(vector):
         return vector.get()
@@ -109,7 +112,7 @@ class Move:
         return [Point(x,y)]
 
 #стрельба
-class Strike:
+class Strike(GameProtocol):
     @staticmethod
     def pack(vector):
         return vector.get()
@@ -119,7 +122,7 @@ class Strike:
         return [Point(x,y)]
 
 #РЕСПАВН
-class Respawn:
+class Respawn(GameProtocol):
     @staticmethod
     def pack(position):
         return position.get()
@@ -129,7 +132,7 @@ class Respawn:
         return Point(x,y)
 #
 #словарь хэндлеров на действия
-method_handlers = {'move': Move(),
+_method_handlers = {'move': Move(),
                 'ball': Strike(),
                 'look' : Look(),
                 'server_accept': ServerAccept(),

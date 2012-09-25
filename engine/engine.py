@@ -4,11 +4,12 @@
 from sys import path
 path.append('../')
 
-from game_lib.math_lib import *
-from game_lib.map_lib import *
-from game_lib import game
-from game_lib.engine_lib import *
-from game_lib.game_objects import *
+from share.mathlib import *
+from share.map import *
+
+import game
+from engine_lib import *
+from game_objects import *
 
 from config import *
 
@@ -39,7 +40,7 @@ class Game:
         looked, observed, updates = new_player.look()
         #уже существующие объекты
         message = (world_size, new_player.position, new_player.hp, looked, observed, updates, [])
-        return (message, 'server_accept')
+        return (message, 'ServerAccept')
     
     def handle_requests(self, messages):
         "совершаем действия игроками, возвращает векторы игрокам и устанавливает обновления"
