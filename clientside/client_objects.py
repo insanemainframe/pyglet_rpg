@@ -47,8 +47,8 @@ class ClientObject:
         self.REMOVE = True
     
 ########################################################################
-from math import ceil
 class Animated:
+    "класс для анимированных объектов"
     animations = {}
     
     def create_animation(self, name, tilename, frames, freq, repeat = True):
@@ -56,10 +56,9 @@ class Animated:
         self.animations[name] = {}
         self.animations[name]['counter'] = 0
         self.animations[name]['tilename'] = tilename
-        self.animations[name]['frames'] = frames
-        self.animations[name]['freq'] = freq
-        self.animations[name]['frame_counter'] = freq
-        self.animations[name]['delay'] = freq*frames
+        self.animations[name]['frames'] = frames #количество кадров на анимацию
+        self.animations[name]['freq'] = freq #количество кадров на каждый кадр анимации
+        self.animations[name]['frame_counter'] = 0 #счетчик фреймов текущего кадра 
         self.animations[name]['repeat?'] = repeat
         self.animations[name]['repeated'] = False
         self.animations[name]['prev_frame'] = 0
@@ -73,23 +72,24 @@ class Animated:
         need_repeat = self.animations[name]['repeat?']
         prev_frame = self.animations[name]['prev_frame']
         
-        if self.animations[name]['frame_counter']<freq:
-            self.animations[name]['frame_counter']+=1
-        else:
-            self.animations[name]['frame_counter'] = 0
-            frames = self.animations[name]['frames']
-            if self.animations[name]['counter'] < frames-1:
-                self.animations[name]['counter']+=1
-            else:
-                if not self.animations[name]['repeat?']:
-                    self.animations[name]['repeated'] = True
-                self.animations[name]['counter'] = 0
-            
         if repeated and not need_repeat:
-            n = prev_frame
+            n = self.animations[name]['frames']
         else:
+            if self.animations[name]['frame_counter']<freq:
+                self.animations[name]['frame_counter']+=1
+            else:
+                self.animations[name]['frame_counter'] = 0
+                frames = self.animations[name]['frames']
+                if self.animations[name]['counter'] < frames-1:
+                    self.animations[name]['counter']+=1
+                else:
+                    if not self.animations[name]['repeat?']:
+                        self.animations[name]['repeated'] = True
+                    self.animations[name]['counter'] = 0
+            
             n = self.animations[name]['counter']
-            self.animations[name]['prev_frame'] = n
+            
+            
         tilename = '_'+tilename+'_%s' % n
         print tilename
         return tilename

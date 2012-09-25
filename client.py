@@ -158,6 +158,7 @@ class LandView(GameWindow,  Drawable, MapTools):
     def __init__(self, world_size, position, tiles=[], observed=[]):
         MapTools.__init__(self, world_size, world_size)
         Drawable.__init__(self)
+        self.observed = set()
         
         self.world_size = world_size
         self.map = defaultdict(lambda: defaultdict(lambda: 'fog'))

@@ -23,24 +23,28 @@ class ActionError(Exception):
 
 class wrappers:
     @staticmethod
-    def alive_only(method):
-        def wrap(self,*args):
-            if self.alive:
-                method(self, *args)
-            else:
-                ActionDenied
-        return wrap
+    def alive_only(Class=None):
+        def wrapper(method):
+            def wrap(self,*args):
+                if self.alive:
+                    return method(self, *args)
+                else:
+                    print '%s mot alive' % self.name
+                    if Class:
+                        return getattr(Class, method.__name__)(self, *args)
+            return wrap
+        return wrapper
     
     @staticmethod
-    def ignore_denied(method):
-        def wrap(*args):
-            try:
-                result = method(*args)
-            except ActionDenied:
-                return None
-            else:
-                return result
-        return wrap
+    def player_filter(Class):
+        def wrapper(method):
+            def wrap(self, player):
+                if isinstance(player, Class):
+                    return method(self,player)
+            return wrap
+        return wrapper
+    
+
 
 #####################################################################
 class GameObject:
@@ -51,11 +55,11 @@ class GameObject:
         self.position = position
     
     def handle_action(self, action, args):
-        if self.alive:
-            if hasattr(self, action):
-                return getattr(self, action)(*args)
-            else:
-                raise ActionError('no action %s' % action)
+        if hasattr(self, action):
+            print 'ACTION %s' % action
+            return getattr(self, action)(*args)
+        else:
+            raise ActionError('no action %s' % action)
     
     def update(self):
         pass
@@ -90,6 +94,9 @@ class Guided(GameObject):
     pass
 
 class Solid(GameObject):
+    def __init__(self, radius):
+        self.radius = radius
+    
     def collission(self, player):
         pass
 #####################################################################
@@ -165,6 +172,7 @@ class Deadly:
     def hit(self, hp):
         self.hp-=hp
         if self.hp<=0:
+            print 'HP<0'
             self.die()
             self.hp = self.hp_value
     
@@ -198,6 +206,7 @@ class Deadly:
         game.new_object(corpse)
     
     def die(self):
+        print 'DIE %s' % self.name
         self.alive = False
         self.death_counter+=1
         
@@ -212,11 +221,11 @@ class Mortal:
     def __init__(self, damage=1):
         self.damage = damage
     
+    @wrappers.player_filter(Deadly)
     def collission(self, player):
-        if isinstance(player, Deadly):
-            if player.fraction!=self.fraction:
-                player.hit(self.damage)
-                self.alive = False
+        if player.fraction!=self.fraction:
+            player.hit(self.damage)
+            self.alive = False
 ####################################################################
 
 class Respawnable:
@@ -231,8 +240,8 @@ class Respawnable:
         new_position = game.choice_position(self, 10 ,self.position)
         vector = new_position - self.position
         self.position = new_position
-        game.add_event(self.name, self.prev_position, NullPoint, 'remove')
-        game.add_event(self.name, self.position, NullPoint, 'move', [NullPoint.get()])
+        self.add_event(self.prev_position, NullPoint, 'remove')
+        self.add_event(self.position, NullPoint, 'move', [NullPoint.get()])
         self.respawn_message = 'Respawn', self.position
         self.alive = True
         self.respawned = True
@@ -265,6 +274,7 @@ class Striker:
         self.strike_speed = strike_speed
         self.damage = damage
     
+    @wrappers.alive_only()
     def strike_ball(self, vector):
         if self.strike_counter==0:
             ball_name = 'ball%s' % game.ball_counter

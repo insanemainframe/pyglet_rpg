@@ -53,7 +53,6 @@ def get_cross(position, vector):
     while 1:
         counter = 0
         crossed_tiles = cross_tile(position, position+vector, cur_tile)
-        #print 'loop', crossed_tiles, position, vector
         if crossed_tiles:
             for ij, cross in crossed_tiles:
                 if not ij in crossed:
@@ -85,34 +84,34 @@ class Movable:
         self.moved = False
     
     def move(self, vector=NullPoint):
-        if self.moved:
-            raise ActionDenied
-        #если вектор на входе определен, до определяем вектор движения объекта
-        if vector:
-            self.vector = vector
-        #если вектор движения не достиг нуля, то продолжить движение
-        if self.vector:
-            #проверка столкновения
-            part = self.speed / abs(self.vector) # доля пройденного пути в векторе
-            move_vector = self.vector * part if part<1 else self.vector
-            #определяем столкновения с тайлами
-            move_vector = self._tile_collission(move_vector)
+        if not self.moved:
+            print 'move', self.name, vector
+            #если вектор на входе определен, до определяем вектор движения объекта
+            if vector:
+                self.vector = vector
+            #если вектор движения не достиг нуля, то продолжить движение
+            if self.vector:
+                #проверка столкновения
+                part = self.speed / abs(self.vector) # доля пройденного пути в векторе
+                move_vector = self.vector * part if part<1 else self.vector
+                #определяем столкновения с тайлами
+                move_vector = self._tile_collission(move_vector)
+                
+                
+                
+                self.vector = self.vector - move_vector
+                self.move_vector = move_vector
+            else:
+                self.move_vector = self.vector
+            self.prev_position = self.position
+            self.position+=self.move_vector
             
+            self.moved = True
             
-            
-            self.vector = self.vector - move_vector
-            self.move_vector = move_vector
-        else:
-            self.move_vector = self.vector
-        self.prev_position = self.position
-        self.position+=self.move_vector
-        
-        self.moved = True
-        
-        altposition = self.position
-        #добавляем событие
-        self.add_event(self.prev_position, altposition, 'move', [self.move_vector.get()])
-        self.detect_collisions(self)
+            altposition = self.position
+            #добавляем событие
+            self.add_event(self.prev_position, altposition, 'move', [self.move_vector.get()])
+            self.detect_collisions(self)
     
     def _tile_collission(self, move_vector):
         "определения пересечяения вектора с непрохоодимыми и труднопроходимыми тайлами"
@@ -131,16 +130,16 @@ class Movable:
                 resist = self.SLOWTILES[cross_tile]
         move_vector *= resist
         return move_vector
-        
+    
+    @wrappers.player_filter(Solid)
     def detect_collisions(self, player):
-        if isinstance(player, Solid):
-            for Player in game.players.values():
-                if not Player is player:
-                    if isinstance(Player, Solid):
-                        distance = abs(Player.position - player.position)
-                        if distance <= Player.radius+player.radius:
-                            Player.collission(player)
-                            player.collission(Player)
+        for Player in game.players.values():
+            if not Player is player:
+                if isinstance(Player, Solid):
+                    distance = abs(Player.position - player.position)
+                    if distance <= Player.radius+player.radius:
+                        Player.collission(player)
+                        player.collission(Player)
     
     def complete_round(self):
         self.moved = False

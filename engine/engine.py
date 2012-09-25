@@ -18,9 +18,9 @@ class Game:
     "класс игры"
     monster_count = 0
     def __init__(self):
-        self.create_monsters(10, Zombie)
-        self.create_monsters(5, Lych)
-        self.create_monsters(5, Ghast)
+        self.create_monsters(1, Zombie)
+        #self.create_monsters(5, Lych)
+        #self.create_monsters(5, Ghast)
     
     def create_monsters(self, n, monster_type):
         for i in range(n):

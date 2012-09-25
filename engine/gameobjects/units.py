@@ -40,10 +40,10 @@ class Player(Unit, MapObserver, Striker, Guided, Respawnable):
         MapObserver.__init__(self, look_size)
         Striker.__init__(self,2, Ball, self.damage)
         Respawnable.__init__(self, 10, 30)
-        
+    
+    @wrappers.alive_only()
     def handle_action(self, action, args):
-        if self.alive:
-            GameObject.handle_action(self, action, args)
+        GameObject.handle_action(self,action,args)
         
     def handle_response(self):
         if not self.respawned:
@@ -54,10 +54,11 @@ class Player(Unit, MapObserver, Striker, Guided, Respawnable):
         else:
             return Respawnable.handle_response(self)
 
-    
+    @wrappers.alive_only()
     def Strike(self, vector):
         self.strike_ball(vector)
     
+    @wrappers.alive_only()
     def Move(self, vector):
         Movable.move(self, vector)
     
@@ -68,17 +69,24 @@ class Player(Unit, MapObserver, Striker, Guided, Respawnable):
         Movable.complete_round(self)
         Striker.complete_round(self)
     
+    @wrappers.alive_only(Deadly)
     def update(self):
-        if self.alive:
-            Movable.update(self)
-            Striker.update(self)
+        Movable.update(self)
+        Striker.update(self)
         Deadly.update(self)
     
 
 ##################################################################### 
 from random import randrange       
 
-class MetaMonster(Lootable, Unit, Respawnable, Stalker, Mortal):
+class Walker(Movable):
+    def update(self):
+        x = randrange(-self.speed, self.speed)
+        y = randrange(-self.speed, self.speed)
+        direct = Point(x,y)
+        self.move(direct)
+
+class MetaMonster(Lootable, Unit, Respawnable, Stalker, Mortal, Walker):
     radius = TILESIZE
     look_size = 10
     BLOCKTILES = ['stone', 'forest', 'ocean']
@@ -90,17 +98,14 @@ class MetaMonster(Lootable, Unit, Respawnable, Stalker, Mortal):
         Mortal.__init__(self, 1)
         Respawnable.__init__(self, 30, 60)
     
+    @wrappers.alive_only(Deadly)
     def update(self):
-        if self.alive:
-            direct = self.hunt()
-            if direct:
-                self.move(direct)
-            else:
-                x = randrange(-self.speed, self.speed)
-                y = randrange(-self.speed, self.speed)
-                direct = Point(x,y)
-                self.move(direct)
-            Movable.update(self)
+        direct = self.hunt()
+        if direct:
+            self.move(direct)
+        else:
+            Walker.update(self)
+        Movable.update(self)
         Deadly.update(self)
     
     def complete_round(self):
@@ -123,7 +128,7 @@ class Ghast(MetaMonster, Mortal):
         Mortal.__init__(self, 2)
         MetaMonster.__init__(self, name, position, self.speed, self.hp)
 
-class Lych(MetaMonster, Striker, DiplomacySubject):
+class Lych(MetaMonster, Striker):
     hp = 5
     speed = 15
     damage = 2
@@ -131,15 +136,14 @@ class Lych(MetaMonster, Striker, DiplomacySubject):
         MetaMonster.__init__(self, name, position, self.speed, self.hp)
         Striker.__init__(self, 10, DarkBall, self.damage)
     
+    @wrappers.alive_only(Deadly)
     def update(self):
         direct = self.hunt()
         if direct:
             self.strike_ball(direct)
         else:
-            x = randrange(-self.speed, self.speed)
-            y = randrange(-self.speed, self.speed)
-            direct = Point(x,y)
-            self.move(direct)
+            Walker.update(self)
+            
         Movable.update(self)
         Striker.update(self)
         Deadly.update(self)
