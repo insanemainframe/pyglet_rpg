@@ -28,12 +28,13 @@ class Player(Unit, MapObserver, Striker, Guided, Respawnable):
     hp = 50
     BLOCKTILES = ['stone', 'forest', 'ocean']
     SLOWTILES = {'water':0.5, 'bush':0.3}
+    damage = 2
 
     def __init__(self, name, player_position, look_size):
         GameObject.__init__(self, name, player_position)
         Unit.__init__(self, self.speed, self.hp, Corpse, self.name)
         MapObserver.__init__(self, look_size)
-        Striker.__init__(self,2, Ball)
+        Striker.__init__(self,2, Ball, self.damage)
         Respawnable.__init__(self, 10, 30)
         
     def handle_action(self, action, args):
@@ -83,7 +84,7 @@ class MetaMonster(Lootable, Unit, Respawnable, Stalker, Mortal):
         Unit.__init__(self, speed, hp, Corpse, 'monsters')
         Stalker.__init__(self, self.look_size)
         Mortal.__init__(self, 1)
-        Respawnable.__init__(self, 30, 30)
+        Respawnable.__init__(self, 30, 60)
     
     def update(self):
         if self.alive:
@@ -121,9 +122,10 @@ class Ghast(MetaMonster, Mortal):
 class Lych(MetaMonster, Striker, DiplomacySubject):
     hp = 5
     speed = 15
+    damage = 2
     def __init__(self, name, position):
         MetaMonster.__init__(self, name, position, self.speed, self.hp)
-        Striker.__init__(self, 10, DarkBall)
+        Striker.__init__(self, 10, DarkBall, self.damage)
     
     def update(self):
         direct = self.hunt()

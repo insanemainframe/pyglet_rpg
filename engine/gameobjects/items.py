@@ -5,27 +5,36 @@ from movable import Movable
 
 from config import *
 
-class Item(StaticObject):
+class Item(StaticObject, Solid):
+    radius = TILESIZE
     def __init__(self, position):
         name = 'item_%s' % Item.counter
         Item.counter+=1
         StaticObject.__init__(self, name, position)
     
     def collission(self, player):
-        self.REMOVE = True
+        if isinstance(player, Guided):
+            self.effect(player)
+            self.REMOVE = True
+    
+    def effect(self, player):
+        pass
+    
+    def remove(self):
+        return True
 
 Item.counter = 0
 
-class Ball(Temporary, Movable,GameObject, Fragile, Mortal, DiplomacySubject):
+class Ball(Temporary, Solid, Movable,GameObject, Fragile, Mortal, DiplomacySubject):
     "класс снаряда"
     radius = TILESIZE/2
     speed = 60
     BLOCKTILES = ['stone', 'forest']
-    def __init__(self, name, position, direct, fraction):
+    def __init__(self, name, position, direct, fraction, damage = 2):
         GameObject.__init__(self, name, position)
         Movable.__init__(self, self.speed)
         Temporary.__init__(self, 10)
-        Mortal.__init__(self, 2)
+        Mortal.__init__(self, damage)
         DiplomacySubject.__init__(self, fraction)
         one_step = Point(self.speed, self.speed)
         self.direct = direct*(abs(one_step)/abs(direct))
@@ -45,9 +54,9 @@ class Ball(Temporary, Movable,GameObject, Fragile, Mortal, DiplomacySubject):
                 self.REMOVE
     
     def collission(self, player):
-        if player.fraction!=self.fraction:
+        if isinstance(player, Deadly):
             Mortal.collission(self, player)
-            self.alive = False
+
     
     def remove(self):
         return True
@@ -64,24 +73,35 @@ class DarkBall(Ball):
 class Corpse(StaticObject, Temporary):
     def __init__(self, name, position):
         StaticObject.__init__(self, name, position)
-        Temporary.__init__(self, 600)
+        Temporary.__init__(self, 60)
+    
+    def update(self):
+        if not self.REMOVE:
+            StaticObject.update(self)
+        Temporary.update(self)
 
 class HealPotion(Item):
     hp = 5
-    def collission(self, player):
+    def effect(self, player):
         player.heal(self.hp)
-        Item.collission(self, player)
 
 class SpeedPotion(Item):
-    pass
+    speed = 5
+    def effect(self, player):
+        player.plus_speed(self.speed)
+    
 class Sword(Item):
-    pass
+    damage = 1
+    def effect(self, player):
+        player.plus_damage(self.damage)
 
 class Gold(Item):
     pass
 
 class Armor(Item):
-    pass
+    armor = 3
+    def effect(self, player):
+        player.plus_hp(self.armor)
 
 class Sceptre(Item):
     pass

@@ -68,7 +68,7 @@ def choice_position(player, radius=7, start=False):
         if not world.map[i][j] in player.BLOCKTILES:
             position = position*TILESIZE
             return position
-
+    
 def clear():
         "удаляем объекты отмеченыне меткой REMOVE"
         remove_list = []

@@ -23,7 +23,7 @@ class ActionError(Exception):
         
 #####################################################################
 class GameObject:
-    REMOVE = False
+    REMOVE = False            
     alive = True
     def __init__(self, name, position):
         self.name = name
@@ -42,6 +42,8 @@ class GameObject:
         game.add_event(self.name, *args)
     
     
+    def remove(self):
+        return True
     
     def handle_response(self):
         return []
@@ -53,9 +55,11 @@ class StaticObject(GameObject):
     
     def update(self):
         self.add_event(self.position, NullPoint, 'exist', [])
+
     
     def complete_round(self):
         pass
+
 
 
 
@@ -150,6 +154,9 @@ class Deadly:
         
         self.hp = new_hp
     
+    def plus_hp(self, armor):
+        self.hp_value+=armor
+    
     def update(self):
         if self.alive:
             if self.hp<self.hp_value:
@@ -180,12 +187,13 @@ class Fragile:
     
 class Mortal:
     "класс для объектов убивающих живых при соприкосновении"
-    striker = None
     def __init__(self, damage=1):
         self.damage = damage
     
     def collission(self, player):
-        player.hit(self.damage)
+        if player.fraction!=self.fraction:
+            player.hit(self.damage)
+            self.alive = False
 ####################################################################
 
 class Respawnable:
@@ -224,21 +232,26 @@ class Temporary:
     
     def update(self):
         self.lifetime-=1
+        if self.lifetime<=0:
+            self.REMOVE = True
 
 class Striker:
-    def __init__(self, strike_speed, shell):
+    def __init__(self, strike_speed, shell, damage):
         self.strike_shell = shell
         self.strike_counter = 0
         self.strike_speed = strike_speed
+        self.damage = damage
     
     def strike_ball(self, vector):
         if self.strike_counter==0:
             ball_name = 'ball%s' % game.ball_counter
             game.ball_counter+=1
-            ball = self.strike_shell(ball_name, self.position, vector, self.fraction)
+            ball = self.strike_shell(ball_name, self.position, vector, self.fraction, self.damage)
             game.new_object(ball)
             self.strike_counter+=self.strike_speed
-            
+    
+    def plus_damage(self, damage):
+        self.damage+=damage
             
     def update(self):
         if self.strike_counter>0:

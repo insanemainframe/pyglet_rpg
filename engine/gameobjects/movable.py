@@ -73,32 +73,7 @@ def get_cross(position, vector):
 
 ##########################################################
 
-
-class MovableShare:
-    @staticmethod
-    def new_player(player):
-        if hasattr(MovableShare, 'position_list'):
-            MovableShare.player_list[player.name] = player
-        else:
-            MovableShare.player_list = {}
-    
-    @staticmethod
-    def update_player(player):
-        MovableShare.player_list[player.name] = player
-        for Player in MovableShare.player_list.values():
-            distance = abs(Player.position - player.position)
-            if distance <= Player.radius+player.radius:
-                if isinstance(player, Solid):
-                    Player.collission(player)
-        
-        
-    
-    @staticmethod
-    def remove_player(player):
-        del MovableShare.player_list[player.name]
-        
-            
-class Movable(MovableShare):
+class Movable:
     "класс движущихся объектов"
     BLOCKTILES = []
     SLOWTILES = {}
@@ -108,7 +83,6 @@ class Movable(MovableShare):
         self.move_vector = NullPoint
         self.prev_position = Point(-1,-1)
         self.moved = False
-        self.new_player(self)
     
     
     def move(self, vector=NullPoint):
@@ -139,7 +113,7 @@ class Movable(MovableShare):
         altposition = self.position
         #добавляем событие
         self.add_event(self.prev_position, altposition, 'move', [self.move_vector.get()])
-        self.update_player(self)
+        self.detect_collisions(self)
     
     def _tile_collission(self, move_vector):
         "определения пересечяения вектора с непрохоодимыми и труднопроходимыми тайлами"
@@ -159,6 +133,15 @@ class Movable(MovableShare):
         move_vector *= resist
         return move_vector
         
+    def detect_collisions(self, player):
+        if isinstance(player, Solid):
+            for Player in game.players.values():
+                if not Player is player:
+                    if isinstance(Player, Solid):
+                        distance = abs(Player.position - player.position)
+                        if distance <= Player.radius+player.radius:
+                            Player.collission(player)
+                            player.collission(Player)
     
     def complete_round(self):
         self.moved = False
@@ -169,7 +152,9 @@ class Movable(MovableShare):
     def update(self):
         if not self.moved:
             return self.move()
-    def __del__(self):
-        self.remove_player(self)
-        print 'remove movable'
+    
+    def plus_speed(self, speed):
+        self.speed+=speed
+    
+
 
