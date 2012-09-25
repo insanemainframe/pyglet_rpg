@@ -3,13 +3,13 @@
 from engine.engine_lib import *
 from items import *
 from config import *
+from movable import Movable
 
 #####################################################################
 class Player(Movable, MapObserver, Striker, Guided, Respawnable, Deadly, DiplomacySubject):
     "класс игрока"
     radius = TILESIZE/2
     prev_looked = set()
-    object_type = 'Player'
     speed = 40
     BLOCKTILES = ['stone', 'forest', 'ocean']
     SLOWTILES = {'water':0.5, 'bush':0.3}
@@ -98,27 +98,27 @@ class MetaMonster(GameObject, Movable, Deadly, Respawnable, Stalker, Mortal, Dip
     def collission(self):
         pass
 
-class Monster(MetaMonster, Mortal):
+class Zombie(MetaMonster, Mortal):
     hp = 3
-    object_type = 'Zombie'
+    speed = 15
     def __init__(self, name, position):
-        speed = 15
+        
         Mortal.__init__(self, 2)
-        MetaMonster.__init__(self, name, position, speed)
+        MetaMonster.__init__(self, name, position, self.speed)
     
 
 class Ghast(MetaMonster, Mortal):
     hp = 20
-    object_type = 'Ghast'
     speed = 10
     def __init__(self, name, position):
         Mortal.__init__(self, 2)
         MetaMonster.__init__(self, name, position, self.speed)
 
-class Lych(Monster, Striker, DiplomacySubject):
-    object_type = 'Lych'
+class Lych(MetaMonster, Striker, DiplomacySubject):
+    hp = 5
+    speed = 15
     def __init__(self, name, position):
-        Monster.__init__(self, name, position)
+        MetaMonster.__init__(self, name, position, self.speed)
         Striker.__init__(self, 10, DarkBall)
         DiplomacySubject.__init__(self, 'monsters')
     

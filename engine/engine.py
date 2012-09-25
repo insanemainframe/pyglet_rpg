@@ -18,13 +18,13 @@ class Game:
     "класс игры"
     monster_count = 0
     def __init__(self):
-        self.create_monsters(10, Monster)
+        self.create_monsters(10, Zombie)
         self.create_monsters(5, Lych)
         self.create_monsters(5, Ghast)
     
     def create_monsters(self, n, monster_type):
         for i in range(n):
-            position = game.choice_position(Monster, 15)
+            position = game.choice_position(monster_type, 15)
             monster = monster_type('monster%s' % self.monster_count, position)
             self.monster_count+=1
             game.new_object(monster)

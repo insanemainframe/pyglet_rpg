@@ -39,7 +39,7 @@ def add_event(name, position, altposition, action, args=[]):
         uid = update_counter
         update_counter += 1
         map_position = (position/TILESIZE).get()
-        object_type = players[name].object_type
+        object_type = players[name].__class__.__name__
         
         update = (uid, (name, object_type, position, action, args))
             
