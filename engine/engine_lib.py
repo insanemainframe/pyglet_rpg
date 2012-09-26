@@ -29,7 +29,7 @@ class wrappers:
                 if self.alive:
                     return method(self, *args)
                 else:
-                    print '%s mot alive' % self.name
+                    #print '%s mot alive' % self.name
                     if Class:
                         return getattr(Class, method.__name__)(self, *args)
             return wrap
@@ -43,6 +43,13 @@ class wrappers:
                     return method(self,player)
             return wrap
         return wrapper
+    @staticmethod
+    def player_filter_alive(method):
+        def wrap(self, player):
+            if player.alive:
+                return method(self,player)
+        return wrap
+    
     
 
 
@@ -56,12 +63,17 @@ class GameObject:
     
     def handle_action(self, action, args):
         if hasattr(self, action):
-            print 'ACTION %s' % action
             return getattr(self, action)(*args)
         else:
             raise ActionError('no action %s' % action)
     
     def update(self):
+        pass
+    
+    def collission(self, player):
+        pass
+        
+    def tile_collission(self, tile):
         pass
     
     def add_event(self, *args):
@@ -149,11 +161,14 @@ class Stalker:
     def __init__(self, look_size):
         self.look_size = look_size
     
-    def hunt(self):
+    def hunt(self, inradius = False):
         for player in game.players.values():
-            if isinstance(player, Guided):
+            if isinstance(player, Guided) and player.alive:
                 distance = player.position - self.position
-                if True: #abs(distance/TILESIZE)<self.look_size:
+                if inradius:
+                    if abs(distance/TILESIZE)<self.look_size:
+                        return player.position - self.position
+                else:
                     return player.position - self.position
         return None
         
@@ -161,23 +176,27 @@ class Deadly:
     "класс для живых объектов"
     def __init__(self, corpse, hp, heal_speed=0.01, death_time=20):
         self.hp_value = hp
-        self.hp = hp
         self.heal_speed = heal_speed
-        self.alive = True
         self.death_time = death_time
         self.death_time_value = death_time
         self.corpse = corpse
         self.death_counter = 0
+        self.spawn()
+    
+    def spawn(self):
+        self.alive = True
+        self.hp = self.hp_value
+        
+    
+
     
     def hit(self, hp):
         self.hp-=hp
         if self.hp<=0:
-            print 'HP<0'
             self.die()
             self.hp = self.hp_value
     
     def heal(self, hp):
-        print 'HEAL %s' % hp
         new_hp = self.hp+ hp
         if new_hp>self.hp_value:
             new_hp = self.hp_value
@@ -192,6 +211,7 @@ class Deadly:
             if self.hp<self.hp_value:
                 self.hp+=self.heal_speed
         else:
+            print 'dying', self.name, self.death_time
             if self.death_time>0:
                 self.death_time-=1
                 self.add_event(self.position, NullPoint, 'die',  [])
@@ -206,26 +226,31 @@ class Deadly:
         game.new_object(corpse)
     
     def die(self):
-        print 'DIE %s' % self.name
         self.alive = False
         self.death_counter+=1
+        self.abort_moving()
+    
+    
         
 
 
 class Fragile:
     "класс для объекто разбивающихся при столкновении с тайлами"
-    pass
+    def tile_collission(self, tile):
+        self.alive = False
     
 class Mortal:
     "класс для объектов убивающих живых при соприкосновении"
-    def __init__(self, damage=1):
+    def __init__(self, damage=1, alive_after_collission = False):
         self.damage = damage
+        self.alive_after_collission = alive_after_collission
     
     @wrappers.player_filter(Deadly)
     def collission(self, player):
         if player.fraction!=self.fraction:
             player.hit(self.damage)
-            self.alive = False
+            self.alive = self.alive_after_collission
+
 ####################################################################
 
 class Respawnable:
@@ -245,6 +270,7 @@ class Respawnable:
         self.respawn_message = 'Respawn', self.position
         self.alive = True
         self.respawned = True
+        self.spawn()
         return False
 
     
@@ -279,7 +305,7 @@ class Striker:
         if self.strike_counter==0:
             ball_name = 'ball%s' % game.ball_counter
             game.ball_counter+=1
-            ball = self.strike_shell(ball_name, self.position, vector, self.fraction, self.damage)
+            ball = self.strike_shell(ball_name, self.position, vector, self.fraction, self.name, self.damage)
             game.new_object(ball)
             self.strike_counter+=self.strike_speed
     

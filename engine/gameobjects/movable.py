@@ -83,9 +83,9 @@ class Movable:
         self.prev_position = Point(-1,-1)
         self.moved = False
     
+    @wrappers.alive_only()
     def move(self, vector=NullPoint):
         if not self.moved:
-            print 'move', self.name, vector
             #если вектор на входе определен, до определяем вектор движения объекта
             if vector:
                 self.vector = vector
@@ -123,17 +123,17 @@ class Movable:
                 move_vector = (cross_position - self.position)*0.99
                 self.vector = move_vector
                 #если объект хрупкий - отмечаем для удаления
-                if isinstance(self, Fragile):
-                    self.REMOVE = True
+                self.tile_collission(cross_tile)
                 break
+                
             if cross_tile in self.SLOWTILES:
                 resist = self.SLOWTILES[cross_tile]
         move_vector *= resist
         return move_vector
     
-    @wrappers.player_filter(Solid)
+    @wrappers.player_filter_alive
     def detect_collisions(self, player):
-        for Player in game.players.values():
+        for Player in game.solid_objects.values():
             if not Player is player:
                 if isinstance(Player, Solid):
                     distance = abs(Player.position - player.position)
@@ -144,9 +144,14 @@ class Movable:
     def complete_round(self):
         self.moved = False
     
+    def abort_moving(self):
+        self.vector = NullPoint
+        self.move_vector = NullPoint
+    
     def handle_request(self):
         return self.move_vector
     
+    @wrappers.alive_only()
     def update(self):
         if not self.moved:
             return self.move()

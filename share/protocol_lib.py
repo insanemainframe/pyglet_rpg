@@ -12,6 +12,13 @@ from share.logger import PROTOCOLLOG as LOG
 #####################################################################
 #исключения для ошибок работы протокола
 
+class PackageError(Exception):
+    "ошибка полуения пакета"
+    def __init__(self, data=''):
+        self.error = 'package receive erroor %s' %  data
+    def __str__(self):
+        return self.error
+
 class MethodError(Exception):
     "неизвестное действие"
     def __init__(self, action, data=''):
@@ -48,6 +55,7 @@ def send(channel, data):
     
 
 def receive(channel):
+    "получает пакет данных из сокета"
     size = channel.recv(struct.calcsize("L"))
     try:
         size = ntohl(struct.unpack("L", size)[0])
@@ -68,8 +76,47 @@ def receive(channel):
                 return ''
     return data
 
+def receivable(channel):
+    "корути получающий данные из сокета"
+    while 1:
+        #получаем размер из канала
+        while 1:
+            try:
+                size = channel.recv(struct.calcsize("L"))
+            except socket_error as Error:
+                if Error[0]==11:
+                    yield None
+                else:
+                    raise Error
+            else:
+                break
+        
+        #преобразуем размер
+        try:
+            size = ntohl(struct.unpack("L", size)[0])
+        except struct.error, e:
+            LOG.error('protocol_lib.receive struct error %s size %s' % (e,size))
+            raise PackageError
+        
+        else:
+            #получаем пакет данных
+            data = ''
+            while len(data)<size:
+                try:
+                    data+=channel.recv(size - len(data))
+                except socket_error as Error:
+                    if Error[0]==11:
+                        yield None
+                    else:
+                        raise Error
+                else:
+                    yield None
+            
+            yield data
+            
 #####################################################################
 #врапперы для маршалинга что бы детектировать ошибки
+
 def loads(data):
     try:
         data = decompress(data)

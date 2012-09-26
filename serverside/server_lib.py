@@ -7,8 +7,8 @@ import socket
 from time import time
 
 from poll_lib import PollServer
-from share.protocol_lib import send, receive
-from config import HOSTNAME, IN_PORT, OUT_PORT, SERVER_TIMER, PROFILE_SERVER
+from share.protocol_lib import send, receivable, PackageError
+from config import IN_PORT, OUT_PORT, SERVER_TIMER, PROFILE_SERVER
 
 
 IN, OUT = 0,1
@@ -25,6 +25,7 @@ class SocketError:
 
 #####################################################################
 class SocketServer(PollServer):
+    "получает/отправляет данные через сокеты"
     def __init__(self, timer_value=SERVER_TIMER, listen_num=10):
         PollServer.__init__(self)
         self.listen_num = listen_num
@@ -33,6 +34,8 @@ class SocketServer(PollServer):
         self.insock, self.in_fileno = self.create_socket(IN)
         self.outsock, self.out_fileno = self.create_socket(OUT)
         self.insocks, self.outsocks = {}, {}
+        
+        self.generators = {}
         
         self.address_buf = {}
         
@@ -63,7 +66,7 @@ class SocketServer(PollServer):
     
     def handle_read(self, address):
         try:
-            message = self.receive(address)
+            message = self.generators[address].next()
         except socket.error as Error:
             print 'handle read socket error %s' % Error
             errno = Error[0]
@@ -71,13 +74,15 @@ class SocketServer(PollServer):
                 self.handle_close(address)
                 return False
             return True
-            
+        
+        except PackageError:
+            print 'PackageError'
+            return False
         else:
             if message:
                 self.read(address, message)
-                return True
-            self.handle_close(address)
-            return False
+            return True
+            
             
         
     def handle_accept(self, stream):
@@ -117,6 +122,7 @@ class SocketServer(PollServer):
         address = 'plaayer_%s' % self.client_counter
         self.client_counter+=1
         self.insocks[address] = insock
+        self.generators[address] = receivable(insock)
         self.outsocks[address] = outsock
         in_fileno, out_fileno = self.insocks[address].fileno(), self.outsocks[address].fileno()
         

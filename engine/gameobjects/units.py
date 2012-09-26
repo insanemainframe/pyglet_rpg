@@ -16,15 +16,61 @@ class Unit(Solid, Movable, Deadly, DiplomacySubject):
 
 class Lootable(Deadly):
     loot = [HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold]
+    
     def die(self):
         if chance(30):
             item = choice(self.loot)(self.position)
             game.new_object(item)
         Deadly.die(self)
 
+class Fighter:
+    def __init__(self, damage, atack_speed=10):
+        self.atack_speed = atack_speed
+        self.atack_counter = 0
+        self.damage = damage
+    
+    @wrappers.alive_only()
+    @wrappers.player_filter(Deadly)
+    def collission(self, player):
+        if self.atack_counter==0:
+            player.hit(self.damage)
+    
+    def complete_round(self):
+        if self.atack_counter < self.atack_speed:
+            self.atack_counter+=1
+        else:
+            self.atack_counter=0
+    
+    
+class Stats:
+    def __init__(self):
+        self.gold = 0
+        self.kills = 0
+        self.stats_changed = False
+        self.prev_stats = None
+    
+    def plus_gold(self, gold=1):
+        self.gold+=1
+    
+    def plus_kills(self):
+        print 'plus kills', self.name
+        self.kills+=1
+    
+    def update(self):
+        stats = (self.hp, self.hp_value, self.speed, self.damage, self.gold, self.kills, self.death_counter)
+        if self.prev_stats!=stats:
+            self.prev_stats = stats
+            self.stats_changed = True
+    
+    def get_stats(self):
+        data = (self.hp, self.hp_value, self.speed, self.damage, self.gold, self.kills, self.death_counter)
+        self.stats_changed = False
+        return ('PlayerStats', data)
+    
 
+        
 #####################################################################
-class Player(Unit, MapObserver, Striker, Guided, Respawnable):
+class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats):
     "класс игрока"
     radius = TILESIZE/2
     prev_looked = set()
@@ -40,6 +86,7 @@ class Player(Unit, MapObserver, Striker, Guided, Respawnable):
         MapObserver.__init__(self, look_size)
         Striker.__init__(self,2, Ball, self.damage)
         Respawnable.__init__(self, 10, 30)
+        Stats.__init__(self)
     
     @wrappers.alive_only()
     def handle_action(self, action, args):
@@ -49,8 +96,11 @@ class Player(Unit, MapObserver, Striker, Guided, Respawnable):
         if not self.respawned:
             move_vector = Movable.handle_request(self)
             new_looked, observed, updates = self.look()
+            messages = [('Look', (move_vector, new_looked, observed, updates, []))]
+            if self.stats_changed:
+                messages.append(self.get_stats())
     
-            return [('Look', (move_vector, self.hp, new_looked, observed, updates, []))]
+            return messages
         else:
             return Respawnable.handle_response(self)
 
@@ -74,6 +124,7 @@ class Player(Unit, MapObserver, Striker, Guided, Respawnable):
         Movable.update(self)
         Striker.update(self)
         Deadly.update(self)
+        Stats.update(self)
     
 
 ##################################################################### 
@@ -86,7 +137,7 @@ class Walker(Movable):
         direct = Point(x,y)
         self.move(direct)
 
-class MetaMonster(Lootable, Unit, Respawnable, Stalker, Mortal, Walker):
+class MetaMonster(Respawnable, Lootable, Unit, Stalker, Fighter, Walker):
     radius = TILESIZE
     look_size = 10
     BLOCKTILES = ['stone', 'forest', 'ocean']
@@ -95,12 +146,14 @@ class MetaMonster(Lootable, Unit, Respawnable, Stalker, Mortal, Walker):
         GameObject.__init__(self, name, player_position)
         Unit.__init__(self, speed, hp, Corpse, 'monsters')
         Stalker.__init__(self, self.look_size)
-        Mortal.__init__(self, 1)
+        Fighter.__init__(self, 1, 10)
         Respawnable.__init__(self, 30, 60)
+        self.spawn()
     
     @wrappers.alive_only(Deadly)
     def update(self):
-        direct = self.hunt()
+        direct = self.hunt(chance(50))
+            
         if direct:
             self.move(direct)
         else:
@@ -110,22 +163,21 @@ class MetaMonster(Lootable, Unit, Respawnable, Stalker, Mortal, Walker):
     
     def complete_round(self):
         Movable.complete_round(self)
+        Fighter.complete_round(self)
     
 
 
-class Zombie(Mortal, MetaMonster):
+class Zombie(MetaMonster):
     hp = 3
     speed = 15
     def __init__(self, name, position):
-        Mortal.__init__(self, 2)
         MetaMonster.__init__(self, name, position, self.speed, self.hp)
     
 
-class Ghast(MetaMonster, Mortal):
+class Ghast(MetaMonster):
     hp = 20
     speed = 7
     def __init__(self, name, position):
-        Mortal.__init__(self, 2)
         MetaMonster.__init__(self, name, position, self.speed, self.hp)
 
 class Lych(MetaMonster, Striker):

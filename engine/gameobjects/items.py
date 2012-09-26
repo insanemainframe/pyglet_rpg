@@ -5,12 +5,14 @@ from movable import Movable
 
 from config import *
 
-item_counter = 0
 class Item(StaticObject, Solid):
     radius = TILESIZE
     def __init__(self, position):
-        name = 'item_%s' % item_counter
-        item_counter+=1
+        if not hasattr(Item, 'item_counter'):
+            Item.item_counter = 0
+
+        name = 'item_%s' % Item.item_counter
+        Item.item_counter+=1
         StaticObject.__init__(self, name, position)
     
     @wrappers.player_filter(Guided)
@@ -28,12 +30,14 @@ class Explodable:
     "взрывающийся объект"
     def __init__(self, explode_time):
         self.explode_time = explode_time
+        
     def update(self):
         if self.explode_time>0:
                 self.add_event(self.position, NullPoint, 'explode', [])
                 self.explode_time-=1
-            else:
-                self.REMOVE
+        else:
+            self.REMOVE
+        
     def remove(self):
         return True
 
@@ -43,7 +47,7 @@ class Ball(Temporary, Explodable, Solid, Movable,GameObject, Fragile, Mortal, Di
     speed = 60
     BLOCKTILES = ['stone', 'forest']
     explode_time = 7*3
-    def __init__(self, name, position, direct, fraction, damage = 2):
+    def __init__(self, name, position, direct, fraction, striker, damage = 2):
         GameObject.__init__(self, name, position)
         Movable.__init__(self, self.speed)
         Temporary.__init__(self, 10)
@@ -53,6 +57,7 @@ class Ball(Temporary, Explodable, Solid, Movable,GameObject, Fragile, Mortal, Di
         one_step = Point(self.speed, self.speed)
         self.direct = direct*(abs(one_step)/abs(direct))
         self.alive = True
+        self.striker = striker
     
     @wrappers.alive_only(Explodable)
     def update(self):
@@ -69,6 +74,8 @@ class Ball(Temporary, Explodable, Solid, Movable,GameObject, Fragile, Mortal, Di
     @wrappers.alive_only()
     def collission(self, player):
             Mortal.collission(self, player)
+            if not player.alive:
+                game.players[self.striker].plus_kills()
 
 
         
@@ -110,7 +117,8 @@ class Sword(Item):
         player.plus_damage(self.damage)
 
 class Gold(Item):
-    pass
+    def effect(self, player):
+        player.plus_gold()
 
 class Armor(Item):
     armor = 3

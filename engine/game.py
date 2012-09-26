@@ -3,7 +3,7 @@
 #разделяемое состояние всех объектов игры
 from collections import defaultdict
 from random import randrange
-
+from weakref import proxy
 from sys import path
 path.append('../')
 
@@ -12,6 +12,7 @@ from config import *
 from share.mathlib import Point, NullPoint
 from mapgen import load_map
 
+from engine_lib import Solid
 
 class World:
     "класс карты как со стороны ссервера"
@@ -21,6 +22,8 @@ class World:
 
 
 players = {}
+solid_objects = {}
+
 world = World()
 size = world.size
     
@@ -52,6 +55,9 @@ def add_event(name, position, altposition, action, args=[]):
 def new_object(player):
     "ововестить всех о новом объекте"
     players[player.name] = player
+    #
+    if isinstance(player, Solid):
+        solid_objects[player.name] = proxy(player)
     #добавляем обновление
     key = (player.position/TILESIZE).get()
     add_event(player.name, player.position, False, 'exist', [NullPoint.get()])
@@ -81,9 +87,12 @@ def clear():
             remove_object(name)
 
 def remove_object(name, force = False):
+    print 'remove', name, force
     result = players[name].remove()
     if result or force:
         player = players[name]
+        if isinstance(player, Solid):
+            del solid_objects[name]
         del players[name]
     else:
         players[name].REMOVE = False

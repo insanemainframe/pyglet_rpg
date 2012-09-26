@@ -43,7 +43,7 @@ class Steps:
 #инициализация
 class ServerAccept(GameProtocol, Events, Land, Observed, Steps):
     def pack(self, data):
-        world_size, position, hp, land, observed, events, steps = data
+        world_size, position, land, observed, events, steps = data
         
         x,y = position.get()
         land = self.pack_land(land)
@@ -51,10 +51,10 @@ class ServerAccept(GameProtocol, Events, Land, Observed, Steps):
         events = self.pack_events(events)
         steps = self.pack_steps(steps)
         
-        return (world_size, (x,y), hp, land, observed, events, steps)
+        return (world_size, (x,y), land, observed, events, steps)
 
     def unpack(self, data):
-        world_size, (x,y), hp, land, observed, events, steps = data
+        world_size, (x,y), land, observed, events, steps = data
         
         position = Point(x,y)
         land = self.unpack_land(land)
@@ -62,7 +62,7 @@ class ServerAccept(GameProtocol, Events, Land, Observed, Steps):
         events = self.unpack_events(events)
         steps = self.unpack_steps(steps)
         
-        return world_size, position, hp, land, observed, events, steps
+        return world_size, position, land, observed, events, steps
 
 #
 #запрос на иницализацию
@@ -79,7 +79,7 @@ class ClientAccept(GameProtocol):
 #обзор
 class Look(GameProtocol, Events, Land, Observed, Steps):
     def pack(self, data):
-        move_vector, hp, land, observed, events, steps = data
+        move_vector, land, observed, events, steps = data
         
         move_vector = move_vector.get()
         land = self.pack_land(land)
@@ -87,10 +87,10 @@ class Look(GameProtocol, Events, Land, Observed, Steps):
         events = self.pack_events(events)
         steps = self.pack_steps(steps)
         
-        return move_vector, hp, land, observed, events, steps
+        return move_vector, land, observed, events, steps
 
     def unpack(self, data):
-        (x,y), hp, land, observed, events, steps = data
+        (x,y), land, observed, events, steps = data
         
         move_vector = Point(x,y)
         land =  self.unpack_land(land)
@@ -98,7 +98,19 @@ class Look(GameProtocol, Events, Land, Observed, Steps):
         events = self.unpack_events(events)
         steps = self.unpack_steps(steps)
         
-        return move_vector, hp, land, observed, events, steps
+        return move_vector, land, observed, events, steps
+
+#статы игрока
+class PlayerStats(GameProtocol):
+    @staticmethod
+    def pack(data):
+        hp, hp_value, speed, damage, gold, kills, death_counter = data
+        return hp, hp_value, speed, damage, gold, kills, death_counter
+    @staticmethod
+    def unpack(data):
+        hp, hp_value, speed, damage, gold, kills, death_counter = data
+        return hp, hp_value, speed, damage, gold, kills, death_counter
+    
 
 #передвижение
 class Move(GameProtocol):

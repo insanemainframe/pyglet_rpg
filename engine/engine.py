@@ -18,7 +18,7 @@ class Game:
     "класс игры"
     monster_count = 0
     def __init__(self):
-        self.create_monsters(1, Zombie)
+        self.create_monsters(10, Zombie)
         #self.create_monsters(5, Lych)
         #self.create_monsters(5, Ghast)
     
@@ -39,7 +39,7 @@ class Game:
         #обзор
         looked, observed, updates = new_player.look()
         #уже существующие объекты
-        message = (world_size, new_player.position, new_player.hp, looked, observed, updates, [])
+        message = (world_size, new_player.position, looked, observed, updates, [])
         return (message, 'ServerAccept')
     
     def handle_requests(self, messages):
