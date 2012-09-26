@@ -32,12 +32,8 @@ class Fighter:
     @wrappers.alive_only()
     @wrappers.player_filter(Deadly)
     def collission(self, player):
-        
         if self.fraction!=player.fraction:
-            print 'ATTACK'
-            
             if self.attack_counter==0:
-                
                 player.hit(self.damage)
                 self.add_event(self.position, NullPoint, 'attack', [])
     
@@ -59,7 +55,6 @@ class Stats:
         self.gold+=1
     
     def plus_kills(self):
-        print 'plus kills', self.name
         self.kills+=1
     
     def update(self):
@@ -116,7 +111,6 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats):
     
     @wrappers.alive_only()
     def Move(self, vector):
-        print 'move %s'% vector
         Movable.move(self, vector)
     
     def Look(self):
@@ -144,7 +138,7 @@ class Walker(Movable):
         direct = Point(x,y)
         self.move(direct)
 
-class MetaMonster(Fighter, Respawnable, Lootable, Unit, Stalker, Walker):
+class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker):
     radius = TILESIZE
     look_size = 10
     BLOCKTILES = ['stone', 'forest', 'ocean']
@@ -153,7 +147,6 @@ class MetaMonster(Fighter, Respawnable, Lootable, Unit, Stalker, Walker):
         GameObject.__init__(self, name, player_position)
         Unit.__init__(self, speed, hp, Corpse, 'monsters')
         Stalker.__init__(self, self.look_size)
-        Fighter.__init__(self, 1, 10)
         Respawnable.__init__(self, 30, 60)
         self.spawn()
     
@@ -170,27 +163,45 @@ class MetaMonster(Fighter, Respawnable, Lootable, Unit, Stalker, Walker):
     
     def complete_round(self):
         Movable.complete_round(self)
+        
+    
+
+
+class Zombie(Fighter, MetaMonster):
+    hp = 3
+    speed = 15
+    damage = 1
+    attack_speed = 10
+    
+    def __init__(self, name, position):
+        MetaMonster.__init__(self, name, position, self.speed, self.hp)
+        Fighter.__init__(self, self.damage, self.attack_speed)
+    
+    def complete_round(self):
+        MetaMonster.complete_round(self)
         Fighter.complete_round(self)
     
 
-
-class Zombie(MetaMonster):
-    hp = 3
-    speed = 15
-    def __init__(self, name, position):
-        MetaMonster.__init__(self, name, position, self.speed, self.hp)
-    
-
-class Ghast(MetaMonster):
+class Ghast(Fighter, MetaMonster):
     hp = 20
     speed = 7
+    damage = 5
+    attack_speed = 30
+    
     def __init__(self, name, position):
         MetaMonster.__init__(self, name, position, self.speed, self.hp)
+        Fighter.__init__(self, self.damage, self.attack_speed)
+    
+    def complete_round(self):
+        MetaMonster.complete_round(self)
+        Fighter.complete_round(self)
+
 
 class Lych(MetaMonster, Striker):
     hp = 5
     speed = 15
     damage = 2
+    
     def __init__(self, name, position):
         MetaMonster.__init__(self, name, position, self.speed, self.hp)
         Striker.__init__(self, 10, DarkBall, self.damage)

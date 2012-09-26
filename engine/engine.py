@@ -18,10 +18,10 @@ class Game:
     "класс игры"
     monster_count = 0
     def __init__(self):
-        #self.create_monsters(10, Zombie)
-        #self.create_monsters(5, Lych)
-        #self.create_monsters(5, Ghast)
-        pass
+        self.create_monsters(10, Zombie)
+        self.create_monsters(5, Lych)
+        self.create_monsters(5, Ghast)
+        
     
     def create_monsters(self, n, monster_type):
         for i in range(n):
@@ -45,9 +45,7 @@ class Game:
     
     def handle_requests(self, messages):
         "совершаем действия игроками, возвращает векторы игрокам и устанавливает обновления"
-        for name, player in game.guided_players.items():
-            if messages[name]: print messages[name], '\n'
-            
+        for name, player in game.guided_players.items():            
             for action, message in messages[name]:
                     try:
                         player.handle_action(action, message)

@@ -99,14 +99,11 @@ class Client(SocketClient, Packer):
             return False
 
     def accept_(self, message):
-        print 'accept_'
         action, message = self.unpack(message)
         if action=='ServerAccept':
-            #print 'Client.accept %s' % str(message)
             self.accept_message = message
         
     def send_move(self, vector):
-        print 'send move %s' % vector
         message = self.pack(vector,'Move')
         self.put_message(message)
         #предварительное движение

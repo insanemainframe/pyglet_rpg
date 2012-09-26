@@ -142,7 +142,6 @@ class Fighter(Animated):
     
     def attack(self):
         self.attacking = True
-        print 'atack'
     
     def draw(self):
         tilename = self.tilename + self.get_animation('attack')
@@ -285,7 +284,6 @@ class Ball(Movable, ClientObject, Animated):
             return [create_tile(self.position, tilename, 1)]
     
     def explode(self):
-        print 'explode'
         self.explosion = True
         self.moving = False
 
