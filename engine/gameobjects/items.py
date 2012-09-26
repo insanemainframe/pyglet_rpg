@@ -74,8 +74,11 @@ class Ball(Temporary, Explodable, Solid, Movable,GameObject, Fragile, Mortal, Di
     @wrappers.alive_only()
     def collission(self, player):
             Mortal.collission(self, player)
-            if not player.alive:
-                game.players[self.striker].plus_kills()
+                
+    
+    
+    def tile_collission(self, tile):
+        self.alive = False
 
 
         

@@ -58,9 +58,10 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, pyglet
             self.objects.insert(updates)
             self.accepted = True
             self.loading = False
-            #устанавливаем обновление на каждом кадре
+            #устанавливаем обновления на каждом кадре
             pyglet.clock.schedule_interval(self.round_update, self.timer_value)
             pyglet.clock.schedule(self.update)
+            return True
             
         else:
             print 'Accepting failed'

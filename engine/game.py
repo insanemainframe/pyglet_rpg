@@ -12,7 +12,7 @@ from config import *
 from share.mathlib import Point, NullPoint
 from mapgen import load_map
 
-from engine_lib import Solid
+from engine_lib import Solid, Guided
 
 class World:
     "класс карты как со стороны ссервера"
@@ -23,6 +23,7 @@ class World:
 
 players = {}
 solid_objects = {}
+guided_players = {}
 
 world = World()
 size = world.size
@@ -56,6 +57,8 @@ def new_object(player):
     "ововестить всех о новом объекте"
     players[player.name] = player
     #
+    if isinstance(player, Guided):
+        guided_players[player.name] = proxy(player)
     if isinstance(player, Solid):
         solid_objects[player.name] = proxy(player)
     #добавляем обновление
@@ -91,6 +94,8 @@ def remove_object(name, force = False):
     result = players[name].remove()
     if result or force:
         player = players[name]
+        if isinstance(player, Guided):
+            del guided_players[name]
         if isinstance(player, Solid):
             del solid_objects[name]
         del players[name]

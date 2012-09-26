@@ -16,6 +16,7 @@ class SocketClient:
         self.buff = ''
         self.outsock, self.out_fileno = self.create_sock(IN_PORT)
         self.insock, self.in_fileno = self.create_sock(OUT_PORT)
+        #self.generator = receivable(self.insock)
         self.out_messages = []
         self.in_messages = []        
         

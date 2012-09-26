@@ -91,7 +91,6 @@ class Animated:
             
             
         tilename = '_'+tilename+'_%s' % n
-        print tilename
         return tilename
     
 #
@@ -136,7 +135,21 @@ class Movable(Animated, ClientObject):
 
 
         
-        
+class Fighter(Animated):
+    def __init__(self, frames):
+        self.create_animation('attack', 'attack', frames,3)
+        self.attacking = False
+    
+    def attack(self):
+        self.attacking = True
+        print 'atack'
+    
+    def draw(self):
+        tilename = self.tilename + self.get_animation('attack')
+        return [create_tile(self.position, tilename)]
+    
+    def round_update(self):
+        self.attacking = False
             
 class Sweemer:
     def update(self, delta):
@@ -194,33 +207,47 @@ class Self(Player, Deadly, ClientObject):
     tilename = 'self'
 
 
-class Zombie(Movable, ClientObject, Deadly):
+class Zombie(Movable, ClientObject, Deadly, Fighter):
     tilename = 'zombie'
     def __init__(self, name, position):
         ClientObject.__init__(self, name, position)
         Movable.__init__(self)
         Deadly.__init__(self, 10)
+        Fighter.__init__(self,1)
     
     def draw(self):
-        if not self.dead:
+        if self.attacking:
+            return Fighter.draw(self)
+        elif not self.dead:
             return Movable.draw(self)
         else:
             return Deadly.draw(self)
     
+    def round_update(self):
+        Fighter.round_update(self)
+    
+    
 
 
         
-class Ghast(Movable, ClientObject, Deadly):
+class Ghast(Movable, ClientObject, Deadly, Fighter):
     tilename = 'ghast'
     def __init__(self, name, position):
         ClientObject.__init__(self, name, position)
         Movable.__init__(self, 2)
         Deadly.__init__(self, 1)
+        Fighter.__init__(self,3)
+    
     def draw(self):
+        if self.attacking:
+            return Fighter.draw(self)
         if not self.dead:
             return Movable.draw(self)
         else:
             return Deadly.draw(self)
+    
+    def round_update(self):
+        Fighter.round_update(self)
         
 class Lych(Movable, ClientObject, Deadly):
     tilename = 'lych'
@@ -234,6 +261,8 @@ class Lych(Movable, ClientObject, Deadly):
             return Movable.draw(self)
         else:
             return Deadly.draw(self)
+    
+    
     
 
 class Ball(Movable, ClientObject, Animated):

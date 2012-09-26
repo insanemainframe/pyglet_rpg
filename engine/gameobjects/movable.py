@@ -135,11 +135,10 @@ class Movable:
     def detect_collisions(self, player):
         for Player in game.solid_objects.values():
             if not Player is player:
-                if isinstance(Player, Solid):
-                    distance = abs(Player.position - player.position)
-                    if distance <= Player.radius+player.radius:
-                        Player.collission(player)
-                        player.collission(Player)
+                distance = abs(Player.position - player.position)
+                if distance <= Player.radius+player.radius:
+                    Player.collission(player)
+                    player.collission(Player)
     
     def complete_round(self):
         self.moved = False

@@ -44,14 +44,16 @@ class Game:
     
     def handle_requests(self, messages):
         "совершаем действия игроками, возвращает векторы игрокам и устанавливает обновления"
-        for name, player in game.players.items():
-            #если это игрок, то выполняем его действия
-            if isinstance(player, Guided):
-                for action, message in messages[name]:
+        for name, player in game.guided_players.items():
+            for action, message in messages[name]:
                     try:
                         player.handle_action(action, message)
                     except ActionDenied:
                         pass
+    
+    def handle_middle(self):
+        "запускается между обработкой запросов и ответов"
+        for name, player in game.players.items():
             #если игрок не отправлял действий, то вызываем метод update
             event = player.update()
             if event:
@@ -63,10 +65,6 @@ class Game:
                     game.remove_object(name)
             #завершаем раунд для игрока
             player.complete_round()
-    
-    def handle_middle(self):
-        "запускается между обработкой запросов и ответов"
-        #self.detect_collisions()
         game.clear()
 
                     
@@ -75,9 +73,8 @@ class Game:
         "смотрим"
         messages = {}
         #подготавливаем обновления для выборочного обзора
-        for name, player in game.players.items():
-            if isinstance(player, Guided):
-                messages[name] = player.handle_response()
+        for name, player in game.guided_players.items():
+            messages[name] = player.handle_response()
 
         game.updates.clear()
         return messages

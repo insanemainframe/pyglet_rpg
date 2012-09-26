@@ -195,6 +195,9 @@ class Deadly:
         if self.hp<=0:
             self.die()
             self.hp = self.hp_value
+            return True
+        else:
+            return False
     
     def heal(self, hp):
         new_hp = self.hp+ hp
@@ -248,7 +251,9 @@ class Mortal:
     @wrappers.player_filter(Deadly)
     def collission(self, player):
         if player.fraction!=self.fraction:
-            player.hit(self.damage)
+            shot = player.hit(self.damage)
+            if shot:
+                game.players[self.striker].plus_kills()
             self.alive = self.alive_after_collission
 
 ####################################################################

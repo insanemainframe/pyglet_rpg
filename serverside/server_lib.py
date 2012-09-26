@@ -78,6 +78,11 @@ class SocketServer(PollServer):
         except PackageError:
             print 'PackageError'
             return False
+            
+        except StopIteration:
+            self.handle_close(address)
+            return False
+            
         else:
             if message:
                 self.read(address, message)

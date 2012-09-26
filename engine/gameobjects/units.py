@@ -24,22 +24,28 @@ class Lootable(Deadly):
         Deadly.die(self)
 
 class Fighter:
-    def __init__(self, damage, atack_speed=10):
-        self.atack_speed = atack_speed
-        self.atack_counter = 0
+    def __init__(self, damage, attack_speed=10):
+        self.attack_speed = attack_speed
+        self.attack_counter = 0
         self.damage = damage
     
     @wrappers.alive_only()
     @wrappers.player_filter(Deadly)
     def collission(self, player):
-        if self.atack_counter==0:
-            player.hit(self.damage)
+        
+        if self.fraction!=player.fraction:
+            print 'ATTACK'
+            
+            if self.attack_counter==0:
+                
+                player.hit(self.damage)
+                self.add_event(self.position, NullPoint, 'attack', [])
     
     def complete_round(self):
-        if self.atack_counter < self.atack_speed:
-            self.atack_counter+=1
+        if self.attack_counter < self.attack_speed:
+            self.attack_counter+=1
         else:
-            self.atack_counter=0
+            self.attack_counter=0
     
     
 class Stats:
@@ -119,7 +125,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats):
         Movable.complete_round(self)
         Striker.complete_round(self)
     
-    @wrappers.alive_only(Deadly)
+    #@wrappers.alive_only(Deadly)
     def update(self):
         Movable.update(self)
         Striker.update(self)
@@ -137,7 +143,7 @@ class Walker(Movable):
         direct = Point(x,y)
         self.move(direct)
 
-class MetaMonster(Respawnable, Lootable, Unit, Stalker, Fighter, Walker):
+class MetaMonster(Fighter, Respawnable, Lootable, Unit, Stalker, Walker):
     radius = TILESIZE
     look_size = 10
     BLOCKTILES = ['stone', 'forest', 'ocean']
