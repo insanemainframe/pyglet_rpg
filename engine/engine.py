@@ -18,9 +18,10 @@ class Game:
     "класс игры"
     monster_count = 0
     def __init__(self):
-        self.create_monsters(10, Zombie)
+        #self.create_monsters(10, Zombie)
         #self.create_monsters(5, Lych)
         #self.create_monsters(5, Ghast)
+        pass
     
     def create_monsters(self, n, monster_type):
         for i in range(n):
@@ -45,6 +46,8 @@ class Game:
     def handle_requests(self, messages):
         "совершаем действия игроками, возвращает векторы игрокам и устанавливает обновления"
         for name, player in game.guided_players.items():
+            if messages[name]: print messages[name], '\n'
+            
             for action, message in messages[name]:
                     try:
                         player.handle_action(action, message)
@@ -53,7 +56,8 @@ class Game:
     
     def handle_middle(self):
         "запускается между обработкой запросов и ответов"
-        for name, player in game.players.items():
+        for player in game.players.values():
+            #player = game.players[name]
             #если игрок не отправлял действий, то вызываем метод update
             event = player.update()
             if event:
@@ -62,7 +66,7 @@ class Game:
             if isinstance(player, Temporary):
                 if not player.lifetime:
                     #если срок жизни кончился - убиваем
-                    game.remove_object(name)
+                    player.REMOVE = True
             #завершаем раунд для игрока
             player.complete_round()
         game.clear()

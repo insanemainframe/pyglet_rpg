@@ -86,6 +86,7 @@ class Movable:
     @wrappers.alive_only()
     def move(self, vector=NullPoint):
         if not self.moved:
+            
             #если вектор на входе определен, до определяем вектор движения объекта
             if vector:
                 self.vector = vector

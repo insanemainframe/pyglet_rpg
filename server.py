@@ -46,8 +46,8 @@ class GameServer(SocketServer, Game, AskHostname, Packer):
         self.put_messages(client, [message])
 
     
-    def read(self, client, message):
-        if message:
+    def read(self, client, messages):
+        for message in messages:
             request = self.unpack(message)
             self.client_requestes[client].append(request)
     

@@ -91,6 +91,7 @@ def receivable(channel):
             else:
                 break
         
+        print 'recv SIZE'
         #преобразуем размер
         try:
             size = ntohl(struct.unpack("L", size)[0])
@@ -100,19 +101,26 @@ def receivable(channel):
         
         else:
             #получаем пакет данных
+            first = True
             data = ''
             while len(data)<size:
+                #print 'RECEVING PACKAGE ', len(data), size
                 try:
                     data+=channel.recv(size - len(data))
                 except socket_error as Error:
                     if Error[0]==11:
+                        print 'err11'
                         yield None
                     else:
                         raise Error
                 else:
-                    yield None
-            
+                    if not first:
+                        yield None
+                    else:
+                        first = False
+            #print 'rECEIVED', size
             yield data
+            data = None
             
 #####################################################################
 #врапперы для маршалинга что бы детектировать ошибки

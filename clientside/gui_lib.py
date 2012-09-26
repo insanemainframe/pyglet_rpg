@@ -144,6 +144,7 @@ class InputHandle:
         if button==self.MOVE_BUTTON:
             self.vector = (Point(x,y) - self.center)
             
+            
         elif button==self.STRIKE_BUTTON:
             vector = (Point(x,y) - self.center)
             self.send_ball(vector)

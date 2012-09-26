@@ -214,7 +214,6 @@ class Deadly:
             if self.hp<self.hp_value:
                 self.hp+=self.heal_speed
         else:
-            print 'dying', self.name, self.death_time
             if self.death_time>0:
                 self.death_time-=1
                 self.add_event(self.position, NullPoint, 'die',  [])
@@ -266,7 +265,6 @@ class Respawnable:
         self.respawn_distance = distance
         
     def remove(self):
-        print 'respawning %s' % self.name
         new_position = game.choice_position(self, 10 ,self.position)
         vector = new_position - self.position
         self.position = new_position
@@ -280,13 +278,13 @@ class Respawnable:
 
     
     def handle_response(self):
-        print 'respawn_message %s' % self.name
         self.respawned = False
         return [self.respawn_message]
 
 class DiplomacySubject:
     def __init__(self, fraction):
         self.fraction = fraction
+
 ####################################################################
 class Temporary:
     "класс объекта с ограниченным сроком существования"

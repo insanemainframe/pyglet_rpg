@@ -57,14 +57,24 @@ def new_object(player):
     "ововестить всех о новом объекте"
     players[player.name] = player
     #
-    if isinstance(player, Guided):
-        guided_players[player.name] = proxy(player)
-    if isinstance(player, Solid):
-        solid_objects[player.name] = proxy(player)
+    new_object_proxy(player)
     #добавляем обновление
     key = (player.position/TILESIZE).get()
     add_event(player.name, player.position, False, 'exist', [NullPoint.get()])
 
+def new_object_proxy(player):
+    if isinstance(player, Guided):
+        guided_players[player.name] = proxy(player)
+    if isinstance(player, Solid):
+        solid_objects[player.name] = proxy(player)
+
+def remove_object_proxy(player):
+    name = player.name
+    if isinstance(player, Guided):
+            del guided_players[name]
+    if isinstance(player, Solid):
+        del solid_objects[name]
+    
 def choice_position(player, radius=7, start=False):
     if not start:
         start = Point(size/2,size/2)
@@ -90,14 +100,10 @@ def clear():
             remove_object(name)
 
 def remove_object(name, force = False):
-    print 'remove', name, force
     result = players[name].remove()
     if result or force:
         player = players[name]
-        if isinstance(player, Guided):
-            del guided_players[name]
-        if isinstance(player, Solid):
-            del solid_objects[name]
+        remove_object_proxy(player)
         del players[name]
     else:
         players[name].REMOVE = False
