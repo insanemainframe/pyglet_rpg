@@ -84,9 +84,8 @@ def receivable(channel):
             try:
                 size = channel.recv(struct.calcsize("L"))
             except socket_error as Error:
-                if Error[0]==11:
-                    yield None
-                else:
+                if Error[0]!=11:
+                    print 'socket error', Error
                     raise Error
             else:
                 break
@@ -106,9 +105,7 @@ def receivable(channel):
                 try:
                     data+=channel.recv(size - len(data))
                 except socket_error as Error:
-                    if Error[0]==11:
-                        yield None
-                    else:
+                    if Error[0]!=11:
                         raise Error
                 else:
                     if not first:

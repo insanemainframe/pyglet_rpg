@@ -4,7 +4,7 @@ import pyglet
 
 from math import hypot
 from sys import exit
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 from share.mathlib import *
 from share.ask_hostname import AskHostname
@@ -153,6 +153,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, pyglet
         self.put_message(pack(name, 'client_accept'))
     
     def on_close(self):
+        print self.land.counter
         self.close_connection()
         exit()
 
@@ -172,6 +173,9 @@ class LandView(GameWindow,  Drawable, MapTools):
             self.insert(tiles, observed)
         self.set_camera_position(position)
         self.prev_position = position/2
+        self.main_tile = 'grass'
+        
+        
         
     def move_position(self, vector):
         "перемещаем камеру"
@@ -193,7 +197,7 @@ class LandView(GameWindow,  Drawable, MapTools):
         range_i = xrange(I-rad_w-1, I+rad_w+2)
         range_j = xrange(J-rad_h-1, J+rad_h+2)
         
-        looked = []
+        looked = set()
         for i in range_i:
             for j in range_j:
                 position = (Point(i,j)*TILESIZE)-self.position
@@ -201,9 +205,13 @@ class LandView(GameWindow,  Drawable, MapTools):
                     tile = self.map[i][j]+'_fog'
                 else:
                     tile = self.map[i][j]
-                looked.append((position, tile))
+                if tile!=self.main_tile:
+                    looked.add((position, tile))
                     
         return looked
+    
+    def get_shift(self):
+        return self.position/TILESIZE*TILESIZE - self.position
         
     def update(self):
         "обноление на каждом фрейме"
@@ -211,6 +219,11 @@ class LandView(GameWindow,  Drawable, MapTools):
         if not self.prev_position==self.position:
             looked = self.look_around()
             self.tiles = [create_tile(point+self.center, tile) for point, tile in looked]
+    
+    def draw(self):
+        x,y = self.get_shift().get()
+        self.tiledict['grass_full'].blit(x,y)
+        Drawable.draw(self)
 
 
 ########################################################################

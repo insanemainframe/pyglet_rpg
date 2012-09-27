@@ -55,11 +55,8 @@ class GameEngine:
     def handle_middle(self):
         "запускается между обработкой запросов и ответов"
         for player in game.players.values():
-            #player = game.players[name]
             #если игрок не отправлял действий, то вызываем метод update
-            event = player.update()
-            if event:
-                game.add_event(*event)
+            player.update()
             #обрабатываем объекты с ограниченным сроком жизни
             if isinstance(player, Temporary):
                 if not player.lifetime:
@@ -81,18 +78,7 @@ class GameEngine:
         game.clear_events()
         return messages
     
-    def detect_collisions(self):
-        "определяем коллизии"
-        for Name, Player in game.players.items():
-            for name, player in game.players.items():
-                if name!=Name:
-                    distance = abs(Player.position - player.position)
-                    if distance <= Player.radius+player.radius:
-                        if isinstance(Player, Mortal) and isinstance(player,Human):
-                            if player.fraction!=Player.fraction:
-                                player.hit(Player.damage)
-                                if isinstance(Player, Fragile):
-                                    Player.REMOVE = True
+
     
     def handle_quit(self, name):
         game.remove_object(name, True)

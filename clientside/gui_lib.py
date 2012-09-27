@@ -12,7 +12,7 @@ from pyglet.gl import *
 from time import time
 from os import walk
 from os.path import join
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 from share.mathlib import Point,NullPoint
 
@@ -184,6 +184,7 @@ class InputHandle:
             
 
 class Drawable(GameWindow):
+    counter = Counter()
     "рисуемые объекты"
     def __init__(self):
         self.animation = 1
@@ -201,6 +202,7 @@ class Drawable(GameWindow):
                 x,y = (position-shift).get()
                 if -TILESIZE<x<self.width and -TILESIZE<x<self.height:
                     self.tiledict[tilename].blit(x,y, width=width, height=height)
+                    self.counter[tilename]+=1
                     
             elif sptite_type=='label':
                 shift = self.center

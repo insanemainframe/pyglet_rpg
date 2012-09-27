@@ -88,9 +88,8 @@ def clear():
         "удаляем объекты отмеченыне меткой REMOVE"
         remove_list = []
         for name in players:
-            if hasattr(players[name], 'REMOVE'):
-                if players[name].REMOVE:
-                    remove_list.append(name)
+            if players[name].REMOVE:
+                remove_list.append(name)
         #
         for name in remove_list:
             remove_object(name)

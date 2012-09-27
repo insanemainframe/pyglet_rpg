@@ -154,7 +154,7 @@ class Movable:
     @wrappers.alive_only()
     def update(self):
         if not self.moved:
-            return self.move()
+            self.move()
     
     def plus_speed(self, speed):
         self.speed+=speed
