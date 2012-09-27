@@ -65,30 +65,33 @@ class SocketServer(PollServer):
                 self.responses[address] = []
     
     def handle_read(self, address):
+        print 'handle read'
         try:
-            message = self.generators[address].next()
+            messages = []
+            while 1:
+                result = self.generators[address].next()
+                if result:
+                    messages.append(result)
+                else:
+                    break
         except socket.error as Error:
-            print 'handle read socket error %s' % Error
             errno = Error[0]
-            if Error[0]==104:
-                self.handle_close(address)
-                return False
-            return True
-        
+            self.handle_close(address, 'Socket Error %s' % errno)
+            return False
+                            
         except PackageError:
-            print 'PackageError'
-            self.handle_close(address)
+            self.handle_close(address, 'PackageError')
             return False
             
         except StopIteration:
-            self.handle_close(address)
+            self.handle_close(address, 'Disconnect')
             return False
-            
         else:
-            if message:
-                self.read(address, [message])
-            return True
-            
+            if messages:
+                self.read(address, messages)
+                return True
+            else:
+                return True
             
         
     def handle_accept(self, stream):
@@ -152,8 +155,8 @@ class SocketServer(PollServer):
         finally:
             self.stop()
     
-    def handle_close(self, address):
-        print 'Closing %s' % address
+    def handle_close(self, address, message):
+        print 'Closing %s: %s' % (address, message)
         self.close(address)
         
         in_fileno, out_fileno = self.insocks[address].fileno(), self.outsocks[address].fileno()

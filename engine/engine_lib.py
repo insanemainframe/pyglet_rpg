@@ -268,10 +268,10 @@ class Mortal:
             shot = player.hit(self.damage)
             self.alive = self.alive_after_collission
             #
-            if isinstance(player, Guided):
-                
+            striker = game.players[self.striker]
+            if isinstance(striker, Guided):
                 if shot:
-                    game.players[self.striker].plus_kills()
+                    striker.plus_kills()
 
 ####################################################################
 

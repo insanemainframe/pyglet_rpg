@@ -77,41 +77,54 @@ def receive(channel):
     return data
 
 def receivable(channel):
-    "корути получающий данные из сокета"
+    "генератор получающий данные из сокета, возвращает пакет данных или None если считывать больше нечего"
     while 1:
+        print 'reading package'
         #получаем размер из канала
         while 1:
+            print 'reading size'
             try:
                 size = channel.recv(struct.calcsize("L"))
+                
             except socket_error as Error:
-                if Error[0]!=11:
-                    print 'socket error', Error
-                    raise Error
+                errno = Error[0]
+                print '90 eror %s' % errno
+                if errno==11:
+                    print '94 socket error #', str(errno)
+                    yield None
+                else:
+                    print '97 socket error#', str(errno)
+                    raise Error()
+                print 'end except'
             else:
-                break
-        
+                if not size:
+                    raise StopIteration
+                else:
+                    break
+        print 'receiving package'
         #преобразуем размер
         try:
             size = ntohl(struct.unpack("L", size)[0])
         except struct.error, e:
-            LOG.error('protocol_lib.receive struct error %s size %s' % (e,size))
+            #в случае ошибки конвертации размера
+            print 'protocol_lib.receive struct error %s size %s' % (e,size)
             raise PackageError
         
         else:
             #получаем пакет данных
-            first = True
             data = ''
             while len(data)<size:
                 try:
                     data+=channel.recv(size - len(data))
                 except socket_error as Error:
-                    if Error[0]!=11:
-                        raise Error
-                else:
-                    if not first:
+                    if Error[0]==11:
+                        print '116 error 11'
                         yield None
+                        
                     else:
-                        first = False
+                        raise Error
+            print 'package received'
+
             yield data
             data = None
             

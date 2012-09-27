@@ -38,7 +38,7 @@ class GameServer(SocketServer, GameEngine, AskHostname, Packer):
 
     def accept(self, client):
         "вызывается при подключении клиента"
-        print 'accept player %s' % client
+        print 'accept client %s' % client
         self.client_list.add(client)
         self.client_requestes[client] = []
         self.client_responses[client] = []
@@ -52,7 +52,6 @@ class GameServer(SocketServer, GameEngine, AskHostname, Packer):
             self.client_requestes[client].append(request)
     
     def close(self, client):
-        print 'server close %s' % str(client)
         self.client_list.remove(client)
         self.handle_quit(client)
         del self.client_requestes[client]

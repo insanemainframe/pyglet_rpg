@@ -205,7 +205,8 @@ class Drawable(GameWindow):
                     self.counter[tilename]+=1
                     
             elif sptite_type=='label':
-                shift = self.center
+                height = self.tiledict['player'].height
+                shift =  Point(0, height/2)
                 x,y = (position-shift).get()
                 pyglet.text.Label(tilename,
                           font_name='Times New Roman',
