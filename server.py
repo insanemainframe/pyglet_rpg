@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from engine.engine import Game
+from engine.engine import GameEngine
 from share.protocol_lib import Packer
 
 from share.ask_hostname import AskHostname
@@ -13,7 +13,7 @@ from config import PROFILE_SERVER, HOSTNAME
 from share.logger import SERVERLOG as LOG
 
 
-class GameServer(SocketServer, Game, AskHostname, Packer):
+class GameServer(SocketServer, GameEngine, AskHostname, Packer):
     hostname = None
     client_requestes = {}
     client_responses = {}
@@ -21,7 +21,7 @@ class GameServer(SocketServer, Game, AskHostname, Packer):
     def __init__(self):
         AskHostname.__init__(self, HOSTNAME)
         SocketServer.__init__(self)
-        Game.__init__(self)
+        GameEngine.__init__(self)
         Packer.__init__(self)
     
     def timer_handler(self):

@@ -55,11 +55,22 @@ class wrappers:
 
 #####################################################################
 class GameObject:
-    REMOVE = False            
-    alive = True
     def __init__(self, name, position):
         self.name = name
-        self.position = position
+        self._position = position
+        self._prev_position = position
+        self.REMOVE = False            
+        self.alive = True
+    
+    @property
+    def position(self):
+        return self._position
+    
+    @position.setter
+    def position_set(self, position):
+        self._prev_position = self._position
+        self._position  = position
+    
     
     def handle_action(self, action, args):
         if hasattr(self, action):
@@ -111,6 +122,7 @@ class Solid(GameObject):
     
     def collission(self, player):
         pass
+
 #####################################################################
 
 class MapObserver(MapTools):
@@ -142,8 +154,8 @@ class MapObserver(MapTools):
                     else:
                         looked.add((Point(i,j), tile_type))
                         observed.add((i,j))
-                        if (i,j) in game.updates:
-                            for uid, (name, object_type, position, action, args) in game.updates[(i,j)]:
+                        if (i,j) in game.events:
+                            for uid, (name, object_type, position, action, args) in game.events[(i,j)]:
                                 if name==self.name:
                                     object_type = 'Self'
                                 new_updates[uid] = (name, object_type, position, action, args)
@@ -191,11 +203,14 @@ class Deadly:
 
     
     def hit(self, hp):
-        self.hp-=hp
-        if self.hp<=0:
-            self.die()
-            self.hp = self.hp_value
-            return True
+        if self.alive:
+            self.hp-=hp
+            if self.hp<=0:
+                self.die()
+                self.hp = self.hp_value
+                return True
+            else:
+                return False
         else:
             return False
     
@@ -251,9 +266,12 @@ class Mortal:
     def collission(self, player):
         if player.fraction!=self.fraction:
             shot = player.hit(self.damage)
-            if shot:
-                game.players[self.striker].plus_kills()
             self.alive = self.alive_after_collission
+            #
+            if isinstance(player, Guided):
+                
+                if shot:
+                    game.players[self.striker].plus_kills()
 
 ####################################################################
 

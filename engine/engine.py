@@ -14,7 +14,7 @@ from game_objects import *
 from config import *
 
 #####################################################################
-class Game:
+class GameEngine:
     "класс игры"
     monster_count = 0
     def __init__(self):
@@ -78,7 +78,7 @@ class Game:
         for name, player in game.guided_players.items():
             messages[name] = player.handle_response()
 
-        game.updates.clear()
+        game.clear_events()
         return messages
     
     def detect_collisions(self):

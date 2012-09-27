@@ -1,8 +1,8 @@
 python client-server rpg
 
-DEPENDING:
+REQUIRMENTS:
 
-    server: python2.7, linux or windows with pyevent (http://code.google.com/p/pyevent/downloads/list)
+    server: python2.7, Linux. Or Windows with pyevent (http://code.google.com/p/pyevent/downloads/list)
 
     client: python 2.7, python-pyglet (http://pyglet.org/download.html)
 
@@ -28,30 +28,39 @@ CONTROL:
 
 FILES:
 
-client.py - game client
+    client.py - game client
 
-server.py - game server
+    server.py - game server
 
-mapgen.py - map loading and generation(future)
-config.py - game configuration
+    mapgen.py - map loading and generation(future)
+    config.py - game settings
 
-game_lib/
+share/
 
-	ask_hostname.py - asking hostname when server or client running
-
-	engine_lib.py - game-objects classes
-
-	engine.py - main game engie class
+    ask_hostname.py - asking hostname when server or client running
     
-    game_protocol.py  - packaging/unpackaging game messages
+    mathlib.py - point class
     
-    game.py - game engine share state
+    protocol_lib.py - data sending/receiving, packing/unpacking
     
-    map_lib.py - map tools
+    game_protocol.py -  methods of game protocol 
+    
+engine/
 
-	math_lib.py - math, algorithms
+    engine.py - main game engine class
     
-    protocol_lib.py - data packaging and exhange
+    game.py - game engine modules share state
+	
+	engine_lib.py - base game-objects classes
+    
+    game_objects/ - game-objects classes
+	
+
+    maplib.py - map tools
+
+	mathlib.py - math, algorithms
+    
+
     
 clientside/
 
@@ -68,3 +77,9 @@ serverside/
 
 	server_lib.py - socket server
 
+tools/
+
+    clean.sh - remove *.pyc files
+    
+    profile_server.py/profile_client.py - print profile stats sorted by key
+    

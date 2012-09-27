@@ -10,48 +10,43 @@ path.append('../')
 from config import *
 
 from share.mathlib import Point, NullPoint
-from mapgen import load_map
+from maplib import World
 
 from engine_lib import Solid, Guided
 
-class World:
-    "класс карты как со стороны ссервера"
-    def __init__(self):
-        World.map, World.size = load_map()
-        print 'server world size',World.size
-
-
-players = {}
-solid_objects = {}
-guided_players = {}
-
-world = World()
-size = world.size
-    
-updates = defaultdict(list)
-update_counter = 0
-ball_counter = 0
 
 
 class UnknownAction(Exception):
     pass
 
+players = {}
+
+solid_objects = {}
+guided_players = {}
+
+events = defaultdict(list)
+event_counter = 0
+ball_counter = 0
+
+world = World()
+size = world.size
+
 
 def add_event(name, position, altposition, action, args=[]):
-    global update_counter
+    global event_counter
     if action:
-        uid = update_counter
-        update_counter += 1
+        uid = event_counter
+        event_counter += 1
         map_position = (position/TILESIZE).get()
         object_type = players[name].__class__.__name__
         
-        update = (uid, (name, object_type, position, action, args))
+        event = (uid, (name, object_type, position, action, args))
             
-        updates[map_position].append(update)
+        events[map_position].append(event)
         
         if altposition:
             alt_key = (altposition/TILESIZE).get()
-            updates[alt_key].append(update)
+            events[alt_key].append(event)
 
 def new_object(player):
     "ововестить всех о новом объекте"
@@ -61,6 +56,7 @@ def new_object(player):
     #добавляем обновление
     key = (player.position/TILESIZE).get()
     add_event(player.name, player.position, False, 'exist', [NullPoint.get()])
+
 
 def new_object_proxy(player):
     if isinstance(player, Guided):
@@ -99,6 +95,9 @@ def clear():
         for name in remove_list:
             remove_object(name)
 
+def clear_events():
+    events.clear()
+
 def remove_object(name, force = False):
     result = players[name].remove()
     if result or force:
@@ -107,3 +106,4 @@ def remove_object(name, force = False):
         del players[name]
     else:
         players[name].REMOVE = False
+
