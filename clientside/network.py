@@ -40,17 +40,14 @@ class SocketClient:
         self.out_messages.append(message)
     
     def handle_read(self):
-        mess_count = 0
         while 1:
             message = self.generator.next()
             if message:
-                mess_count+=1
                 if self.accept_message:
                     self.read(message)
                 else:
                     self.accept_(message)
             else:
-                print mess_count
                 break
 
 
