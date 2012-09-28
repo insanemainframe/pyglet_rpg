@@ -111,6 +111,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats):
     
     @wrappers.alive_only()
     def Move(self, vector):
+        print 'player/move'
         Movable.move(self, vector)
     
     def Look(self):

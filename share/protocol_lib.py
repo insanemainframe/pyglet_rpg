@@ -3,7 +3,8 @@
 
 import struct
 from socket import htonl, ntohl, error as socket_error
-from marshal import loads as marshal_loads, dumps as marshal_dumps
+#from marshal import loads as marshal_loads, dumps as marshal_dumps
+from json import loads as marshal_loads, dumps as marshal_dumps
 
 from zlib import compress, decompress
 
@@ -76,32 +77,27 @@ def receive(channel):
                 return ''
     return data
 
+
 def receivable(channel):
     "генератор получающий данные из сокета, возвращает пакет данных или None если считывать больше нечего"
     while 1:
-        print 'reading package'
         #получаем размер из канала
         while 1:
-            print 'reading size'
             try:
                 size = channel.recv(struct.calcsize("L"))
                 
             except socket_error as Error:
                 errno = Error[0]
-                print '90 eror %s' % errno
                 if errno==11:
-                    print '94 socket error #', str(errno)
                     yield None
                 else:
-                    print '97 socket error#', str(errno)
+                    print 'receivable socket error#', str(errno)
                     raise Error()
-                print 'end except'
             else:
                 if not size:
                     raise StopIteration
                 else:
                     break
-        print 'receiving package'
         #преобразуем размер
         try:
             size = ntohl(struct.unpack("L", size)[0])
@@ -118,12 +114,10 @@ def receivable(channel):
                     data+=channel.recv(size - len(data))
                 except socket_error as Error:
                     if Error[0]==11:
-                        print '116 error 11'
                         yield None
                         
                     else:
                         raise Error
-            print 'package received'
 
             yield data
             data = None
@@ -197,7 +191,7 @@ class Packer:
         try:
             data = loads(data)
         except Exception as Error:
-            raise MarshalError(Error, data)
+            raise MarshalError(Error, 'unknown', data)
         else:
             method, data = data
             if method in self.method_handlers:

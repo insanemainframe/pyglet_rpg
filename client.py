@@ -4,7 +4,7 @@ import pyglet
 
 from math import hypot
 from sys import exit
-from collections import defaultdict, Counter
+from collections import defaultdict
 
 from share.mathlib import *
 from share.ask_hostname import AskHostname
@@ -133,11 +133,11 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, pyglet
         
     def on_draw(self):
         "прорисовка спрайтов"
+        #очищаем экран
+        self.clear()
         #включаем отображение альфа-канала
         self.enable_alpha()
         
-        #очищаем экран
-        self.clear()
         if self.accepted:
             self.land.draw()
             self.objects.draw()
@@ -153,7 +153,6 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, pyglet
         self.put_message(pack(name, 'client_accept'))
     
     def on_close(self):
-        print self.land.counter
         self.close_connection()
         exit()
 

@@ -18,10 +18,10 @@ class GameEngine:
     "класс игры"
     monster_count = 0
     def __init__(self):
-        #self.create_monsters(10, Zombie)
-        #self.create_monsters(5, Lych)
-        #self.create_monsters(5, Ghast)
-        pass
+        self.messages = {}
+        self.create_monsters(10, Zombie)
+        self.create_monsters(5, Lych)
+        self.create_monsters(5, Ghast)
         
     
     def create_monsters(self, n, monster_type):
@@ -31,8 +31,9 @@ class GameEngine:
             self.monster_count+=1
             game.new_object(monster)
             
-    def handle_connect(self, name):
+    def game_connect(self, name):
         "создание нового игрока"
+        print 'New player %s' % name
         position = game.choice_position(Player)
         new_player = Player(name, position , 7)
         game.new_object(new_player)
@@ -42,18 +43,21 @@ class GameEngine:
         looked, observed, updates = new_player.look()
         #уже существующие объекты
         message = (world_size, new_player.position, looked, observed, updates, [])
-        return (message, 'ServerAccept')
+        #оставляем сообщение о подключении
+        self.messages[name] = [('ServerAccept', message)]
     
-    def handle_requests(self, messages):
+    def game_requests(self, messages):
         "совершаем действия игроками, возвращает векторы игрокам и устанавливает обновления"
-        for name, player in game.guided_players.items():            
-            for action, message in messages[name]:
-                    try:
-                        player.handle_action(action, message)
-                    except ActionDenied:
-                        pass
+        for name, player in game.guided_players.items():     
+            if name in messages:
+                for action, message in messages[name]:
+                        try:
+                            print 'game requests action %s' % self.round_n
+                            player.handle_action(action, message)
+                        except ActionDenied:
+                            pass
     
-    def handle_middle(self):
+    def game_middle(self):
         "запускается между обработкой запросов и ответов"
         for player in game.players.values():
             #если игрок не отправлял действий, то вызываем метод update
@@ -69,19 +73,23 @@ class GameEngine:
 
                     
             
-    def handle_responses(self):
+    def game_responses(self):
         "смотрим"
-        messages = {}
         #подготавливаем обновления для выборочного обзора
+        messages = {}
         for name, player in game.guided_players.items():
-            messages[name] = player.handle_response()
+            messages[name] = self.messages[name]
+            self.messages[name] = []
+            messages[name].extend(player.handle_response())
 
         game.clear_events()
         return messages
     
 
     
-    def handle_quit(self, name):
+    def game_quit(self, name):
+        print '%s quit' % name
+        del self.messages[name]
         game.remove_object(name, True)
                 
     

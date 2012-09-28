@@ -4,7 +4,7 @@ import socket, sys, os, select
 from sys import path
 path.append('../')
 
-from share.protocol_lib import Packer, send, receive
+from share.protocol_lib import Packer, send, receivable
 from share.mathlib import *
 
 from config import HOSTNAME, IN_PORT, OUT_PORT, TILESIZE
@@ -16,7 +16,7 @@ class SocketClient:
         self.buff = ''
         self.outsock, self.out_fileno = self.create_sock(IN_PORT)
         self.insock, self.in_fileno = self.create_sock(OUT_PORT)
-        #self.generator = receivable(self.insock)
+        self.generator = receivable(self.insock)
         self.out_messages = []
         self.in_messages = []        
         
@@ -40,12 +40,18 @@ class SocketClient:
         self.out_messages.append(message)
     
     def handle_read(self):
-        data = receive(self.insock)
-        if data:
-            if self.accept_message:
-                self.read(data)
+        mess_count = 0
+        while 1:
+            message = self.generator.next()
+            if message:
+                mess_count+=1
+                if self.accept_message:
+                    self.read(message)
+                else:
+                    self.accept_(message)
             else:
-                self.accept_(data)
+                print mess_count
+                break
 
 
     def socket_loop(self):
@@ -91,12 +97,11 @@ class Client(SocketClient, Packer):
 
     def wait_for_accept(self):
         print 'waiting for acception'
-        self.socket_loop()
-        if self.accept_message:
-            print 'accepted'
-            return self.accept_message
-        else:
-            return False
+        while 1:
+            self.socket_loop()
+            if self.accept_message:
+                print 'accepted'
+                return self.accept_message
 
     def accept_(self, message):
         action, message = self.unpack(message)

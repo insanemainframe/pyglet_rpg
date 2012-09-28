@@ -2,60 +2,102 @@
 # -*- coding: utf-8 -*-
 from engine.engine import GameEngine
 from share.protocol_lib import Packer
-
 from share.ask_hostname import AskHostname
-
 from serverside.server_lib import SocketServer
-
-
 
 from config import PROFILE_SERVER, HOSTNAME
 from share.logger import SERVERLOG as LOG
 
+from threading import RLock
 
-class GameServer(SocketServer, GameEngine, AskHostname, Packer):
+class GameServer(SocketServer, AskHostname, Packer):
     hostname = None
     client_requestes = {}
     client_responses = {}
     client_list = set()
+    
     def __init__(self):
         AskHostname.__init__(self, HOSTNAME)
         SocketServer.__init__(self)
-        GameEngine.__init__(self)
         Packer.__init__(self)
+        
+        self.new_clients_lock = RLock()
+        self.new_clients = []
+        
+        self.closed_clients_lock = RLock()
+        self.closed_clients = []
+        
+        self.round_n = 1
+    
+    def timer_init(self):
+        with self.engine_lock:
+            self.game = GameEngine()
+            self.game.round_n = self.round_n
     
     def timer_handler(self):
-        self.handle_requests(self.client_requestes)
-        self.client_requestes = {client: [] for client in self.client_list}
-        self.handle_middle()
-        look =  self.handle_responses()
-        for name, messages in look.items():
+        "обращается к движку по расписанию"
+        self.round_n+=1
+        self.game.round_n = self.round_n
+        #смотрим новых клиентов
+        with self.new_clients_lock:
+            new_clients = self.new_clients
+            self.new_clients = []
+        for new_client in new_clients:
+            self.game.game_connect(new_client)
+        #смотрим отключившихся клиентов
+        with self.closed_clients_lock:
+            closed_clients = self.closed_clients
+            self.closed_clients = []
+        for closed_client in closed_clients:
+            self.game.game_quit(closed_client)
+        
+        #смотрим новые запросы
+        with self.server_lock:
+            client_requestes = self.client_requestes
+            self.client_requestes = {client: [] for client in self.client_list}
+        #отправляем запросы движку
+        self.game.game_requests(client_requestes)
+        #обновляем движок
+        self.game.game_middle()
+        #получаем ответы от движка
+        responses =  self.game.game_responses()
+        #print 'responses from game %s' % self.round_n
+        #вставляем ответы в очередь сокет-сервера
+        for name, messages in responses.items():
             responses = [self.pack(response, action) for action, response in messages]
             self.put_messages(name, responses)
-        self.handle_write()
-        return True
+        
+        
         
 
     def accept(self, client):
         "вызывается при подключении клиента"
         print 'accept client %s' % client
-        self.client_list.add(client)
-        self.client_requestes[client] = []
-        self.client_responses[client] = []
-        message = self.pack(*self.handle_connect(client))
-        self.put_messages(client, [message])
+        with self.server_lock:
+            self.client_list.add(client)
+            self.client_requestes[client] = []
+            self.client_responses[client] = []
+        
+        with self.new_clients_lock:
+            self.new_clients.append(client)
+        
+       
 
     
-    def read(self, client, messages):
-        for message in messages:
-            request = self.unpack(message)
+    def read(self, client, message):
+        request = self.unpack(message)
+        with self.server_lock:
+            print 'read %s' % self.round_n
             self.client_requestes[client].append(request)
     
     def close(self, client):
         self.client_list.remove(client)
-        self.handle_quit(client)
-        del self.client_requestes[client]
-        del self.client_responses[client]
+        with self.closed_clients_lock:
+           self.closed_clients.append(client)
+        
+        with self.server_lock:
+            del self.client_requestes[client]
+            del self.client_responses[client]
 
     def start(self):
         self.run()

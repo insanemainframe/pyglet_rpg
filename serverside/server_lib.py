@@ -4,12 +4,14 @@
 from sys import path; path.append('../')
 
 import socket
-from time import time
+import select
 
-from poll_lib import PollServer
+from time import sleep, time
+from threading import Thread, RLock
+from collections import namedtuple
 from share.protocol_lib import send, receivable, PackageError
-from config import IN_PORT, OUT_PORT, SERVER_TIMER, PROFILE_SERVER
 
+from config import *
 
 IN, OUT = 0,1
 PORTS = {IN:IN_PORT, OUT:OUT_PORT}
@@ -24,74 +26,92 @@ class SocketError:
         return 'SocketError: %s' %self.error
 
 #####################################################################
-class SocketServer(PollServer):
+client_tuple = namedtuple('client_tuple' ,('insock','outsock', 'generator'))
+
+class SocketServer:
     "получает/отправляет данные через сокеты"
     def __init__(self, timer_value=SERVER_TIMER, listen_num=10):
-        PollServer.__init__(self)
         self.listen_num = listen_num
-        self.timer_value = timer_value
         
         self.insock, self.in_fileno = self.create_socket(IN)
         self.outsock, self.out_fileno = self.create_socket(OUT)
-        self.insocks, self.outsocks = {}, {}
         
-        self.generators = {}
+        self.infilenos = {}
+        self.insocks = {}
         
         self.address_buf = {}
         
         self.responses = {}
-        self.requests = {}
         
+        self.clients = {}
         self.client_counter = 0
+        self.running = True
+        
+        self.closed = []
+        
+        self.server_lock = RLock() 
+        self.engine_lock = RLock() #блокровка для действий с движком т.е. game_connect, game_quit
+        self.responses_lock = RLock() #блокировка для действий с сокетсервером куызщтыуы куйгууыеуы
             
     def create_socket(self, stream):
+        "создает неблокирубщий сокет на заданном порте"
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.setblocking(0)
         sock.bind((self.hostname, PORTS[stream]))
         fileno = sock.fileno()
-        self.register_accept(fileno, stream)
         return sock, fileno
     
-    def put_messages(self, address, messages):
-        self.responses[address]+=messages
+    def put_messages(self, client_name, messages):
+        "добавить ответ в стек"
+        with self.responses_lock:
+            if client_name in self.responses:
+                self.responses[client_name]+=messages
+            else:
+                print 'key error in  put_messages'
     
-    def handle_write(self):
-        if self.responses:
-            for address in self.responses:
-                responses = self.responses[address]
-                for response in responses:
-                    self.send(address, response)
-                self.responses[address] = []
-    
-    def handle_read(self, address):
-        print 'handle read'
-        try:
-            messages = []
-            while 1:
-                result = self.generators[address].next()
-                if result:
-                    messages.append(result)
+    def write_to_all(self):
+        "послать ответы всем клиентам"
+        
+        with self.responses_lock:
+            to_write =  self.responses
+            self.responses = {client:[] for client in self.responses}
+        
+        for client_name, responses in to_write.items():
+            if responses:
+                #print 'write %s' % self.round_n
+                if client_name in self.clients:
+                    sock = self.clients[client_name].outsock
+                    for response in responses:
+                        send(sock, response)
                 else:
-                    break
+                    #print 'write to closed client'
+                    pass
+    
+    def handle_read(self, client_name):
+        "читает один пакет данных из сокета"
+        #print '\n handle read'
+        try:
+            message = self.clients[client_name].generator.next()
+
         except socket.error as Error:
+            #если возникла ошабка на сокете - закрываем"
             errno = Error[0]
-            self.handle_close(address, 'Socket Error %s' % errno)
-            return False
+            self.handle_close(client_name, 'Socket Error %s' % errno)
                             
         except PackageError:
-            self.handle_close(address, 'PackageError')
-            return False
+            #если возникла ошабка в пакете - закрываем"
+            self.handle_close(client_name, 'PackageError')
             
         except StopIteration:
-            self.handle_close(address, 'Disconnect')
-            return False
+            #если клиент отключился"
+            self.handle_close(client_name, 'Disconnect')
         else:
-            if messages:
-                self.read(address, messages)
-                return True
-            else:
-                return True
+            if message:
+                self.read(client_name, message)
+        
+                
+            
             
         
     def handle_accept(self, stream):
@@ -112,7 +132,6 @@ class SocketServer(PollServer):
         
         if address not in self.address_buf:
             self.address_buf[address] = conn
-            return True
         else:
             if stream==IN:
                 insock = conn
@@ -123,60 +142,93 @@ class SocketServer(PollServer):
                  insock = self.address_buf[address]
                  
             del self.address_buf[address]
-            infileno = insock.fileno()
-            return self.accept_client(infileno, address,insock, outsock)   
+            
+            self.accept_client(insock, outsock)   
                  
-    def accept_client(self, fileno, sock_address, insock, outsock):
+    def accept_client(self, insock, outsock):
         "регистрация клиента, после того как он подключился к обоим сокетам"
-        address = 'plaayer_%s' % self.client_counter
+        client_name = 'player_%s' % self.client_counter
         self.client_counter+=1
-        self.insocks[address] = insock
-        self.generators[address] = receivable(insock)
-        self.outsocks[address] = outsock
-        in_fileno, out_fileno = self.insocks[address].fileno(), self.outsocks[address].fileno()
         
-        self.requests[address] = []
-        self.responses[address] = []
+        self.clients[client_name] = client_tuple(insock,outsock, receivable(insock))
         
-        print 'accepting_client %s' % address
-        #регистрируем
-        self.register_read(in_fileno, address)
-        self.register(address, in_fileno, out_fileno)
+        self.infilenos[insock.fileno()] = client_name
+        
+
+        
+        with self.responses_lock:
+            self.responses[client_name] = []
+        
+        print 'accepting_client %s' % client_name
+
         #реагируем на появление нового клиента
-        self.accept(address)
-        return True
+        with self.server_lock:
+            self.accept(client_name)
+        
+    def timer_thread(self):
+        "отдельный поток для обращения к движку и рассылке ответов"
+        t = time()
+        while self.running:
+            self.timer_handler()
+            self.write_to_all()
+            delta = time()-t
+            timeout = SERVER_TIMER - delta if delta<SERVER_TIMER else 0
+            t = time()
+            sleep(timeout)
 
     def run(self):
-        print 'Server running at %s:(%s,%s) with %s' % (self.hostname, IN_PORT, OUT_PORT, self.poll_engine)
+        print 'Server running at %s:(%s,%s)' % (self.hostname, IN_PORT, OUT_PORT)
         self.insock.listen(self.listen_num)
         self.outsock.listen(self.listen_num)
+        #
+        self.timer_init()
+        thread = Thread(target=self.timer_thread)
+        thread.start()
+        #
         try:
-            self.run_poll()
+            self.poll()
         finally:
             self.stop()
+
+    def poll(self):
+        "ожидание входящих пакетов с совкетов, обработка новых подключений"
+        while 1:
+            #смотрим новые подключения и на чтение
+            insocks = [client.insock for client in self.clients.values()]
+            timeout = SERVER_TIMER*1.5  #- (time()-t)
+            events = select.select([self.insock,self.outsock]+insocks,[],[],timeout)[0]
+            for sock in events:
+                fileno = sock.fileno()
+                if fileno==self.in_fileno:
+                    self.handle_accept(IN)
+                elif fileno==self.out_fileno:
+                    self.handle_accept(OUT)
+                else:
+                    client_name = self.infilenos[fileno]
+                    self.handle_read(client_name)
     
-    def handle_close(self, address, message):
-        print 'Closing %s: %s' % (address, message)
-        self.close(address)
+    def handle_close(self, client_name, message):
+        "закрытие подключения"
+        print 'Closing %s: %s' % (client_name, message)
         
-        in_fileno, out_fileno = self.insocks[address].fileno(), self.outsocks[address].fileno()
+        with self.server_lock:
+            self.close(client_name)
         
-        self.insocks[address].close()
-        del self.insocks[address]
-        self.outsocks[address].close()
-        del self.outsocks[address]
+        infileno = self.clients[client_name].insock.fileno()
         
-        del self.requests[address]
-        del self.responses[address]
-       
-        return self.unregister(address, in_fileno, out_fileno)
-    
-    def handle_error(self, error, address):
-        print '%s handle error %s' % (address, error)
-        self.handle_close(address)
-    
+        del self.infilenos[infileno]
+        
+        self.clients[client_name].insock.close()
+        self.clients[client_name].outsock.close()
+        del  self.clients[client_name]
+
+        
+        with self.responses_lock:
+            del self.responses[client_name]
+        
     def stop(self):
-        self.stop_poll()
+        "сотановка сервера"
+        self.running = False
         self.insock.close()
         self.outsock.close()
         print('Stopped')
@@ -187,12 +239,7 @@ class SocketServer(PollServer):
             stats.sort_stats('cumulative')
             stats.print_stats()
     
-    def send(self, address, data):
-        sock = self.outsocks[address]
-        send(sock,data)
+
         
-    def receive(self, address):
-        sock = sock = self.insocks[address]
-        return receive(sock)
 
 

@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 #POLLING LAYER
 #классы для работы с событиями сокетов и таймеров
-#
+from sys import path; path.append('../')
+
+from config import *
 #####################################################################
 #EVENT poller
 class EventServer:
@@ -28,6 +30,7 @@ class EventServer:
         event.timeout(self.timer_value, self.timer_handler)
         event.dispatch()
 #####################################################################
+
 ####EPOLLL poller
 class EpollServer:
     poll_engine = 'linux epoll'
