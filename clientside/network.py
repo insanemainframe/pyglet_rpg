@@ -91,12 +91,11 @@ class Client(SocketClient, Packer):
 
     def wait_for_accept(self):
         print 'waiting for acception'
-        self.socket_loop()
-        if self.accept_message:
-            print 'accepted'
-            return self.accept_message
-        else:
-            return False
+        while 1:
+            self.socket_loop()
+            if self.accept_message:
+                print 'accepted'
+                return self.accept_message
 
     def accept_(self, message):
         action, message = self.unpack(message)

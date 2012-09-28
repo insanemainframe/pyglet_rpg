@@ -3,8 +3,9 @@
 
 import struct
 from socket import htonl, ntohl, error as socket_error
-from marshal import loads as marshal_loads, dumps as marshal_dumps
 
+from marshal import loads as marshal_loads, dumps as marshal_dumps
+from json import loads as marshal_loads, dumps as marshal_dumps
 from zlib import compress, decompress
 
 from share.logger import PROTOCOLLOG as LOG
