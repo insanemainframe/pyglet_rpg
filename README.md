@@ -2,9 +2,9 @@ python client-server rpg
 
 REQUIRMENTS:
 
-    server: python2.7, Linux. Or Windows with pyevent (http://code.google.com/p/pyevent/downloads/list)
+    server: python2.7
 
-    client: python 2.7, python-pyglet (http://pyglet.org/download.html)
+    client: python 2.6>= python-pyglet (http://pyglet.org/download.html)
 
 RUN:
 
@@ -25,12 +25,16 @@ CONTROL:
     left mouse click or arrow keys(with right shift for acceleration) for move
 
     right mouse click for shooting
+    
+    SPACE for special ability
 
 FILES:
 
     client.py - game client
 
     server.py - game server
+    
+    bot.py [number] - bots for testig server
 
     mapgen.py - map loading and generation(future)
     config.py - game settings
