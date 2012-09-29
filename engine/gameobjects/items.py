@@ -24,6 +24,7 @@ class Item(StaticObject, Solid):
         pass
     
     def remove(self):
+        StaticObject.remove(self)
         return True
 
 class Explodable:
@@ -47,12 +48,13 @@ class Ball(Temporary, Explodable, Solid, Movable,GameObject, Fragile, Mortal, Di
     speed = 60
     BLOCKTILES = ['stone', 'forest']
     explode_time = 7*3
+    alive_after_collission = False
     def __init__(self, name, position, direct, fraction, striker, damage = 2):
         GameObject.__init__(self, name, position)
         Movable.__init__(self, self.speed)
         Temporary.__init__(self, 10)
         Explodable.__init__(self, self.explode_time)
-        Mortal.__init__(self, damage)
+        Mortal.__init__(self, damage, self.alive_after_collission)
         DiplomacySubject.__init__(self, fraction)
         one_step = Point(self.speed, self.speed)
         self.direct = direct*(abs(one_step)/abs(direct))
@@ -90,6 +92,11 @@ class DarkBall(Ball):
     radius = TILESIZE/3
     speed = 30
     
+class SkillBall(Ball):
+    radius = TILESIZE
+    speed = 70
+    alive_after_collission = True
+
 
 class Corpse(StaticObject, Temporary):
     "кости остающиеся после смерти живых игроков"
@@ -129,5 +136,6 @@ class Armor(Item):
         player.plus_hp(self.armor)
 
 class Sceptre(Item):
-    pass
+    def effect(self, player):
+        player.plus_skill()
     

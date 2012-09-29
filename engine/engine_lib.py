@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from share.mathlib import *
-from share.map import *
 from mathlib import *
-import game
 
-#
+from random import choice
 
 class UnknownAction(Exception):
     pass
@@ -29,7 +27,6 @@ class wrappers:
                 if self.alive:
                     return method(self, *args)
                 else:
-                    #print '%s mot alive' % self.name
                     if Class:
                         return getattr(Class, method.__name__)(self, *args)
             return wrap
@@ -54,11 +51,12 @@ class wrappers:
 
 
 #####################################################################
-class GameObject:
+class GameObject(object):
     def __init__(self, name, position):
         self.name = name
         self._position = position
-        self._prev_position = position
+        self._location = position/LOCATIONSIZE
+        self.prev_position = position
         self.REMOVE = False            
         self.alive = True
     
@@ -67,9 +65,11 @@ class GameObject:
         return self._position
     
     @position.setter
-    def position_set(self, position):
-        self._prev_position = self._position
+    def position(self, position):
+        self.prev_position = self._position
         self._position  = position
+        self._location = position/LOCATIONSIZE
+        game.move_object(self)
     
     
     def handle_action(self, action, args):
@@ -92,6 +92,7 @@ class GameObject:
     
     
     def remove(self):
+        self.add_event(self.position, NullPoint, 'remove', [])
         return True
     
     def handle_response(self):
@@ -103,7 +104,7 @@ class StaticObject(GameObject):
         GameObject.__init__(self, name, position)
     
     def update(self):
-        self.add_event(self.position, NullPoint, 'exist', [])
+        pass
 
     
     def complete_round(self):
@@ -112,11 +113,11 @@ class StaticObject(GameObject):
 
 
 
-class Guided(GameObject):
+class Guided():
     "управляемый игроком объекта"
     pass
 
-class Solid(GameObject):
+class Solid():
     def __init__(self, radius):
         self.radius = radius
     
@@ -125,64 +126,13 @@ class Solid(GameObject):
 
 #####################################################################
 
-class MapObserver(MapTools):
-    "класс объекта видящего карту"
-    prev_looked = set()
-    prev_observed = set()
-    def __init__(self, look_size):
-        MapTools.__init__(self, game.size, game.size)
-        self.look_size = look_size
-    def look(self):
-        "возвращает список координат видимых клеток из позиции position, с координаами относительно начала карты"
-        position = self.position
-        rad = self.look_size
-        I,J = (position/TILESIZE).get()
-        #
-        new_updates = {}
-        #
-        observed = set()
-        looked = set()
-        for i in xrange(I-rad, I+rad):
-            for j in xrange(J-rad, J+rad):
-                diff = hypot(I-i,J-j) - rad
-                if diff<0:
-                    i,j = self.resize(i), self.resize(j)
-                    try:
-                        tile_type = game.world.map[i][j]
-                    except IndexError, excp:
-                        pass
-                    else:
-                        looked.add((Point(i,j), tile_type))
-                        observed.add((i,j))
-                        if (i,j) in game.events:
-                            for uid, (name, object_type, position, action, args) in game.events[(i,j)]:
-                                if name==self.name:
-                                    object_type = 'Self'
-                                new_updates[uid] = (name, object_type, position, action, args)
 
-        new_looked = looked - self.prev_looked
-        self.prev_looked = looked
-        self.prev_observed = observed
-        return new_looked, observed, new_updates
+        
     
 
 ####################################################################
 
-class Stalker:
-    "объекты охотящиеся за игроками"
-    def __init__(self, look_size):
-        self.look_size = look_size
-    
-    def hunt(self, inradius = False):
-        for player in game.players.values():
-            if isinstance(player, Guided) and player.alive:
-                distance = player.position - self.position
-                if inradius:
-                    if abs(distance/TILESIZE)<self.look_size:
-                        return player.position - self.position
-                else:
-                    return player.position - self.position
-        return None
+
         
 class Deadly:
     "класс для живых объектов"
@@ -265,13 +215,15 @@ class Mortal:
     @wrappers.player_filter(Deadly)
     def collission(self, player):
         if player.fraction!=self.fraction:
-            shot = player.hit(self.damage)
+            prev_state = player.alive
+            player.hit(self.damage)
             self.alive = self.alive_after_collission
             #
-            striker = game.players[self.striker]
-            if isinstance(striker, Guided):
-                if shot:
-                    striker.plus_kills()
+            if self.striker in game.players:
+                striker = game.players[self.striker]
+                if isinstance(striker, Guided):
+                    if prev_state and not player.alive:
+                        striker.plus_kills()
 
 ####################################################################
 
@@ -288,7 +240,7 @@ class Respawnable:
         self.position = new_position
         self.add_event(self.prev_position, NullPoint, 'remove')
         self.add_event(self.position, NullPoint, 'move', [NullPoint.get()])
-        self.respawn_message = 'Respawn', self.position
+        self.respawn_message = 'Respawn', [self.position]
         self.alive = True
         self.respawned = True
         self.spawn()
@@ -314,32 +266,6 @@ class Temporary:
         if self.lifetime<=0:
             self.REMOVE = True
 
-class Striker:
-    def __init__(self, strike_speed, shell, damage):
-        self.strike_shell = shell
-        self.strike_counter = 0
-        self.strike_speed = strike_speed
-        self.damage = damage
-    
-    @wrappers.alive_only()
-    def strike_ball(self, vector):
-        if self.strike_counter==0:
-            ball_name = 'ball%s' % game.ball_counter
-            game.ball_counter+=1
-            ball = self.strike_shell(ball_name, self.position, vector, self.fraction, self.name, self.damage)
-            game.new_object(ball)
-            self.strike_counter+=self.strike_speed
-    
-    def plus_damage(self, damage):
-        self.damage+=damage
-            
-    def update(self):
-        if self.strike_counter>0:
-            self.strike_counter -=1
-    
-    def complete_round(self):
-        self.striked = False
-
-from random import choice
 
 
+from game import game

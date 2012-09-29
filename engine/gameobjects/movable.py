@@ -3,7 +3,7 @@
 #
 from share.mathlib import *
 from engine.engine_lib import *
-from math import hypot, ceil,floor
+from math import hypot
 
 from config import *
 
@@ -86,12 +86,13 @@ class Movable:
     @wrappers.alive_only()
     def move(self, vector=NullPoint):
         if not self.moved:
-            
             #если вектор на входе определен, до определяем вектор движения объекта
             if vector:
                 self.vector = vector
             #если вектор движения не достиг нуля, то продолжить движение
+            
             if self.vector:
+                
                 #проверка столкновения
                 part = self.speed / abs(self.vector) # доля пройденного пути в векторе
                 move_vector = self.vector * part if part<1 else self.vector
@@ -105,7 +106,7 @@ class Movable:
             else:
                 self.move_vector = self.vector
             self.prev_position = self.position
-            self.position+=self.move_vector
+            self.position = self.position+self.move_vector
             
             self.moved = True
             
@@ -119,16 +120,22 @@ class Movable:
         resist = 1
         crossed = get_cross(self.position, move_vector)
         for (i,j), cross_position in crossed:
-            cross_tile =  game.world.map[i][j]
-            if cross_tile in self.BLOCKTILES:
-                move_vector = (cross_position - self.position)*0.99
+            if 0<i<game.world.size and 0<j<game.world.size:
+                cross_tile =  game.world.map[i][j]
+                if cross_tile in self.BLOCKTILES:
+                    move_vector = (cross_position - self.position)*0.99
+                    self.vector = move_vector
+                    #если объект хрупкий - отмечаем для удаления
+                    self.tile_collission(cross_tile)
+                    break
+                if cross_tile in self.SLOWTILES:
+                    resist = self.SLOWTILES[cross_tile]
+            else:
+                move_vector = NullPoint
                 self.vector = move_vector
-                #если объект хрупкий - отмечаем для удаления
-                self.tile_collission(cross_tile)
                 break
                 
-            if cross_tile in self.SLOWTILES:
-                resist = self.SLOWTILES[cross_tile]
+            
         move_vector *= resist
         return move_vector
     

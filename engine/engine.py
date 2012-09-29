@@ -7,7 +7,7 @@ path.append('../')
 from share.mathlib import *
 from share.map import *
 
-import game
+from game import game
 from engine_lib import *
 from game_objects import *
 
@@ -22,6 +22,7 @@ class GameEngine:
         self.create_monsters(10, Zombie)
         self.create_monsters(5, Lych)
         self.create_monsters(5, Ghast)
+        self.create_monsters(5, Cat)
         
     
     def create_monsters(self, n, monster_type):
@@ -40,9 +41,9 @@ class GameEngine:
         world_size = game.size
         #
         #обзор
-        looked, observed, updates = new_player.look()
+        looked, observed, events, static_objects, static_events = new_player.look()
         #уже существующие объекты
-        message = (world_size, new_player.position, looked, observed, updates, [])
+        message = (world_size, new_player.position, looked, observed, events, static_objects, static_events)
         #оставляем сообщение о подключении
         self.messages[name] = [('ServerAccept', message)]
     
@@ -52,7 +53,6 @@ class GameEngine:
             if name in messages:
                 for action, message in messages[name]:
                         try:
-                            print 'game requests action %s' % self.round_n
                             player.handle_action(action, message)
                         except ActionDenied:
                             pass

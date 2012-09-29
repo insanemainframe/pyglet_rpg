@@ -2,7 +2,7 @@
 from sys import path
 path.append('../')
 
-from math import hypot, ceil,floor
+from math import hypot
 
 
 from share.mathlib import *

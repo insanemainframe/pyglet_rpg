@@ -87,7 +87,7 @@ class GameServer(SocketServer, AskHostname, Packer):
     def read(self, client, message):
         request = self.unpack(message)
         with self.server_lock:
-            print 'read %s' % self.round_n
+            #print 'read %s' % self.round_n
             self.client_requestes[client].append(request)
     
     def close(self, client):

@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from random import choice, randrange
+from zlib import compress, decompress
+
 def generate(size):
     tileset =  [tile[:-4] for tile in listdir('data')]
     tileset.remove('player')
@@ -39,13 +41,13 @@ class Generator:
                     pass
     
 import os
-from cPickle import load, dump
+from cPickle import loads, dumps
 
 def load_map():
     map_file = 'data/map.data'
     if os.path.exists(map_file):
         mapfile = open(map_file,'r')
-        tmap = load(mapfile)
+        tmap = loads(decompress(mapfile.read()))
         mapfile.close()
         print 'map loaded from pickle'
         return tmap
@@ -72,6 +74,7 @@ def load_map():
         tilemap.append(row)
     print 'map loaded',size
     mapfile = open(map_file,'w')
-    dump((tilemap, size[0]), mapfile)
+    s = compress(dumps((tilemap, size[0])))
+    mapfile.write(s)
     mapfile.close()
     return tilemap, size[0]

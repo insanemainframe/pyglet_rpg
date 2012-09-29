@@ -1,45 +1,61 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import socket, sys, os, select
-from sys import path
-path.append('../')
+from config import HOSTNAME, IN_PORT, OUT_PORT, TILESIZE
 
 from share.protocol_lib import Packer, send, receivable
 from share.mathlib import *
 
-from config import HOSTNAME, IN_PORT, OUT_PORT, TILESIZE
+import socket, sys, os
+
+from select import select
+
+
 
 #####################################################################
+IN, OUT = 0,1
+PORTS = {IN:IN_PORT, OUT:OUT_PORT}
+
 class SocketClient:
     "класс работы с сокетами и селектом"
     def __init__(self):
         self.buff = ''
-        self.outsock, self.out_fileno = self.create_sock(IN_PORT)
-        self.insock, self.in_fileno = self.create_sock(OUT_PORT)
+        self.outsock, self.out_fileno = self.create_sock(IN)
+        
+        self.insock, self.in_fileno = self.create_sock(OUT)
+        #self.poller.register(self.in_fileno, EPOLLIN)
+        
         self.generator = receivable(self.insock)
+        
         self.out_messages = []
+        
         self.in_messages = []        
         
-    def create_sock(self, port):
+        
+    def create_sock(self, stream):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        print 'connect to %s:%s' % (self.hostname,port)
-        sock.connect((self.hostname,port))
+        print 'connect to %s:%s' % (self.hostname, PORTS[stream])
+        sock.connect((self.hostname, PORTS[stream]))
         sock.setblocking(0)
+        if stream==OUT:
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         fileno = sock.fileno()
         
         return sock, fileno
     
     def handle_write(self):
+        "отправляет ответы серверу из очереди"
         if self.out_messages:
             for message in self.out_messages:
                 send(self.outsock, message)
             self.out_messages = []
             
     def put_message(self, message):
+        "кладет ответ в очередь на отправку"
         self.out_messages.append(message)
     
     def handle_read(self):
+        "читает все пакеты, пока сокет доступен"
         while 1:
             message = self.generator.next()
             if message:
@@ -49,22 +65,18 @@ class SocketClient:
                     self.accept_(message)
             else:
                 break
-
+                
 
     def socket_loop(self):
         #input events
-        inevents , outevents, expevents = select.select([self.insock],[self.outsock],[])
+        inevents , outevents, expevents = select([self.insock],[self.outsock],[], 0.1)
         for fileno in inevents:
             try:
                 self.handle_read()
             except socket.error as Error:
-                self.handle_error(Error)
+                self.handle_close()
         #output events
-        for fileno in outevents:
-            try:
-                self.handle_write()
-            except socket.error as Error:
-                self.handle_error(Error)
+        self.handle_write()
        
     def close_connection(self):
         self.insock.close()
@@ -106,7 +118,7 @@ class Client(SocketClient, Packer):
             self.accept_message = message
         
     def send_move(self, vector):
-        message = self.pack(vector,'Move')
+        message = self.pack([vector],'Move')
         self.put_message(message)
         #предварительное движение
         if vector and not self.shift and not self.antilag:
@@ -120,7 +132,11 @@ class Client(SocketClient, Packer):
                 self.antilag = True
         
     def send_ball(self, vector):
-        message = self.pack(vector,'Strike')
+        message = self.pack([vector],'Strike')
+        self.put_message(message)
+    
+    def send_skill(self):
+        message = self.pack([],'Skill')
         self.put_message(message)
         
     def read(self, package):

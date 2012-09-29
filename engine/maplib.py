@@ -38,9 +38,20 @@ class Location:
         self.map = loc_map
         self.solid_objects = {}
         self.events = {}
+        self.static_objects = {}
+        self.static_events = {}
+    
+    def load_map(self):
+        pass
     
     def clear(self):
-        self.events = {}
+        self.events.clear()
+        self.static_events.clear()
+    
+    def add_player(self, player):
+        name = player.name()
+        self.players[name] = proxy(player)
+        
 
 
 
