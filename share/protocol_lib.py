@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import struct
 from socket import htonl, ntohl, error as socket_error
-
 from marshal import loads as marshal_loads, dumps as marshal_dumps
-from json import loads as marshal_loads, dumps as marshal_dumps
+#from json import loads as marshal_loads, dumps as marshal_dumps
+
 from zlib import compress, decompress
 
 from share.logger import PROTOCOLLOG as LOG
@@ -48,71 +47,57 @@ class ZlibError:
 def send(channel, data):
     try:
         value = htonl(len(data))
-        size = struct.pack("L",value)
+        size = struct.pack("!Q",value)
         channel.send(size)
         channel.send(data)
     except socket_error as Error:
         LOG.error('protocol_lib.send error %s' % Error)
     
 
-def receive(channel):
-    "получает пакет данных из сокета"
-    size = channel.recv(struct.calcsize("L"))
-    try:
-        size = ntohl(struct.unpack("L", size)[0])
-    except struct.error, e:
-        LOG.error('protocol_lib.receive struct error %s size %s' % (e,size))
-        return ''
-    
-    data = ""
-    while len(data) < size:
-        try:
-            data+=channel.recv(size - len(data))
-            
-        except socket_error as Error:
-            errno = Error[0]
-            if errno!=11:
-                LOG.error('protocol_lib.receive error %s' % Error)
-                self.handle_error(Error, address)
-                return ''
-    return data
 
 def receivable(channel):
-    "корути получающий данные из сокета"
+    "генератор получающий данные из сокета, возвращает пакет данных или None если считывать больше нечего"
     while 1:
         #получаем размер из канала
-        while 1:
+        size_for_recv= struct.calcsize("!Q")
+        size = ''
+        while len(size)<size_for_recv:
             try:
-                size = channel.recv(struct.calcsize("L"))
+                size+= channel.recv(size_for_recv-len(size))
+                
             except socket_error as Error:
-                if Error[0]!=11:
-                    print 'socket error', Error
-                    raise Error
+                errno = Error[0]
+                if errno==11:
+                    yield None
+                else:
+                    print 'receivable socket error#', str(errno)
+                    raise Error()
             else:
-                break
-        
+                if not size:
+                    raise StopIteration
+                else:
+                    break
         #преобразуем размер
         try:
-            size = ntohl(struct.unpack("L", size)[0])
+            size = ntohl(struct.unpack("!Q", size)[0])
         except struct.error, e:
-            LOG.error('protocol_lib.receive struct error %s size %s' % (e,size))
-            raise PackageError
-        
+            #в случае ошибки конвертации размера
+            print 'protocol_lib.receive struct error %s size %s' % (e, len(size))
+            #raise PackageError
+            yield None
         else:
             #получаем пакет данных
-            first = True
             data = ''
             while len(data)<size:
                 try:
                     data+=channel.recv(size - len(data))
                 except socket_error as Error:
-                    if Error[0]!=11:
-                        raise Error
-                else:
-                    if not first:
+                    if Error[0]==11:
                         yield None
+                        
                     else:
-                        first = False
+                        raise Error
+
             yield data
             data = None
             
@@ -134,8 +119,7 @@ def dumps(data):
     try:
         data = marshal_dumps(data)
     except Exception as excp:
-        print data
-        raise MarshalError(excp.message)
+        raise MarshalError(excp.message, data)
     else:
         try:
             return compress(data)
@@ -165,7 +149,7 @@ class Packer:
         "упаковщик данных"
         if method in self.method_handlers:
             try:
-                data = self.method_handlers[method].pack(data)
+                data = self.method_handlers[method].pack(*data)
             except Exception as error:
                 print 'pack error in method %s with %s' % (method, data)
                 raise error
@@ -173,9 +157,9 @@ class Packer:
                 try:
                     result = dumps((method, data))
                     return result
-                except Exception as excp:
-                    raise MarshalError(excp, data)
-                    raise excp
+                except MarshalError:
+                    print 'MarshalError', method, data
+                    return ''
         else:
             print 'MethodError'
             raise MethodError(method, data)
@@ -184,13 +168,14 @@ class Packer:
         "распаковщик"
         try:
             data = loads(data)
-        except Exception as Error:
-            raise MarshalError(Error, data)
+        except MarshalError:
+            print 'MarshalError'
+            return None
         else:
             method, data = data
             if method in self.method_handlers:
                 try:
-                    message = self.method_handlers[method].unpack(data)
+                    message = self.method_handlers[method].unpack(*data)
                 except Exception, excp:
                     print 'Unpack errror:%s %s %s' % (method, excp, str(data))
                     raise excp
