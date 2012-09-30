@@ -1,15 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
+from client_config import CLIENTENGINE
+
 from share.mathlib import Point, NullPoint
 
-from pyglet.window.key import UP, DOWN, LEFT, RIGHT, RSHIFT, SPACE
-
+if CLIENTENGINE=='pyglet':
+    from pyglet.window.key import *
+    LEFT_BUTTON = 1
+    RIGHT_BUTTON = 4
+else:
+    from pygame.locals import *
+    UP, DOWN, LEFT, RIGHT, RSHIFT, SPACE = K_UP, K_DOWN, K_LEFT, K_RIGHT, K_RSHIFT, K_SPACE
+    LEFT_BUTTON = (1,0,0)
+    RIGHT_BUTTON = (0,0,1)
 class InputHandle:
     "перехват устройств ввода"
     pressed = {}
-    MOVE_BUTTON = 1
-    STRIKE_BUTTON = 4
+    
     control_keys = [UP, DOWN, LEFT, RIGHT, RSHIFT, SPACE]
     striking = False
     
@@ -33,25 +41,25 @@ class InputHandle:
     def on_mouse_press(self, x, y, button, modifiers):
         "перехватывавем нажатие левой кнопки мышки"
         #левая кнопка - движение
-        if button==self.MOVE_BUTTON:
+        if button==LEFT_BUTTON:
             self.vector = (Point(x,y) - self.center)
             
             
-        elif button==self.STRIKE_BUTTON:
+        elif button==RIGHT_BUTTON:
             vector = (Point(x,y) - self.center)
             self.send_ball(vector)
             self.striking = vector
     
     def on_mouse_release(self, x, y, button, modifiers):
-        if button==self.MOVE_BUTTON:
+        if button==LEFT_BUTTON:
             self.vector = False
-        elif button==self.STRIKE_BUTTON:
+        elif button==RIGHT_BUTTON:
             self.striking = False
     
     def on_mouse_drag(self, x, y, dx, dy, button, modifiers):
-        if button==self.MOVE_BUTTON:
+        if button==LEFT_BUTTON:
             self.vector = (Point(x,y) - self.center)
-        elif button==self.STRIKE_BUTTON:
+        elif button==RIGHT_BUTTON:
             self.striking = (Point(x,y) - self.center)
             
         

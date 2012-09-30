@@ -90,7 +90,6 @@ class SocketServer(PollServer):
     
     def handle_read(self, client_name):
         "читает один пакет данных из сокета"
-        #print '\n handle read'
         try:
             message = self.clients[client_name].generator.next()
 
@@ -113,9 +112,6 @@ class SocketServer(PollServer):
             if message:
                 self.read(client_name, message)
             return True
-        
-                
-            
             
         
     def handle_accept(self, stream):
@@ -184,7 +180,7 @@ class SocketServer(PollServer):
             sleep(timeout)
 
     def run(self):
-        print 'Server running at %s:(%s,%s) multiplexor: %s' % (self.hostname, IN_PORT, OUT_PORT, self.poll_engine)
+        print '\nServer running at %s:(%s,%s) multiplexer: %s' % (self.hostname, IN_PORT, OUT_PORT, self.poll_engine)
         self.insock.listen(self.listen_num)
         self.outsock.listen(self.listen_num)
         #

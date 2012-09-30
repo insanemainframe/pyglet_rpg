@@ -67,17 +67,13 @@ class Drawable(GameWindow):
         
         for layer,tilename, position, sprite_type in self.tiles:
             if sprite_type=='tile':
-                width = self.tiledict[tilename].width
-                height = self.tiledict[tilename].height
-                shift =  Point(width/2, height/2)
-                x,y = (position-shift-self.shift).get()
+                x,y = (position-self.shift).get()
                 if -TILESIZE<x<self.width and -TILESIZE<x<self.height:
-                    self.draw_tile(tilename, x,y, width, height)
+                    self.draw_tile(tilename, x,y)
                     
             elif sprite_type=='label':
-                height = self.tiledict['player'].height
-                shift =  Point(0, height/2)
-                x,y = (position-shift-self.shift).get()
+                
+                x,y = (position-self.shift).get()
                 self.draw_label(tilename,'Times New Roman', 10, x,y,)
                 
 

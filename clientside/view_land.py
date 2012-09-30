@@ -74,6 +74,6 @@ class LandView(GameWindow,  Drawable, MapTools):
     
     def draw(self):
         x,y = self.get_shift().get()
-        self.tiledict['grass_full'].blit(x,y)
+        self.draw_background(x,y)
         Drawable.draw(self)
 

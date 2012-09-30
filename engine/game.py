@@ -11,7 +11,7 @@ from maplib import World
 from game_lib import ObjectContainer
          
         
-class _GameSingleton(ObjectContainer):
+class __GameSingleton(ObjectContainer):
     "синглтон игрового движка - хранит карту, все объекты, события и предоставляет доступ к ним"
     def __init__(self):
         ObjectContainer.__init__(self)
@@ -20,7 +20,7 @@ class _GameSingleton(ObjectContainer):
         
         self.world = World()
         self.size = self.world.size
-        print '_GameSingleton created'
+        print 'GameSingleton init'
 
 
     def add_event(self, name, position, altposition, action, args=[]):
@@ -128,5 +128,5 @@ class _GameSingleton(ObjectContainer):
             self.players[name].REMOVE = False
 
 
-game = _GameSingleton()
+game = __GameSingleton()
 from engine_lib import Solid, Guided, StaticObject
