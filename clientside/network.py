@@ -151,8 +151,10 @@ class Client(SocketClient, Packer):
         
     def read(self, package):
         if package:
-            action, message = self.unpack(package)
-            self.in_messages.append((action, message))
+            unpacked = self.unpack(package)
+            if unpacked:
+                action, message = unpacked
+                self.in_messages.append((action, message))
               
     
 def main():

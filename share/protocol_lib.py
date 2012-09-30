@@ -1,16 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from config import SERIALISATION, ZLIB
 import struct
-from socket import htonl, ntohl, error as socket_error
-from marshal import loads as marshal_loads, dumps as marshal_dumps
-#from json import loads as marshal_loads, dumps as marshal_dumps
 
-from zlib import compress, decompress
+from socket import htonl, ntohl, error as socket_error
+
+from zlib import compress as zcompress, decompress as zdecompress
 
 from share.logger import PROTOCOLLOG as LOG
 
+if SERIALISATION=='json':
+    from json import loads as marshal_loads, dumps as marshal_dumps
+else:
+    from marshal import loads as marshal_loads, dumps as marshal_dumps
+
+
 #####################################################################
-#исключения для ошибок работы протокола
 
 class PackageError(Exception):
     "ошибка полуения пакета"
@@ -87,11 +92,14 @@ def receivable(channel):
         
         #преобразуем размер
         try:
-            size = ntohl(struct.unpack("!Q", size)[0])
+            size = struct.unpack("!Q", size)[0]
+            size = ntohl(size)
         except struct.error, e:
             #в случае ошибки конвертации размера
             print 'protocol_lib.receive struct error %s size %s' % (e, len(size))
-            #raise PackageError
+            yield None
+        except OverflowError:
+            print 'OverflowError', size
             yield None
         else:
             #получаем пакет данных
@@ -147,6 +155,17 @@ def dumps(data):
 
             raise error
 
+def compress(data):
+    if ZLIB:
+        return zcompress(data)
+    else:
+        return data
+
+def decompress(data):
+    if ZLIB:
+        return zdecompress(data)
+    else:
+        return data
 
 #####################################################################
 
