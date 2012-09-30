@@ -63,20 +63,28 @@ def receivable(channel):
         size = ''
         while len(size)<size_for_recv:
             try:
-                size+= channel.recv(size_for_recv-len(size))
+                new_size = channel.recv(size_for_recv-len(size))
                 
             except socket_error as Error:
                 errno = Error[0]
                 if errno==11:
+                    #сокет недоступен для чтения
+                    yield None
+                elif errno==35:
+                    print 'socket error 35'
                     yield None
                 else:
                     print 'receivable socket error#', str(errno)
-                    raise Error()
+                    raise Error
             else:
-                if not size:
-                    raise StopIteration
+                if new_size:
+                    size+=new_size
                 else:
-                    break
+                    print 'NO SIZE'
+                    raise StopIteration
+        if not size:
+            raise StopIteration
+        
         #преобразуем размер
         try:
             size = ntohl(struct.unpack("!Q", size)[0])
@@ -90,13 +98,24 @@ def receivable(channel):
             data = ''
             while len(data)<size:
                 try:
-                    data+=channel.recv(size - len(data))
+                    new_data = channel.recv(size - len(data))
                 except socket_error as Error:
-                    if Error[0]==11:
+                    errno = Error[0]
+                    if errno==11:
+                        #сокет недоступен для чтения
                         yield None
-                        
+                    elif errno==35:
+                        print 'socket error 35'
+                        yield None
                     else:
+                        print 'socket error while receiving apckage: %s' % str(Error)
                         raise Error
+                else:
+                    if new_data:
+                        data+=new_data
+                    else:
+                        print 'NO DATA'
+                        raise StopIteration
 
             yield data
             data = None

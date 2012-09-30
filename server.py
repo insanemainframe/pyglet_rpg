@@ -28,12 +28,12 @@ class GameServer(SocketServer, AskHostname, Packer):
         self.closed_clients = []
         
         self.round_n = 1
-    
-    def timer_init(self):
-        with self.engine_lock:
-            self.game = GameEngine()
-            self.game.round_n = self.round_n
-    
+        
+        self.server_lock = RLock()
+        
+        self.game = GameEngine()
+            
+
     def timer_handler(self):
         "обращается к движку по расписанию"
         self.round_n+=1
@@ -60,12 +60,12 @@ class GameServer(SocketServer, AskHostname, Packer):
         #обновляем движок
         self.game.game_middle()
         #получаем ответы от движка
-        responses =  self.game.game_responses()
-        #print 'responses from game %s' % self.round_n
         #вставляем ответы в очередь сокет-сервера
-        for name, messages in responses.items():
+        for name, messages in self.game.game_responses().items():
             responses = [self.pack(response, action) for action, response in messages]
             self.put_messages(name, responses)
+        
+        self.game.end_round()
         
         
         
@@ -87,7 +87,6 @@ class GameServer(SocketServer, AskHostname, Packer):
     def read(self, client, message):
         request = self.unpack(message)
         with self.server_lock:
-            #print 'read %s' % self.round_n
             self.client_requestes[client].append(request)
     
     def close(self, client):

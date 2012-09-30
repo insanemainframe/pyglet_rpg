@@ -5,8 +5,9 @@ from movable import Movable
 
 from config import *
 
-class Item(StaticObject, Solid):
+class Item(StaticObject, Solid, Temporary):
     radius = TILESIZE
+    lifetime = 300
     def __init__(self, position):
         if not hasattr(Item, 'item_counter'):
             Item.item_counter = 0
@@ -14,11 +15,15 @@ class Item(StaticObject, Solid):
         name = 'item_%s' % Item.item_counter
         Item.item_counter+=1
         StaticObject.__init__(self, name, position)
+        Temporary.__init__(self, 10*self.lifetime)
     
     @wrappers.player_filter(Guided)
     def collission(self, player):
         self.effect(player)
         self.REMOVE = True
+    
+    def update(self):
+        Temporary.update(self)
     
     def effect(self, player):
         pass
@@ -37,7 +42,7 @@ class Explodable:
                 self.add_event(self.position, NullPoint, 'explode', [])
                 self.explode_time-=1
         else:
-            self.REMOVE
+            self.REMOVE = True
         
     def remove(self):
         return True

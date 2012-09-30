@@ -37,7 +37,7 @@ class SocketClient:
         print 'connect to %s:%s' % (self.hostname, PORTS[stream])
         sock.connect((self.hostname, PORTS[stream]))
         sock.setblocking(0)
-        if stream==OUT:
+        if stream==IN:
             sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         fileno = sock.fileno()
         
@@ -57,35 +57,45 @@ class SocketClient:
     def handle_read(self):
         "читает все пакеты, пока сокет доступен"
         while 1:
-            message = self.generator.next()
-            if message:
-                if self.accept_message:
-                    self.read(message)
-                else:
-                    self.accept_(message)
+            try:
+                message = self.generator.next()
+            except StopIteration:
+                self.handle_close('Disconnect')
             else:
-                break
+                if message:
+                    if self.accept_message:
+                        self.read(message)
+                    else:
+                        self.accept_(message)
+                else:
+                    break
                 
 
     def socket_loop(self):
         #input events
-        inevents , outevents, expevents = select([self.insock],[self.outsock],[], 0.1)
+        inevents , outevents, expevents = select([self.insock],[self.outsock],[], ROUND_TIMER)
         for fileno in inevents:
             try:
                 self.handle_read()
             except socket.error as Error:
-                self.handle_close()
+                if Error[0]==111:
+                    self.handle_close('Disconnect')
+                else:
+                    self.handle_close(str(Error))
+        
+        for fileno in expevents:
+            self.handle_close('select exp')
         #output events
         self.handle_write()
        
-    def close_connection(self):
+    def close_connection(self, message=''):
         self.insock.close()
         self.outsock.close()
-        print 'connection closed'
+        print 'connection closed %s' % message
         
-    def handle_close(self):
+    def handle_close(self, message=''):
         self.on_close()
-        print 'connection closed'
+        print 'Connection closed:%s' % message
     
     def handle_error(self, Error):
         print 'error', Error

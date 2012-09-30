@@ -81,9 +81,10 @@ class GameEngine:
             messages[name] = self.messages[name]
             self.messages[name] = []
             messages[name].extend(player.handle_response())
-
-        game.clear_events()
         return messages
+    
+    def end_round(self):
+        game.clear_events()
     
 
     
@@ -91,6 +92,16 @@ class GameEngine:
         print '%s quit' % name
         del self.messages[name]
         game.remove_object(name, True)
+    
+    def debug(self):
+        from collections import Counter
+        counter = Counter()
+        print 'len(game.players)',len(game.players)
+        print 'len(game.guided_players)', len(game.guided_players)
+        for player in game.players.values():
+           counter[player.__class__.__name__]+=1
+        
+        print counter
                 
     
     

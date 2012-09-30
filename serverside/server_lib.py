@@ -51,8 +51,6 @@ class SocketServer(PollServer):
         
         self.closed = []
         
-        self.server_lock = RLock() 
-        self.engine_lock = RLock() #блокровка для действий с движком т.е. game_connect, game_quit
         self.responses_lock = RLock() #блокировка для действий с сокетсервером куызщтыуы куйгууыеуы
             
     def create_socket(self, stream):
@@ -193,7 +191,6 @@ class SocketServer(PollServer):
         self.register(self.insock.fileno())
         self.register(self.outsock.fileno())
         #
-        self.timer_init()
         thread = Thread(target=self.timer_thread)
         thread.start()
         #
@@ -225,6 +222,8 @@ class SocketServer(PollServer):
         "сотановка сервера"
         self.running = False
         #
+        self.stop_debug_info()
+        #
         self.unregister(self.insock.fileno())
         self.unregister(self.outsock.fileno())
         #
@@ -237,6 +236,13 @@ class SocketServer(PollServer):
             stats = pstats.Stats('/tmp/game_server.stat')
             stats.sort_stats('cumulative')
             stats.print_stats()
+    
+    def stop_debug_info(self):
+        print '\n\nDebug info:'
+        print 'len(self.clients)', len(self.clients)
+        print 'self.clients', self.clients
+        print self.game.debug()
+        print 'End of debug info\n\n'
     
 
         

@@ -32,10 +32,10 @@ class Land:
 
 class StaticObjects(Events):
     def pack_static_objects(self, static_objects):
-        return {name: (o_type, position.get()) for name, (o_type, position) in static_objects.items()}
+        return dict([(name, (o_type, position.get())) for name, (o_type, position) in static_objects.items()])
         
     def unpack_static_objects(self, static_objects):
-        return {name: (o_type, Point(x,y)) for name, (o_type, (x,y)) in static_objects.items()}
+        return dict([(name, (o_type, Point(x,y))) for name, (o_type, (x,y)) in static_objects.items()])
     
 
 

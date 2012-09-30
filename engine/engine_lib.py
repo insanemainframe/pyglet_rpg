@@ -40,12 +40,18 @@ class wrappers:
                     return method(self,player)
             return wrap
         return wrapper
+    
     @staticmethod
     def player_filter_alive(method):
         def wrap(self, player):
             if player.alive:
                 return method(self,player)
         return wrap
+    
+    @staticmethod
+    def action(method):
+        method.wrappers_action = True
+        return method
     
     
 
@@ -71,12 +77,6 @@ class GameObject(object):
         self._location = position/LOCATIONSIZE
         game.move_object(self)
     
-    
-    def handle_action(self, action, args):
-        if hasattr(self, action):
-            return getattr(self, action)(*args)
-        else:
-            raise ActionError('no action %s' % action)
     
     def update(self):
         pass
@@ -115,7 +115,19 @@ class StaticObject(GameObject):
 
 class Guided():
     "управляемый игроком объекта"
-    pass
+    def handle_action(self, action_name, args):
+        if hasattr(self, action_name):
+            method = getattr(self, action_name)
+            if hasattr(method, 'wrappers_action'):
+                
+                return method(*args)
+            else:
+                print dir(method)
+                print "%s isn't guided action" % action_name
+                ActionError('no action %s' % action_name)
+        else:
+            print 'no action %s' % action_name
+            raise ActionError('no action %s' % action_name)
 
 class Solid():
     def __init__(self, radius):

@@ -33,10 +33,6 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill):
         Respawnable.__init__(self, 10, 30)
         Stats.__init__(self)
         Skill.__init__(self)
-    
-    @wrappers.alive_only()
-    def handle_action(self, action, args):
-        GameObject.handle_action(self,action,args)
         
     def handle_response(self):
         if not self.respawned:
@@ -49,18 +45,22 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill):
             return messages
         else:
             return Respawnable.handle_response(self)
-
+    
+    @wrappers.action
     @wrappers.alive_only()
     def Strike(self, vector):
         self.strike_ball(vector)
     
+    @wrappers.action
     @wrappers.alive_only()
     def Move(self, vector):
         Movable.move(self, vector)
     
+    @wrappers.action
     def Look(self):
         return MapObserver.look(self)
     
+    @wrappers.action
     def Skill(self):
         self.skill()
     
@@ -158,7 +158,7 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker):
 
 
 class Zombie(Fighter, MetaMonster):
-    hp = 3
+    hp = 5
     speed = 15
     damage = 1
     attack_speed = 10
@@ -173,7 +173,7 @@ class Zombie(Fighter, MetaMonster):
     
 
 class Ghast(Fighter, MetaMonster):
-    hp = 20
+    hp = 30
     speed = 7
     damage = 5
     attack_speed = 30

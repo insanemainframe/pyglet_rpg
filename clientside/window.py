@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from pyglet.image.codecs.png import PNGImageDecoder
 
+
 import pyglet
 from pyglet.gl import *
 from pyglet.window import Window as GUIWindow
