@@ -1,29 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #разделяемое состояние всех объектов игры
-from collections import defaultdict
+from config import *
+
 from random import randrange
 from weakref import proxy
 
-
-from config import *
-
 from share.mathlib import Point, NullPoint
 from maplib import World
-
-
-
-class _GameSingleton:
+from game_lib import ObjectContainer
+         
+        
+class _GameSingleton(ObjectContainer):
     "синглтон игрового движка - хранит карту, все объекты, события и предоставляет доступ к ним"
     def __init__(self):
-        self.players = {}
-
-        self.solid_objects = {} #твердые объект, способные сталкиваться
-        self.guided_players = {} #управляемые игроки
-        self.static_objects = defaultdict(dict) #неподвижные объекты
-        
-        self.events = defaultdict(list)  #события объекто
-        self.static_events = defaultdict(list) #события статических объектов
+        ObjectContainer.__init__(self)
         self.event_counter = 0 #счетчик событий для id события
         self.ball_counter = 0 #счетчик снарядов
         
