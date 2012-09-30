@@ -12,8 +12,8 @@ if CLIENTENGINE=='pyglet':
 else:
     from pygame.locals import *
     UP, DOWN, LEFT, RIGHT, RSHIFT, SPACE = K_UP, K_DOWN, K_LEFT, K_RIGHT, K_RSHIFT, K_SPACE
-    LEFT_BUTTON = (1,0,0)
-    RIGHT_BUTTON = (0,0,1)
+    LEFT_BUTTON = 1
+    RIGHT_BUTTON = 3
 class InputHandle:
     "перехват устройств ввода"
     pressed = {}

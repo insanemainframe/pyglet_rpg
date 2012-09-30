@@ -85,10 +85,27 @@ class GameWindow():
                     
                 elif event.type == MOUSEBUTTONDOWN:
                     x,y = pygame.mouse.get_pos()
-                    button = pygame.mouse.get_pressed()
-                    print button
-                    self.on_mouse_press(x,y, button, [])
-                    self.on_mouse_release(x,y, button, [])
+                    y = GameWindow.height - y
+                    self.on_mouse_press(x,y, event.button, [])
+                
+                elif event.type == MOUSEBUTTONUP:
+                    x,y = pygame.mouse.get_pos()
+                    y = GameWindow.height - y
+                    self.on_mouse_release(x,y, event.button, [])
+                    
+                elif event.type == MOUSEMOTION:
+    
+                    if event.buttons[0]:
+                        but = 1
+                    elif event.buttons[2]:
+                        but = 3
+                    else:
+                        but = False
+                    if but:
+                        x,y = pygame.mouse.get_pos()
+                        y = GameWindow.height - y
+                        
+                        self.on_mouse_drag(x,y,0,0,but, [])
                     
                     
                 elif event.type==KEYDOWN:
@@ -108,16 +125,27 @@ class GameWindow():
     @staticmethod
     def draw_tile(tilename, x,y):
         image = GameWindow.tiledict[tilename]
-        rect = Rect(x,y, image.get_width(), image.get_height())
+        width, height = image.get_width(), image.get_height()
+        y = GameWindow.height - y
+        x = x - width/2
+        y = y - height/2
+        rect = Rect(x,y, width, height)
         GameWindow.screen.blit(image, rect)
         
         
     
     @staticmethod
-    def draw_label(text, font_name, font_size, x,y, anchor_x='center', anchor_y='center'):
-        pass
+    def draw_label(text, font_size, x,y):
+        font_name = "Comic Sans MS"
+        color = (255,255,255)
+        font = pygame.font.SysFont(font_name, 20)
+        label = font.render(text, 1, color)
+        dx = GameWindow.tiledict['player'].get_width()/2
+        dy = GameWindow.tiledict['player'].get_height()/2
+        GameWindow.screen.blit(label, (x-dx, y))
     
     def draw_background(self, x,y):
+        y = -y
         image = GameWindow.tiledict['grass_full']
         rect = Rect(x,y, image.get_width(), image.get_height())
         self.screen.blit(image, rect)
@@ -126,3 +154,22 @@ class GameWindow():
 class GUIWindow:
     def __init__(self, height, width):
         pass
+
+
+class Label(object):
+    font_name = "Comic Sans MS"
+    color = (255, 255, 255)
+    def __init__(self, text, x,y):
+        self.font = pygame.font.SysFont(self.font_name, 30)
+        self.x, self.y = x,y
+        self.x = GameWindow.width -x*1.8
+        self._text = text
+        self.label = self.font.render(text, 1, self.color )
+    @property
+    def text(self):
+        return self._text
+    @text.setter
+    def text(self, text):
+        self.label = self.font.render(text, 1, self.color )
+    def draw(self):
+        GameWindow.screen.blit(self.label, (self.x, self.y))

@@ -85,13 +85,14 @@ class GameWindow():
         GameWindow.tiledict[tilename].blit(x-width/2,y-height/2, width=width, height=height)
     
     @staticmethod
-    def draw_label(text, font_name, font_size, x,y, anchor_x='center', anchor_y='center'):
+    def draw_label(text,font_size, x,y):
+        font_name = 'Times New Roman'
         height = GameWindow.tiledict['player'].height
         pyglet.text.Label(text,
                           font_name=font_name,
                           font_size=font_size,
                           x=x, y=y-height/2,
-                          anchor_x=anchor_x, anchor_y=anchor_y).draw()
+                          anchor_x='center', anchor_y='center').draw()
     
     def draw_background(self, x,y):
         self.tiledict['grass_full'].blit(x,y)

@@ -57,9 +57,6 @@ class DeltaTimerObject:
 class Drawable(GameWindow):
     "рисуемые объекты"
     def __init__(self):
-        self.animation = 1
-        self.animation_counter = 0
-        self.aps = 15
         self.shift = NullPoint
     
     def draw(self):
@@ -74,7 +71,7 @@ class Drawable(GameWindow):
             elif sprite_type=='label':
                 
                 x,y = (position-self.shift).get()
-                self.draw_label(tilename,'Times New Roman', 10, x,y,)
+                self.draw_label(tilename,10, x,y)
                 
 
 
