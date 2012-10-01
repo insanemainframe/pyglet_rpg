@@ -50,13 +50,38 @@ class ZlibError:
 #####################################################################
 #упаковка и распаковка пакетов для сокетов
 def send(channel, data):
-    try:
-        value = htonl(len(data))
-        size = struct.pack("!Q",value)
-        channel.send(size)
-        channel.send(data)
-    except socket_error as Error:
-        LOG.error('protocol_lib.send error %s' % Error)
+    value = htonl(len(data))
+    size = struct.pack("!Q",value)
+    #посылаем размер пакета
+    while size:
+        try:
+            channel.send(size)
+        except socket_error as Error:
+            if Error[0]==11:
+                print 'send: error 11'
+            elif Error[0]==104:
+                
+                return 
+            else:
+                raise Error
+        else:
+            size = ''
+    #посылаем пакет
+    while data:
+        try:
+            channel.send(data)
+        except socket_error as Error:
+            if Error[0]==11:
+                print 'send: error 11'
+            elif Error[0]==104:
+                return
+            else:
+                raise Error
+        else:
+            data = ''
+    print 
+            
+
     
 
 

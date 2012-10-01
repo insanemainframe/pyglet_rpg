@@ -27,7 +27,7 @@ class Bot(Client, Process):
         d = 1
         t = time()
         while 1:
-            sleep(ROUND_TIMER/2)
+            sleep(ROUND_TIMER)
             self.socket_loop()
             self.in_messages = []
             if time()-t>1:
