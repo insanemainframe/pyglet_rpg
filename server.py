@@ -27,7 +27,6 @@ class GameServer(SocketServer, AskHostname, Packer):
         self.closed_clients_lock = RLock()
         self.closed_clients = []
         
-        self.round_n = 1
         
         self.server_lock = RLock()
         
@@ -36,8 +35,6 @@ class GameServer(SocketServer, AskHostname, Packer):
 
     def timer_handler(self):
         "обращается к движку по расписанию"
-        self.round_n+=1
-        self.game.round_n = self.round_n
         #смотрим новых клиентов
         with self.new_clients_lock:
             new_clients = self.new_clients

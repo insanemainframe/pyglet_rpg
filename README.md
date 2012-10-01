@@ -101,7 +101,7 @@ clientside/
 	
 serverside/
 
-	poll_lib.py - poll(epoll/libevent) poller class
+	multiplexer.py - poll(epoll/libevent) or select I/O-events multiplexer class
 
 	server_lib.py - socket server
 

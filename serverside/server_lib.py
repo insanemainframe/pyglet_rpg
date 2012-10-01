@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#SOCKET LAYER
-from sys import path; path.append('../')
-
 from config import *
 
 from share.protocol_lib import send, receivable, PackageError
-from poll_lib import PollServer
+from multiplexer import Multiplexer
 
 import socket
 from time import sleep, time
@@ -20,19 +17,15 @@ PORTS = {IN:IN_PORT, OUT:OUT_PORT}
 class HandleAcceptError(Exception):
     pass
 
-class SocketError:
-    def __init__(self, error):
-        self.error = error
-    def __str__(self):
-        return 'SocketError: %s' %self.error
+
 
 #####################################################################
 client_tuple = namedtuple('client_tuple' ,('insock','outsock', 'generator'))
 
-class SocketServer(PollServer):
+class SocketServer(Multiplexer):
     "получает/отправляет данные через сокеты"
     def __init__(self, timer_value=SERVER_TIMER, listen_num=100):
-        PollServer.__init__(self)
+        Multiplexer.__init__(self)
         self.listen_num = listen_num
         
         self.insock, self.in_fileno = self.create_socket(IN)
@@ -40,6 +33,7 @@ class SocketServer(PollServer):
         
         self.infilenos = {}
         self.insocks = {}
+        self.outfilenos = {}
         
         self.address_buf = {}
         
@@ -88,10 +82,20 @@ class SocketServer(PollServer):
                     #print 'write to closed client'
                     pass
     
+    def handle_write(self, client_name):
+        "пишет пакеты на сокет пользователя"
+        with self.responses_lock:
+            to_write =  self.responses[client_name]
+            self.responses[client_name] = []
+        sock = self.clients[client_name].outsock
+        for response in to_write:
+            send(sock, response)
+        return True
+    
     def handle_read(self, client_name):
-        "читает один пакет данных из сокета"
+        "читает один пакет данных из сокета, если это возможно"
         try:
-            message = self.clients[client_name].generator.next()
+            request = self.clients[client_name].generator.next()
 
         except socket.error as Error:
             #если возникла ошабка на сокете - закрываем"
@@ -109,8 +113,8 @@ class SocketServer(PollServer):
             self.handle_close(client_name, 'Disconnect')
             return False
         else:
-            if message:
-                self.read(client_name, message)
+            if request:
+                self.read(client_name, request)
             return True
             
         
@@ -153,10 +157,15 @@ class SocketServer(PollServer):
         
         self.clients[client_name] = client_tuple(insock,outsock, receivable(insock))
         
-        self.infilenos[insock.fileno()] = client_name
+        insock_fileno = insock.fileno()
+        outsock_fileno = outsock.fileno()
+        
+        self.infilenos[insock_fileno] = client_name
+        self.outfilenos[outsock_fileno] = client_name
         
         print 'insock.fileno()', insock.fileno()
-        self.register(insock.fileno())
+        self.register_in(insock_fileno)
+        self.register_out(outsock_fileno)
 
         
         with self.responses_lock:
@@ -173,7 +182,7 @@ class SocketServer(PollServer):
         t = time()
         while self.running:
             self.timer_handler()
-            self.write_to_all()
+            #self.write_to_all()
             delta = time()-t
             timeout = SERVER_TIMER - delta if delta<SERVER_TIMER else 0
             t = time()
@@ -183,10 +192,10 @@ class SocketServer(PollServer):
         print '\nServer running at %s:(%s,%s) multiplexer: %s' % (self.hostname, IN_PORT, OUT_PORT, self.poll_engine)
         self.insock.listen(self.listen_num)
         self.outsock.listen(self.listen_num)
-        #
-        self.register(self.insock.fileno())
-        self.register(self.outsock.fileno())
-        #
+        #регистрируем сокеты на ожидание подключений
+        self.register_in(self.insock.fileno())
+        self.register_in(self.outsock.fileno())
+        #запускаем поток движка
         thread = Thread(target=self.timer_thread)
         thread.start()
         #
@@ -203,9 +212,14 @@ class SocketServer(PollServer):
             self.close(client_name)
         
         infileno = self.clients[client_name].insock.fileno()
+        outfileno = self.clients[client_name].outsock.fileno()
         
         del self.infilenos[infileno]
+        del self.outfilenos[outfileno]
         
+        #закрываем подключения и удаляем
+        self.unregister(infileno)
+        self.unregister(outfileno)
         self.clients[client_name].insock.close()
         self.clients[client_name].outsock.close()
         del  self.clients[client_name]
@@ -234,6 +248,7 @@ class SocketServer(PollServer):
             stats.print_stats()
     
     def stop_debug_info(self):
+        "информация для дебага"
         print '\n\nDebug info:'
         print 'len(self.clients)', len(self.clients)
         print 'self.clients', self.clients

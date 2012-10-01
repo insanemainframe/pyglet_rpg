@@ -4,7 +4,7 @@ from clientside.network import Client
 from share.mathlib import *
 from config import *
 from time import sleep, time
-from sys import argv
+from sys import argv, exit
 from threading import Thread
 from multiprocessing import Process
 
@@ -41,6 +41,8 @@ class Bot(Client, Process):
                 if chance(10):
                     self.send_skill()
                 t = time()
+    def on_close(self, a=''):
+        exit()
 9
 for i in range(int(argv[1])):
     bot = Bot()

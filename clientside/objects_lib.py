@@ -36,7 +36,6 @@ class StaticObject:
 
 class ClientObject:
     REMOVE = False
-    DELAY = 0
     "класс игрового объекта на карте"
     def __init__(self, name, position):
         self.position = position
