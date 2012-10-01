@@ -96,3 +96,15 @@ class GameWindow():
     
     def draw_background(self, x,y):
         self.tiledict['grass_full'].blit(x,y)
+
+class Label(pyglet.text.Label, GameWindow):
+    def __init__(self, text, x,y):
+        x,y = GameWindow.width-x, GameWindow.height-y
+        pyglet.text.Label.__init__(self, text,
+                              font_name='Times New Roman',
+                              font_size=20,
+                              x=x, y=y,
+                              anchor_x='center', anchor_y='center')
+
+
+ClockDisplay = pyglet.clock.ClockDisplay

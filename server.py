@@ -43,7 +43,6 @@ class GameServer(SocketServer, AskHostname, Packer):
             new_clients = self.new_clients
             self.new_clients = []
         for new_client in new_clients:
-            'new client'
             self.game.game_connect(new_client)
         #смотрим отключившихся клиентов
         with self.closed_clients_lock:

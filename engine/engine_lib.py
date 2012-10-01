@@ -97,6 +97,13 @@ class GameObject(object):
     
     def handle_response(self):
         return []
+    
+    def complete_round(self):
+        bases = getmro(self.__class__)
+        print bases
+        for base in bases:
+            if not base is object and not base is GameObject and hasattr(base, 'complete_round'):
+                    base.round_update(self)
 
 #####################################################################
 class StaticObject(GameObject):
@@ -156,6 +163,7 @@ class Deadly:
         self.corpse = corpse
         self.death_counter = 0
         self.spawn()
+        self.hitted = 0
     
     def spawn(self):
         self.alive = True
@@ -165,6 +173,7 @@ class Deadly:
 
     
     def hit(self, hp):
+        self.hitted = 10
         if self.alive:
             self.hp-=hp
             if self.hp<=0:
@@ -188,8 +197,12 @@ class Deadly:
     
     def update(self):
         if self.alive:
-            if self.hp<self.hp_value:
-                self.hp+=self.heal_speed
+            if self.hitted:
+                self.add_event(self.position, NullPoint, 'defend', [])
+                self.hitted-=1
+            else:
+                if self.hp<self.hp_value:
+                    self.hp+=self.heal_speed
         else:
             if self.death_time>0:
                 self.death_time-=1

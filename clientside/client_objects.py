@@ -39,16 +39,28 @@ class Sweemer(MapAccess):
 class Deadly(Animated):
     def __init__(self, frames):
         self.dead = False
+        self.defended = False
         self.create_animation('death', 'die', frames, 3)
+        self.create_animation('defend', 'defend', 2, 3)
     
     def draw(self):
         position = self.position
-        tilename = self.tilename + self.get_animation('death')
+        if self.dead:
+            tilename = self.tilename + self.get_animation('death')
+        else:
+            tilename = self.tilename + self.get_animation('defend')
         return [create_tile(position, tilename, -1 )]
     
     def die(self):
         self.dead = True
-        
+    
+    def defend(self):
+        self.defended = True
+    
+    def round_update(self):
+        print 'deadly round update'
+        self.defended = False
+
     
 class Player(Sweemer, Movable, ClientObject, Deadly):
     tilename = 'player'
@@ -58,12 +70,13 @@ class Player(Sweemer, Movable, ClientObject, Deadly):
         Deadly.__init__(self, 1)
     
     def draw(self):
-        if not self.dead:
+        if self.dead or self.defended:
+            return Deadly.draw(self)
+        else:
             tiles = Movable.draw(self)
             label  = create_label(self.name, self.position)
             return tiles + [label]
-        else:
-            return Deadly.draw(self)
+            
         
     def update(self, dt):
         Sweemer.update(self, dt)
@@ -92,7 +105,7 @@ class Zombie(Movable, ClientObject, Deadly, Fighter):
     def draw(self):
         if self.attacking:
             return Fighter.draw(self)
-        elif not self.dead:
+        elif not self.dead and not self.defended:
             return Movable.draw(self)
         else:
             return Deadly.draw(self)
@@ -132,10 +145,11 @@ class Ghast(Movable, ClientObject, Deadly, Fighter):
         Deadly.__init__(self, 1)
         Fighter.__init__(self,3)
     
+
     def draw(self):
         if self.attacking:
             return Fighter.draw(self)
-        if not self.dead:
+        elif not self.dead and not self.defended:
             return Movable.draw(self)
         else:
             return Deadly.draw(self)
@@ -151,7 +165,7 @@ class Lych(Movable, ClientObject, Deadly):
         Deadly.__init__(self, 1)
     
     def draw(self):
-        if not self.dead:
+        if not self.dead and not self.defended:
             return Movable.draw(self)
         else:
             return Deadly.draw(self)

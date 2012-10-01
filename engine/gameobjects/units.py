@@ -64,9 +64,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill):
     def Skill(self):
         self.skill()
     
-    def complete_round(self):
-        Movable.complete_round(self)
-        Striker.complete_round(self)
+
     
     #@wrappers.alive_only(Deadly)
     def update(self):
@@ -135,19 +133,30 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker):
         Unit.__init__(self, speed, hp, Corpse, 'monsters')
         Stalker.__init__(self, self.look_size)
         Respawnable.__init__(self, 30, 60)
+        
+        self.stopped = False
+        
         self.spawn()
+    
+    def hit(self, damage):
+        self.stopped = 15
+        Deadly.hit(self, damage)
     
     @wrappers.alive_only(Deadly)
     def update(self):
-        
-        if chance(50):
-            direct = self.hunt(chance(50))
-            if direct:
-                self.move(direct)
+        if not self.stopped:
+            if chance(50):
+                direct = self.hunt(chance(50))
+                if direct:
+                    self.move(direct)
+                else:
+                    Walker.update(self)
             else:
                 Walker.update(self)
         else:
-            Walker.update(self)
+            self.move(NullPoint)
+            
+            self.stopped-=1
         Movable.update(self)
         Deadly.update(self)
     
@@ -158,7 +167,7 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker):
 
 
 class Zombie(Fighter, MetaMonster):
-    hp = 5
+    hp = 50
     speed = 15
     damage = 1
     attack_speed = 10

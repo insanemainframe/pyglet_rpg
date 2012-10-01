@@ -60,7 +60,8 @@ def send(channel, data):
             if Error[0]==11:
                 print 'send: error 11'
             elif Error[0]==104:
-                
+                return 
+            elif Error[0]==32:
                 return 
             else:
                 raise Error
@@ -75,11 +76,12 @@ def send(channel, data):
                 print 'send: error 11'
             elif Error[0]==104:
                 return
+            elif Error[0]==32:
+                return 
             else:
                 raise Error
         else:
             data = ''
-    print 
             
 
     

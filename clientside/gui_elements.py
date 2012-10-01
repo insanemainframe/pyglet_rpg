@@ -4,11 +4,10 @@ from config import *
 from client_config import *
 
 
-from clientside.window import GameWindow, create_tile
+from clientside.window import GameWindow, create_tile, Label, ClockDisplay
 
-import pyglet
 
-FPSDisplay = pyglet.clock.ClockDisplay
+FPSDisplay = ClockDisplay
 
 class Stats(GameWindow):
     hp = 0
@@ -45,14 +44,7 @@ class Stats(GameWindow):
         self.skills_display = self.label(skills_mess, 70, 140)
         
         
-    def pyglet_label(self, text, x,y):
-        return pyglet.text.Label(text,
-                          font_name='Times New Roman',
-                          font_size=20,
-                          x=self.width-x, y=self.height-y,
-                          anchor_x='center', anchor_y='center')
-    def pygame_label(self, text, x,y):
-        from pygame_window import Label
+    def label(self, text, x,y):
         return Label(text,x,y)
                           
     def update(self, hp, hp_value, speed, damage, gold, kills, deaths, skills):
@@ -82,19 +74,13 @@ class Stats(GameWindow):
         self.damage_display.draw()
         self.skills_display.draw()
 
-if CLIENTENGINE=='pyglet':
-    Stats.label = Stats.pyglet_label
-else:
-    Stats.label = Stats.pygame_label
+
 
 class LoadingScreen:
     def __init__(self, point):
         x,y = point.get()
-        self.label = pyglet.text.Label('Waiting for server response',
-                          font_name='Times New Roman',
-                          font_size=10,
-                          x=x, y=y,
-                          anchor_x='center', anchor_y='center')
+        self.label = Label('Waiting for server response', x,y)
+        
     def draw(self):
         self.label.draw()
 

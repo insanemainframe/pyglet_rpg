@@ -75,7 +75,7 @@ class ObjectsView(GameWindow, Drawable, ViewTools):
             self.tiles.extend(game_object.draw())
     
     def round_update(self):
-        [game_object.round_update() for game_object in self.objects.values()]
+        [client_objects.ClientObject.round_update(game_object) for game_object in self.objects.values()]
         
     def force_complete(self):
         [game_object.force_complete() for game_object in self.objects.values()]

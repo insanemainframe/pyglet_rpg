@@ -173,3 +173,7 @@ class Label(object):
         self.label = self.font.render(text, 1, self.color )
     def draw(self):
         GameWindow.screen.blit(self.label, (self.x, self.y))
+
+class ClockDisplay:
+    def draw(self):
+        pass

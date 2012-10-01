@@ -4,6 +4,7 @@ from clientside.window import GameWindow, create_tile, create_label
 
 from share.mathlib import Point, NullPoint
 
+from inspect import getmro
 
 class ActionError(Exception):
     pass
@@ -57,11 +58,15 @@ class ClientObject:
         pass
         
     def round_update(self):
-        pass
+        bases = getmro(self.__class__)
+        print bases
+        for base in bases:
+            if not base is object and not base is ClientObject and hasattr(base, 'round_update'):
+                    base.round_update(self)
     
     def exist(self, *args):
         pass
-
+    
     
     def remove(self):
         self.REMOVE = True
