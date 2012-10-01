@@ -21,11 +21,11 @@ class MapObserver(MapTools):
         rad = self.look_size
         I,J = (position/TILESIZE).get()
         #
-        new_events = {}
+        new_events = set()
         observed = set()
         looked = set()
         static_objects = {}
-        static_events = {}
+        static_events = set()
         #
         for i in xrange(I-rad, I+rad):
             for j in xrange(J-rad, J+rad):
@@ -50,14 +50,16 @@ class MapObserver(MapTools):
         observed.add((i,j))
         #ищем события в этом тайле
         if (i,j) in game.events:
-            for uid, (name, object_type, position, action, args) in game.events[(i,j)]:
-                if name==self.name:
-                    object_type = 'Self'
-                new_events[uid] = (name, object_type, position, action, args)
+            for event in game.events[(i,j)]:
+                if event.name==self.name:
+                    event.object_type = 'Self'
+                new_events.add(event)
+                
         #ищем события статических объектов
         if (i,j) in game.static_events:
-            for uid, (name, object_type, position, action, args) in game.static_events[(i,j)]:
-                static_events[uid] = (name, object_type, position, action, args)
+            for event in game.static_events[(i,j)]:
+                static_events.add(event)
+                
         #ищем статические объекты
         if (i,j) in game.static_objects:
             tile_static_objects = {name: (static_object.__class__.__name__, static_object.position)

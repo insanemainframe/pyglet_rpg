@@ -112,7 +112,7 @@ class Movable:
             
             altposition = self.position
             #добавляем событие
-            self.add_event(self.prev_position, altposition, 'move', [self.move_vector.get()])
+            self.add_event(self.prev_position, self.move_vector, 'move', (self.move_vector.get(), ))
             self.detect_collisions(self)
     
     def _tile_collission(self, move_vector):

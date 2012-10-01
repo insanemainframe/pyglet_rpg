@@ -11,8 +11,7 @@ class GameProtocol:
 class Events:
     #name, object_type, action, args=()
     def pack_events(self, events):
-        return [(name, object_type, position.get(), action, args)
-                for uid, (name, object_type, position, action, args) in events.items()]
+        return [event.get_tuple() for event in events]
     
     def unpack_events(self, events):
         return [(name, object_type,  Point(x,y), action, args)

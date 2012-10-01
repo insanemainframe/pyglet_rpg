@@ -38,11 +38,9 @@ class Explodable:
         self.explode_time = explode_time
         
     def update(self):
-        if self.explode_time>0:
-                self.add_event(self.position, NullPoint, 'explode', [])
-                self.explode_time-=1
-        else:
-            self.REMOVE = True
+        self.add_event(self.position, NullPoint, 'explode', [], self.explode_time)
+        self.explode_time-=1
+        self.REMOVE = True
         
     def remove(self):
         return True
@@ -52,7 +50,7 @@ class Ball(Temporary, Explodable, Solid, Movable,GameObject, Fragile, Mortal, Di
     radius = TILESIZE/2
     speed = 60
     BLOCKTILES = ['stone', 'forest']
-    explode_time = 7*3
+    explode_time = 20
     alive_after_collission = False
     def __init__(self, name, position, direct, fraction, striker, damage = 2):
         GameObject.__init__(self, name, position)

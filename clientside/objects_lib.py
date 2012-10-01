@@ -59,7 +59,6 @@ class ClientObject:
         
     def round_update(self):
         bases = getmro(self.__class__)
-        print bases
         for base in bases:
             if not base is object and not base is ClientObject and hasattr(base, 'round_update'):
                     base.round_update(self)

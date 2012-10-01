@@ -58,7 +58,6 @@ class Deadly(Animated):
         self.defended = True
     
     def round_update(self):
-        print 'deadly round update'
         self.defended = False
 
     

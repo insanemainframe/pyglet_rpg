@@ -5,10 +5,11 @@ from config import *
 
 from random import randrange
 from weakref import proxy
+from collections import defaultdict
 
 from share.mathlib import Point, NullPoint
 from maplib import World
-from game_lib import ObjectContainer
+from game_lib import ObjectContainer, Event, Eventlist
          
         
 class __GameSingleton(ObjectContainer):
@@ -23,23 +24,21 @@ class __GameSingleton(ObjectContainer):
         print 'GameSingleton init'
 
 
-    def add_event(self, name, position, altposition, action, args=[]):
+    def add_event(self, name, position, vector, action, args=(), timeout=0):
         "добавляет событие"
         if action:
-            uid = self.event_counter
-            self.event_counter += 1
             map_position = (position/TILESIZE).get()
             object_type = self.players[name].__class__.__name__
             
-            event = (uid, (name, object_type, position, action, args))
+            event = Event(name, object_type, position, action, args, timeout)
             if isinstance(self.players[name], StaticObject):
-                self.static_events[map_position].append(event)
+                self.static_events[map_position].add(event)
             else:
-                self.events[map_position].append(event)
+                self.events[map_position].add(event)
                 
-                if altposition:
-                    alt_key = (altposition/TILESIZE).get()
-                    self.events[alt_key].append(event)
+                if vector:
+                    alt_key = (position+vector/TILESIZE).get()
+                    self.events[alt_key].add(event)
     
     def move_object(self, player):
         "реакция на передвижение объекта - обновить данные локаций"
@@ -111,11 +110,6 @@ class __GameSingleton(ObjectContainer):
         #
         for name in remove_list:
             self.remove_object(name)
-    
-    def clear_events(self):
-        "очищает события в конце раунда"
-        self.events.clear()
-        self.static_events.clear()
     
     def remove_object(self, name, force = False):
         "удаляет игровые объекты, если метод remove вернул False то откладывет удаление объекта"
