@@ -62,7 +62,7 @@ class SocketServer(Multiplexer):
         "добавить ответ в стек"
         with self.responses_lock:
             if client_name in self.responses:
-                self.responses[client_name]+=messages
+                self.responses[client_name].extend(messages)
     
     def write_to_all(self):
         "послать ответы всем клиентам"
@@ -84,13 +84,14 @@ class SocketServer(Multiplexer):
     
     def handle_write(self, client_name):
         "пишет пакеты на сокет пользователя"
-        with self.responses_lock:
-            to_write =  self.responses[client_name]
-            self.responses[client_name] = []
-        sock = self.clients[client_name].outsock
-        for response in to_write:
-            send(sock, response)
-        return True
+        if self.responses[client_name]:
+            with self.responses_lock:
+                to_write =  self.responses[client_name]
+                self.responses[client_name] = []
+            sock = self.clients[client_name].outsock
+            for response in to_write:
+                send(sock, response)
+            return True
     
     def handle_read(self, client_name):
         "читает один пакет данных из сокета, если это возможно"
@@ -163,13 +164,11 @@ class SocketServer(Multiplexer):
         self.infilenos[insock_fileno] = client_name
         self.outfilenos[outsock_fileno] = client_name
         
-        print 'insock.fileno()', insock.fileno()
-        self.register_in(insock_fileno)
-        self.register_out(outsock_fileno)
-
-        
         with self.responses_lock:
             self.responses[client_name] = []
+        
+        self.register_in(insock_fileno)
+        self.register_out(outsock_fileno)
         
         print 'accepting_client %s' % client_name
 

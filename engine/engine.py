@@ -76,12 +76,11 @@ class GameEngine:
     def game_responses(self):
         "смотрим"
         #подготавливаем обновления для выборочного обзора
-        messages = {}
         for name, player in game.guided_players.items():
-            messages[name] = self.messages[name]
-            self.messages[name] = []
-            messages[name].extend(player.handle_response())
-        return messages
+            if self.messages[name]:
+                yield name, self.messages[name]
+                self.messages[name] = []
+            yield (name, player.handle_response())
     
     def end_round(self):
         game.clear_events()

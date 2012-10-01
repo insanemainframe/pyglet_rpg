@@ -58,14 +58,16 @@ class GameServer(SocketServer, AskHostname, Packer):
         self.game.game_middle()
         #получаем ответы от движка
         #вставляем ответы в очередь сокет-сервера
-        for name, messages in self.game.game_responses().items():
-            responses = [self.pack(response, action) for action, response in messages]
-            self.put_messages(name, responses)
+        for name, messages in self.game.game_responses():
+            self.write(name, messages)
         
         self.game.end_round()
         
         
-        
+    
+    def write(self, name, responses):
+        responses = [self.pack(response, action) for action, response in responses]
+        self.put_messages(name, responses)
 
     def accept(self, client):
         "вызывается при подключении клиента"
@@ -79,8 +81,6 @@ class GameServer(SocketServer, AskHostname, Packer):
             self.new_clients.append(client)
         
        
-
-    
     def read(self, client, message):
         request = self.unpack(message)
         with self.server_lock:
