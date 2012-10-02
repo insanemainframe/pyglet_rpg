@@ -32,8 +32,8 @@ class Bot(Client, Process):
             self.in_messages = []
             if time()-t>1:
                 d*=-1
-                x = randrange(-300, 300)
-                y = randrange(-300, 300)
+                x = randrange(-500, 500)
+                y = randrange(-500, 500)
                 if d>0:
                     self.send_move(Point(x,y))
                 else:

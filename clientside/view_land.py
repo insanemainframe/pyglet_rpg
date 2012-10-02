@@ -13,7 +13,7 @@ from collections import defaultdict
 
 class LandView(GameWindow,  Drawable, MapTools):
     "клиентская карта"
-    def __init__(self, world_size, position, tiles=[], observed=[]):
+    def __init__(self, world_size, position):
         MapTools.__init__(self, world_size, world_size)
         Drawable.__init__(self)
         self.observed = set()
@@ -21,8 +21,7 @@ class LandView(GameWindow,  Drawable, MapTools):
         self.world_size = world_size
         self.map = defaultdict(lambda: defaultdict(lambda: 'fog'))
         self.tiles = []
-        if tiles:
-            self.insert(tiles, observed)
+        
         self.set_camera_position(position)
         self.prev_position = position/2
         self.main_tile = 'grass'

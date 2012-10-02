@@ -156,7 +156,7 @@ class Movable:
         self.move_vector = NullPoint
     
     def handle_request(self):
-        return self.move_vector
+        return [self.move_vector]
     
     @wrappers.alive_only()
     def update(self):

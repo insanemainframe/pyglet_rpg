@@ -33,12 +33,17 @@ class __GameSingleton(ObjectContainer):
             event = Event(name, object_type, position, action, args, timeout)
             if isinstance(self.players[name], StaticObject):
                 self.static_events[map_position].add(event)
+                if timeout:
+                    self.timeout_static_events[map_position].add(event)
             else:
                 self.events[map_position].add(event)
-                
+                if timeout:
+                    self.timeout_events[map_position].add(event)
                 if vector:
                     alt_key = (position+vector/TILESIZE).get()
                     self.events[alt_key].add(event)
+                    if timeout:
+                        self.timeout_events[alt_key].add(event)
     
     def move_object(self, player):
         "реакция на передвижение объекта - обновить данные локаций"

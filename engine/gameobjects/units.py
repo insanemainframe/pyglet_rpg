@@ -40,14 +40,14 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill):
             messages.append(('MoveCamera', Movable.handle_request(self)))
             if self.cord_changed:
                 new_looked, observed = self.look_map()
-                messages.append(('Look'))
+                messages.append(('LookLand', (new_looked, observed)))
                 
             events = self.look_events()
-            messages.append(('LookObjects', events))
+            messages.append(('LookObjects', (events,)))
             
             static_objects, static_events = self.look_static()
             
-            messages.append(('LookStatic', static_objects, static_events))
+            messages.append(('LookStatic', (static_objects, static_events)))
             
             if self.stats_changed:
                 messages.append(('PlayerStats', self.get_stats()))

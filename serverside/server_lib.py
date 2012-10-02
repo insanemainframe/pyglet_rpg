@@ -195,11 +195,13 @@ class SocketServer(Multiplexer):
         self.register_in(self.insock.fileno())
         self.register_in(self.outsock.fileno())
         #запускаем поток движка
-        thread = Thread(target=self.timer_thread)
-        thread.start()
+        #self.thread = Thread(target=self.timer_thread)
+        self.thread = Thread(target=self.run_poll)
+        self.thread.start()
         #
         try:
-            self.run_poll()
+            self.timer_thread()
+            #self.run_poll()
         finally:
             self.stop()
     

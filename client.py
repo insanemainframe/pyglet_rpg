@@ -51,7 +51,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, GUIWin
         if accept_data:
             world_size, position = accept_data
         
-            print 'accepteed position %s tiles %s' % (position, len(tiles))
+            print 'accepteed position %s ' % position
             
             self.land = LandView(world_size, position)
             
@@ -130,6 +130,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, GUIWin
             elif action=='LookLand':
                 newtiles, observed = message
                 self.land.insert(newtiles, observed)
+                self.static_objects.filter(observed)
                 
             elif action=='LookObjects':
                 events = message
@@ -138,7 +139,6 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, GUIWin
             elif action=='LookStatic':
                 static_objects, static_objects_events = message
                 self.static_objects.insert(static_objects, static_objects_events)
-                self.static_objects.filter(observed)
                 self.static_objects.update()
             
             elif action=='PlayerStats':

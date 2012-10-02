@@ -138,7 +138,7 @@ try:
     import event
 except ImportError:
     try:
-        from gevent import core
+        from _gevent import core
     except ImportError:
         try:
             from select import epoll, EPOLLIN, EPOLLOUT

@@ -42,6 +42,8 @@ class StaticObjects(Events):
 #########################################################################
 #классы протоколов
 
+#######################################################################
+#ответы сервера
 #инициализация
 class ServerAccept(GameProtocol):
     "ответ сервера - инициализация клиента"
@@ -54,23 +56,15 @@ class ServerAccept(GameProtocol):
         return world_size, position
 
 #
-#запрос на иницализацию
-class ClientAccept(GameProtocol):
-    "запрос клиента"
-    @staticmethod
-    def pack_client_accept(name):
-        return name
-    
-    @staticmethod
-    def unpack_client_accept(name):
-        return name
+
 #обзор
 class MoveCamera(GameProtocol):
-    def pack(self, move_vector):
-        move_vector = move_vector.get()
-        return move_vector
-    
-    def unpack(self, (x,y)):
+    @staticmethod
+    def pack(move_vector):
+        x,y = move_vector.get()
+        return [x,y]
+    @staticmethod
+    def unpack(x,y):
         move_vector = Point(x,y)
         return move_vector
 
@@ -81,7 +75,7 @@ class LookLand(GameProtocol,Land, Observed):
         
         return land, observed
 
-    def unpack(self,land):
+    def unpack(self,land,observed):
         land =  self.unpack_land(land)
         observed =  self.unpack_observed(observed)
 
@@ -91,7 +85,7 @@ class LookLand(GameProtocol,Land, Observed):
 class LookObjects(GameProtocol, Events):
     def pack(self, events):
         events = self.pack_events(events)
-        return events
+        return [events]
     
     def unpack(self, events):
         events = self.unpack_events(events)
@@ -116,7 +110,18 @@ class PlayerStats(GameProtocol):
     @staticmethod
     def unpack(hp, hp_value, speed, damage, gold, kills, death_counter, skills):
         return hp, hp_value, speed, damage, gold, kills, death_counter, skills
-    
+
+#РЕСПАВН
+class Respawn(GameProtocol):
+    @staticmethod
+    def pack(position):
+        return position.get()
+    @staticmethod
+    def unpack(x,y):
+        return Point(x,y)
+        
+#######################################################################
+#запросы клиента
 
 #передвижение
 class Move(GameProtocol):
@@ -144,15 +149,17 @@ class Skill(GameProtocol):
     @staticmethod
     def unpack(a=None):
         return []
-#РЕСПАВН
-class Respawn(GameProtocol):
-    @staticmethod
-    def pack(position):
-        return position.get()
-    @staticmethod
-    def unpack(x,y):
-        return Point(x,y)
 
+#запрос на иницализацию(на будущее)
+class ClientAccept(GameProtocol):
+    "запрос клиента"
+    @staticmethod
+    def pack_client_accept(name):
+        return name
+    
+    @staticmethod
+    def unpack_client_accept(name):
+        return name
                 
                 
 

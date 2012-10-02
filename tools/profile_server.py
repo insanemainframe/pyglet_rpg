@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sys import path, argv; path.append('../')
+from sys import path, argv; path.append('./')
 from config import SERVER_PROFILE_FILE
 
 import pstats
