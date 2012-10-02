@@ -65,6 +65,7 @@ class GameObject(object):
         self.prev_position = position
         self.REMOVE = False            
         self.alive = True
+        self.cord_changed = False
     
     @property
     def position(self):
@@ -72,10 +73,10 @@ class GameObject(object):
     
     @position.setter
     def position(self, position):
+        if position/TILESIZE!= self.prev_position/TILESIZE:
+            self.cord_changed = True
         self.prev_position = self._position
         self._position  = position
-        self._location = position/LOCATIONSIZE
-        game.move_object(self)
     
     
     def update(self):
@@ -104,6 +105,7 @@ class GameObject(object):
         for base in bases:
             if not base is object and not base is GameObject and hasattr(base, 'complete_round'):
                     base.round_update(self)
+        self.cord_changed = False
 
 #####################################################################
 class StaticObject(GameObject):
@@ -112,6 +114,9 @@ class StaticObject(GameObject):
     
     def update(self):
         pass
+    
+    def get_tuple(self):
+        return self.__class__.__name__, self.position
 
     
     def complete_round(self):

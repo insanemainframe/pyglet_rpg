@@ -49,19 +49,15 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, GUIWin
     def accept(self):
         accept_data = self.wait_for_accept()
         if accept_data:
-            world_size, position, tiles, observed, events, static_objects, static_objects_events = accept_data
+            world_size, position = accept_data
         
             print 'accepteed position %s tiles %s' % (position, len(tiles))
             
-            self.land = LandView(world_size, position, tiles, observed)
-            
-            
+            self.land = LandView(world_size, position)
             
             from clientside.client_objects import MapAccess
             MapAccess.map = self.land.map
             
-            self.objects.insert(events)
-            self.static_objects.insert(static_objects, static_objects_events)
             self.accepted = True
             self.loading = False
             #устанавливаем обновления на каждом кадре
@@ -126,12 +122,21 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, GUIWin
                 new_position = message                
                 self.set_camera_position(new_position)
                 self.objects.clear()
-                
-            elif action=='Look':
-                move_vector, newtiles, observed, events, static_objects, static_objects_events = message
+            
+            elif action=='MoveCamera':
+                move_vector = message
                 self.antilag_handle(move_vector)
+                
+            elif action=='LookLand':
+                newtiles, observed = message
                 self.land.insert(newtiles, observed)
+                
+            elif action=='LookObjects':
+                events = message
                 self.objects.insert(events)
+            
+            elif action=='LookStatic':
+                static_objects, static_objects_events = message
                 self.static_objects.insert(static_objects, static_objects_events)
                 self.static_objects.filter(observed)
                 self.static_objects.update()

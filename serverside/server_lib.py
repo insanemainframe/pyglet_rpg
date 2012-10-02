@@ -230,6 +230,7 @@ class SocketServer(Multiplexer):
     def stop(self):
         "сотановка сервера"
         self.running = False
+        self.thread._Thread__stop()
         #
         self.stop_debug_info()
         #

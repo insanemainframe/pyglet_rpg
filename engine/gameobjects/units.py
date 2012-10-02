@@ -36,11 +36,21 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill):
         
     def handle_response(self):
         if not self.respawned:
-            move_vector = Movable.handle_request(self)
-            new_looked, observed, events, static_objects, static_events = self.look()
-            messages = [('Look', (move_vector, new_looked, observed, events, static_objects, static_events))]
+            messages = []
+            messages.append(('MoveCamera', Movable.handle_request(self)))
+            if self.cord_changed:
+                new_looked, observed = self.look_map()
+                messages.append(('Look'))
+                
+            events = self.look_events()
+            messages.append(('LookObjects', events))
+            
+            static_objects, static_events = self.look_static()
+            
+            messages.append(('LookStatic', static_objects, static_events))
+            
             if self.stats_changed:
-                messages.append(self.get_stats())
+                messages.append(('PlayerStats', self.get_stats()))
     
             return messages
         else:

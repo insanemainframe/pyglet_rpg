@@ -106,4 +106,4 @@ class Stats:
     def get_stats(self):
         data = (self.hp, self.hp_value, self.speed, self.damage, self.gold, self.kills, self.death_counter ,self.skills)
         self.stats_changed = False
-        return ('PlayerStats', data)
+        return data

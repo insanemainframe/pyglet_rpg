@@ -43,29 +43,15 @@ class StaticObjects(Events):
 #классы протоколов
 
 #инициализация
-class ServerAccept(GameProtocol, Events, Land, Observed, StaticObjects):
+class ServerAccept(GameProtocol):
     "ответ сервера - инициализация клиента"
-    def pack(self, world_size, position, land, observed, events, static_objects, static_objects_events):
-        
+    def pack(self, world_size, position):
         x,y = position.get()
-        land = self.pack_land(land)
-        observed = self.pack_observed(observed)
-        events = self.pack_events(events)
-        static_objects = self.pack_static_objects(static_objects)
-        static_objects_events = self.pack_events(static_objects_events)
-        
-        return (world_size, (x,y), land, observed, events, static_objects, static_objects_events)
+        return world_size, (x,y)
 
-    def unpack(self, world_size, (x,y), land, observed, events, static_objects, static_objects_events):
-        
+    def unpack(self, world_size, (x,y)):
         position = Point(x,y)
-        land = self.unpack_land(land)
-        observed =  self.unpack_observed(observed)
-        events = self.unpack_events(events)
-        static_objects = self.unpack_static_objects(static_objects)
-        static_objects_events = self.unpack_events(static_objects_events)
-        
-        return world_size, position, land, observed, events, static_objects, static_objects_events
+        return world_size, position
 
 #
 #запрос на иницализацию
@@ -79,28 +65,48 @@ class ClientAccept(GameProtocol):
     def unpack_client_accept(name):
         return name
 #обзор
-class Look(GameProtocol, Events, Land, Observed, StaticObjects):
-    def pack(self, move_vector, land, observed, events, static_objects, static_objects_events):
-        
+class MoveCamera(GameProtocol):
+    def pack(self, move_vector):
         move_vector = move_vector.get()
+        return move_vector
+    
+    def unpack(self, (x,y)):
+        move_vector = Point(x,y)
+        return move_vector
+
+class LookLand(GameProtocol,Land, Observed):
+    def pack(self, land, observed):
         land = self.pack_land(land)
         observed =  self.pack_observed(observed)
-        events = self.pack_events(events)
-        static_objects = self.pack_static_objects(static_objects)
-        static_objects_events = self.pack_events(static_objects_events)
         
-        return move_vector, land, observed, events, static_objects, static_objects_events
+        return land, observed
 
-    def unpack(self, (x,y), land, observed, events, static_objects, static_objects_events):
-        
-        move_vector = Point(x,y)
+    def unpack(self,land):
         land =  self.unpack_land(land)
         observed =  self.unpack_observed(observed)
+
+        
+        return land, observed
+
+class LookObjects(GameProtocol, Events):
+    def pack(self, events):
+        events = self.pack_events(events)
+        return events
+    
+    def unpack(self, events):
         events = self.unpack_events(events)
+        return events
+
+class LookStatic(GameProtocol, StaticObjects, Events):
+    def pack(self, static_objects, static_objects_events):
+        static_objects = self.pack_static_objects(static_objects)
+        static_objects_events = self.pack_events(static_objects_events)
+        return static_objects, static_objects_events
+    
+    def unpack(self, static_objects, static_objects_events):
         static_objects = self.unpack_static_objects(static_objects)
         static_objects_events = self.unpack_events(static_objects_events)
-        
-        return move_vector, land, observed, events, static_objects, static_objects_events
+        return static_objects, static_objects_events
 
 #статы игрока
 class PlayerStats(GameProtocol):
@@ -146,13 +152,7 @@ class Respawn(GameProtocol):
     @staticmethod
     def unpack(x,y):
         return Point(x,y)
-#
-#словарь хэндлеров на действия
-_method_handlers = {'move': Move(),
-                'ball': Strike(),
-                'look' : Look(),
-                'server_accept': ServerAccept(),
-                'respawn': Respawn()}
+
                 
                 
 

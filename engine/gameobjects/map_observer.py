@@ -15,17 +15,15 @@ class MapObserver(MapTools):
     def __init__(self, look_size):
         MapTools.__init__(self, game.size, game.size)
         self.look_size = look_size
-    def look(self):
+        
+    def look_map(self):
         "возвращает список координат видимых клеток из позиции position, с координаами относительно начала карты"
         position = self.position
         rad = self.look_size
         I,J = (position/TILESIZE).get()
         #
-        new_events = set()
         observed = set()
         looked = set()
-        static_objects = {}
-        static_events = set()
         #
         for i in xrange(I-rad, I+rad):
             for j in xrange(J-rad, J+rad):
@@ -37,35 +35,39 @@ class MapObserver(MapTools):
                     except IndexError, excp:
                         pass
                     else:
-                        self._look_tile(i,j, tile_type, looked, observed, new_events, static_objects, static_events)
+                        looked.add((Point(i,j), tile_type))
                         
 
         new_looked = looked - self.prev_looked
         self.prev_looked = looked
         self.prev_observed = observed
-        return new_looked, observed, new_events, static_objects, static_events
         
-    def _look_tile(self, i,j, tile_type, looked, observed, new_events, static_objects, static_events):
-        looked.add((Point(i,j), tile_type))
-        observed.add((i,j))
-        #ищем события в этом тайле
-        if (i,j) in game.events:
-            for event in game.events[(i,j)]:
-                if event.name==self.name:
-                    event.object_type = 'Self'
-                new_events.add(event)
-                
-        #ищем события статических объектов
-        if (i,j) in game.static_events:
-            for event in game.static_events[(i,j)]:
-                static_events.add(event)
-                
-        #ищем статические объекты
-        if (i,j) in game.static_objects:
-            tile_static_objects = {name: (static_object.__class__.__name__, static_object.position)
-                for name, static_object in game.static_objects[(i,j)].items()}
-            
-            static_objects.update(tile_static_objects)
+        return new_looked, observed
         
-        return looked, observed, new_events, static_objects
-
+    def look_events(self):
+        radius = self.look_size*TILESIZE
+        events = set()
+        for (i,j), eventlist in game.events.items():
+            dist = abs(Point(i,j)*TILESIZE - self.position)
+            if dist<=radius:
+                events.update([event for event in eventlist])
+                    
+        return events
+        
+    def look_static(self):
+        radius = self.look_size*TILESIZE
+        
+        static_events = set()
+        for (i,j), eventlist in game.static_events.items():
+            dist = abs(Point(i,j)*TILESIZE - self.position)
+            if dist<=radius:
+                static_events.update([event for event in eventlist])
+        
+        static_objects = {}
+        for (i,j), objectlist in game.static_objects:
+            dist = abs(Point(i,j)*TILESIZE - self.position)
+            if dist<=radius:
+                for name, static_object in objectlist.items():
+                    static_objects[name] = static_object.get_tuple()
+        
+        return static_objects, static_events

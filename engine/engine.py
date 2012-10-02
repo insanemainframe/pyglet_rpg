@@ -40,10 +40,8 @@ class GameEngine:
         game.new_object(new_player)
         world_size = game.size
         #
-        #обзор
-        looked, observed, events, static_objects, static_events = new_player.look()
         #уже существующие объекты
-        message = (world_size, new_player.position, looked, observed, events, static_objects, static_events)
+        message = (world_size, new_player.position)
         #оставляем сообщение о подключении
         self.messages[name] = [('ServerAccept', message)]
     
