@@ -3,16 +3,19 @@
 from config import *
 
 from share.mathlib import *
+from engine_lib import StaticObject
 
+from weakref import proxy
 from collections import defaultdict
 
-Eventlist = lambda: defaultdict(set)
 
 class Event:
-    def __init__(self, name, object_type, position, action, args, timeout=0):
+    def __init__(self, event_id, name, object_type, position, action, args, timeout=0):
+        self.event_id = event_id
+        self.position = position
         self.name = name
         self.object_type = object_type
-        self.position = position
+       
         self.action = action
         self.args = tuple(args)
         self.timeout = timeout
@@ -28,43 +31,61 @@ class Event:
             return False
     
     def __hash__(self):
-        try:
-            return hash((self.name, self.object_type, self.position, self.action, self.args))
-        except:
-             print self.name, self.object_type, self.position, self.action, self.args
-        
-class ObjectContainer(object):
-    def __init__(self, players = {},solid_objects = {},guided_players={},
-                 static_objects = defaultdict(dict),events = Eventlist(),
-                 static_events = Eventlist()):
-        self.players = players
-
-        self.solid_objects = solid_objects #твердые объект, способные сталкиваться
-        self.guided_players = guided_players #управляемые игроки
-        self.static_objects = static_objects #неподвижные объекты
-        
-        self.events = events #события объекто
-        self.static_events = static_events #события статических объектов
+        return hash(self.event_id)
     
-    def __add__(self, cotainer):
-        if isinstance(container, ObjectContainer):
-            players = self.players + container.players
-            solid_o = self.solid_objects + container.solid_objects
-            guided_p = self.guided_players + container.guided_players
-            static_o = self.static_objects + container.static_objects
-            events = self.events + container.events
-            static_e = self.static_events + container.static_events
-            new_container = ObjectContainer(players,solid_o,guided_p,static_o,events,static_e)
-            return new_container
+    def __eq__(self, event):
+        return self.event_id==event.event_id
+   
+
+
+dictadd = lambda d1, d2: dict(d1.items() +d2.items())
+
+class ObjectContainer(object):
+    "контейнер содержащий объекты и события"
+    def __init__(self):
+        self.players ={}
+
+        self.solid_objects = {}#твердые объект, способные сталкиваться
+        self.guided_players = {} #управляемые игроки
+        self.static_objects = defaultdict(dict) #неподвижные объекты
+        
+        self.events = set() #события объекто
+        self.static_events = set() #события статических объектов
+        
+        self.timeout_events = set()
+    
+    def __add__(self, container):
+        new_container = ObjectContainer()
+        
+        new_container.players.update(self.players)
+        new_container.players.update(container.players)
+        
+        new_container.solid_objects.update(self.solid_objects)
+        new_container.solid_objects.update(container.solid_objects)
+        
+        new_container.guided_players.update(self.guided_players)
+        new_container.guided_players.update(container.guided_players)
+        
+        new_container.static_objects.update(self.static_objects)
+        new_container.static_objects.update(container.static_objects)
+
+        new_container.events = set(tuple(self.events) + tuple(container.events))
+        new_container.static_events = set(tuple(self.static_events) + tuple(container.static_events))
+        new_container.timeout_events = set(tuple(self.timeout_events) + tuple(container.timeout_events))
+        
+        return new_container
+    
+    
+    def add_event(self, event):
+        
+        self.events.add(event)
+                
+    def add_static_event(self, event):
+        self.static_events.add(event)
     
     def clear_events(self):
         "очищает события в конце раунда"
-        new_events = Eventlist()
-        for cord, eventlist in self.events.items():
-            for event in eventlist:
-                if event.alive():
-                    new_events[cord].add(event)
-        self.events = new_events
+        self.events = set() #[event for event in self.timeout_events if event.alive()])
+        
         self.static_events.clear()
-    
-    
+

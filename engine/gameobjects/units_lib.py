@@ -34,7 +34,7 @@ class Fighter:
         if self.fraction!=player.fraction:
             if self.attack_counter==0:
                 player.hit(self.damage)
-                self.add_event(self.position, NullPoint, 'attack', [])
+                self.add_event('attack', [])
     
     def complete_round(self):
         if self.attack_counter < self.attack_speed:

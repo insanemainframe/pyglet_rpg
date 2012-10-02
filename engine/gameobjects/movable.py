@@ -72,7 +72,7 @@ def get_cross(position, vector):
 
 ##########################################################
 
-class Movable:
+class Movable(DynamicObject):
     "класс движущихся объектов"
     BLOCKTILES = []
     SLOWTILES = {}
@@ -112,7 +112,7 @@ class Movable:
             
             altposition = self.position
             #добавляем событие
-            self.add_event(self.prev_position, self.move_vector, 'move', (self.move_vector.get(), ))
+            self.add_event('move', (self.move_vector.get(),))
             self.detect_collisions(self)
     
     def _tile_collission(self, move_vector):
@@ -141,7 +141,9 @@ class Movable:
     
     @wrappers.player_filter_alive
     def detect_collisions(self, player):
-        for Player in game.solid_objects.values():
+        location = self.get_location()
+        
+        for Player in location.solid_objects.values():
             if not Player is player:
                 distance = abs(Player.position - player.position)
                 if distance <= Player.radius+player.radius:
@@ -155,8 +157,6 @@ class Movable:
         self.vector = NullPoint
         self.move_vector = NullPoint
     
-    def handle_request(self):
-        return self.move_vector
     
     @wrappers.alive_only()
     def update(self):

@@ -38,7 +38,7 @@ class Explodable:
         self.explode_time = explode_time
         
     def update(self):
-        self.add_event(self.position, NullPoint, 'explode', [], self.explode_time)
+        self.add_event('explode', [], self.explode_time)
         self.explode_time-=1
         self.REMOVE = True
         

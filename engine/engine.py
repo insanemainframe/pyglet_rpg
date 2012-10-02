@@ -36,7 +36,7 @@ class GameEngine:
         "создание нового игрока"
         print 'New player %s' % name
         position = game.choice_position(Player)
-        new_player = Player(name, position , 7)
+        new_player = Player(name, position)
         game.new_object(new_player)
         world_size = game.size
         #

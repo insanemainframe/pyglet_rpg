@@ -6,6 +6,7 @@ from share.protocol_lib import send, receivable, PackageError
 from multiplexer import Multiplexer
 
 import socket
+from sys import exit
 from time import sleep, time
 from threading import Thread, RLock
 from collections import namedtuple
@@ -41,11 +42,11 @@ class SocketServer(Multiplexer):
         
         self.clients = {}
         self.client_counter = 0
-        self.running = True
+        self.running = False
         
         self.closed = []
         
-        self.responses_lock = RLock() #блокировка для действий с сокетсервером куызщтыуы куйгууыеуы
+        self.responses_lock = RLock() #блокировка для действий с сокетсервером 
             
     def create_socket(self, stream):
         "создает неблокирубщий сокет на заданном порте"
@@ -54,7 +55,7 @@ class SocketServer(Multiplexer):
         sock.bind((self.hostname, PORTS[stream]))
         sock.setblocking(0)
         if stream==OUT:
-            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1) #сразу отправлять клиенту
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1) #отправлять не дожидаясь буферизации ос
         fileno = sock.fileno()
         return sock, fileno
     
@@ -73,14 +74,11 @@ class SocketServer(Multiplexer):
         
         for client_name, responses in to_write.items():
             if responses:
-                #print 'write %s' % self.round_n
                 if client_name in self.clients:
                     sock = self.clients[client_name].outsock
                     for response in responses:
                         send(sock, response)
-                else:
-                    #print 'write to closed client'
-                    pass
+
     
     def handle_write(self, client_name):
         "пишет пакеты на сокет пользователя"
@@ -181,11 +179,11 @@ class SocketServer(Multiplexer):
         t = time()
         while self.running:
             self.timer_handler()
-            #self.write_to_all()
             delta = time()-t
             timeout = SERVER_TIMER - delta if delta<SERVER_TIMER else 0
             t = time()
             sleep(timeout)
+        print 'stoping timer_thread'
 
     def run(self):
         print '\nServer running at %s:(%s,%s) multiplexer: %s' % (self.hostname, IN_PORT, OUT_PORT, self.poll_engine)
@@ -194,12 +192,18 @@ class SocketServer(Multiplexer):
         #регистрируем сокеты на ожидание подключений
         self.register_in(self.insock.fileno())
         self.register_in(self.outsock.fileno())
-        #запускаем поток движка
-        thread = Thread(target=self.timer_thread)
-        thread.start()
+        
         #
         try:
-            self.run_poll()
+            #запускаем поток движка
+            self.running = True
+            self.thread = Thread(target= self.run_poll) #self.timer_thread)
+            self.thread.start()
+            self.timer_thread()
+            #self.run_poll()
+        except Exception as exp:
+            print 'except', exp
+            raise exp
         finally:
             self.stop()
     
@@ -229,7 +233,9 @@ class SocketServer(Multiplexer):
         
     def stop(self):
         "сотановка сервера"
+        print 'stop'
         self.running = False
+        self.thread._Thread__stop()
         #
         self.stop_debug_info()
         #
@@ -248,11 +254,13 @@ class SocketServer(Multiplexer):
     
     def stop_debug_info(self):
         "информация для дебага"
+        
         print '\n\nDebug info:'
         print 'len(self.clients)', len(self.clients)
         print 'self.clients', self.clients
         print self.game.debug()
         print 'End of debug info\n\n'
+        exit()
     
 
         

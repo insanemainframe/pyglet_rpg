@@ -21,11 +21,10 @@ class MapObserver(MapTools):
         rad = self.look_size
         I,J = (position/TILESIZE).get()
         #
-        new_events = set()
+        
         observed = set()
         looked = set()
-        static_objects = {}
-        static_events = set()
+      
         #
         for i in xrange(I-rad, I+rad):
             for j in xrange(J-rad, J+rad):
@@ -37,14 +36,47 @@ class MapObserver(MapTools):
                     except IndexError, excp:
                         pass
                     else:
-                        self._look_tile(i,j, tile_type, looked, observed, new_events, static_objects, static_events)
+                        observed.add((i,j))
+                        looked.add((Point(i,j),tile_type))
                         
 
         new_looked = looked - self.prev_looked
         self.prev_looked = looked
         self.prev_observed = observed
-        return new_looked, observed, new_events, static_objects, static_events
         
+        new_events, static_objects, static_events = self.look_objects()
+        
+        return new_looked, observed, new_events, static_objects, static_events
+    
+    def look_objects(self):
+        rad = self.look_size*TILESIZE
+        location = self.get_location()
+        
+        new_events = set()
+        for event in location.events:
+            position = event.position
+            if abs(position-self.position)<=rad:
+                new_events.add(event)
+        
+        static_objects = {}
+        for (i,j), static_object_list in location.static_objects.items():
+            position = Point(i,j)*TILESIZE
+            if abs(position-self.position)<=rad:
+                for name, static_object in static_object_list.items():
+                    #print 'static_objects', location.static_objects
+                    stype = static_object.__class__.__name__
+                    static_objects[name] = (stype, static_object.position)
+        
+        static_events = set()
+        for event in location.static_events:
+            position = event.position
+            if abs(position-self.position)<=rad:
+                static_events.add(event)
+                
+            
+        return new_events, static_objects, static_events
+    
+    
     def _look_tile(self, i,j, tile_type, looked, observed, new_events, static_objects, static_events):
         looked.add((Point(i,j), tile_type))
         observed.add((i,j))

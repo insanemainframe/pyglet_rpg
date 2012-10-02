@@ -24,11 +24,12 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill):
     BLOCKTILES = ['stone', 'forest', 'ocean']
     SLOWTILES = {'water':0.5, 'bush':0.3}
     damage = 2
+    look_size = 7
 
-    def __init__(self, name, player_position, look_size):
+    def __init__(self, name, player_position):
         GameObject.__init__(self, name, player_position)
         Unit.__init__(self, self.speed, self.hp, Corpse, self.name)
-        MapObserver.__init__(self, look_size)
+        MapObserver.__init__(self, self.look_size)
         Striker.__init__(self,2, Ball, self.damage)
         Respawnable.__init__(self, 10, 30)
         Stats.__init__(self)
@@ -36,9 +37,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill):
         
     def handle_response(self):
         if not self.respawned:
-            move_vector = Movable.handle_request(self)
-            new_looked, observed, events, static_objects, static_events = self.look()
-            messages = [('Look', (move_vector, new_looked, observed, events, static_objects, static_events))]
+            messages = [('Look', (self.move_vector,) + self.look())]
             if self.stats_changed:
                 messages.append(self.get_stats())
     
@@ -55,10 +54,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill):
     @wrappers.alive_only()
     def Move(self, vector):
         Movable.move(self, vector)
-    
-    @wrappers.action
-    def Look(self):
-        return MapObserver.look(self)
+
     
     @wrappers.action
     def Skill(self):
@@ -107,12 +103,12 @@ class Cat(Walker, Solid, Stalker, GameObject):
     
     def rainbow(self, player):
         player.heal(5)
-        self.add_event(self.position, NullPoint, 'rainbow', [])
+        self.add_event('rainbow', [])
         self.rainbow_counter = self.rainbow_time
     
     def update(self):
         if self.rainbow_counter>0:
-            self.add_event(self.position, NullPoint, 'rainbow', [])
+            self.add_event('rainbow', [])
             self.rainbow_counter-=1
         if chance(10):
             direct = self.hunt(True)
@@ -167,7 +163,7 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker):
 
 
 class Zombie(Fighter, MetaMonster):
-    hp = 50
+    hp = 20
     speed = 15
     damage = 1
     attack_speed = 10
@@ -182,7 +178,7 @@ class Zombie(Fighter, MetaMonster):
     
 
 class Ghast(Fighter, MetaMonster):
-    hp = 30
+    hp = 40
     speed = 7
     damage = 5
     attack_speed = 30
@@ -197,7 +193,7 @@ class Ghast(Fighter, MetaMonster):
 
 
 class Lych(MetaMonster, Striker):
-    hp = 5
+    hp = 20
     speed = 15
     damage = 2
     

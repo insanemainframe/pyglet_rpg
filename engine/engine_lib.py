@@ -66,17 +66,11 @@ class GameObject(object):
         self.REMOVE = False            
         self.alive = True
     
-    @property
-    def position(self):
-        return self._position
     
-    @position.setter
-    def position(self, position):
-        self.prev_position = self._position
-        self._position  = position
-        self._location = position/LOCATIONSIZE
-        game.move_object(self)
+        
     
+    def get_location(self):
+        return game.get_location(self.position)
     
     def update(self):
         pass
@@ -87,16 +81,10 @@ class GameObject(object):
     def tile_collission(self, tile):
         pass
     
-    def add_event(self, *args):
-        game.add_event(self.name, *args)
-    
     
     def remove(self):
-        self.add_event(self.position, NullPoint, 'remove', [])
+        self.add_event('remove', [])
         return True
-    
-    def handle_response(self):
-        return []
     
     def complete_round(self):
         bases = getmro(self.__class__)
@@ -106,9 +94,59 @@ class GameObject(object):
                     base.round_update(self)
 
 #####################################################################
+class DynamicObject(GameObject):
+    @property
+    def position(self):
+        return self._position
+    
+    @position.setter
+    def position(self, position):
+        size = game.world.size*TILESIZE
+        if 0<position.x<size and 0<position.y<size:
+            self.prev_position = self._position
+            self._position  = position
+            game.move_object(self)
+        else:
+            print 'invalid position', self.name
+            raise Exception
+    
+    def add_event(self, action, args=[], timeout=0):
+        event_id = game.event_counter
+        game.event_counter+=1
+        
+        object_type = self.__class__.__name__
+            
+        event = Event(event_id, self.name, object_type, self.position, action, args, timeout)
+        game.add_event(event)
+        
+        if self.prev_position!=self.position:
+            event = Event(event_id, self.name, object_type, self.prev_position, action, args, timeout)
+            game.add_event(event)
+    
 class StaticObject(GameObject):
     def __init__(self, name, position):
         GameObject.__init__(self, name, position)
+    
+    @property
+    def position(self):
+        return self._position
+    
+    @position.setter
+    def position_setter(self):
+        pass
+    
+    def add_event(self, action, args=[], timeout=0):
+        event_id = game.event_counter
+        game.event_counter+=1
+        
+        object_type = self.__class__.__name__
+            
+        event = Event(event_id, self.name, object_type, self.position, action, args, timeout)
+        game.add_static_event(event)
+        
+        if self.prev_position!=self.position:
+            event = Event(event_id, self.name, object_type, action, self.prev_position, args, timeout)
+            game.add_static_event(event)
     
     def update(self):
         pass
@@ -116,6 +154,7 @@ class StaticObject(GameObject):
     
     def complete_round(self):
         pass
+    
 
 
 
@@ -198,7 +237,7 @@ class Deadly:
     def update(self):
         if self.alive:
             if self.hitted:
-                self.add_event(self.position, NullPoint, 'defend', [])
+                self.add_event('defend', [])
                 self.hitted-=1
             else:
                 if self.hp<self.hp_value:
@@ -206,7 +245,7 @@ class Deadly:
         else:
             if self.death_time>0:
                 self.death_time-=1
-                self.add_event(self.position, NullPoint, 'die',  [])
+                self.add_event('die',  [])
             else:
                 self.death_time = self.death_time_value
                 self.REMOVE = True
@@ -262,9 +301,10 @@ class Respawnable:
     def remove(self):
         new_position = game.choice_position(self, 10 ,self.position)
         vector = new_position - self.position
+        self.add_event('remove')
         self.position = new_position
-        self.add_event(self.prev_position, NullPoint, 'remove')
-        self.add_event(self.position, NullPoint, 'move', [NullPoint.get()])
+        
+        self.add_event('move', [NullPoint.get()])
         self.respawn_message = 'Respawn', [self.position]
         self.alive = True
         self.respawned = True
@@ -292,5 +332,8 @@ class Temporary:
             self.REMOVE = True
 
 
-
-from game import game
+def init():
+    from game_lib import Event
+    global Event
+    from game import game
+    global game

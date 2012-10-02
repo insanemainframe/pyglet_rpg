@@ -9,7 +9,7 @@ SERIALISATION = 'json'
 ZLIB = False
 #
 TILESIZE = 40
-LOCATIONSIZE = 50
+LOCATIONSIZE = 20
 
 #
 TILESDIR = 'images/'

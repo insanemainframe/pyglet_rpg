@@ -46,7 +46,7 @@ class LandView(GameWindow,  Drawable, MapTools):
         
         I,J = (self.position/TILESIZE).get()
 
-        range_i = xrange(I-rad_w-1, I+rad_w+2)
+        range_i = xrange(I-rad_w-1, I+rad_w+3)
         range_j = xrange(J-rad_h-1, J+rad_h+2)
         
         looked = set()
@@ -76,4 +76,5 @@ class LandView(GameWindow,  Drawable, MapTools):
         x,y = self.get_shift().get()
         self.draw_background(x,y)
         Drawable.draw(self)
+        #GameWindow.tiledict['fog_mask'].blit(0,0)
 
