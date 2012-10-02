@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
+from sys import path; path.append('../../')
+
 from share.mathlib import *
-from engine.engine_lib import *
+#from engine.engine_lib import *
 from math import hypot
 
 from config import *
@@ -42,7 +44,46 @@ def cross_tile(A, B, tilecord):
                 tilecord + Point(-1,0) : (start, start + Point(null, CELL))}
     
     return [(ij, intersec_point(A,B,C, D)) for ij,(C, D) in cds.items() if interception(A,B,C,D)]
-        
+
+#if (playerx > blockminx) and (playery < blockmaxx) and (playery > blockminy) and (playery < blockmaxy) then collission
+
+def get_tile(cord):
+    "выдает отрезки сторон квадрата"
+    a = cord*TILESIZE
+    A = (cord + Point(0,1))*TILESIZE
+    
+    b = A
+    B = (cord + Point(1,1))*TILESIZE
+    
+    c = B
+    C = (cord + Point(1,0))*TILESIZE
+    
+    d = a
+    D = C
+    return ((a,A),(b,B), (c,C),(d,D))
+    
+def tile_intersec(player, tilemin, tilemax):
+    return player.x>tilemin.x and player.y<tilemax.y and player.y>tilemin.y and player.y<tilemax.y
+
+def get_cross2(position, vector):
+    A = (position)/TILESIZE
+    B = (position+Point(0,vector.y))/TILESIZE
+    C = (position + vector)/TILESIZE
+    D = (position + Point(vector.x,0))/TILESIZE
+    print 'A %s B %s C %s D %s'%(A,B,C,D)
+    tiles = []
+    for i in range(B.x, C.x):
+        for j in range(A.y, B.y):
+            tiles.append(Point(i,j))
+    crossed = []
+    for cord in tiles:
+        tile_sides = get_tile(cord)
+        for C,D in tile_sides:
+            if interception(position,vector,C,D):
+                crossed.append(cord)
+                break
+                
+    return crossed
 
 def get_cross(position, vector):
     "возвращает i,j пересекаемых векторов тайлов и координаты этих пересечений"
@@ -83,7 +124,7 @@ class Movable:
         self.prev_position = Point(-1,-1)
         self.moved = False
     
-    @wrappers.alive_only()
+    #@wrappers.alive_only()
     def move(self, vector=NullPoint):
         if not self.moved:
             #если вектор на входе определен, до определяем вектор движения объекта
@@ -139,7 +180,7 @@ class Movable:
         move_vector *= resist
         return move_vector
     
-    @wrappers.player_filter_alive
+    #@wrappers.player_filter_alive
     def detect_collisions(self, player):
         for Player in game.solid_objects.values():
             if not Player is player:
@@ -158,7 +199,7 @@ class Movable:
     def handle_request(self):
         return [self.move_vector]
     
-    @wrappers.alive_only()
+    #@wrappers.alive_only()
     def update(self):
         if not self.moved:
             self.move()
@@ -167,4 +208,4 @@ class Movable:
         self.speed+=speed
     
 
-
+print get_cross2(Point(10*TILESIZE,10*TILESIZE), Point(-3*TILESIZE, -4*TILESIZE))
