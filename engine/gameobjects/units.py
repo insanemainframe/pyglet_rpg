@@ -33,29 +33,46 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill):
         Respawnable.__init__(self, 10, 30)
         Stats.__init__(self)
         Skill.__init__(self)
+    
+    def accept(self):
+        return [self.look_map(), self.look_events()]
         
     def handle_response(self):
         if not self.respawned:
             messages = []
             messages.append(('MoveCamera', Movable.handle_request(self)))
             if self.cord_changed:
-                new_looked, observed = self.look_map()
-                messages.append(('LookLand', (new_looked, observed)))
                 
-            events = self.look_events()
-            messages.append(('LookObjects', (events,)))
+                messages.append(self.look_map())
+                
             
-            static_objects, static_events = self.look_static()
+            messages.append(self.look_events())
             
-            messages.append(('LookStatic', (static_objects, static_events)))
+            
+            messages.append(self.look_static())
             
             if self.stats_changed:
-                messages.append(('PlayerStats', self.get_stats()))
+                messages.append(self.get_stats())
     
             return messages
         else:
             return Respawnable.handle_response(self)
     
+    def look_static(self):
+        static_objects, static_events = MapObserver.look_static(self)
+        return ('LookStatic', (static_objects, static_events))
+    
+    def look_events(self):
+        events = MapObserver.look_events(self)
+        return ('LookObjects', (events,))
+    
+    def look_map(self):
+        new_looked, observed = MapObserver.look_map(self)
+        return ('LookLand', (new_looked, observed))
+    
+    def get_stats(self):
+        return ('PlayerStats', Stats.get_stats(self))
+        
     @wrappers.action
     @wrappers.alive_only()
     def Strike(self, vector):
@@ -76,7 +93,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill):
     
 
     
-    #@wrappers.alive_only(Deadly)
+    @wrappers.alive_only(Deadly)
     def update(self):
         Movable.update(self)
         Striker.update(self)

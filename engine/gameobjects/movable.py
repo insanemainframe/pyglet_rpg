@@ -38,7 +38,8 @@ class Movable:
                 part = self.speed / abs(self.vector) # доля пройденного пути в векторе
                 move_vector = self.vector * part if part<1 else self.vector
                 #определяем столкновения с тайлами
-                move_vector = self._tile_collission(move_vector)
+                if move_vector:
+                    move_vector = self._tile_collission(move_vector)
                 
                 
                 
@@ -97,7 +98,7 @@ class Movable:
         self.move_vector = NullPoint
     
     def handle_request(self):
-        return [self.move_vector]
+        return [self.position-self.prev_position]
     
     #@wrappers.alive_only()
     def update(self):

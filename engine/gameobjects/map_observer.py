@@ -30,8 +30,10 @@ class MapObserver(MapTools):
             for j in xrange(J-rad, J+rad):
                 diff = hypot(I-i,J-j) - rad
                 if diff<0:
-                    i,j = self.resize(i), self.resize(j)
-                    tile_type = game.world.map[i][j]
+                    if 0<i<game.world.size and 0<j<game.world.size:
+                        tile_type = game.world.map[i][j]
+                    else:
+                        tile_type = 'fog'
                     observed.add((i,j))
                     looked.add((Point(i,j), tile_type))
                         

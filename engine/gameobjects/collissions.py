@@ -45,7 +45,6 @@ def cross_tile(A, B, tilecord):
     
     return [(ij, intersec_point(A,B,C, D)) for ij,(C, D) in cds.items() if interception(A,B,C,D)]
 
-#if (playerx > blockminx) and (playery < blockmaxx) and (playery > blockminy) and (playery < blockmaxy) then collission
 
 def get_tile(cord):
     "выдает отрезки сторон квадрата"
@@ -65,25 +64,72 @@ def get_tile(cord):
 def tile_intersec(player, tilemin, tilemax):
     return player.x>tilemin.x and player.y<tilemax.y and player.y>tilemin.y and player.y<tilemax.y
 
-def get_cross2(position, vector):
+def Range(s,e):
+    if e<s:
+        return range(s,e,-1)
+    else:
+        return range(s,e)
+
+def sort_crossed(position):
+    def wrap(a,b):
+        cord, iposition = a
+        cord2, iposition2 = b
+        dist1 = abs(iposition-position)
+        dist2 = abs(iposition2-position)
+        if dist1>dist2:
+            return 1
+        elif dist1<dist2:
+            return -1
+        else:
+            return 0
+    return wrap
+
+def sort_borders(position):
+    def wrap(a,b):
+        dist1 = abs(a-position)
+        dist2 = abs(b-position)
+        if dist1>dist2:
+            return 1
+        elif dist1<dist2:
+            return -1
+        else:
+            return 0
+    return wrap
+
+def _get_cross(position, vector):
+    "альтерантивная функция"
     A = (position)/TILESIZE
     B = (position+Point(0,vector.y))/TILESIZE
     C = (position + vector)/TILESIZE
     D = (position + Point(vector.x,0))/TILESIZE
-    print 'A %s B %s C %s D %s'%(A,B,C,D)
+    #получаем прямоугольник тайлов
     tiles = []
-    for i in range(B.x, C.x):
-        for j in range(A.y, B.y):
+    for i in Range(B.x, C.x):
+        for j in Range(A.y, B.y):
             tiles.append(Point(i,j))
-    crossed = []
-    for cord in tiles:
+    #ищем сред них пересекаемые
+    crossed = [(A.get(), position)]
+    for cord in tiles[1:]:
+        #получаем границы тайла
         tile_sides = get_tile(cord)
+        crossed_sides =[]
         for C,D in tile_sides:
             if interception(position,vector,C,D):
-                crossed.append(cord)
-                break
-                
-    return crossed
+                i_point = intersec_point(position, vector, C,D)
+                crossed_sides.append(i_point)
+        #если есть пеерсечение с одной из сторон
+        if crossed_sides:
+            crossed_sides.sort(sort_borders(position))
+            crossed.append((cord.get(), crossed_sides[0]))
+            
+    #сортируем по близости к исходной точке
+    crossed.sort(sort_crossed(position))
+    print crossed
+    if crossed:
+        return crossed
+    else:
+        return []
+    
 
 def get_cross(position, vector):
     "возвращает i,j пересекаемых векторов тайлов и координаты этих пересечений"
@@ -112,4 +158,4 @@ def get_cross(position, vector):
     return results
 
 
-print get_cross2(Point(10*TILESIZE,10*TILESIZE), Point(-3*TILESIZE, -4*TILESIZE))
+#qaprint get_cross(Point(0*TILESIZE,0*TILESIZE), Point(2*TILESIZE,5*TILESIZE))

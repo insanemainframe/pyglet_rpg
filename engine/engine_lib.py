@@ -74,11 +74,14 @@ class GameObject(object):
     @position.setter
     def position(self, position):
         cur_cord = position/TILESIZE
-        prev_cord = self.prev_position/TILESIZE
-        if cur_cord!=prev_cord:
-            self.cord_changed = True
-        self.prev_position = self._position
-        self._position  = position
+        if 0<cur_cord.x<game.world.size and 0<cur_cord.y<game.world.size:
+            prev_cord = self.prev_position/TILESIZE
+            if cur_cord!=prev_cord:
+                self.cord_changed = True
+            self.prev_position = self._position
+            self._position  = position
+        else:
+            self._position = self.prev_position
     
     
     def update(self):

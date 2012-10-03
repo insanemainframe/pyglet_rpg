@@ -19,10 +19,10 @@ class GameEngine:
     monster_count = 0
     def __init__(self):
         self.messages = {}
-        self.create_monsters(10, Zombie)
-        self.create_monsters(5, Lych)
-        self.create_monsters(5, Ghast)
-        self.create_monsters(5, Cat)
+        #qaself.create_monsters(10, Zombie)
+        #self.create_monsters(5, Lych)
+        #self.create_monsters(5, Ghast)
+        #self.create_monsters(5, Cat)
         
     
     def create_monsters(self, n, monster_type):
@@ -43,7 +43,7 @@ class GameEngine:
         #уже существующие объекты
         message = (world_size, new_player.position)
         #оставляем сообщение о подключении
-        self.messages[name] = [('ServerAccept', message)]
+        self.messages[name] = [('ServerAccept', message)]+ new_player.accept()
     
     def game_requests(self, messages):
         "совершаем действия игроками, возвращает векторы игрокам и устанавливает обновления"
