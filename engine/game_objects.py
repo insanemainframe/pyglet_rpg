@@ -9,8 +9,10 @@ import game
 
 from config import TILESIZE
 
+from gameobjects.player import *
 from gameobjects.units import *
 from gameobjects.items import *
+from gameobjects.shells import *
 
    
 

@@ -14,8 +14,8 @@ class Events:
         return [event.get_tuple() for event in events]
     
     def unpack_events(self, events):
-        return [(name, object_type,  Point(x,y), action, args)
-            for (name, object_type, (x,y), action, args) in events]
+        return [(name, object_type,  Point(x,y), action, args, timeouted)
+            for (name, object_type, (x,y), action, args, timeouted) in events]
 
 class Observed:
     def pack_observed(self, observed):
@@ -91,25 +91,32 @@ class LookObjects(GameProtocol, Events):
         events = self.unpack_events(events)
         return events
 
-class LookStatic(GameProtocol, StaticObjects, Events):
-    def pack(self, static_objects, static_objects_events):
+class LookStaticObjects(GameProtocol, StaticObjects):
+    def pack(self, static_objects):
         static_objects = self.pack_static_objects(static_objects)
-        static_objects_events = self.pack_events(static_objects_events)
-        return static_objects, static_objects_events
+        return [static_objects]
     
-    def unpack(self, static_objects, static_objects_events):
+    def unpack(self, static_objects):
         static_objects = self.unpack_static_objects(static_objects)
+        return static_objects
+
+class LookStaticEvents(GameProtocol, Events):
+    def pack(self, static_objects_events):
+        static_objects_events = self.pack_events(static_objects_events)
+        return [static_objects_events]
+    
+    def unpack(self, static_objects_events):
         static_objects_events = self.unpack_events(static_objects_events)
-        return static_objects, static_objects_events
+        return static_objects_events
 
 #статы игрока
 class PlayerStats(GameProtocol):
     @staticmethod
-    def pack(hp, hp_value, speed, damage, gold, kills, death_counter, skills):
-        return hp, hp_value, speed, damage, gold, kills, death_counter, skills
+    def pack(hp, hp_value, speed, damage, gold, kills, death_counter, skills, invisible):
+        return hp, hp_value, speed, damage, gold, kills, death_counter, skills, invisible
     @staticmethod
-    def unpack(hp, hp_value, speed, damage, gold, kills, death_counter, skills):
-        return hp, hp_value, speed, damage, gold, kills, death_counter, skills
+    def unpack(hp, hp_value, speed, damage, gold, kills, death_counter, skills, invisible):
+        return hp, hp_value, speed, damage, gold, kills, death_counter, skills, invisible
 
 #РЕСПАВН
 class Respawn(GameProtocol):

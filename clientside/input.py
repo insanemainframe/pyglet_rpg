@@ -36,7 +36,10 @@ class InputHandle:
             
     def on_key_release(self, symbol, modifiers):
         if symbol in self.control_keys:
-            del self.pressed[symbol]
+            try:
+                del self.pressed[symbol]
+            except KeyError:
+                print "Pyglet bug!"
         
     def on_mouse_press(self, x, y, button, modifiers):
         "перехватывавем нажатие левой кнопки мышки"

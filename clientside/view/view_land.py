@@ -69,6 +69,7 @@ class LandView(GameWindow,  Drawable, MapTools):
         #если положение не изменилось то ничего не делаем
         if not self.prev_position==self.position:
             looked = self.look_around()
+            
             self.tiles = [create_tile(point+self.center, tile) for point, tile in looked]
     
     def draw(self):

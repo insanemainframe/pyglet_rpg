@@ -13,7 +13,8 @@ class Explodable:
         self.explode_time = explode_time
         
     def update(self):
-        self.add_event(self.position, NullPoint, 'explode', [], self.explode_time)
+        self.add_event('explode', (), self.explode_time)
+        self.delayed = True
         self.REMOVE = True
         
     def remove(self):
@@ -27,9 +28,9 @@ class Ball(Temporary, Explodable, Solid, Movable,GameObject, Fragile, Mortal, Di
     explode_time = 20
     alive_after_collission = False
     def __init__(self, name, position, direct, fraction, striker, damage = 2):
-        GameObject.__init__(self, name, position)
+        DynamicObject.__init__(self, name, position)
         Movable.__init__(self, self.speed)
-        Temporary.__init__(self, 10)
+        Temporary.__init__(self, 1)
         Explodable.__init__(self, self.explode_time)
         Mortal.__init__(self, damage, self.alive_after_collission)
         DiplomacySubject.__init__(self, fraction)

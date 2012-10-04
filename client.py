@@ -8,17 +8,16 @@ from sys import exit
 from share.mathlib import *
 from share.ask_hostname import AskHostname
 
-from clientside.gui_lib import DeltaTimerObject
 from clientside.network import Client
-from clientside.window import GameWindow, GUIWindow
-
-from clientside.view_objects import ObjectsView
-from clientside.view_land import LandView
-from clientside.view_static_objects import StaticObjectView
-
-from clientside.gui_elements import FPSDisplay, Stats, LoadingScreen
 from clientside.input import InputHandle
 
+from clientside.gui.gui_lib import DeltaTimerObject
+from clientside.gui.window import GameWindow, GUIWindow
+from clientside.gui.gui_elements import FPSDisplay, Stats, LoadingScreen
+
+from clientside.view.view_objects import ObjectsView
+from clientside.view.view_land import LandView
+from clientside.view.view_static_objects import StaticObjectView
 
 class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, GUIWindow):
     accepted = False
@@ -55,7 +54,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, GUIWin
             
             self.land = LandView(world_size, position)
             
-            from clientside.client_objects import MapAccess
+            from clientside.view.client_objects import MapAccess
             MapAccess.map = self.land.map
             
             self.accepted = True
@@ -113,7 +112,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, GUIWin
             self.objects.force_complete()
     
     def round_update(self, dt):
-        "обращение к движку"
+        "обработка данных полученных с сервера"
         self.force_complete()
         self.objects.round_update()
         for action, message in self.in_messages:
@@ -131,19 +130,27 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, GUIWin
                 newtiles, observed = message
                 self.land.insert(newtiles, observed)
                 self.static_objects.filter(observed)
+                self.objects.filter(observed)
                 
             elif action=='LookObjects':
                 events = message
                 self.objects.insert(events)
             
-            elif action=='LookStatic':
-                static_objects, static_objects_events = message
-                self.static_objects.insert(static_objects, static_objects_events)
+            elif action=='LookStaticObjects':
+                static_objects = message
+                self.static_objects.insert_objects(static_objects)
+                self.static_objects.update()
+                
+            elif action=='LookStaticEvents':
+                static_objects_events = message
+                self.static_objects.insert_events(static_objects_events)
                 self.static_objects.update()
             
             elif action=='PlayerStats':
                 self.stats.update(*message)
-                
+            else:
+                print 'Unknown Action'
+        self.objects.remove_timeouted()
         self.in_messages = []
         self.set_timer()
 

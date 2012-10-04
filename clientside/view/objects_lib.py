@@ -40,6 +40,7 @@ class ClientObject:
     def __init__(self, name, position):
         self.position = position
         self.name = name
+        self.delayed = False
         
     def handle_action(self, action, args):
         if hasattr(self, action):

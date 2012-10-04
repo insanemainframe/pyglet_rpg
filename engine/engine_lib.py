@@ -4,6 +4,9 @@ from share.mathlib import *
 from mathlib import *
 
 from random import choice
+from time import time
+
+
 
 class UnknownAction(Exception):
     pass
@@ -58,31 +61,16 @@ class wrappers:
 
 #####################################################################
 class GameObject(object):
-    def __init__(self, name, position):
+    def __init__(self, name):
         self.name = name
-        self._position = position
-        self._location = position/LOCATIONSIZE
-        self.prev_position = position
         self.REMOVE = False            
         self.alive = True
-        self.cord_changed = False
+        self.delayed = False
+        
     
-    @property
-    def position(self):
-        return self._position
     
-    @position.setter
-    def position(self, position):
-        cur_cord = position/TILESIZE
-        if 0<cur_cord.x<game.world.size and 0<cur_cord.y<game.world.size:
-            prev_cord = self.prev_position/TILESIZE
-            if cur_cord!=prev_cord:
-                self.cord_changed = True
-            self.prev_position = self._position
-            self._position  = position
-        else:
-            self._position = self.prev_position
-    
+    def get_location(self):
+        return game.get_location(self.position)
     
     def update(self):
         pass
@@ -93,35 +81,87 @@ class GameObject(object):
     def tile_collission(self, tile):
         pass
     
-    def add_event(self, *args):
-        game.add_event(self.name, *args)
-    
-    
     def remove(self):
-        self.add_event(self.position, NullPoint, 'remove', [])
         return True
     
-    def handle_response(self):
-        return []
+    
+
+class DynamicObject(GameObject):
+    def __init__(self, name, position):
+        GameObject.__init__(self, name)
+        
+        self._position = position
+        self._location = position/LOCATIONSIZE
+        self._prev_position = position
+        
+        self.cord_changed = False
+        self.position_changed = False
+        game.new_object(self)
+    
+    @property
+    def prev_position(self):
+        return self._prev_position
+    
+    @prev_position.setter
+    def prev_position(self):
+        raise Warning('@prev_position.setter')
+        
+    @property
+    def position(self):
+        return self._position
+    
+    @position.setter
+    def position(self, position):
+        cur_cord = position/TILESIZE
+        
+        if 0<=cur_cord.x<=game.world.size and 0<=cur_cord.y<=game.world.size:
+            prev_cord = self._position/TILESIZE
+            
+            if cur_cord!=prev_cord:
+                self.cord_changed = True
+                
+            if position!=self._position:
+                self.position_changed = True
+                
+            prev_loc = game.get_loc_cord(self._position)
+            cur_loc = game.get_loc_cord(position)
+            if prev_loc!=cur_loc:
+                game.change_location(self.name, prev_loc, cur_loc)
+            
+            self._prev_position = self._position
+            self._position  = position
+        else:
+            print 'Invalid position %s %s' % (position, self.name)
+    
+    def add_event(self, action, args, timeout=0):
+        object_type = self.__class__.__name__
+        vector = self.position-self.prev_position
+        game.add_event(self.name, object_type, self.position, vector, action, args, timeout, self.delayed)
     
     def complete_round(self):
-        bases = getmro(self.__class__)
-        print bases
-        for base in bases:
-            if not base is object and not base is GameObject and hasattr(base, 'complete_round'):
-                    base.round_update(self)
         self.cord_changed = False
+        self.position_changed = False
 
-#####################################################################
 class StaticObject(GameObject):
-    def __init__(self, name, position):
-        GameObject.__init__(self, name, position)
+    name_counter =0 
+    def __init__(self, position):
+        counter = StaticObject.name_counter
+        StaticObject.name_counter+=1
     
-    def update(self):
-        pass
+        name = '%s_%s' % (self.__class__.__name__, counter)
+        
+        GameObject.__init__(self, name)
+        
+        self.position = position
+        
+        game.new_static_object(self)
     
     def get_tuple(self):
         return self.__class__.__name__, self.position
+    
+    def add_event(self, action, args, timeout=0):
+        object_type = self.__class__.__name__
+        game.add_static_event(self.name, object_type, self.position, action, args, timeout, delayed)
 
     
     def complete_round(self):
@@ -208,7 +248,7 @@ class Deadly:
     def update(self):
         if self.alive:
             if self.hitted:
-                self.add_event(self.position, NullPoint, 'defend', [])
+                self.add_event('defend', ())
                 self.hitted-=1
             else:
                 if self.hp<self.hp_value:
@@ -216,7 +256,7 @@ class Deadly:
         else:
             if self.death_time>0:
                 self.death_time-=1
-                self.add_event(self.position, NullPoint, 'die',  [])
+                self.add_event('die',  ())
             else:
                 self.death_time = self.death_time_value
                 self.REMOVE = True
@@ -225,7 +265,7 @@ class Deadly:
     def create_corpse(self):
         name = 'corpse_%s_%s' % (self.name, self.death_counter)
         corpse = self.corpse(name, self.position)
-        game.new_object(corpse)
+        game.new_static_object(corpse)
     
     def die(self):
         self.alive = False
@@ -273,8 +313,8 @@ class Respawnable:
         new_position = game.choice_position(self, 10 ,self.position)
         vector = new_position - self.position
         self.position = new_position
-        self.add_event(self.prev_position, NullPoint, 'remove')
-        self.add_event(self.position, NullPoint, 'move', [NullPoint.get()])
+        self.add_event('remove',())
+        self.add_event('move', (NullPoint.get(),))
         self.respawn_message = 'Respawn', [self.position]
         self.alive = True
         self.respawned = True
@@ -284,21 +324,30 @@ class Respawnable:
     
     def handle_response(self):
         self.respawned = False
-        return [self.respawn_message]
+        return self.respawn_message
 
 class DiplomacySubject:
     def __init__(self, fraction):
         self.fraction = fraction
+        self.invisible = 0
+    
+    def set_invisible(self, invisible_time):
+        self.invisible = invisible_time
+    
+    def update(self):
+        if self.invisible:
+            self.invisible-=1
 
 ####################################################################
 class Temporary:
     "класс объекта с ограниченным сроком существования"
     def __init__(self, lifetime):
         self.lifetime = lifetime
+        self.creation_time = time()
     
     def update(self):
-        self.lifetime-=1
-        if self.lifetime<=0:
+        t = time()
+        if t-self.creation_time >= self.lifetime:
             self.REMOVE = True
 
 

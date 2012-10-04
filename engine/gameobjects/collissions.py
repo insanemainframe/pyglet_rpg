@@ -124,7 +124,6 @@ def _get_cross(position, vector):
             
     #сортируем по близости к исходной точке
     crossed.sort(sort_crossed(position))
-    print crossed
     if crossed:
         return crossed
     else:
@@ -136,7 +135,7 @@ def get_cross(position, vector):
     end_cord = (position+vector)/TILESIZE #i,j конечнй точки
     results = []
     cur_tile = position/TILESIZE
-    crossed = [cur_tile]
+    crossed = []# [cur_tile]
     while 1:
         counter = 0
         crossed_tiles = cross_tile(position, position+vector, cur_tile)

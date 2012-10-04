@@ -102,7 +102,7 @@ class Label(pyglet.text.Label, GameWindow):
         x,y = GameWindow.width-x, GameWindow.height-y
         pyglet.text.Label.__init__(self, text,
                               font_name='Times New Roman',
-                              font_size=20,
+                              font_size=15,
                               x=x, y=y,
                               anchor_x='center', anchor_y='center')
 

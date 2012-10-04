@@ -16,11 +16,14 @@ class StaticObjectView(GameWindow, Drawable, ViewTools):
         self.objects = {}
         self.tiles = []
     
-    def insert(self, static_objects, events):
+    def insert_objects(self, static_objects):
         if static_objects:
             for name, (object_type, position) in static_objects.items():
                 self.create_object(name, object_type, position)
         
+        
+    
+    def insert_events(self,  events):
         if events:
             for name, object_type, position, action, args, timeouted in events:
                 if name in self.objects:

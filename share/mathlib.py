@@ -38,7 +38,7 @@ class Point:
         return self.x==point.x and self.y==point.y
     @point_wrap
     def __ne__(self, point):
-        return self.x!=point.x and self.y!=point.y
+        return self.x!=point.x or self.y!=point.y
     @point_wrap
     def __lt__(self, point):
         "<"

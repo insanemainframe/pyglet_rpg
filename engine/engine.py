@@ -19,10 +19,10 @@ class GameEngine:
     monster_count = 0
     def __init__(self):
         self.messages = {}
-        #qaself.create_monsters(10, Zombie)
-        #self.create_monsters(5, Lych)
-        #self.create_monsters(5, Ghast)
-        #self.create_monsters(5, Cat)
+        self.create_monsters(10, Zombie)
+        self.create_monsters(5, Lych)
+        self.create_monsters(5, Ghast)
+        self.create_monsters(5, Cat)
         
     
     def create_monsters(self, n, monster_type):
@@ -34,7 +34,7 @@ class GameEngine:
             
     def game_connect(self, name):
         "создание нового игрока"
-        print 'New player %s' % name
+       
         position = game.choice_position(Player)
         new_player = Player(name, position , 7)
         game.new_object(new_player)
@@ -43,6 +43,8 @@ class GameEngine:
         #уже существующие объекты
         message = (world_size, new_player.position)
         #оставляем сообщение о подключении
+        print 'New player %s position %s' % (name, position)
+        
         self.messages[name] = [('ServerAccept', message)]+ new_player.accept()
     
     def game_requests(self, messages):
@@ -60,16 +62,20 @@ class GameEngine:
         for player in game.players.values():
             #если игрок не отправлял действий, то вызываем метод update
             player.update()
-            #обрабатываем объекты с ограниченным сроком жизни
-            if isinstance(player, Temporary):
-                if not player.lifetime:
-                    #если срок жизни кончился - убиваем
-                    player.REMOVE = True
+
             #завершаем раунд для игрока
             player.complete_round()
-        game.clear()
+        
+        #статические объекты
+        for player in game.static_objects.values():
+            #если игрок не отправлял действий, то вызываем метод update
+            player.update()
+    
+            #завершаем раунд для игрока
+            player.complete_round()
 
-                    
+        game.clear_players()
+        game.clear_static()
             
     def game_responses(self):
         "смотрим"
@@ -81,7 +87,13 @@ class GameEngine:
             yield (name, player.handle_response())
     
     def end_round(self):
+        
         game.clear_events()
+        
+        [DynamicObject.complete_round(player) for player in game.players.values()]
+        
+        
+        
     
 
     

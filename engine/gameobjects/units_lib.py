@@ -4,8 +4,12 @@ from config import *
 
 from engine.engine_lib import *
 from engine.mathlib import chance
-from items import *
-from movable import Movable
+from engine.gameobjects.items import *
+from engine.gameobjects.movable import Movable
+
+
+from random import randrange, random      
+
 
 class Unit(Solid, Movable, Deadly, DiplomacySubject, GameObject):
     def __init__(self, speed, hp, corpse, fraction):
@@ -14,12 +18,11 @@ class Unit(Solid, Movable, Deadly, DiplomacySubject, GameObject):
         DiplomacySubject.__init__(self, fraction)
 
 class Lootable(Deadly):
-    loot = [Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold]
+    loot = [Cloak] #Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
     
     def die(self):
         if chance(60):
             item = choice(self.loot)(self.position)
-            game.new_object(item)
         Deadly.die(self)
 
 class Fighter:
@@ -34,7 +37,7 @@ class Fighter:
         if self.fraction!=player.fraction:
             if self.attack_counter==0:
                 player.hit(self.damage)
-                self.add_event(self.position, NullPoint, 'attack', [])
+                self.add_event('attack', ())
     
     def complete_round(self):
         if self.attack_counter < self.attack_speed:
@@ -49,15 +52,18 @@ class Stalker:
     
     def hunt(self, inradius = False):
         if game.guided_players:
-            victim = min(game.guided_players.values(), key = lambda player: abs(player.position - self.position))
-            distance = victim.position - self.position
-            if inradius:
-                if abs(distance/TILESIZE)<self.look_size:
-                    return victim.position - self.position
+            players = self.get_location().get_players().values()
+            dists = []
+            for player in players:
+                if player.fraction!=self.fraction and  player.fraction!='good':
+                    if not player.invisible:
+                        dists.append(player.position - self.position)
+            if dists:
+                victim = min(dists, key = lambda vector: abs(vector))
+                return victim
             else:
-                return victim.position - self.position
-            return None
-    
+                return NullPoint
+            
 class Striker:
     def __init__(self, strike_speed, shell, damage):
         self.strike_shell = shell
@@ -71,7 +77,6 @@ class Striker:
             ball_name = 'ball%s' % game.ball_counter
             game.ball_counter+=1
             ball = self.strike_shell(ball_name, self.position, vector, self.fraction, self.name, self.damage)
-            game.new_object(ball)
             self.strike_counter+=self.strike_speed
     
     def plus_damage(self, damage):
@@ -98,12 +103,26 @@ class Stats:
         self.kills+=1
     
     def update(self):
-        stats = (self.hp, self.hp_value, self.speed, self.damage, self.gold, self.kills, self.death_counter, self.skills)
+        stats = (self.hp, self.hp_value, self.speed, self.damage,
+            self.gold, self.kills, self.death_counter, self.skills, bool(self.invisible))
         if self.prev_stats!=stats:
             self.prev_stats = stats
             self.stats_changed = True
     
     def get_stats(self):
-        data = (self.hp, self.hp_value, self.speed, self.damage, self.gold, self.kills, self.death_counter ,self.skills)
+        data = (self.hp, self.hp_value, self.speed, self.damage,
+                self.gold, self.kills, self.death_counter ,self.skills, bool(self.invisible))
         self.stats_changed = False
         return data
+
+
+class Walker(Movable):
+    def update(self):
+        positivex = -1 if random()>0.5 else 1
+        positivey = -1 if random()>0.5 else 1
+        partx = random()*10
+        party = random()*10
+        x = positivex*self.speed*partx
+        y = positivey*self.speed*party
+        direct = Point(x,y)
+        self.move(direct)

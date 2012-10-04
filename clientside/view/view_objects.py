@@ -29,19 +29,23 @@ class ObjectsView(GameWindow, Drawable, ViewTools):
     def insert(self, events=[]):
         self.events.clear()
         if events:
-            for name, object_type, position, action, args, timeouted in events:
+            for name, object_type, position, action, args, delayed in events:
                 if action=='create':
-                    self.create_object(name, object_type, position)
+                    self.create_object(name, object_type, position, delayed)
                 elif action=='remove':
-                    print 'remove action', name
                     self.remove_object(name)
+                elif action=='delay':
+                    print 'delay', name
+                    if not name in self.objects:
+                        self.create_object(name, object_type, position, delayed)
+                    self.objects[name].delayed = True
                 else:
                     if name in name in self.objects:
-                        self.events[name].append((position, object_type, action, args, timeouted))
+                        self.events[name].append((position, object_type, action, args, delayed))
                         
                     else:
-                        self.events[name].append((position, object_type, action, args, timeouted))
-                        self.create_object(name, object_type, position)
+                        self.events[name].append((position, object_type, action, args, delayed))
+                        self.create_object(name, object_type, position, delayed)
                         if args=='self':
                             self.focus_object = name          
         
@@ -72,7 +76,7 @@ class ObjectsView(GameWindow, Drawable, ViewTools):
     def remove_timeouted(self):
         remove_list = set()
         for name, game_object in self.objects.items():
-            if game_object.timeouted and name not in self.events:
+            if game_object.delayed and name not in self.events:
                 remove_list.add(name)
         
         [self.remove_object(name) for name in remove_list]

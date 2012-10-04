@@ -22,35 +22,44 @@ class World:
         I = self.size/LOCATIONSIZE
         J = self.size/LOCATIONSIZE
         for i in range(I):
-            self.locations.append([])
+            locations = []
             for j in range(J):
-                loc_map = self.map[I*LOCATIONSIZE: (I+1)*LOCATIONSIZE]
-                loc_map = loc_map[J*LOCATIONSIZE: (J+1)*LOCATIONSIZE]
-                self.locations[i].append(Location(i,j, loc_map))
+                loc_map = self.get_locmap(i,j)
+                locations.append(loc_map)
+            self.locations.append(locations)
     
+    def get_locmap(self, I,J):
+        loc_map = []
+        for i in range(I*LOCATIONSIZE, (I+1)*LOCATIONSIZE):
+            loc_row = []
+            for j in range(J*LOCATIONSIZE, (J+1)*LOCATIONSIZE):
+                loc_row.append(self.map[i][j])
+            loc_map.append(loc_row)
+        return loc_map
+            
     def get_locations(self, position):
         return position/TILESIZE/LOCATIONSIZE
+    
+    def __getitem__(self,cord):
+        i,j = cord
+        I = i/LOCATIONSIZE
+        J = j/LOCATIONSIZE
+        return self.locations[I][J][i-I*LOCATIONSIZE][j-J*LOCATIONSIZE]
 
 class Location:
-    def __init__(self, i,j, loc_map):
-        self.i, self.j = i,j
-        self.players = {}
-        self.map = loc_map
-        self.solid_objects = {}
-        self.events = {}
-        self.static_objects = {}
-        self.static_events = {}
+    def __init__(self, i,j):
+        self.new_events = False
+        self.new_static_events = False
     
-    def load_map(self):
-        pass
+    def new_event(self):
+        self.new_events = True
     
-    def clear(self):
-        self.events.clear()
-        self.static_events.clear()
+    def new_static_event(self):
+        self.new_static_events = False
     
-    def add_player(self, player):
-        name = player.name()
-        self.players[name] = proxy(player)
+    def update(self):
+        self.new_events = False
+        self.new_static_events = False
         
 
 

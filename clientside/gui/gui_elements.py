@@ -18,36 +18,40 @@ class Stats(GameWindow):
     damage = 0
     gold = 0
     skills = 0
+    invisible = 0
     
     def __init__(self):
 
         
         hp_mess = 'hp: %s/%s' % (self.hp, self.hp_value)
-        self.hp_display = self.label(hp_mess, 70, 20)
+        self.hp_display = self.label(hp_mess, 70, 15)
                           
         kills_mess = 'kills: %s' % self.kills
-        self.kills_display = self.label(kills_mess, 70, 40)
+        self.kills_display = self.label(kills_mess, 70, 30)
                           
         deaths_mess = 'deaths: %s' % self.deaths
-        self.deaths_display = self.label(deaths_mess, 70, 60)
+        self.deaths_display = self.label(deaths_mess, 70, 45)
         
         gold_mess = 'gold %s' % self.gold
-        self.gold_display = self.label(gold_mess, 70, 80)
+        self.gold_display = self.label(gold_mess, 70, 60)
         
         speed_mess = 'speed: %s' % self.speed
-        self.speed_display = self.label(speed_mess, 70, 100)
+        self.speed_display = self.label(speed_mess, 70, 75)
         
         damage_mess = 'damage: %s' % self.damage
-        self.damage_display = self.label(damage_mess, 70, 120)
+        self.damage_display = self.label(damage_mess, 70, 90)
         
         skills_mess = 'skills: %s' % self.skills
-        self.skills_display = self.label(skills_mess, 70, 140)
+        self.skills_display = self.label(skills_mess, 70, 105)
+        
+        invisible_mess = 'invisible: %s' % self.invisible
+        self.invisible_display = self.label(invisible_mess, 70, 120)
         
         
     def label(self, text, x,y):
         return Label(text,x,y)
                           
-    def update(self, hp, hp_value, speed, damage, gold, kills, deaths, skills):
+    def update(self, hp, hp_value, speed, damage, gold, kills, deaths, skills, invisible):
         self.hp = hp
         self.hp_value = hp_value
         self.deaths = deaths
@@ -56,6 +60,7 @@ class Stats(GameWindow):
         self.speed = speed
         self.damage = damage
         self.skills = skills
+        self.invisible = invisible
         
         self.speed_display.text = 'speed: %s' % self.speed
         self.damage_display.text = 'damage: %s' % self.damage
@@ -64,6 +69,7 @@ class Stats(GameWindow):
         self.deaths_display.text = 'deaths: %s' % self.deaths
         self.gold_display.text = 'gold: %s' % self.gold
         self.skills_display.text = 'skills: %s' % self.skills
+        self.invisible_display.text = 'invisible: %s' % self.invisible
         
     def draw(self):
         self.hp_display.draw()
@@ -73,6 +79,7 @@ class Stats(GameWindow):
         self.speed_display.draw()
         self.damage_display.draw()
         self.skills_display.draw()
+        self.invisible_display.draw()
 
 
 

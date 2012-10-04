@@ -100,7 +100,7 @@ class Zombie(Movable, ClientObject, Deadly, Fighter):
     tilename = 'zombie'
     def __init__(self, name, position):
         ClientObject.__init__(self, name, position)
-        Movable.__init__(self)
+        Movable.__init__(self, 2)
         Deadly.__init__(self, 10)
         Fighter.__init__(self,1)
     
@@ -121,14 +121,15 @@ class Cat(Movable, ClientObject):
         ClientObject.__init__(self, name, position)
         Movable.__init__(self, 5)
         self._rainbow = False
+        self.create_animation('rainbow', 'rainbow', 3,2)
     
     def rainbow(self):
-        
         self._rainbow = True
     
     def draw(self):
         if self._rainbow:
-            return [create_tile(self.position, 'cat_rainbow')]
+            tilename = self.tilename + self.get_animation('rainbow')
+            return [create_tile(self.position, tilename, 1)]
         else:
             return Movable.draw(self)
     

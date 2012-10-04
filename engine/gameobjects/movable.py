@@ -13,7 +13,7 @@ from math import hypot
 
 ##########################################################
 
-class Movable:
+class Movable(DynamicObject):
     "класс движущихся объектов"
     BLOCKTILES = []
     SLOWTILES = {}
@@ -21,41 +21,45 @@ class Movable:
         self.vector  = NullPoint
         self.speed = speed
         self.move_vector = NullPoint
-        self.prev_position = Point(-1,-1)
         self.moved = False
+        self.stopped = 0
     
-    #@wrappers.alive_only()
+    @wrappers.alive_only()
     def move(self, vector=NullPoint):
         if not self.moved:
-            #если вектор на входе определен, до определяем вектор движения объекта
-            if vector:
-                self.vector = vector
-            #если вектор движения не достиг нуля, то продолжить движение
-            
-            if self.vector:
-                
-                #проверка столкновения
-                part = self.speed / abs(self.vector) # доля пройденного пути в векторе
-                move_vector = self.vector * part if part<1 else self.vector
-                #определяем столкновения с тайлами
-                if move_vector:
-                    move_vector = self._tile_collission(move_vector)
-                
-                
-                
-                self.vector = self.vector - move_vector
-                self.move_vector = move_vector
-            else:
-                self.move_vector = self.vector
-            self.prev_position = self.position
-            self.position = self.position+self.move_vector
-            
             self.moved = True
-            
-            altposition = self.position
-            #добавляем событие
-            self.add_event(self.prev_position, self.move_vector, 'move', (self.move_vector.get(), ))
-            self.detect_collisions(self)
+            if self.stopped>0:
+                self.stopped-=1
+            else:
+                #если вектор на входе определен, до определяем вектор движения объекта
+                if vector:
+                    self.vector = vector
+                #если вектор движения не достиг нуля, то продолжить движение
+                
+                if self.vector:
+                    
+                    #проверка столкновения
+                    part = self.speed / abs(self.vector) # доля пройденного пути в векторе
+                    move_vector = self.vector * part if part<1 else self.vector
+                    #определяем столкновения с тайлами
+                    if move_vector:
+                        move_vector = self._tile_collission(move_vector)
+                    
+                    
+                    
+                    self.vector = self.vector - move_vector
+                    self.move_vector = move_vector
+                else:
+                    self.move_vector = self.vector
+                self.position = self.position+self.move_vector
+                
+                
+                altposition = self.position
+                #добавляем событие
+                self.add_event( 'move', (self.move_vector.get(),))
+                if self.position_changed:
+                    self._detect_collisions(self)
+                
     
     def _tile_collission(self, move_vector):
         "определения пересечяения вектора с непрохоодимыми и труднопроходимыми тайлами"
@@ -81,28 +85,35 @@ class Movable:
         move_vector *= resist
         return move_vector
     
-    #@wrappers.player_filter_alive
-    def detect_collisions(self, player):
-        for Player in game.solid_objects.values():
-            if not Player is player:
-                distance = abs(Player.position - player.position)
-                if distance <= Player.radius+player.radius:
+    @wrappers.player_filter_alive
+    def _detect_collisions(self, player):
+        location = self.get_location()
+        solids = location.get_solid()
+        del solids[self.name]
+        
+        for Player in solids.values():
+            distance = abs(Player.position - player.position)
+            if distance <= Player.radius+player.radius:
                     Player.collission(player)
                     player.collission(Player)
     
     def complete_round(self):
         self.moved = False
+
+    def stop(self, time):
+        "останавливает на опредленное времчя"
+        self.stopped = time
     
     def abort_moving(self):
         self.vector = NullPoint
         self.move_vector = NullPoint
     
     def handle_request(self):
-        return [self.position-self.prev_position]
+        return (self.position-self.prev_position,)
     
-    #@wrappers.alive_only()
+    @wrappers.alive_only()
     def update(self):
-        if not self.moved:
+        if not self.moved and self.vector:
             self.move()
     
     def plus_speed(self, speed):

@@ -35,3 +35,6 @@ class Armor(Item):
 
 class Sceptre(Item):
     tilename = 'sceptre'
+
+class Cloak(Item):
+    tilename = 'cloak'

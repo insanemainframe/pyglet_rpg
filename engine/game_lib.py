@@ -7,16 +7,18 @@ from share.mathlib import *
 from collections import defaultdict
 
 class Event:
-    def __init__(self, name, object_type, position, action, args, timeout=0):
+    def __init__(self, name, object_type, position, action, args, timeout=0, delayed = False):
+        hash(args)
         self.name = name
         self.object_type = object_type
         self.position = position
         self.action = action
         self.args = tuple(args)
         self.timeout = timeout
+        self.delayed = delayed
     
     def get_tuple(self):
-        return self.name, self.object_type, self.position.get(), self.action, self.args
+        return self.name, self.object_type, self.position.get(), self.action, self.args, self.delayed
     
     def alive(self):
         if self.timeout:
@@ -26,10 +28,8 @@ class Event:
             return False
     
     def __hash__(self):
-        try:
-            return hash((self.name, self.object_type, self.position, self.action, self.args))
-        except:
-             print self.name, self.object_type, self.position, self.action, self.args
+        return hash((self.name, self.object_type, self.position, self.action, self.args))
+
 
 Eventlist = lambda arg = {}: defaultdict(set, arg)
 

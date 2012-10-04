@@ -11,7 +11,7 @@ from engine.gameobjects.skills import *
 from engine.gameobjects.map_observer import MapObserver
 
 
-class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill):
+class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, DynamicObject):
     "класс игрока"
     radius = TILESIZE/2
     prev_looked = set()
@@ -22,7 +22,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill):
     damage = 2
 
     def __init__(self, name, player_position, look_size):
-        GameObject.__init__(self, name, player_position)
+        DynamicObject.__init__(self, name, player_position)
         Unit.__init__(self, self.speed, self.hp, Corpse, self.name)
         MapObserver.__init__(self, look_size)
         Striker.__init__(self,2, Ball, self.damage)
@@ -34,26 +34,31 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill):
         return [self.look_map(), self.look_events()]
         
     def handle_response(self):
-        location = game.get_location(self.position)
+        location = self.get_location()
         messages = []
         
-        if self.respawned:
+        if not self.respawned:
+            if self.position_changed:
+                messages.append(self.camera_move())
+        else:
             messages.append(Respawnable.handle_response(self))
-        
-        if self.position_changed:
-            messages.append(self.camera_move())
-        
+            
         if self.cord_changed:
             messages.append(self.look_map())
     
         if location.check_events():
             messages.append(self.look_events())
         
-        #if location.check_static_events():
-        messages.append(self.look_static())
+        if location.check_static_events():
+            messages.append(self.look_static_events())
+        
+        static_objects = self.look_static_objects()
+        if static_objects:
+            messages.append(static_objects)
         
         if self.stats_changed:
             messages.append(self.get_stats())
+        
 
         return messages
  
@@ -61,9 +66,13 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill):
     def camera_move(self):
         return ('MoveCamera', Movable.handle_request(self))
         
-    def look_static(self):
-        static_objects, static_events = MapObserver.look_static(self)
-        return ('LookStatic', (static_objects, static_events))
+    def look_static_events(self):
+        static_events = MapObserver.look_static_events(self)
+        return ('LookStaticEvents', (static_events,))
+    
+    def look_static_objects(self):
+        static_objects = MapObserver.look_static_objects(self)
+        return ('LookStaticObjects', (static_objects, ))
     
     def look_events(self):
         events = MapObserver.look_events(self)
@@ -102,6 +111,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill):
         Striker.update(self)
         Deadly.update(self)
         Stats.update(self)
+        DiplomacySubject.update(self)
     
     def complete_round(self):
         Movable.complete_round(self)
