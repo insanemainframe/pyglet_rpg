@@ -96,6 +96,14 @@ class ObjectContainer(object):
         location.remove_player(name, True)
         
         del self.guided_players[name]
+    
+    def add_to_remove(self, player, force):
+         location = self.get_location(player.position)
+         location.add_to_remove(player.name, force)
+    
+    def add_to_remove_static(self, player, force):
+         location = self.get_location(player.position)
+         location.add_to_remove_static(player.name, force)
         
 
 

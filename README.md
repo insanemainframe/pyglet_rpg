@@ -4,15 +4,20 @@ REQUIRMENTS:
 
     server: python2.7
 
-    client: python 2.6>= python-pyglet recomended (http://pyglet.org/download.html) or pygame (http://www.pygame.org/download.shtml)
+    client: python 2.6>= [python-pyglet](http://pyglet.org/download.html) recomended  or [pygame](http://www.pygame.org/download.shtml)
 
 RUN:
-
+    ````
     python server.py
+    ````
+
 
     for game server
     
+    ````
     python client.py
+    ````
+
 
     for game client
     
@@ -21,12 +26,15 @@ RUN:
     or use '-d' for default hostname, defined in cofig.py	
 
 CONTROL:
+    ````
 
     left mouse click or arrow keys(with right shift for acceleration) for move
 
     right mouse click for shooting
     
     SPACE for special ability
+    ````
+
 
 FILES:
 

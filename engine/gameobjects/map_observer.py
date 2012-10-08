@@ -23,7 +23,7 @@ class MapObserver(MapTools):
     def __init__(self, look_size):
         MapTools.__init__(self, game.size, game.size)
         self.look_size = look_size
-        self.radius = self.look_size*TILESIZE
+        self.look_radius = self.look_size*TILESIZE
         
         self.prev_players = []
         self.prev_static_objects = set()
@@ -62,10 +62,10 @@ class MapObserver(MapTools):
         else:
             return Event(event.name, 'Self', event.position, event.action, event.args)
     
-    def is_self_player(self, name, object_type, position):
+    def is_self_player(self, name, object_type, position, args):
         if name==self.name:
             object_type = 'Self'
-        return object_type, position
+        return object_type, position, args
     
     def look_players(self):
         all_players = self.location.get_players_list()
@@ -73,7 +73,7 @@ class MapObserver(MapTools):
         
         for player in all_players:
             dist = abs(player.position - self.position)
-            if dist<=self.radius:
+            if dist<=self.look_radius:
                 name = player.name
                 players[name] = self.is_self_player(name, *player.get_tuple())
         
@@ -91,7 +91,7 @@ class MapObserver(MapTools):
         events = set()
         for event in self.location.get_events():
             dist = abs(event.position - self.position)
-            if dist<=self.radius:
+            if dist<=self.look_radius:
                 events.add(event)
                 
         return events
@@ -101,20 +101,20 @@ class MapObserver(MapTools):
         static_events = set()
         for static_event in self.location.get_static_events():
             dist = abs(static_event.position - self.position)
-            if dist<=self.radius:
+            if dist<=self.look_radius:
                 static_events.add(static_event)
                 
         return static_events
     
     def look_static_objects(self):
-        radius = self.look_size*TILESIZE
+        look_radius = self.look_size*TILESIZE
         all_static_objects = self.location.get_static_objects_list()
         
         static_objects = {}
         
         for static_object in all_static_objects:
             dist = abs(static_object.position - self.position)
-            if dist<=self.radius:
+            if dist<=self.look_radius:
                 name = static_object.name
                 static_objects[name] = static_object.get_tuple()
         

@@ -89,7 +89,7 @@ class Gui(GameWindow, DeltaTimerObject, GameClient, InputHandle, AskHostname, GU
     
     def antilag_init(self, shift):
         "заранее перемещаем камеру по вектору движения"
-        self.shift = Point() # shift
+        self.shift = shift
         if self.objects.focus_object:
             self.objects.antilag(self.antilag_shift)
     
@@ -115,6 +115,8 @@ class Gui(GameWindow, DeltaTimerObject, GameClient, InputHandle, AskHostname, GU
     def round_update(self, dt):
         "обработка данных полученных с сервера"
         self.force_complete()
+        self.objects.round_update()
+        self.static_objects.round_update()
         
         for action, message in self.pop_messages():
             #если произошел респавн игрока
@@ -140,7 +142,6 @@ class Gui(GameWindow, DeltaTimerObject, GameClient, InputHandle, AskHostname, GU
             
             elif action=='LookEvents':
                 events = message
-                print 'new events', events
                 self.objects.insert_events(events)
                 self.objects.clear()
             
@@ -158,8 +159,7 @@ class Gui(GameWindow, DeltaTimerObject, GameClient, InputHandle, AskHostname, GU
                 print 'Unknown Action:%s' % action
         
         
-        self.objects.round_update()
-        self.static_objects.round_update()
+       
         self.set_timer()
 
         

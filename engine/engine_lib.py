@@ -63,7 +63,6 @@ class wrappers:
 class GameObject(object):
     def __init__(self, name, position):
         self.name = name
-        self.REMOVE = False            
         self.alive = True
         self.delayed = False
         self._position = position
@@ -71,12 +70,16 @@ class GameObject(object):
         self.location = game.get_location(self._position)
         self._prev_position = position
         
+        
     @property
     def position(self):
-        return deepcopy(self._position)
+        return self._position
     
     @position.setter
     def position(self, position):
+        raise Error('Denied')
+    
+    def change_position(self,position):
         if not position==self._position:
             
             cur_cord = position/TILESIZE
@@ -142,11 +145,18 @@ class DynamicObject(GameObject):
     @prev_position.setter
     def prev_position(self):
         raise Warning('@prev_position.setter')
-        
     
-    def add_event(self, action, args, timeout=0):
+    def to_remove(self, force=False):
+        game.add_to_remove(self, force)
+    
+    def add_event(self, action, *args,**kwargs):
         object_type = self.__class__.__name__
         vector = self.position-self.prev_position
+        if 'timeout' in kwargs:
+            timeout = kwargs['timeout']
+        else:
+            timeout = 0
+        #print 'add_event', action, args
         game.add_event(self.name, object_type, self.position, vector, action, args, timeout)
     
     def complete_round(self):
@@ -154,7 +164,10 @@ class DynamicObject(GameObject):
         self.position_changed = False
     
     def get_tuple(self):
-        return self.__class__.__name__, self.prev_position
+        return self.__class__.__name__, self.prev_position, self.get_args()
+        
+    def get_args(self):
+        return {}
 
 class StaticObject(GameObject):
     name_counter =0 
@@ -170,16 +183,27 @@ class StaticObject(GameObject):
         game.new_static_object(self)
     
     def get_tuple(self):
-        return self.__class__.__name__, self.position
+        return self.__class__.__name__, self.position, self.get_args()
     
-    def add_event(self, action, args, timeout=0):
+    def get_args(self):
+        return {}
+    
+    def add_event(self, action, *args, **kwargs):
         object_type = self.__class__.__name__
+        if 'timeout' in kwargs:
+            timeout = kwargs['timeout']
+        else:
+            timeout = 0
         game.add_static_event(self.name, object_type, self.position, action, args, timeout)
 
     
     def complete_round(self):
         pass
+    
 
+    
+    def to_remove(self, force=False):
+        game.add_to_remove_static(self, force)
 
 class ActiveState:
     pass
@@ -240,6 +264,8 @@ class Deadly:
         self.hitted = 10
         if self.alive:
             self.hp-=hp
+            
+            self.add_event('change_hp', self.hp_value, self.hp if self.hp>0 else 0)
             if self.hp<=0:
                 self.die()
                 self.hp = self.hp_value
@@ -255,14 +281,16 @@ class Deadly:
             new_hp = self.hp_value
         
         self.hp = new_hp
+        self.add_event('change_hp', self.hp_value, self.hp)
     
     def plus_hp(self, armor):
         self.hp_value+=armor
+        self.add_event('change_hp', self.hp_value, self.hp)
     
     def update(self):
         if self.alive:
             if self.hitted:
-                self.add_event('defend', ())
+                self.add_event('defend')
                 self.hitted-=1
             else:
                 if self.hp<self.hp_value:
@@ -270,10 +298,10 @@ class Deadly:
         else:
             if self.death_time>0:
                 self.death_time-=1
-                self.add_event('die',  ())
+                self.add_event('die')
             else:
                 self.death_time = self.death_time_value
-                self.REMOVE = True
+                self.to_remove()
                 self.create_corpse()
     
     def create_corpse(self):
@@ -284,6 +312,9 @@ class Deadly:
         self.alive = False
         self.death_counter+=1
         self.abort_moving()
+    
+    def get_args(self):
+        return {'hp': self.hp, 'hp_value':self.hp_value}
     
     
         
@@ -328,9 +359,9 @@ class Respawnable:
     def handle_remove(self):
         new_position = game.choice_position(self, 10 ,self.position)
         vector = new_position - self.position
-        self.position = new_position
-        self.add_event('remove',())
-        self.add_event('move', (NullPoint.get(),))
+        self.change_position(new_position)
+        self.add_event('remove')
+        self.add_event('move', NullPoint.get())
         self.alive = True
         self.respawned = True
         self.spawn()
@@ -359,7 +390,7 @@ class Temporary:
     def update(self):
         t = time()
         if t-self.creation_time >= self.lifetime:
-            self.REMOVE = True
+            self.to_remove(True)
 
 
 

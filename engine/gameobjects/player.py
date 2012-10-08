@@ -13,7 +13,6 @@ import  share.game_protocol as protocol
 
 class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, DynamicObject):
     "класс игрока"
-    radius = TILESIZE/2
     prev_looked = set()
     speed = 40
     hp = 50
@@ -29,6 +28,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
         Respawnable.__init__(self, 10, 30)
         Stats.__init__(self)
         Skill.__init__(self,100)
+        print 'player radius', self.radius
     
     def accept_response(self):
         yield protocol.LookLand(*self.look_map())
@@ -92,7 +92,8 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
     def Skill(self):
         self.skill()
     
-
+    def get_args(self):
+        return Deadly.get_args(self)
     
     @wrappers.alive_only(Deadly)
     def update(self):

@@ -29,9 +29,9 @@ class Explodable:
         self.explode_time = explode_time
         
     def update(self):
-        self.add_event('explode', (), self.explode_time)
+        self.add_event('explode', timeout = self.explode_time)
         self.delayed = True
-        self.REMOVE = True
+        self.to_remove()
         
     def remove(self):
         return True

@@ -62,16 +62,20 @@ class Drawable(GameWindow):
     def draw(self):
         self.tiles.sort(lambda x,y: -1 if x[0]>y[0] else 1)
         
-        for layer,tilename, position, sprite_type in self.tiles:
-            if sprite_type=='tile':
-                x,y = (position-self.shift).get()
-                if -TILESIZE<x<self.width and -TILESIZE<x<self.height:
-                    self.draw_tile(tilename, x,y)
+        try:
+            for layer,tilename, position, sprite_type in self.tiles:
+                if sprite_type=='tile':
+                    x,y = (position-self.shift).get()
+                    if -TILESIZE<x<self.width and -TILESIZE<x<self.height:
+                        self.draw_tile(tilename, x,y)
+                        
+                elif sprite_type=='label':
                     
-            elif sprite_type=='label':
-                
-                x,y = (position-self.shift).get()
-                self.draw_label(tilename,10, x,y)
+                    x,y = (position-self.shift).get()
+                    self.draw_label(tilename,10, x,y)
+        except ValueError as error:
+            print self.tiles
+            raise error
                 
 
 

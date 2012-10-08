@@ -51,14 +51,13 @@ class Movable(DynamicObject):
                     self.move_vector = move_vector
                 else:
                     self.move_vector = self.vector
-                self.position = self.position+self.move_vector
+                self.change_position(self.position+self.move_vector)
                 
                 
                 #добавляем событие
                
                 if self.position_changed:
-                    arg = self.move_vector.get()
-                    self.add_event( 'move', (arg,))
+                    self.add_event( 'move',  self.move_vector.get())
                     self._detect_collisions(self)
                 
     
@@ -95,8 +94,8 @@ class Movable(DynamicObject):
             if Player.name != self.name:
                 distance = abs(Player.position - player.position)
                 if distance <= Player.radius+player.radius:
-                        Player.collission(player)
-                        player.collission(Player)
+                    Player.collission(player)
+                    player.collission(Player)
     
     def complete_round(self):
         self.moved = False

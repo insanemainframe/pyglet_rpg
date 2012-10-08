@@ -16,6 +16,7 @@ class Unit(Solid, Movable, Deadly, DiplomacySubject, GameObject):
         Movable.__init__(self, speed)
         Deadly.__init__(self, corpse, hp)
         DiplomacySubject.__init__(self, fraction)
+        Solid.__init__(self, TILESIZE/2)
 
 class Lootable(Deadly):
     loot = [Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
@@ -37,7 +38,7 @@ class Fighter:
         if self.fraction!=player.fraction:
             if self.attack_counter==0:
                 player.hit(self.damage)
-                self.add_event('attack', ())
+                self.add_event('attack')
     
     def complete_round(self):
         if self.attack_counter < self.attack_speed:

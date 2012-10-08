@@ -96,26 +96,27 @@ class LookPlayers(GameProtocol):
         self.players = players
     
     def pack(self):
-        players = dict([(name, (o_type, position.get())) for name, (o_type, position) in self.players.items()])
+        players = dict([(name, (o_type, position.get(), args)) for name, (o_type, position, args) in self.players.items()])
         return [players]
     
     @classmethod
     def unpack(cls, players):
-        players = dict([(name, (o_type, Point(x,y))) for name, (o_type, (x,y)) in players.items()])
+        players = dict([(name, (o_type, Point(x,y), args)) for name, (o_type, (x,y), args) in players.items()])
         return players
 
-class LookStaticObjects(GameProtocol):
-    def __init__(self, static_objects):
-        self.static_objects = static_objects
+class LookStaticObjects(LookPlayers):
+    pass
+    #def __init__(self, static_objects):
+        #self.static_objects = static_objects
     
-    def pack(self):
-        static_objects = dict([(name, (o_type, position.get())) for name, (o_type, position) in self.static_objects.items()])
-        return [static_objects]
+    #def pack(self):
+        #static_objects = dict([(name, (o_type, position.get())) for name, (o_type, position) in self.static_objects.items()])
+        #return [static_objects]
     
-    @classmethod
-    def unpack(cls, static_objects):
-        static_objects = dict([(name, (o_type, Point(x,y))) for name, (o_type, (x,y)) in static_objects.items()])
-        return static_objects
+    #@classmethod
+    #def unpack(cls, static_objects):
+        #static_objects = dict([(name, (o_type, Point(x,y))) for name, (o_type, (x,y)) in static_objects.items()])
+        #return static_objects
 
 class LookStaticEvents(GameProtocol, Events):
     def __init__(self, static_objects_events):

@@ -36,7 +36,7 @@ class Cat(Walker, Solid, Stalker, DynamicObject, DiplomacySubject):
     
     def rainbow(self, player):
         player.heal(5)
-        self.add_event('rainbow', (), self.rainbow_time)
+        self.add_event('rainbow', timeout = self.rainbow_time)
     
     def update(self):
         if chance(10):
@@ -81,6 +81,9 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject):
                 Walker.update(self)
         Movable.update(self)
         Deadly.update(self)
+    
+    def get_args(self):
+        return Deadly.get_args(self)
     
     def complete_round(self):
         Movable.complete_round(self)

@@ -14,7 +14,7 @@ class Item(StaticObject, Solid, Temporary):
     @wrappers.player_filter(Guided)
     def collission(self, player):
         self.effect(player)
-        self.REMOVE = True
+        self.to_remove()
     
     def update(self):
         Temporary.update(self)

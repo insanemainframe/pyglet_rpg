@@ -25,7 +25,6 @@ class ObjectsView(GameWindow, Drawable, ViewTools):
             self.objects[self.focus_object].vector+=shift
     
     def insert_objects(self, looked_objects):
-        print 'insert_objects', looked_objects
         looked_keys = set( looked_objects.keys())
         client_keys = set(self.objects.keys())
         
@@ -33,8 +32,8 @@ class ObjectsView(GameWindow, Drawable, ViewTools):
         self.deleted_objects = client_keys - looked_keys
         
         for name in new_objects:
-            object_type, position = looked_objects[name]
-            self.create_object(name, object_type, position)
+            object_type, position, args = looked_objects[name]
+            self.create_object(name, object_type, position, args)
             if object_type=='Self':
                 self.focus_object = name
             
@@ -90,11 +89,9 @@ class ObjectsView(GameWindow, Drawable, ViewTools):
         #удаляем объекты для которых больше нет на карте
         for name in self.deleted_objects:
             if not self.objects[name].delayed:
-                print 'add to remove', name
                 self.remove_object(name)
             else:
                 if name not in self.eventnames:
-                    print 'add to remove', name
                     self.remove_object(name)
         
         self.eventnames = []

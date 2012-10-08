@@ -168,9 +168,15 @@ class LocationObjects:
     def __init__(self):
         self.players = {}
         self.static_objects = {}
+        
         self.solids = {}
+        
         self.new_players = False
         self.new_static_objects = False
+        
+        self.remove_list = {}
+        self.remove_static_list = {}
+        
     
     def add_player(self, player):
         "добавляет ссылку на игрока"
@@ -253,22 +259,18 @@ class LocationObjects:
         return False
     
     def clear_players(self):
-        remove_list = []
-        for name, player in self.players.items():
-            if player.REMOVE:
-                remove_list.append(name)
+        remove_list = self.remove_list.copy()
+        self.remove_list.clear()
         
-        for name in remove_list:
-            self.remove_player(name)
+        for name, force in remove_list.items():
+            self.remove_player(name, force)
     
     def clear_static_objects(self):
-        remove_list = []
-        for name, static_object in self.static_objects.items():
-            if static_object.REMOVE:
-                remove_list.append(name)
-        
-        for name in remove_list:
-            self.remove_static_object(name)
+        remove_list = self.remove_static_list.copy()
+        self.remove_static_list.clear()
+
+        for name, force in remove_list.items():
+            self.remove_static_object(name, force)
         
         
     
@@ -276,12 +278,13 @@ class LocationObjects:
         player = self.players[name]
         result = player.remove()
         if result or force:
-            
+            print 'remove', name
             position = player.position
             if player.delayed:
                 player.add_event('delay', ())
                 
-            
+            if name in self.remove_list:
+                self.remove_list.remove(name) 
             if name in self.solids:
                 del self.solids[name]
             if isinstance(player, engine_lib.ActiveState):
@@ -292,7 +295,7 @@ class LocationObjects:
             self.world.game.remove_player_from_list(name)
         else:
             player.handle_remove()
-            player.REMOVE = False
+            
         
         
 
@@ -301,6 +304,7 @@ class LocationObjects:
         "удаляет статические объекты, если метод remove вернул False то откладывет удаление объекта"
         result = self.static_objects[name].remove()
         if result or force:
+            
             player = self.static_objects[name]
             position = player.position
             if player.delayed:
@@ -315,14 +319,22 @@ class LocationObjects:
             self.new_static_objects = True
             del self.static_objects[name]
             self.world.game.remove_static_object_from_list(name)
-        else:
-            self.static_objects[name].REMOVE = False
+  
+    
+    def add_to_remove(self, name, force):
+        self.remove_list[name] = force
+    
+    def add_to_remove_static(self, name, force):
+        self.remove_static_list[name] = force
 
     def update(self):
         self.clear_players()
         self.clear_static_objects()
     
     def complete_round(self):
+        self.remove_list.clear()
+        self.remove_static_list.clear()
+        
         self.new_players = False
         self.new_static_objects = False
 

@@ -20,7 +20,7 @@ class GameEngine:
     def __init__(self):
         self.messages = {}
         self.create_monsters(10, Zombie)
-        #self.create_monsters(5, Lych)
+        self.create_monsters(5, Lych)
         #self.create_monsters(5, Ghast)
         self.create_monsters(5, Cat)
         
