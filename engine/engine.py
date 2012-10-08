@@ -19,10 +19,10 @@ class GameEngine:
     monster_count = 0
     def __init__(self):
         self.messages = {}
-        #qaself.create_monsters(10, Zombie)
-        #self.create_monsters(5, Lych)
-        #self.create_monsters(5, Ghast)
-        #self.create_monsters(5, Cat)
+        self.create_monsters(10, Zombie)
+        self.create_monsters(5, Lych)
+        self.create_monsters(5, Ghast)
+        self.create_monsters(5, Cat)
         
     
     def create_monsters(self, n, monster_type):
@@ -43,7 +43,9 @@ class GameEngine:
         #уже существующие объекты
         message = (world_size, new_player.position)
         #оставляем сообщение о подключении
-        self.messages[name] = [('ServerAccept', message)]+ new_player.accept()
+        self.messages[name] = [('ServerAccept', message)]
+        for message in new_player.accept():
+            self.messages[name].append(message)
     
     def game_requests(self, messages):
         "совершаем действия игроками, возвращает векторы игрокам и устанавливает обновления"
@@ -76,7 +78,7 @@ class GameEngine:
         #подготавливаем обновления для выборочного обзора
         for name, player in game.guided_players.items():
             if self.messages[name]:
-                yield name, self.messages[name]
+                yield (name, self.messages[name])
                 self.messages[name] = []
             yield (name, player.handle_response())
     

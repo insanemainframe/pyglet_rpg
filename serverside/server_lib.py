@@ -64,24 +64,7 @@ class SocketServer(Multiplexer):
             if client_name in self.responses:
                 self.responses[client_name].extend(messages)
     
-    def write_to_all(self):
-        "послать ответы всем клиентам"
-        
-        with self.responses_lock:
-            to_write =  self.responses
-            self.responses = {client:[] for client in self.responses}
-        
-        for client_name, responses in to_write.items():
-            if responses:
-                #print 'write %s' % self.round_n
-                if client_name in self.clients:
-                    sock = self.clients[client_name].outsock
-                    for response in responses:
-                        send(sock, response)
-                else:
-                    #print 'write to closed client'
-                    pass
-    
+
     def handle_write(self, client_name):
         "пишет пакеты на сокет пользователя"
         if self.responses[client_name]:

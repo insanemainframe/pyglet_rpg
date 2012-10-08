@@ -31,31 +31,30 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill):
         Skill.__init__(self,100)
     
     def accept(self):
-        return [self.look_map(), self.look_events()]
+        yield  self.look_map()
+        yield self.look_events()
         
     def handle_response(self):
         location = game.get_location(self.position)
-        messages = []
         
         if self.respawned:
-            messages.append(Respawnable.handle_response(self))
+            yield Respawnable.handle_response(self)
         
         if self.position_changed:
-            messages.append(self.camera_move())
+            yield self.camera_move()
         
         if self.cord_changed:
-            messages.append(self.look_map())
+            yield self.look_map()
     
         if location.check_events():
-            messages.append(self.look_events())
+            yield self.look_events()
         
         #if location.check_static_events():
-        messages.append(self.look_static())
+        yield self.look_static()
         
         if self.stats_changed:
-            messages.append(self.get_stats())
+            yield self.get_stats()
 
-        return messages
  
     
     def camera_move(self):

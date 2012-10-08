@@ -135,21 +135,23 @@ class GeventMultiplexer:
 
 
 try:
-    import event
+    from select import epoll, EPOLLIN, EPOLLOUT
+
 except ImportError:
     try:
         from _gevent import core
     except ImportError:
         try:
-            from select import epoll, EPOLLIN, EPOLLOUT
+            import event
         except ImportError:
             from select import select
             Multiplexer = SelectMultiplexer
         else:
-            Multiplexer = EpollMultiplexer
+            Multiplexer = EventMultiplexer
     else:
         
         Multiplexer = GeventMultiplexer
 else:
-    Multiplexer = EventMultiplexer
+    Multiplexer = EpollMultiplexer
+
 
