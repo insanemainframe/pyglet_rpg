@@ -1,4 +1,4 @@
-python client-server rpg
+python client-server rpg, sprites grabbed from wesnoth(http://www.wesnoth.org/)
 
 REQUIRMENTS:
 
