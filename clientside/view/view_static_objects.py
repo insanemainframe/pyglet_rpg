@@ -13,30 +13,38 @@ class StaticObjectView(GameWindow, Drawable, ViewTools):
     def __init__(self):
         Drawable.__init__(self)
         ViewTools.__init__(self, static_objects)
-        self.objects = {}
-        self.tiles = []
+        self.eventnames = []
     
     def insert_objects(self, static_objects):
-        if static_objects:
-            for name, (object_type, position) in static_objects.items():
-                self.create_object(name, object_type, position)
+        looked_keys = set(static_objects.keys())
+        client_keys = set(self.objects.keys())
+        
+        new_objects = looked_keys - client_keys
+        self.deleted_objects = client_keys - looked_keys
+        
+        for name in new_objects:
+            self.create_object(name, *static_objects[name])
         
         
     
     def insert_events(self,  events):
-        if events:
-            for name, object_type, position, action, args, timeouted in events:
-                if name in self.objects:
-                    self.objects[name].handle_action(action, args)
+        for name, object_type, position, action, args, timeouted in events:
+            if name in self.objects:
+                self.objects[name].handle_action(action, args)
+                self.eventnames.append(name)
     
-    def filter(self, observed):
-        new_objects = {}
-        for object_name, game_object in self.objects.items():
-            cord = (game_object.position/TILESIZE).get()
-            if cord in observed and not game_object.REMOVE:
-                new_objects[object_name] = game_object
+    
+    def round_update(self):
+        for name in self.deleted_objects:
+            if not self.objects[name].delayed:
+                self.remove_object(name)
+            else:
+                if name not in self.eventnames:
+                    self.remove_object(name)
         
-        self.objects = new_objects
+        self.eventnames = []
+        self.deleted_objects = []
+        
             
     
     def update(self):

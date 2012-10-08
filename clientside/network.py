@@ -3,6 +3,7 @@
 from config import HOSTNAME, IN_PORT, OUT_PORT, TILESIZE
 
 from share.protocol_lib import Packer, send, receivable
+from share.game_protocol import *
 from share.mathlib import *
 
 import socket, sys, os
@@ -49,7 +50,12 @@ class SocketClient:
             for message in self.out_messages:
                 send(self.outsock, message)
             self.out_messages = []
-            
+    
+    def pop_messages(self):
+        messages = self.in_messages
+        self.in_messages = []
+        return messages
+    
     def put_message(self, message):
         "кладет ответ в очередь на отправку"
         self.out_messages.append(message)
@@ -103,7 +109,7 @@ class SocketClient:
 
 #####################################################################
 #
-class Client(SocketClient, Packer):
+class GameClient(SocketClient, Packer):
     "полуение и распаковка сообщений, антилаг"
     antilag= False
     antilag_shift = Point(0,0)   
@@ -128,7 +134,7 @@ class Client(SocketClient, Packer):
             self.accept_message = message
         
     def send_move(self, vector):
-        message = self.pack([vector],'Move')
+        message = self.pack(Move(vector))
         self.put_message(message)
         #предварительное движение
         if vector and not self.shift and not self.antilag:
@@ -142,11 +148,11 @@ class Client(SocketClient, Packer):
                 self.antilag = True
         
     def send_ball(self, vector):
-        message = self.pack([vector],'Strike')
+        message = self.pack(Strike(vector))
         self.put_message(message)
     
     def send_skill(self):
-        message = self.pack([],'Skill')
+        message = self.pack(Skill())
         self.put_message(message)
         
     def read(self, package):

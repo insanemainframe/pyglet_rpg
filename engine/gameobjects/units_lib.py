@@ -18,7 +18,7 @@ class Unit(Solid, Movable, Deadly, DiplomacySubject, GameObject):
         DiplomacySubject.__init__(self, fraction)
 
 class Lootable(Deadly):
-    loot = [Cloak] #Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
+    loot = [Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
     
     def die(self):
         if chance(60):
@@ -52,7 +52,7 @@ class Stalker:
     
     def hunt(self, inradius = False):
         if game.guided_players:
-            players = self.get_location().get_players().values()
+            players = self.get_location().get_players_list()
             dists = []
             for player in players:
                 if player.fraction!=self.fraction and  player.fraction!='good':
@@ -74,9 +74,7 @@ class Striker:
     @wrappers.alive_only()
     def strike_ball(self, vector):
         if self.strike_counter==0 and vector:
-            ball_name = 'ball%s' % game.ball_counter
-            game.ball_counter+=1
-            ball = self.strike_shell(ball_name, self.position, vector, self.fraction, self.name, self.damage)
+            ball = self.strike_shell(self.position, vector, self.fraction, self.name, self.damage)
             self.strike_counter+=self.strike_speed
     
     def plus_damage(self, damage):

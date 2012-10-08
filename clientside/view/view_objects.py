@@ -17,55 +17,49 @@ class ObjectsView(GameWindow, Drawable, ViewTools):
     def __init__(self):
         Drawable.__init__(self)
         ViewTools.__init__(self, client_objects)
-        self.objects = {}
-        self.tiles = []
-        self.events = defaultdict(list)
         self.focus_object = False
+        self.eventnames = []
         
     def antilag(self, shift):
         if self.focus_object:
-            self.events[self.focus_object]+=shift
+            self.objects[self.focus_object].vector+=shift
     
-    def insert(self, events=[]):
-        self.events.clear()
-        if events:
-            for name, object_type, position, action, args, delayed in events:
-                if action=='create':
-                    self.create_object(name, object_type, position, delayed)
-                elif action=='remove':
-                    self.remove_object(name)
-                elif action=='delay':
-                    print 'delay', name
-                    if not name in self.objects:
-                        self.create_object(name, object_type, position, delayed)
-                    self.objects[name].delayed = True
-                else:
-                    if name in name in self.objects:
-                        self.events[name].append((position, object_type, action, args, delayed))
+    def insert_objects(self, looked_objects):
+        print 'insert_objects', looked_objects
+        looked_keys = set( looked_objects.keys())
+        client_keys = set(self.objects.keys())
+        
+        new_objects = looked_keys - client_keys
+        self.deleted_objects = client_keys - looked_keys
+        
+        for name in new_objects:
+            object_type, position = looked_objects[name]
+            self.create_object(name, object_type, position)
+            if object_type=='Self':
+                self.focus_object = name
+            
+        
+        
+    def insert_events(self, new_events=[]):
+        events = []
+        for name, object_type, position, action, args in new_events:
+                if name in name in self.objects:
+                    events.append((name, object_type, position, action, args))
+                    self.eventnames.append(name)
                         
-                    else:
-                        self.events[name].append((position, object_type, action, args, delayed))
-                        self.create_object(name, object_type, position, delayed)
-                        if args=='self':
-                            self.focus_object = name          
+
+        
+        for object_name, object_type, position, action, args in events:
+            self.objects[object_name].handle_action(action, args)
         
         #удаяем объекты с мтеокй REMOVE
-        [self.remove_object(name) for name in self.objects.keys() if self.objects[name].REMOVE]
-        
-        if self.events:
-            for object_name, events_list in self.events.items():
-                for position, object_type, action ,args, timeouted in events_list:
-                    if not object_name in self.objects:
-                        self.create_object(object_name, object_type, position, timeouted)
-                    if not self.objects[object_name].REMOVE:
-                        self.objects[object_name].handle_action(action, args)
-                    else:
-                        self.remove_object(object_name)
+
                 
 
     def update(self, delta):
         #обновляем объекты
         [game_object.update(delta) for game_object in self.objects.values()]
+        
         
         #отображение объектов
         self.tiles = []
@@ -76,34 +70,44 @@ class ObjectsView(GameWindow, Drawable, ViewTools):
     def remove_timeouted(self):
         remove_list = set()
         for name, game_object in self.objects.items():
-            if game_object.delayed and name not in self.events:
+            if game_object.delayed and (name not in self.events):
                 remove_list.add(name)
         
         [self.remove_object(name) for name in remove_list]
         
-    def filter(self, observed):
-        new_objects = {}
-        for object_name, game_object in self.objects.items():
-            cord = (game_object.position/TILESIZE).get()
-            if cord in observed and not game_object.REMOVE:
-                new_objects[object_name] = game_object
+    
+    def clear(self):
+        #удаляем объекты с меткой
+        remove_list = []
+        for name, game_object in self.objects.items():
+            if game_object.REMOVE:
+                remove_list.append(name)
         
-        self.objects = new_objects
+        for name in remove_list:
+            self.remove_object(name)
+    
+    def filter(self):
+        #удаляем объекты для которых больше нет на карте
+        for name in self.deleted_objects:
+            if not self.objects[name].delayed:
+                print 'add to remove', name
+                self.remove_object(name)
+            else:
+                if name not in self.eventnames:
+                    print 'add to remove', name
+                    self.remove_object(name)
+        
+        self.eventnames = []
+        self.deleted_objects = []
     
     def round_update(self):
-        [client_objects.ClientObject.round_update(game_object) for game_object in self.objects.values()]
+        [game_object.round_update() for game_object in self.objects.values()]
         
     def force_complete(self):
         [game_object.force_complete() for game_object in self.objects.values()]
+    
+    
         
             
     
-    def clear(self):
-        self.events.clear()
-        #self.objects.clear()
-    
-    def remove_object(self, name):
-        if name in self.events:
-            del self.events[name]
-        if name in self.objects:
-            del self.objects[name]
+

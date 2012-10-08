@@ -9,18 +9,41 @@ from inspect import getmro
 class ActionError(Exception):
     pass
 
-class StaticObject:
+
+class ClientObject:
     def __init__(self, name, position):
-        self.name = name
         self.position = position
+        self.name = name
+        self.delayed = False
         self.REMOVE = False
-        self.hovered = False
     
     def handle_action(self, action, args):
         if hasattr(self, action):
             getattr(self, action)(*args)
         else:
             raise ActionError('no action %s.%s' % (self.__class__.__name__, action))
+    
+    def update(self, delta):
+        pass
+    
+    def force_complete(self):
+        pass
+        
+        
+    
+    def delay(self, *args):
+        self.delayed = True
+    
+    def remove(self):
+        self.REMOVE = True
+
+class StaticObject(ClientObject):
+    def __init__(self, name, position):
+        ClientObject.__init__(self, name, position)
+        
+        self.hovered = False
+    
+    
     def hover(self):
         self.hovered = True
     
@@ -31,44 +54,20 @@ class StaticObject:
             tilename = self.tilename
         return [create_tile(self.position, tilename, -1)]
     
-    def remove(self):
-        self.REMOVE = True
 
-class ClientObject:
+
+class DynamicObject(ClientObject):
     REMOVE = False
     "класс игрового объекта на карте"
     def __init__(self, name, position):
-        self.position = position
-        self.name = name
-        self.delayed = False
+        ClientObject.__init__(self, name, position)
         
-    def handle_action(self, action, args):
-        if hasattr(self, action):
-            getattr(self, action)(*args)
-        else:
-            raise ActionError('no action %s.%s' % (self.__class__.__name__, action))
             
     def draw(self):
         return [create_tile( self.position, self.tilename)]
         
-    def update(self, delta):
-        pass
     
-    def force_complete(self):
-        pass
-        
-    def round_update(self):
-        bases = getmro(self.__class__)
-        for base in bases:
-            if not base is object and not base is ClientObject and hasattr(base, 'round_update'):
-                    base.round_update(self)
-    
-    def exist(self, *args):
-        pass
-    
-    
-    def remove(self):
-        self.REMOVE = True
+
 
 
 class MapAccess:
@@ -126,7 +125,7 @@ class Animated:
         return tilename
     
 #
-class Movable(Animated, ClientObject):
+class Movable(Animated, DynamicObject):
     def __init__(self, frames=1):
         Animated.__init__(self)
         self.moving = False

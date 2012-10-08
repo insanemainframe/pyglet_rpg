@@ -9,7 +9,7 @@ from engine.gameobjects.shells import Ball
 from engine.gameobjects.movable import Movable
 from engine.gameobjects.skills import *
 from engine.gameobjects.map_observer import MapObserver
-
+import  share.game_protocol as protocol
 
 class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, DynamicObject):
     "класс игрока"
@@ -30,60 +30,49 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
         Stats.__init__(self)
         Skill.__init__(self,100)
     
-    def accept(self):
-        return [self.look_map(), self.look_events()]
+    def accept_response(self):
+        yield protocol.LookLand(*self.look_map())
+        yield protocol.LookEvents(self.look_events())
         
     def handle_response(self):
-        location = self.get_location()
-        messages = []
         
         if not self.respawned:
             if self.position_changed:
-                messages.append(self.camera_move())
+                yield protocol.MoveCamera(self.position-self.prev_position)
         else:
-            messages.append(Respawnable.handle_response(self))
-            
+            yield protocol.Respawn(self.position)
+        
+        #если изменилась клетка - смотрим новые тайлы и список тайлов в радусе обзора
         if self.cord_changed:
-            messages.append(self.look_map())
-    
-        if location.check_events():
-            messages.append(self.look_events())
+            new_looked, observed = MapObserver.look_map(self)
+            yield protocol.LookLand(new_looked, observed)
         
-        if location.check_static_events():
-            messages.append(self.look_static_events())
+        #если изменилась клетка или изменились объекты в локации
+        #смотрим список видимых объектов
+        if self.cord_changed or self.location.check_players():
+            players = self.look_players()
+            if players:
+                yield protocol.LookPlayers(players)
         
-        static_objects = self.look_static_objects()
-        if static_objects:
-            messages.append(static_objects)
+        #если изменилась клетка или изменились статические объекты в локации
+        #смотрим список видимых статических объектов
+        if self.cord_changed or self.location.check_static_objects():
+            yield  protocol.LookStaticObjects(MapObserver.look_static_objects(self))
         
+        #если есть новые события в локации
+        if self.location.check_events():
+            events = MapObserver.look_events(self)
+            if events:
+                yield protocol.LookEvents(events)
+        
+        #если есть новй события статическиъ объекктов
+        if self.location.check_static_events():
+            yield protocol.LookStaticEvents(MapObserver.look_static_events(self))
+        
+        #если изменились собственные статы
         if self.stats_changed:
-            messages.append(self.get_stats())
+            yield protocol.PlayerStats(*Stats.get_stats(self))
         
-
-        return messages
- 
-    
-    def camera_move(self):
-        return ('MoveCamera', Movable.handle_request(self))
-        
-    def look_static_events(self):
-        static_events = MapObserver.look_static_events(self)
-        return ('LookStaticEvents', (static_events,))
-    
-    def look_static_objects(self):
-        static_objects = MapObserver.look_static_objects(self)
-        return ('LookStaticObjects', (static_objects, ))
-    
-    def look_events(self):
-        events = MapObserver.look_events(self)
-        return ('LookObjects', (events,))
-    
-    def look_map(self):
-        new_looked, observed = MapObserver.look_map(self)
-        return ('LookLand', (new_looked, observed))
-    
-    def get_stats(self):
-        return ('PlayerStats', Stats.get_stats(self))
         
     @wrappers.action
     @wrappers.alive_only()

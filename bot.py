@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from clientside.network import Client
+from clientside.network import GameClient
 from share.mathlib import *
 from config import *
 from time import sleep, time
@@ -12,11 +12,11 @@ from multiprocessing import Process
 from engine.mathlib import chance
 from random import randrange
 
-class Bot(Client, Process):
+class Bot(GameClient, Process):
     def __init__(self):
         self.hostname =  HOSTNAME 
         #
-        Client.__init__(self)
+        GameClient.__init__(self)
         Process.__init__(self)
         
         self.wait_for_accept()

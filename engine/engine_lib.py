@@ -5,7 +5,7 @@ from mathlib import *
 
 from random import choice
 from time import time
-
+from copy import deepcopy
 
 
 class UnknownAction(Exception):
@@ -61,13 +61,53 @@ class wrappers:
 
 #####################################################################
 class GameObject(object):
-    def __init__(self, name):
+    def __init__(self, name, position):
         self.name = name
         self.REMOVE = False            
         self.alive = True
         self.delayed = False
+        self._position = position
         
+        self.location = game.get_location(self._position)
+        self._prev_position = position
+        
+    @property
+    def position(self):
+        return deepcopy(self._position)
     
+    @position.setter
+    def position(self, position):
+        if not position==self._position:
+            
+            cur_cord = position/TILESIZE
+            
+            if 0<=cur_cord.x<=game.world.size and 0<=cur_cord.y<=game.world.size:
+                prev_cord = self._position/TILESIZE
+                
+                if cur_cord!=prev_cord:
+                    self.cord_changed = True
+                    
+                if position!=self._position:
+                    self.position_changed = True
+                    
+                prev_loc = game.get_loc_cord(self._position)
+                cur_loc = game.get_loc_cord(position)
+                if prev_loc!=cur_loc:
+                    self.location = game.change_location(self.name, prev_loc, cur_loc)
+                
+                self._prev_position = self._position
+                self._position  = position
+            else:
+                print 'Invalid position %s %s' % (position, self.name)
+    
+    def __hash__(self):
+        return hash(self.name)
+    
+    def __eq__(self, player):
+        return self.name==player.name
+    
+    def __ne__(self, player):
+        return self.name!=player.name
     
     def get_location(self):
         return game.get_location(self.position)
@@ -82,20 +122,17 @@ class GameObject(object):
         pass
     
     def remove(self):
+        print 'GameObject.remove'
         return True
     
     
 
 class DynamicObject(GameObject):
     def __init__(self, name, position):
-        GameObject.__init__(self, name)
+        GameObject.__init__(self, name, position)
         
-        self._position = position
-        self._location = position/LOCATIONSIZE
-        self._prev_position = position
-        
-        self.cord_changed = False
-        self.position_changed = False
+        self.cord_changed = True
+        self.position_changed = True
         game.new_object(self)
     
     @property
@@ -106,41 +143,18 @@ class DynamicObject(GameObject):
     def prev_position(self):
         raise Warning('@prev_position.setter')
         
-    @property
-    def position(self):
-        return self._position
-    
-    @position.setter
-    def position(self, position):
-        cur_cord = position/TILESIZE
-        
-        if 0<=cur_cord.x<=game.world.size and 0<=cur_cord.y<=game.world.size:
-            prev_cord = self._position/TILESIZE
-            
-            if cur_cord!=prev_cord:
-                self.cord_changed = True
-                
-            if position!=self._position:
-                self.position_changed = True
-                
-            prev_loc = game.get_loc_cord(self._position)
-            cur_loc = game.get_loc_cord(position)
-            if prev_loc!=cur_loc:
-                game.change_location(self.name, prev_loc, cur_loc)
-            
-            self._prev_position = self._position
-            self._position  = position
-        else:
-            print 'Invalid position %s %s' % (position, self.name)
     
     def add_event(self, action, args, timeout=0):
         object_type = self.__class__.__name__
         vector = self.position-self.prev_position
-        game.add_event(self.name, object_type, self.position, vector, action, args, timeout, self.delayed)
+        game.add_event(self.name, object_type, self.position, vector, action, args, timeout)
     
     def complete_round(self):
         self.cord_changed = False
         self.position_changed = False
+    
+    def get_tuple(self):
+        return self.__class__.__name__, self.prev_position
 
 class StaticObject(GameObject):
     name_counter =0 
@@ -150,9 +164,8 @@ class StaticObject(GameObject):
     
         name = '%s_%s' % (self.__class__.__name__, counter)
         
-        GameObject.__init__(self, name)
+        GameObject.__init__(self, name, position)
         
-        self.position = position
         
         game.new_static_object(self)
     
@@ -161,16 +174,17 @@ class StaticObject(GameObject):
     
     def add_event(self, action, args, timeout=0):
         object_type = self.__class__.__name__
-        game.add_static_event(self.name, object_type, self.position, action, args, timeout, delayed)
+        game.add_static_event(self.name, object_type, self.position, action, args, timeout)
 
     
     def complete_round(self):
         pass
 
 
+class ActiveState:
+    pass
 
-
-class Guided():
+class Guided(ActiveState):
     "управляемый игроком объекта"
     def handle_action(self, action_name, args):
         if hasattr(self, action_name):
@@ -265,7 +279,6 @@ class Deadly:
     def create_corpse(self):
         name = 'corpse_%s_%s' % (self.name, self.death_counter)
         corpse = self.corpse(name, self.position)
-        game.new_static_object(corpse)
     
     def die(self):
         self.alive = False
@@ -310,21 +323,19 @@ class Respawnable:
         self.respawn_distance = distance
         
     def remove(self):
+        return False
+    
+    def handle_remove(self):
         new_position = game.choice_position(self, 10 ,self.position)
         vector = new_position - self.position
         self.position = new_position
         self.add_event('remove',())
         self.add_event('move', (NullPoint.get(),))
-        self.respawn_message = 'Respawn', [self.position]
         self.alive = True
         self.respawned = True
         self.spawn()
-        return False
 
-    
-    def handle_response(self):
-        self.respawned = False
-        return self.respawn_message
+
 
 class DiplomacySubject:
     def __init__(self, fraction):

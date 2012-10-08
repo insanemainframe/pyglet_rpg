@@ -10,34 +10,18 @@ class GameProtocol:
 
 class Events:
     #name, object_type, action, args=()
-    def pack_events(self, events):
+    @classmethod
+    def pack_events(cls, events):
         return [event.get_tuple() for event in events]
-    
-    def unpack_events(self, events):
-        return [(name, object_type,  Point(x,y), action, args, timeouted)
-            for (name, object_type, (x,y), action, args, timeouted) in events]
-
-class Observed:
-    def pack_observed(self, observed):
-        return [(i,j) for (i,j) in observed]
-    def unpack_observed(self, observed):
-        return [(i,j) for (i,j) in observed]
-
-class Land:
-    def pack_land(self, land):
-        return [point.get()+(tilename,) for point, tilename in land]
-    def unpack_land(self, land):
-        return [(Point(x,y),tilename) for x,y, tilename in land]
-
-class StaticObjects(Events):
-    def pack_static_objects(self, static_objects):
-        return dict([(name, (o_type, position.get())) for name, (o_type, position) in static_objects.items()])
         
-    def unpack_static_objects(self, static_objects):
-        return dict([(name, (o_type, Point(x,y))) for name, (o_type, (x,y)) in static_objects.items()])
+    @classmethod
+    def unpack_events(cls, events):
+        return [(name, object_type,  Point(x,y), action, args)
+            for (name, object_type, (x,y), action, args) in events]
+
+
     
-
-
+        
 
 #########################################################################
 #классы протоколов
@@ -47,11 +31,16 @@ class StaticObjects(Events):
 #инициализация
 class ServerAccept(GameProtocol):
     "ответ сервера - инициализация клиента"
-    def pack(self, world_size, position):
-        x,y = position.get()
-        return world_size, (x,y)
-
-    def unpack(self, world_size, (x,y)):
+    def __init__(self, world_size, position):
+        self.world_size = world_size
+        self.position = position
+    
+    def pack(self):
+        x,y = self.position.get()
+        return self.world_size, (x,y)
+    
+    @classmethod
+    def unpack(cls, world_size, (x,y)):
         position = Point(x,y)
         return world_size, position
 
@@ -59,72 +48,120 @@ class ServerAccept(GameProtocol):
 
 #обзор
 class MoveCamera(GameProtocol):
-    @staticmethod
-    def pack(move_vector):
-        x,y = move_vector.get()
+    def __init__(self, move_vector):
+        self.move_vector = move_vector
+    
+    def pack(self):
+        x,y = self.move_vector.get()
         return [x,y]
-    @staticmethod
-    def unpack(x,y):
+        
+    @classmethod
+    def unpack(cls, x,y):
         move_vector = Point(x,y)
         return move_vector
 
-class LookLand(GameProtocol,Land, Observed):
-    def pack(self, land, observed):
-        land = self.pack_land(land)
-        observed =  self.pack_observed(observed)
+class LookLand(GameProtocol):
+    def __init__(self, land, observed):
+        self.land = land
+        self.observed = observed
+    
+    def pack(self):
+        land = [point.get()+(tilename,) for point, tilename in self.land]
+        observed =  [(i,j) for (i,j) in self.observed]
         
         return land, observed
+    
+    @classmethod
+    def unpack(cls,land,observed):
+        land =  [(Point(x,y),tilename) for x,y, tilename in land]
+        observed =  [(i,j) for (i,j) in observed]
 
-    def unpack(self,land,observed):
-        land =  self.unpack_land(land)
-        observed =  self.unpack_observed(observed)
-
-        
         return land, observed
 
-class LookObjects(GameProtocol, Events):
-    def pack(self, events):
-        events = self.pack_events(events)
+class LookEvents(GameProtocol, Events):
+    def __init__(self, events):
+        self.events = events
+        
+    def pack(self):
+        events = self.pack_events(self.events)
         return [events]
     
-    def unpack(self, events):
-        events = self.unpack_events(events)
+    @classmethod
+    def unpack(cls, events):
+        events = cls.unpack_events(events)
         return events
 
-class LookStaticObjects(GameProtocol, StaticObjects):
-    def pack(self, static_objects):
-        static_objects = self.pack_static_objects(static_objects)
+class LookPlayers(GameProtocol):
+    def __init__(self, players):
+        self.players = players
+    
+    def pack(self):
+        players = dict([(name, (o_type, position.get())) for name, (o_type, position) in self.players.items()])
+        return [players]
+    
+    @classmethod
+    def unpack(cls, players):
+        players = dict([(name, (o_type, Point(x,y))) for name, (o_type, (x,y)) in players.items()])
+        return players
+
+class LookStaticObjects(GameProtocol):
+    def __init__(self, static_objects):
+        self.static_objects = static_objects
+    
+    def pack(self):
+        static_objects = dict([(name, (o_type, position.get())) for name, (o_type, position) in self.static_objects.items()])
         return [static_objects]
     
-    def unpack(self, static_objects):
-        static_objects = self.unpack_static_objects(static_objects)
+    @classmethod
+    def unpack(cls, static_objects):
+        static_objects = dict([(name, (o_type, Point(x,y))) for name, (o_type, (x,y)) in static_objects.items()])
         return static_objects
 
 class LookStaticEvents(GameProtocol, Events):
-    def pack(self, static_objects_events):
-        static_objects_events = self.pack_events(static_objects_events)
+    def __init__(self, static_objects_events):
+        self.static_objects_events = static_objects_events
+        
+    def pack(self):
+        static_objects_events = self.pack_events(self.static_objects_events)
         return [static_objects_events]
     
-    def unpack(self, static_objects_events):
-        static_objects_events = self.unpack_events(static_objects_events)
+    @classmethod
+    def unpack(cls, static_objects_events):
+        static_objects_events = cls.unpack_events(static_objects_events)
         return static_objects_events
 
 #статы игрока
 class PlayerStats(GameProtocol):
-    @staticmethod
-    def pack(hp, hp_value, speed, damage, gold, kills, death_counter, skills, invisible):
-        return hp, hp_value, speed, damage, gold, kills, death_counter, skills, invisible
-    @staticmethod
-    def unpack(hp, hp_value, speed, damage, gold, kills, death_counter, skills, invisible):
+    def __init__(self, hp, hp_value, speed, damage, gold, kills, death_counter, skills, invisible):
+        self.hp = hp
+        self.hp_value = hp_value
+        self.speed = speed
+        self.damage = damage
+        self.gold = gold
+        self. kills = kills
+        self.death_counter = death_counter
+        self.skills = skills
+        self.invisible = invisible
+        
+    def pack(self):
+        return (self.hp, self.hp_value, self.speed, self.damage,
+                self.gold, self.kills, self.death_counter,
+                self.skills, self.invisible)
+    
+    @classmethod
+    def unpack(cls, hp, hp_value, speed, damage, gold, kills, death_counter, skills, invisible):
         return hp, hp_value, speed, damage, gold, kills, death_counter, skills, invisible
 
 #РЕСПАВН
 class Respawn(GameProtocol):
-    @staticmethod
-    def pack(position):
-        return position.get()
-    @staticmethod
-    def unpack(x,y):
+    def __init__(self, position):
+        self.position = position
+    
+    def pack(self):
+        return self.position.get()
+    
+    @classmethod
+    def unpack(cls, x,y):
         return Point(x,y)
         
 #######################################################################
@@ -132,42 +169,39 @@ class Respawn(GameProtocol):
 
 #передвижение
 class Move(GameProtocol):
-    @staticmethod
-    def pack(vector):
-        return vector.get()
+    def __init__(self, vector):
+        self.vector = vector
     
-    @staticmethod
-    def unpack(x,y):
+    def pack(self):
+        return self.vector.get()
+    
+    @classmethod
+    def unpack(cls, x,y):
         return [Point(x,y)]
 
 #стрельба
 class Strike(GameProtocol):
-    @staticmethod
-    def pack(vector):
-        return vector.get()
-    @staticmethod
-    def unpack(x,y):
+    def __init__(self, vector):
+        self.vector = vector
+    
+    def pack(self):
+        return self.vector.get()
+    
+    @classmethod
+    def unpack(cls, x,y):
         return [Point(x,y)]
 #
 class Skill(GameProtocol):
-    @staticmethod
+    def __init__(self):
+        pass
+    
     def pack(a=None):
         return []
-    @staticmethod
-    def unpack(a=None):
+    
+    @classmethod
+    def unpack(cls, a=None):
         return []
 
-#запрос на иницализацию(на будущее)
-class ClientAccept(GameProtocol):
-    "запрос клиента"
-    @staticmethod
-    def pack_client_accept(name):
-        return name
-    
-    @staticmethod
-    def unpack_client_accept(name):
-        return name
-                
                 
 
 

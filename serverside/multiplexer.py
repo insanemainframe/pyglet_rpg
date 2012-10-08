@@ -29,12 +29,12 @@ class SelectMultiplexer:
             for sock in events:
                 fileno = sock.fileno()
                 if fileno==self.in_fileno:
-                    self.handle_accept(IN)
+                    self._handle_accept(IN)
                 elif fileno==self.out_fileno:
-                    self.handle_accept(OUT)
+                    self._handle_accept(OUT)
                 else:
                     client_name = self.infilenos[fileno]
-                    self.handle_read(client_name)
+                    self._handle_read(client_name)
 
 class EpollMultiplexer:
     poll_engine = 'linux epoll'
@@ -56,17 +56,17 @@ class EpollMultiplexer:
             for fileno, event in events:
                 try:
                     if fileno==self.in_fileno:
-                        self.handle_accept(IN)
+                        self._handle_accept(IN)
                     elif fileno==self.out_fileno:
-                        self.handle_accept(OUT)
+                        self._handle_accept(OUT)
                     elif event==EPOLLIN: 
                         client_name = self.infilenos[fileno]
-                        self.handle_read(client_name)
+                        self._handle_read(client_name)
                     elif event==EPOLLOUT:
                         client_name = self.outfilenos[fileno]
-                        self.handle_write(client_name)
+                        self._handle_write(client_name)
                 except socket_error as Error:
-                    self.handle_error(Error, fileno, event)
+                    self._handle_error(Error, fileno, event)
 
 class EventMultiplexer:
     poll_engine = 'libevent'
@@ -75,16 +75,16 @@ class EventMultiplexer:
     
     def register_in(self, fileno):
         if fileno==self.in_fileno:
-            self.events[fileno] = event.read(fileno, self.handle_accept, IN)
+            self.events[fileno] = event.read(fileno, self._handle_accept, IN)
         elif fileno==self.out_fileno:
-            self.events[fileno] = event.read(fileno, self.handle_accept, OUT)
+            self.events[fileno] = event.read(fileno, self._handle_accept, OUT)
         else:
             client_name = self.infilenos[fileno]
-            self.events[fileno] = event.read(fileno, self.handle_read, client_name)
+            self.events[fileno] = event.read(fileno, self._handle_read, client_name)
     
     def register_out(self, fileno):
         client_name = self.outfilenos[fileno]
-        self.events[fileno] = event.write(fileno, self.handle_write, client_name)
+        self.events[fileno] = event.write(fileno, self._handle_write, client_name)
     
     def unregister(self, fileno):
         self.events[fileno].delete()
@@ -98,17 +98,17 @@ class GeventMultiplexer:
         self.events = {}
     
     def cb_accept(self, event, evtype):
-        return self.handle_accept(event.arg)
+        return self._handle_accept(event.arg)
         
     def cb_read(self, event, evtype):
         print 'cb_read', event.arg
         client_name = event.arg
-        return self.handle_read(client_name)
+        return self._handle_read(client_name)
         
     def cb_write(self, event, evtype,):
         print 'cb_write', event.arg
         client_name = event.arg
-        return self.handle_write(client_name)
+        return self._handle_write(client_name)
     
     def register_in(self, fileno):
         if fileno==self.in_fileno:

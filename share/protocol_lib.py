@@ -195,39 +195,38 @@ def decompress(data):
         return data
 
 #####################################################################
-
+import game_protocol
+from types import ClassType
 
 class Packer:
     "упаковщик/распаковщик данных с помощью классов из game_protocol"
     def __init__(self):
         "загружаем классы протоколов"
-        import game_protocol
-        from types import ClassType
         self.method_handlers = {}
         for name in dir(game_protocol):
             Class = getattr(game_protocol, name)
             if type(Class) is ClassType:
                 if issubclass(Class, game_protocol.GameProtocol):
-                    self.method_handlers[name] = Class()
+                    self.method_handlers[name] = Class
 
-    def pack(self,data, method):
+    def pack(self, protocol_object):
         "упаковщик данных"
-        if method in self.method_handlers:
+        if isinstance(protocol_object, game_protocol.GameProtocol):
             try:
-                data = self.method_handlers[method].pack(*data)
+                data = protocol_object.pack()
             except Exception as error:
-                print 'pack error in method %s with %s' % (method, data)
+                print 'pack error in %s' % protocol_object
                 raise error
             else:
                 try:
+                    method = protocol_object.__class__.__name__
                     result = dumps((method, data))
                     return result
                 except MarshalError:
                     print 'MarshalError', method, data
                     return ''
         else:
-            print 'MethodError'
-            raise MethodError(method, data)
+            raise TypeError('protocol_lib.pack: %s not GameProtocol instance' % protocol_object)
     
     def unpack(self, data):
         "распаковщик"

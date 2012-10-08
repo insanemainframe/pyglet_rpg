@@ -28,8 +28,8 @@ class SocketServer(Multiplexer):
         Multiplexer.__init__(self)
         self.listen_num = listen_num
         
-        self.insock, self.in_fileno = self.create_socket(IN)
-        self.outsock, self.out_fileno = self.create_socket(OUT)
+        self.insock, self.in_fileno = self._create_socket(IN)
+        self.outsock, self.out_fileno = self._create_socket(OUT)
         
         self.infilenos = {}
         self.insocks = {}
@@ -47,42 +47,27 @@ class SocketServer(Multiplexer):
         
         self.responses_lock = RLock() #блокировка для действий с сокетсервером куызщтыуы куйгууыеуы
             
-    def create_socket(self, stream):
+    def _create_socket(self, stream):
         "создает неблокирубщий сокет на заданном порте"
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((self.hostname, PORTS[stream]))
         sock.setblocking(0)
         if stream==OUT:
-            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1) #сразу отправлять клиенту
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1) #не дожидаться буферизации
         fileno = sock.fileno()
         return sock, fileno
     
+    #поток движка
     def put_messages(self, client_name, messages):
         "добавить ответ в стек"
         with self.responses_lock:
             if client_name in self.responses:
                 self.responses[client_name].extend(messages)
     
-    def write_to_all(self):
-        "послать ответы всем клиентам"
-        
-        with self.responses_lock:
-            to_write =  self.responses
-            self.responses = {client:[] for client in self.responses}
-        
-        for client_name, responses in to_write.items():
-            if responses:
-                #print 'write %s' % self.round_n
-                if client_name in self.clients:
-                    sock = self.clients[client_name].outsock
-                    for response in responses:
-                        send(sock, response)
-                else:
-                    #print 'write to closed client'
-                    pass
+
     
-    def handle_write(self, client_name):
+    def _handle_write(self, client_name):
         "пишет пакеты на сокет пользователя"
         if self.responses[client_name]:
             with self.responses_lock:
@@ -93,7 +78,7 @@ class SocketServer(Multiplexer):
                 send(sock, response)
             return True
     
-    def handle_read(self, client_name):
+    def _handle_read(self, client_name):
         "читает один пакет данных из сокета, если это возможно"
         try:
             request = self.clients[client_name].generator.next()
@@ -101,17 +86,17 @@ class SocketServer(Multiplexer):
         except socket.error as Error:
             #если возникла ошабка на сокете - закрываем"
             errno = Error[0]
-            self.handle_close(client_name, 'Socket Error %s' % errno)
+            self._handle_close(client_name, 'Socket Error %s' % errno)
             return False
                             
         except PackageError:
             #если возникла ошабка в пакете - закрываем"
-            self.handle_close(client_name, 'PackageError')
+            self._handle_close(client_name, 'PackageError')
             return False
             
         except StopIteration:
             #если клиент отключился"
-            self.handle_close(client_name, 'Disconnect')
+            self._handle_close(client_name, 'Disconnect')
             return False
         else:
             if request:
@@ -119,7 +104,7 @@ class SocketServer(Multiplexer):
             return True
             
         
-    def handle_accept(self, stream):
+    def _handle_accept(self, stream):
         "прием одного из двух соединений"
         if stream==IN:
             conn, (address, fileno) = self.insock.accept()
@@ -148,10 +133,10 @@ class SocketServer(Multiplexer):
                  
             del self.address_buf[address]
             
-            self.accept_client(insock, outsock)
+            self._accept_client(insock, outsock)
         return True
                  
-    def accept_client(self, insock, outsock):
+    def _accept_client(self, insock, outsock):
         "регистрация клиента, после того как он подключился к обоим сокетам"
         client_name = 'player_%s' % self.client_counter
         self.client_counter+=1
@@ -176,7 +161,7 @@ class SocketServer(Multiplexer):
         with self.server_lock:
             self.accept(client_name)
         
-    def timer_thread(self):
+    def _timer_thread(self):
         "отдельный поток для обращения к движку и рассылке ответов"
         t = time()
         while self.running:
@@ -195,17 +180,17 @@ class SocketServer(Multiplexer):
         self.register_in(self.insock.fileno())
         self.register_in(self.outsock.fileno())
         #запускаем поток движка
-        #self.thread = Thread(target=self.timer_thread)
+        #self.thread = Thread(target=self._timer_thread)
         self.thread = Thread(target=self.run_poll)
         self.thread.start()
         #
         try:
-            self.timer_thread()
+            self._timer_thread()
             #self.run_poll()
         finally:
             self.stop()
     
-    def handle_close(self, client_name, message):
+    def _handle_close(self, client_name, message):
         "закрытие подключения"
         print 'Closing %s: %s' % (client_name, message)
         
@@ -242,19 +227,13 @@ class SocketServer(Multiplexer):
         self.insock.close()
         self.outsock.close()
         print('Stopped')
-        if PROFILE_SERVER:
-            import pstats
-            print 'profile'
-            stats = pstats.Stats('/tmp/game_server.stat')
-            stats.sort_stats('cumulative')
-            stats.print_stats()
+        
     
     def stop_debug_info(self):
         "информация для дебага"
         print '\n\nDebug info:'
         print 'len(self.clients)', len(self.clients)
         print 'self.clients', self.clients
-        print self.game.debug()
         print 'End of debug info\n\n'
     
 

@@ -8,7 +8,7 @@ from sys import exit
 from share.mathlib import *
 from share.ask_hostname import AskHostname
 
-from clientside.network import Client
+from clientside.network import GameClient
 from clientside.input import InputHandle
 
 from clientside.gui.gui_lib import DeltaTimerObject
@@ -19,7 +19,7 @@ from clientside.view.view_objects import ObjectsView
 from clientside.view.view_land import LandView
 from clientside.view.view_static_objects import StaticObjectView
 
-class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, GUIWindow):
+class Gui(GameWindow, DeltaTimerObject, GameClient, InputHandle, AskHostname, GUIWindow):
     accepted = False
     shift = Point(0,0)
     vector = Point(0,0)
@@ -31,7 +31,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, GUIWin
         GameWindow.__init__(self, height, width)
         InputHandle.__init__(self)
         DeltaTimerObject.__init__(self)
-        Client.__init__(self)
+        GameClient.__init__(self)
         
         self.objects = ObjectsView()
         self.stats = Stats()
@@ -83,12 +83,13 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, GUIWin
         self.land.move_position(vector)
         #обновляем карту и объекты
         self.land.update()
+        
         self.objects.update(delta)
         self.static_objects.update()
     
     def antilag_init(self, shift):
         "заранее перемещаем камеру по вектору движения"
-        self.shift = shift
+        self.shift = Point() # shift
         if self.objects.focus_object:
             self.objects.antilag(self.antilag_shift)
     
@@ -114,13 +115,14 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, GUIWin
     def round_update(self, dt):
         "обработка данных полученных с сервера"
         self.force_complete()
-        self.objects.round_update()
-        for action, message in self.in_messages:
+        
+        for action, message in self.pop_messages():
             #если произошел респавн игрока
             if action=='Respawn':
                 new_position = message                
                 self.set_camera_position(new_position)
                 self.objects.clear()
+                self.static_objects.clear()
             
             elif action=='MoveCamera':
                 move_vector = message
@@ -129,29 +131,35 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, GUIWin
             elif action=='LookLand':
                 newtiles, observed = message
                 self.land.insert(newtiles, observed)
-                self.static_objects.filter(observed)
-                self.objects.filter(observed)
+            
+            elif action=='LookPlayers':
+                objects = message
+                self.objects.insert_objects(objects)
+                self.objects.filter()
                 
-            elif action=='LookObjects':
+            
+            elif action=='LookEvents':
                 events = message
-                self.objects.insert(events)
+                print 'new events', events
+                self.objects.insert_events(events)
+                self.objects.clear()
             
             elif action=='LookStaticObjects':
                 static_objects = message
                 self.static_objects.insert_objects(static_objects)
-                self.static_objects.update()
                 
             elif action=='LookStaticEvents':
                 static_objects_events = message
                 self.static_objects.insert_events(static_objects_events)
-                self.static_objects.update()
             
             elif action=='PlayerStats':
                 self.stats.update(*message)
             else:
-                print 'Unknown Action'
-        self.objects.remove_timeouted()
-        self.in_messages = []
+                print 'Unknown Action:%s' % action
+        
+        
+        self.objects.round_update()
+        self.static_objects.round_update()
         self.set_timer()
 
         
@@ -167,6 +175,7 @@ class Gui(GameWindow, DeltaTimerObject, Client, InputHandle, AskHostname, GUIWin
             self.objects.draw()
             self.stats.draw()
             self.static_objects.draw()
+        
         elif self.loading:
             self.loading.draw()
         self.fps_display.draw()

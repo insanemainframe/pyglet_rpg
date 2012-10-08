@@ -25,7 +25,7 @@ def number_wrap(func):
     
 class Point:
     "класс точек и векторов"
-    def __init__(self,x,y):
+    def __init__(self,x=0,y=0):
         try:
             self.x = int(x)
             self.y = int(y)
@@ -83,4 +83,4 @@ class Point:
     def __hash__(self):
         return hash((self.x, self.y))
         
-NullPoint = Point(0,0)
+NullPoint = Point()

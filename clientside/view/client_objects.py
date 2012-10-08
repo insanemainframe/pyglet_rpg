@@ -6,9 +6,9 @@ from config import TILESIZE
 from clientside.gui.window import GameWindow, create_tile, create_label
 from share.mathlib import Point, NullPoint
 
-from clientside.view.objects_lib import ClientObject, Animated, Movable, MapAccess
+from clientside.view.objects_lib import DynamicObject, Animated, Movable, MapAccess
 
-Meta = ClientObject
+Meta = DynamicObject
 
 class Fighter(Animated):
     def __init__(self, frames):
@@ -63,10 +63,10 @@ class Deadly(Animated):
         self.defended = False
 
     
-class Player(Sweemer, Movable, ClientObject, Deadly):
+class Player(Sweemer, Movable, DynamicObject, Deadly):
     tilename = 'player'
     def __init__(self, name, position):
-        ClientObject.__init__(self, name, position)
+        DynamicObject.__init__(self, name, position)
         Movable.__init__(self, 2)
         
         Deadly.__init__(self, 1)
@@ -92,14 +92,14 @@ class Player(Sweemer, Movable, ClientObject, Deadly):
     
 
 
-class Self(Player, Deadly, ClientObject):
+class Self(Player, Deadly, DynamicObject):
     tilename = 'self'
 
 
-class Zombie(Movable, ClientObject, Deadly, Fighter):
+class Zombie(Movable, DynamicObject, Deadly, Fighter):
     tilename = 'zombie'
     def __init__(self, name, position):
-        ClientObject.__init__(self, name, position)
+        DynamicObject.__init__(self, name, position)
         Movable.__init__(self, 2)
         Deadly.__init__(self, 10)
         Fighter.__init__(self,1)
@@ -115,10 +115,10 @@ class Zombie(Movable, ClientObject, Deadly, Fighter):
     def round_update(self):
         Fighter.round_update(self)
 
-class Cat(Movable, ClientObject):
+class Cat(Movable, DynamicObject):
     tilename = 'cat'
     def __init__(self, name, position):
-        ClientObject.__init__(self, name, position)
+        DynamicObject.__init__(self, name, position)
         Movable.__init__(self, 5)
         self._rainbow = False
         self.create_animation('rainbow', 'rainbow', 3,2)
@@ -140,10 +140,10 @@ class Cat(Movable, ClientObject):
 
 
         
-class Ghast(Movable, ClientObject, Deadly, Fighter):
+class Ghast(Movable, DynamicObject, Deadly, Fighter):
     tilename = 'ghast'
     def __init__(self, name, position):
-        ClientObject.__init__(self, name, position)
+        DynamicObject.__init__(self, name, position)
         Movable.__init__(self, 2)
         Deadly.__init__(self, 1)
         Fighter.__init__(self,3)
@@ -160,10 +160,10 @@ class Ghast(Movable, ClientObject, Deadly, Fighter):
     def round_update(self):
         Fighter.round_update(self)
         
-class Lych(Movable, ClientObject, Deadly):
+class Lych(Movable, DynamicObject, Deadly):
     tilename = 'lych'
     def __init__(self, name, position):
-        ClientObject.__init__(self, name, position)
+        DynamicObject.__init__(self, name, position)
         Movable.__init__(self)
         Deadly.__init__(self, 1)
     
@@ -176,10 +176,10 @@ class Lych(Movable, ClientObject, Deadly):
     
     
 
-class Ball(Movable, ClientObject, Animated):
+class Ball(Movable, DynamicObject, Animated):
     tilename = 'ball'
     def __init__(self, name, position):
-        ClientObject.__init__(self, name, position)
+        DynamicObject.__init__(self, name, position)
         Movable.__init__(self)
         self.create_animation('explosion', 'explode', 7,3, False)
         self.explosion = False

@@ -18,9 +18,9 @@ class Movable(DynamicObject):
     BLOCKTILES = []
     SLOWTILES = {}
     def __init__(self,  speed):
-        self.vector  = NullPoint
+        self.vector  = Point()
         self.speed = speed
-        self.move_vector = NullPoint
+        self.move_vector = Point()
         self.moved = False
         self.stopped = 0
     
@@ -54,10 +54,11 @@ class Movable(DynamicObject):
                 self.position = self.position+self.move_vector
                 
                 
-                altposition = self.position
                 #добавляем событие
-                self.add_event( 'move', (self.move_vector.get(),))
+               
                 if self.position_changed:
+                    arg = self.move_vector.get()
+                    self.add_event( 'move', (arg,))
                     self._detect_collisions(self)
                 
     
@@ -87,15 +88,15 @@ class Movable(DynamicObject):
     
     @wrappers.player_filter_alive
     def _detect_collisions(self, player):
-        location = self.get_location()
-        solids = location.get_solid()
-        del solids[self.name]
+        solids = self.location.get_solids_list()
         
-        for Player in solids.values():
-            distance = abs(Player.position - player.position)
-            if distance <= Player.radius+player.radius:
-                    Player.collission(player)
-                    player.collission(Player)
+        
+        for Player in solids:
+            if Player.name != self.name:
+                distance = abs(Player.position - player.position)
+                if distance <= Player.radius+player.radius:
+                        Player.collission(player)
+                        player.collission(Player)
     
     def complete_round(self):
         self.moved = False
@@ -108,8 +109,7 @@ class Movable(DynamicObject):
         self.vector = NullPoint
         self.move_vector = NullPoint
     
-    def handle_request(self):
-        return (self.position-self.prev_position,)
+
     
     @wrappers.alive_only()
     def update(self):
