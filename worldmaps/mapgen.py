@@ -40,11 +40,18 @@ class Generator:
                 except IndexError:
                     pass
     
-import os
+import os, imp
 from cPickle import loads, dumps
+from collections import Counter
 
-def load_map():
-    map_file = 'data/map.data'
+
+
+
+def load_map(mapname): 
+    map_file = 'worldmaps/%s.data' % mapname
+    map_image = 'worldmaps/%s.png' % mapname
+    dict_file = 'worldmaps/%s.py' % mapname
+    tiledict = imp.load_source('tiledict',dict_file).tiledict
     if os.path.exists(map_file):
         mapfile = open(map_file,'r')
         tmap = loads(decompress(mapfile.read()))
@@ -54,27 +61,24 @@ def load_map():
     
     print '/data/map.data doesnt exist'
     from PIL import Image
-
-    image = Image.open('data/map.png')
+    
+    counter = Counter()
+    image = Image.open(map_image)
     size = image.size
     m =image.load()
     tilemap =[]
     for i in range(size[0]):
         row=[]
         for j in range(size[1]):
-            item = m[i,j][:3]
-            if item==(255,0,0): item='stone'
-            elif item==(0,255,0): item='grass'
-            elif item==(0,128,0): item='forest'
-            elif item==(128,128,0): item='bush'
-            elif item==(0,0,255): item='water'
-            elif item==(0,0,128): item='ocean'
-            else: item='grass'
-            row.append(item)
+            color = m[i,j][:3]
+            tile = tiledict[color]
+            counter[tile]+=1
+            row.append(tile)
         tilemap.append(row)
     print 'map loaded',size
     mapfile = open(map_file,'w')
-    s = compress(dumps((tilemap, size[0])))
+    background = counter.most_common()[0][0]
+    s = compress(dumps((tilemap, size[0], background)))
     mapfile.write(s)
     mapfile.close()
-    return tilemap, size[0]
+    return tilemap, size[0], background

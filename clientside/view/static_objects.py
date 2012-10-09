@@ -38,3 +38,9 @@ class Sceptre(Item):
 
 class Cloak(Item):
     tilename = 'cloak'
+
+class Cave(StaticObject):
+    tilename = 'cave'
+
+class Stair(StaticObject):
+    tilename = 'stair'

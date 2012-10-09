@@ -3,26 +3,33 @@
 from config import *
 
 from share.mathlib import Point, NullPoint
-from mapgen import load_map
+from game_objects import *
+
+from worldmaps.mapgen import load_map
 
 from weakref import proxy
 
 
-class World:
+class MetaWorld:
     "класс карты как со стороны ссервера"
-    background = 'grass'
-    def __init__(self, game):
+    monster_count = 0
+    def __init__(self, game, mapname):
         self.game = game
         
-        self.map, self.size = load_map()
+        self.map, self.size, self.background = load_map(mapname)
+        
         self.location_size = self.size/LOCATIONSIZE
-        print 'creting world size',self.size
+        if self.location_size*LOCATIONSIZE<self.size:
+            self.location_size+=1
+        
         
         self.locations = []
         self.active_locations = {}
         
         self.create_locations()
         self.create_links()
+        data = (mapname, self.size, self.size, self.background, len(self.locations), len(self.locations[0]))
+        print 'creating world "%s" %sx%s background %s locations %sx%s' % data
     
     def create_locations(self):
         for i in range(self.location_size):
@@ -39,6 +46,62 @@ class World:
     def get_loc_cord(self, position):
         return (position/TILESIZE/LOCATIONSIZE).get()
     
+    def create_object(self, n, object_type):
+        for i in range(n):
+            position = self.choice_position(object_type, game.world.size)
+            name =object_type.__name__
+            monster = object_type('%s_%s' % (name, MetaWorld.monster_count) , position)
+            MetaWorld.monster_count+=1
+    
+    def create_item(self, n, object_type):
+        for i in range(n):
+            position = self.choice_position(object_type, game.world.size)
+            monster = object_type(position)
+
+    
+    def choice_position(self, player, radius=7, start=False):
+        "выбирает случайную позицию, доступную для объекта"
+        if not start:
+            start = Point(self.size/2,self.size/2)
+        else:
+            start = start/TILESIZE
+        while 1:
+            
+            position = start +Point(randrange(-radius, radius), randrange(-radius, radius))
+            i,j = position.get()
+            if 0<i<self.size and 0<j<self.size:
+                if not self.map[i][j] in player.BLOCKTILES:
+                    position = position*TILESIZE
+                    return position
+    
+    
+
+class World(MetaWorld):
+    def __init__(self, game):
+        MetaWorld.__init__(self, game, 'ground')
+    
+    def start(self):
+        self.create_item(200, Cave)
+        self.create_object(100, Zombie)
+        self.create_object(20, Lych)
+        self.create_object(20, Ghast)
+        self.create_object(20, Cat)
+    
+    
+    
+    
+class UnderWorld(MetaWorld):
+    def __init__(self, game):
+        MetaWorld.__init__(self, game, 'underground')
+    
+    def start(self):
+         self.create_item(200, Stair)
+        self.create_object(100, Zombie)
+        self.create_object(20, Lych)
+        self.create_object(20, Ghast)
+        self.create_object(20, Cat)
+
+
 
 near_cords = [cord.get() for cord in (Point(-1,1),Point(0,1),Point(1,1),
                                     Point(-1,0),             Point(1,0),
@@ -166,6 +229,7 @@ class LocationEvents:
 
 
 class LocationObjects:
+    "йуцкгшщ"
     def __init__(self):
         self.players = {}
         self.static_objects = {}
@@ -285,7 +349,6 @@ class LocationObjects:
         player = self.players[name]
         result = player.remove()
         if result or force:
-            print 'remove', name
             position = player.position
             if player.delayed:
                 player.add_event('delay', ())

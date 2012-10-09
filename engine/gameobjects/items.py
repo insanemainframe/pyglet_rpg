@@ -73,3 +73,26 @@ class Cloak(Item):
     invisible_time = 300
     def effect(self, player):
         player.set_invisible(self.invisible_time)
+
+cl
+class Teleport(StaticObject, Solid):
+    radius = TILESIZE
+    BLOCKTILES = ['stone', 'forest', 'ocean']
+    def __init__(self, position):
+        StaticObject.__init__(self, position)
+    
+    @wrappers.player_filter(Guided)
+    def collission(self, player):
+        print 'tleport', player, self.world
+        game.change_world(player, self.world)
+    
+
+        
+    def remove(self):
+        StaticObject.remove(self)
+        return True
+class Cave(Teleport):
+    world = 'underground'
+    
+class Stair(Teleport):
+    world = 'ground'

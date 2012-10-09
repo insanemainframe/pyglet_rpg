@@ -31,11 +31,11 @@ class ObjectsView(Drawable, ViewTools):
         new_objects = looked_keys - client_keys
         self.deleted_objects = client_keys - looked_keys
         
-        for name in new_objects:
-            object_type, position, args = looked_objects[name]
-            self.create_object(name, object_type, position, args)
+        for gid in new_objects:
+            name, object_type, position, args = looked_objects[gid]
+            self.create_object(gid, name, object_type, position, args)
             if object_type=='Self':
-                self.focus_object = name
+                self.focus_object = gid
             
         
         

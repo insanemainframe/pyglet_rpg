@@ -21,8 +21,8 @@ class StaticObjectView(Drawable, ViewTools):
         new_objects = looked_keys - client_keys
         self.deleted_objects = client_keys - looked_keys
         
-        for name in new_objects:
-            self.create_object(name, *static_objects[name])
+        for gid in new_objects:
+            self.create_object(gid, *static_objects[gid])
         
         
     

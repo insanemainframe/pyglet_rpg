@@ -45,20 +45,21 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
         #счетчик фпс
         self.fps_display = FPSDisplay()
         #
+        self.first_look = True
         self.accept()
+    
+    def new_world(self, world_size, position, background):
+        self.land = LandView(self.gamesurface, world_size, position, background)
+            
+        from clientside.view.client_objects import MapAccess
+        MapAccess.map = self.land.map
     
     def accept(self):
         accept_data = self.wait_for_accept()
         if accept_data:
             world_size, position, background = accept_data
-        
-            print 'accepteed position %s ' % position
+            self.new_world(world_size, position, background)            
             
-            self.land = LandView(self.gamesurface, world_size, position, background)
-            self.land.update()
-            
-            from clientside.view.client_objects import MapAccess
-            MapAccess.map = self.land.map
             
             self.accepted = True
             self.loading = False
@@ -136,6 +137,10 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
             elif action=='LookLand':
                 newtiles, observed = message
                 self.land.insert(newtiles, observed)
+                if self.first_look:
+                    self.land.update(self.first_look)
+                    self.first_look = False
+                
             
             elif action=='LookPlayers':
                 objects = message
@@ -158,6 +163,10 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
             
             elif action=='PlayerStats':
                 self.stats.update(*message)
+            
+            elif action=='NewWorld':
+                world_size, position, background = message
+                self.new_world(world_size, position, background)
             else:
                 print 'Unknown Action:%s' % action
         

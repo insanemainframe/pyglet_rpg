@@ -130,8 +130,10 @@ class GameClient(SocketClient, Packer):
 
     def accept_(self, message):
         action, message = self.unpack(message)
-        if action=='ServerAccept':
+        if action=='NewWorld':
             self.accept_message = message
+        else:
+            raise Error('not accepted')
         
     def send_move(self, vector):
         message = self.pack(Move(vector))

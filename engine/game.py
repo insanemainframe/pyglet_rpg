@@ -6,20 +6,26 @@ from config import *
 from random import randrange
 from weakref import proxy
 
+#game = None
 
 from share.mathlib import Point, NullPoint
-from world import World
 from game_lib import ObjectContainer, EventsContainer
-         
+        
+        
+
         
 class __GameSingleton(ObjectContainer, EventsContainer):
     "синглтон игрового движка - хранит карту, все объекты, события и предоставляет доступ к ним"
     def __init__(self):
         ObjectContainer.__init__(self)
         EventsContainer.__init__(self)
-        
+    
+    def start(self):
+        from world import World, UnderWorld
+
         self.world = World(proxy(self))
         
+        self.world.start()
         self.size = self.world.size
         print 'GameSingleton init'
 
@@ -48,22 +54,12 @@ class __GameSingleton(ObjectContainer, EventsContainer):
     def get_loc_cord(self, position):
         "коордианты локации позиции"
         return self.world.get_loc_cord(position)
+    
         
         
     def choice_position(self, player, radius=7, start=False):
         "выбирает случайную позицию, доступную для объекта"
-        if not start:
-            start = Point(self.size/2,self.size/2)
-        else:
-            start = start/TILESIZE
-        while 1:
-            
-            position = start +Point(randrange(-radius, radius), randrange(-radius, radius))
-            i,j = position.get()
-            if 0<i<self.world.size and 0<j<self.world.size:
-                if not self.world.map[i][j] in player.BLOCKTILES:
-                    position = position*TILESIZE
-                    return position
+        return self.world.choice_position(player, radius, start)
         
     
 

@@ -68,7 +68,7 @@ class MapObserver(MapTools):
     def is_self_player(self, name, object_type, position, args):
         if name==self.name:
             object_type = 'Self'
-        return object_type, position, args
+        return name, object_type, position, args
     
     def look_players(self):
         all_players = self.location.get_players_list()
@@ -76,8 +76,8 @@ class MapObserver(MapTools):
         
         for player in all_players:
             if self.in_radius(player.position):
-                name = player.name
-                players[name] = self.is_self_player(name, *player.get_tuple())
+                gid = player.name
+                players[gid] = self.is_self_player(*player.get_tuple())
         
         players_names = players.keys()
         if players_names!=self.prev_players:
@@ -95,8 +95,8 @@ class MapObserver(MapTools):
         
         for static_object in all_static_objects:
             if self.in_radius(static_object.position):
-                name = static_object.name
-                static_objects[name] = static_object.get_tuple()
+                gid = static_object.gid
+                static_objects[gid] = static_object.get_tuple()
         
         names = static_objects.keys()
         if names!=self.prev_static_objects:

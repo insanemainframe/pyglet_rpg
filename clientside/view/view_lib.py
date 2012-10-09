@@ -18,13 +18,13 @@ class ViewTools:
                 if issubclass(Class, self.module.Meta):
                     self.object_dict[name] = Class
             
-    def create_object(self, name, object_type, position, args={}):
+    def create_object(self, gid, name, object_type, position, args={}):
         game_object = self.object_dict[object_type](name, position, **args)
         
-        self.objects[name] = game_object
+        self.objects[gid] = game_object
     
-    def remove_object(self, name):
-        del self.objects[name]
+    def remove_object(self, gid):
+        del self.objects[gid]
     
     def clear(self):
         self.objects = {}

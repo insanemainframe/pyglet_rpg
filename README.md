@@ -1,10 +1,10 @@
-python client-server rpg
+python client-server rpg, just for fun and self-education
 
 REQUIRMENTS:
     
-    server: python2.7
+server: python2.7
 
-    client: python 2.6>= [python-pyglet](http://pyglet.org/download.html) recomended  or [pygame](http://www.pygame.org/download.shtml)
+client: python 2.6>= [python-pyglet](http://pyglet.org/download.html) recomended  or [pygame](http://www.pygame.org/download.shtml)
 
 RUN:
 ````

@@ -5,11 +5,12 @@ from sys import path
 path.append('../')
 
 from share.mathlib import *
-from share.game_protocol import ServerAccept
+from share.game_protocol import NewWorld
 
-from game import game
-from engine_lib import *
-from game_objects import *
+from engine.game import game
+from engine.engine_lib import *
+from engine.game_objects import Player
+
 
 from config import *
 
@@ -18,19 +19,8 @@ class GameEngine:
     "класс игры"
     monster_count = 0
     def __init__(self):
+        game.start()
         self.messages = {}
-        self.create_monsters(100, Zombie)
-        self.create_monsters(20, Lych)
-        self.create_monsters(20, Ghast)
-        self.create_monsters(20, Cat)
-        
-    
-    def create_monsters(self, n, monster_type):
-        for i in range(n):
-            position = game.choice_position(monster_type, game.world.size)
-            name = monster_type.__name__
-            monster = monster_type('%s_%s' % (name, self.monster_count) , position)
-            self.monster_count+=1
             
     def game_connect(self, name):
         "создание нового игрока"
@@ -43,7 +33,7 @@ class GameEngine:
         #оставляем сообщение о подключении
         print 'New player %s position %s' % (name, position)
         
-        self.messages[name] = [ServerAccept(game.world.size, new_player.position, game.world.background)]
+        self.messages[name] = [NewWorld(game.world.size, new_player.position, game.world.background)]
         for message in new_player.accept_response():
             self.messages[name].append(message)
     

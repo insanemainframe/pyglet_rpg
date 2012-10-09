@@ -65,6 +65,7 @@ class Surface:
     
     @classmethod
     def gentiles(self):
+        
         self.unknown = pyglet.image.load(join(TILESDIR, 'unknown.png'), decoder=PNGImageDecoder()).get_texture()
         
         self.tiledict = defaultdict(lambda: self.unknown)

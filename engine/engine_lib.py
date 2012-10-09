@@ -3,7 +3,7 @@
 from share.mathlib import *
 from mathlib import *
 
-from random import choice
+from random import choice, random
 from time import time
 from copy import deepcopy
 
@@ -66,10 +66,14 @@ class GameObject(object):
         self.alive = True
         self.delayed = False
         self._position = position
+        self.gid = hash((name, position))
         
         self.location = game.get_location(self._position)
         self._prev_position = position
+    
+    def regid(self):
         
+        self.gid = hash((self.name, self.position, random()))
         
     @property
     def position(self):
@@ -125,7 +129,6 @@ class GameObject(object):
         pass
     
     def remove(self):
-        print 'GameObject.remove'
         return True
     
     
@@ -164,7 +167,7 @@ class DynamicObject(GameObject):
         self.position_changed = False
     
     def get_tuple(self):
-        return self.__class__.__name__, self.prev_position, self.get_args()
+        return self.name, self.__class__.__name__, self.prev_position, self.get_args()
         
     def get_args(self):
         return {}
@@ -176,14 +179,14 @@ class StaticObject(GameObject):
         StaticObject.name_counter+=1
     
         name = '%s_%s' % (self.__class__.__name__, counter)
-        
+        qew
         GameObject.__init__(self, name, position)
         
         
         game.new_static_object(self)
     
     def get_tuple(self):
-        return self.__class__.__name__, self.position, self.get_args()
+        return self.name, self.__class__.__name__, self.position, self.get_args()
     
     def get_args(self):
         return {}
@@ -363,6 +366,7 @@ class Respawnable:
         self.add_event('remove')
         self.add_event('move', NullPoint.get())
         self.alive = True
+        self.regid()
         self.respawned = True
         self.spawn()
 

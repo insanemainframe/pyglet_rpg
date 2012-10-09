@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+qewrqewruio#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
 
@@ -102,6 +102,9 @@ class ObjectContainer(object):
     def add_to_remove_static(self, player, force):
          location = self.get_location(player.position)
          location.add_to_remove_static(player.name, force)
+        
+    def change_world(self, player, world):
+        pass
         
 
 

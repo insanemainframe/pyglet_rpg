@@ -25,7 +25,7 @@ class LandView(Drawable, MapTools):
         self.tiles = []
         
         surface.set_camera_position(position)
-        self.main_tile = 'grass'
+        self.main_tile = background
         
         
         
@@ -65,10 +65,10 @@ class LandView(Drawable, MapTools):
     def get_shift(self):
         return self.surface.position/TILESIZE*TILESIZE - self.surface.position
         
-    def update(self):
+    def update(self, force=False):
         "обноление на каждом фрейме"
         #если положение не изменилось то ничего не делаем
-        if not self.surface.prev_position==self.surface.position:
+        if not self.surface.prev_position==self.surface.position or force:
             looked = self.look_around()
             
             self.tiles = [create_tile(point+self.surface.center, tile) for point, tile in looked]

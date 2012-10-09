@@ -31,7 +31,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
         print 'player radius', self.radius
     
     def accept_response(self):
-        yield protocol.LookLand(*self.look_map())
+        #yield protocol.LookLand(*self.look_map())
         yield protocol.LookEvents(self.look_events())
         
     def handle_response(self):
