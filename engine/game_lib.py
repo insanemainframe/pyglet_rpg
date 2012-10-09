@@ -41,7 +41,12 @@ class Event:
     def __str__(self):
         return "Event: %s %s %s <%s>" % (self.object_type,self.name, self.position, self.action) 
 
-
+class ObjectItem:
+    def __init__(self, player, world):
+        self.player = player
+        self.world = world
+    
+    
 
 class ObjectContainer(object):
     "функционал игрового синглетона для упрвления объектами"
