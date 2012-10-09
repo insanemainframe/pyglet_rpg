@@ -28,7 +28,7 @@ python server.py -d
 ````
 
 ````
-python client.py -в
+python client.py -d
 ````
 
 
