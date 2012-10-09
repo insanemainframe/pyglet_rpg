@@ -40,6 +40,7 @@ class ClientObject:
         
     
     def delay(self, *args):
+        print 'delay'
         self.delayed = True
     
     def remove(self):

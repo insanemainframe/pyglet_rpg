@@ -179,7 +179,7 @@ class StaticObject(GameObject):
         StaticObject.name_counter+=1
     
         name = '%s_%s' % (self.__class__.__name__, counter)
-        qew
+        
         GameObject.__init__(self, name, position)
         
         

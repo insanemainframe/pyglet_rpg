@@ -54,7 +54,6 @@ class __GameSingleton(ObjectContainer, EventsContainer):
     def get_loc_cord(self, position):
         "коордианты локации позиции"
         return self.world.get_loc_cord(position)
-    
         
         
     def choice_position(self, player, radius=7, start=False):
@@ -73,4 +72,3 @@ game_lib.init()
 import world
 world.init()
 
-    

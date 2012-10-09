@@ -1,4 +1,4 @@
-qewrqewruio#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
 
@@ -21,9 +21,9 @@ class Event:
     def get_tuple(self):
         return self.name, self.object_type, self.position.get(), self.action, self.args
     
-    def alive(self):
+    def update(self):
+        self.timeouted-=1
         if self.timeouted:
-            self.timeouted-=1
             return True
         else:
             return False

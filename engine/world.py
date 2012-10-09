@@ -95,7 +95,7 @@ class UnderWorld(MetaWorld):
         MetaWorld.__init__(self, game, 'underground')
     
     def start(self):
-         self.create_item(200, Stair)
+        self.create_item(200, Stair)
         self.create_object(100, Zombie)
         self.create_object(20, Lych)
         self.create_object(20, Ghast)
@@ -186,8 +186,7 @@ class LocationEvents:
         return False
     
     def clear_events(self):
-        self.events = []
-        #self.events = [event for event in self.timeouted_events if event.update()]
+        self.events = [event for event in self.timeouted_events if event.update()]
         if self.events:
             self.new_events = True
         else:

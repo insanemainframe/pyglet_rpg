@@ -74,7 +74,7 @@ class Cloak(Item):
     def effect(self, player):
         player.set_invisible(self.invisible_time)
 
-cl
+
 class Teleport(StaticObject, Solid):
     radius = TILESIZE
     BLOCKTILES = ['stone', 'forest', 'ocean']
