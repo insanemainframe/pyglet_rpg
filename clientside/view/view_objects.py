@@ -3,7 +3,7 @@
 #
 from config import *
 
-from clientside.gui.gui_lib import GameWindow, Drawable
+from clientside.gui.gui_lib import Drawable
 from clientside.view import client_objects
 from clientside.view.view_lib import ViewTools
 
@@ -12,11 +12,11 @@ from share.mathlib import *
 
 from collections import defaultdict
 
-class ObjectsView(GameWindow, Drawable, ViewTools):
+class ObjectsView(Drawable, ViewTools):
     "отображение объектов"
-    def __init__(self):
+    def __init__(self, surface):
         Drawable.__init__(self)
-        ViewTools.__init__(self, client_objects)
+        ViewTools.__init__(self, surface, client_objects)
         self.focus_object = False
         self.eventnames = []
         
@@ -62,7 +62,7 @@ class ObjectsView(GameWindow, Drawable, ViewTools):
         
         #отображение объектов
         self.tiles = []
-        self.shift = self.position - self.center
+        self.shift = self.surface.position - self.surface.center
         for object_name, game_object in self.objects.items():
             self.tiles.extend(game_object.draw())
     

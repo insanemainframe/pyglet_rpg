@@ -26,7 +26,8 @@ class MapObserver(MapTools):
         self.look_radius = self.look_size*TILESIZE
         
         self.prev_players = []
-        self.prev_static_objects = set()
+        self.prev_static_objects = []
+        
         self.prev_looked = set()
         self.prev_observed = set()
         
@@ -56,11 +57,13 @@ class MapObserver(MapTools):
         self.prev_observed = observed
         return looked, observed
         
-    def is_self(self, event):
-        if event.name!=self.name:
-            return event
-        else:
-            return Event(event.name, 'Self', event.position, event.action, event.args)
+    def in_radius_(self, position):
+        dist = abs(position - self.position)
+        return dist<=self.look_radius
+    
+    def in_radius(self, position):
+        cord = (position/TILESIZE).get()
+        return cord in self.prev_observed
     
     def is_self_player(self, name, object_type, position, args):
         if name==self.name:
@@ -72,8 +75,7 @@ class MapObserver(MapTools):
         players = {}
         
         for player in all_players:
-            dist = abs(player.position - self.position)
-            if dist<=self.look_radius:
+            if self.in_radius(player.position):
                 name = player.name
                 players[name] = self.is_self_player(name, *player.get_tuple())
         
@@ -86,12 +88,31 @@ class MapObserver(MapTools):
         return result
         
     
+    def look_static_objects(self):
+        all_static_objects = self.location.get_static_objects_list()
+        
+        static_objects = {}
+        
+        for static_object in all_static_objects:
+            if self.in_radius(static_object.position):
+                name = static_object.name
+                static_objects[name] = static_object.get_tuple()
+        
+        names = static_objects.keys()
+        if names!=self.prev_static_objects:
+            result = static_objects
+        else:
+            result = None
+        self.prev_static_objects = names
+        
+        return result
+
+    
     def look_events(self):
         "поиск вдимывх событий"
         events = set()
         for event in self.location.get_events():
-            dist = abs(event.position - self.position)
-            if dist<=self.look_radius:
+            if self.in_radius(event.position):
                 events.add(event)
                 
         return events
@@ -100,22 +121,9 @@ class MapObserver(MapTools):
         "поиск видимых сатических объеков и их событий"        
         static_events = set()
         for static_event in self.location.get_static_events():
-            dist = abs(static_event.position - self.position)
-            if dist<=self.look_radius:
+            if self.in_radius(static_event.position):
                 static_events.add(static_event)
                 
         return static_events
     
-    def look_static_objects(self):
-        look_radius = self.look_size*TILESIZE
-        all_static_objects = self.location.get_static_objects_list()
-        
-        static_objects = {}
-        
-        for static_object in all_static_objects:
-            dist = abs(static_object.position - self.position)
-            if dist<=self.look_radius:
-                name = static_object.name
-                static_objects[name] = static_object.get_tuple()
-        
-        return static_objects
+    

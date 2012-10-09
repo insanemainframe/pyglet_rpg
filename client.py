@@ -12,14 +12,14 @@ from clientside.network import GameClient
 from clientside.input import InputHandle
 
 from clientside.gui.gui_lib import DeltaTimerObject
-from clientside.gui.window import GameWindow, GUIWindow
+from clientside.gui import window
 from clientside.gui.gui_elements import FPSDisplay, Stats, LoadingScreen
 
 from clientside.view.view_objects import ObjectsView
 from clientside.view.view_land import LandView
 from clientside.view.view_static_objects import StaticObjectView
 
-class Gui(GameWindow, DeltaTimerObject, GameClient, InputHandle, AskHostname, GUIWindow):
+class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWindow):
     accepted = False
     shift = Point(0,0)
     vector = Point(0,0)
@@ -27,18 +27,20 @@ class Gui(GameWindow, DeltaTimerObject, GameClient, InputHandle, AskHostname, GU
     def __init__(self, height, width):
         #инициализация родтельских классов
         AskHostname.__init__(self, HOSTNAME)
-        GUIWindow.__init__(self, height, width)
-        GameWindow.__init__(self, height, width)
+        window.GUIWindow.__init__(self, height, width)
         InputHandle.__init__(self)
         DeltaTimerObject.__init__(self)
         GameClient.__init__(self)
         
-        self.objects = ObjectsView()
-        self.stats = Stats()
-        self.static_objects = StaticObjectView()
+        self.gamesurface = window.GameSurface(0,0,600, 600)
+        self.rightsurface = window.StatsSurface(600, 0, height, width-600)
+        
+        self.objects = ObjectsView(self.gamesurface)
+        self.stats = Stats(self.rightsurface)
+        self.static_objects = StaticObjectView(self.gamesurface)
         
         #текст загрузки
-        self.loading = LoadingScreen(self.center)
+        self.loading = LoadingScreen(self.gamesurface)
         
         #счетчик фпс
         self.fps_display = FPSDisplay()
@@ -48,11 +50,12 @@ class Gui(GameWindow, DeltaTimerObject, GameClient, InputHandle, AskHostname, GU
     def accept(self):
         accept_data = self.wait_for_accept()
         if accept_data:
-            world_size, position = accept_data
+            world_size, position, background = accept_data
         
             print 'accepteed position %s ' % position
             
-            self.land = LandView(world_size, position)
+            self.land = LandView(self.gamesurface, world_size, position, background)
+            self.land.update()
             
             from clientside.view.client_objects import MapAccess
             MapAccess.map = self.land.map
@@ -173,8 +176,9 @@ class Gui(GameWindow, DeltaTimerObject, GameClient, InputHandle, AskHostname, GU
         if self.accepted:
             self.land.draw()
             self.objects.draw()
-            self.stats.draw()
+            
             self.static_objects.draw()
+            self.stats.draw()
         
         elif self.loading:
             self.loading.draw()
@@ -200,7 +204,7 @@ class Gui(GameWindow, DeltaTimerObject, GameClient, InputHandle, AskHostname, GU
 
 
 def main():
-    g = Gui(600, 600)
+    g = Gui(800, 600)
     g.run()
 
 if __name__=='__main__':

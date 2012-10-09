@@ -4,12 +4,12 @@ from config import *
 from client_config import *
 
 
-from clientside.gui.window import GameWindow, create_tile, Label, ClockDisplay
+from clientside.gui.window import Label, ClockDisplay
 
 
 FPSDisplay = ClockDisplay
 
-class Stats(GameWindow):
+class Stats:
     hp = 0
     hp_value = 0
     kills = 0
@@ -20,36 +20,48 @@ class Stats(GameWindow):
     skills = 0
     invisible = 0
     
-    def __init__(self):
-
+    def __init__(self, surface):
+        self.surface = surface
+        
+        y = 1
+        dy = -15
+        h = 600 #surface.height
         
         hp_mess = 'hp: %s/%s' % (self.hp, self.hp_value)
-        self.hp_display = self.label(hp_mess, 70, 15)
+        self.hp_display = self.label(hp_mess, 70, h+y*dy)
+        y+=1
                           
         kills_mess = 'kills: %s' % self.kills
-        self.kills_display = self.label(kills_mess, 70, 30)
+        self.kills_display = self.label(kills_mess, 70, h+y*dy)
+        y+=1
                           
         deaths_mess = 'deaths: %s' % self.deaths
-        self.deaths_display = self.label(deaths_mess, 70, 45)
+        self.deaths_display = self.label(deaths_mess, 70, h+y*dy)
+        y+=1
         
         gold_mess = 'gold %s' % self.gold
-        self.gold_display = self.label(gold_mess, 70, 60)
+        self.gold_display = self.label(gold_mess, 70, h+y*dy)
+        y+=1
         
         speed_mess = 'speed: %s' % self.speed
-        self.speed_display = self.label(speed_mess, 70, 75)
+        self.speed_display = self.label(speed_mess, 70, h+y*dy)
+        y+=1
         
         damage_mess = 'damage: %s' % self.damage
-        self.damage_display = self.label(damage_mess, 70, 90)
+        self.damage_display = self.label(damage_mess, 70, h+y*dy)
+        y+=1
         
         skills_mess = 'skills: %s' % self.skills
-        self.skills_display = self.label(skills_mess, 70, 105)
+        self.skills_display = self.label(skills_mess, 70, h+y*dy)
+        y+=1
         
         invisible_mess = 'invisible: %s' % self.invisible
-        self.invisible_display = self.label(invisible_mess, 70, 120)
+        self.invisible_display = self.label(invisible_mess, 70, h+y*dy)
+        y+=1
         
         
     def label(self, text, x,y):
-        return Label(text,x,y)
+        return Label(self.surface,text,x,y)
                           
     def update(self, hp, hp_value, speed, damage, gold, kills, deaths, skills, invisible):
         self.hp = hp
@@ -72,6 +84,7 @@ class Stats(GameWindow):
         self.invisible_display.text = 'invisible: %s' % self.invisible
         
     def draw(self):
+        self.surface.draw_background(0,0,'rightside')
         self.hp_display.draw()
         self.kills_display.draw()
         self.deaths_display.draw()
@@ -84,9 +97,11 @@ class Stats(GameWindow):
 
 
 class LoadingScreen:
-    def __init__(self, point):
-        x,y = point.get()
-        self.label = Label('Waiting for server response', x,y)
+    def __init__(self, surface,):
+        self.surface = surface
+        x,y = self.surface.center.get()
+        
+        self.label = Label(self.surface,'Waiting for server response', x,y)
         
     def draw(self):
         self.label.draw()

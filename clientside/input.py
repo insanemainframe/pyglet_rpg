@@ -45,11 +45,11 @@ class InputHandle:
         "перехватывавем нажатие левой кнопки мышки"
         #левая кнопка - движение
         if button==LEFT_BUTTON:
-            self.vector = (Point(x,y) - self.center)
+            self.vector = (Point(x,y) - self.gamesurface.center)
             
             
         elif button==RIGHT_BUTTON:
-            vector = (Point(x,y) - self.center)
+            vector = (Point(x,y) - self.gamesurface.center)
             self.send_ball(vector)
             self.striking = vector
     
@@ -61,9 +61,9 @@ class InputHandle:
     
     def on_mouse_drag(self, x, y, dx, dy, button, modifiers):
         if button==LEFT_BUTTON:
-            self.vector = (Point(x,y) - self.center)
+            self.vector = (Point(x,y) - self.gamesurface.center)
         elif button==RIGHT_BUTTON:
-            self.striking = (Point(x,y) - self.center)
+            self.striking = (Point(x,y) - self.gamesurface.center)
             
         
     

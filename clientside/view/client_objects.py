@@ -3,7 +3,7 @@
 #
 from config import TILESIZE
 
-from clientside.gui.window import GameWindow, create_tile, create_label
+from clientside.gui.window import create_tile, create_label
 from share.mathlib import Point, NullPoint
 
 from clientside.view.objects_lib import DynamicObject, Animated, Movable, MapAccess
@@ -64,7 +64,7 @@ class Deadly(Animated):
         return [sprite]
     
     def draw_label(self):
-        label = create_label('%s/%s' % (self.hp, self.hp_value), self.position+Point(0,TILESIZE))
+        label = create_label('%d/%d' % (self.hp, self.hp_value), self.position+Point(0, self.sprite.height))
         return [label]
     
     def die(self):
@@ -128,6 +128,8 @@ class MetaMonster(Movable, DynamicObject, Deadly, Fighter):
             sprite =  Fighter.draw(self)
         elif not self.dead and not self.defended:
             sprite =  Movable.draw(self)
+        elif self.dead:
+            return Deadly.draw(self)
         else:
             sprite =  Deadly.draw(self)
         

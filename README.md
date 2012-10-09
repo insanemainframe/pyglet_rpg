@@ -1,7 +1,7 @@
 python client-server rpg
 
 REQUIRMENTS:
-
+    
     server: python2.7
 
     client: python 2.6>= [python-pyglet](http://pyglet.org/download.html) recomended  or [pygame](http://www.pygame.org/download.shtml)

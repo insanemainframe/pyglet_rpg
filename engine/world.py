@@ -10,6 +10,7 @@ from weakref import proxy
 
 class World:
     "класс карты как со стороны ссервера"
+    background = 'grass'
     def __init__(self, game):
         self.game = game
         
@@ -247,30 +248,36 @@ class LocationObjects:
 
     
     def check_players(self):
+        if self.new_players:
+            return True
         for location in self.nears:
             if location.new_players:
                 return True
         return False
     
     def check_static_objects(self):
+        if self.new_static_objects:
+            return True
         for location in self.nears:
             if location.new_static_objects:
                 return True
         return False
     
     def clear_players(self):
-        remove_list = self.remove_list.copy()
-        self.remove_list.clear()
-        
-        for name, force in remove_list.items():
-            self.remove_player(name, force)
+        if self.remove_list:
+            remove_list = self.remove_list.copy()
+            self.remove_list.clear()
+            
+            for name, force in remove_list.items():
+                self.remove_player(name, force)
     
     def clear_static_objects(self):
-        remove_list = self.remove_static_list.copy()
-        self.remove_static_list.clear()
-
-        for name, force in remove_list.items():
-            self.remove_static_object(name, force)
+        if self.remove_static_list:
+            remove_list = self.remove_static_list.copy()
+            self.remove_static_list.clear()
+    
+            for name, force in remove_list.items():
+                self.remove_static_object(name, force)
         
         
     

@@ -60,9 +60,10 @@ class __GameSingleton(ObjectContainer, EventsContainer):
             
             position = start +Point(randrange(-radius, radius), randrange(-radius, radius))
             i,j = position.get()
-            if not self.world.map[i][j] in player.BLOCKTILES:
-                position = position*TILESIZE
-                return position
+            if 0<i<self.world.size and 0<j<self.world.size:
+                if not self.world.map[i][j] in player.BLOCKTILES:
+                    position = position*TILESIZE
+                    return position
         
     
 

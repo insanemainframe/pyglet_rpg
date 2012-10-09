@@ -31,18 +31,19 @@ class Events:
 #инициализация
 class ServerAccept(GameProtocol):
     "ответ сервера - инициализация клиента"
-    def __init__(self, world_size, position):
+    def __init__(self, world_size, position, background):
         self.world_size = world_size
         self.position = position
+        self.background = background
     
     def pack(self):
         x,y = self.position.get()
-        return self.world_size, (x,y)
+        return self.world_size, (x,y), self.background
     
     @classmethod
-    def unpack(cls, world_size, (x,y)):
+    def unpack(cls, world_size, (x,y), background):
         position = Point(x,y)
-        return world_size, position
+        return world_size, position, background
 
 #
 

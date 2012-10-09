@@ -1,21 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from clientside.gui.window import GameWindow, create_tile, create_label
+from clientside.gui.window import create_tile, create_label
 
 from share.mathlib import Point, NullPoint
 
 from inspect import getmro
+from collections import namedtuple
+
+sprite_size = namedtuple('sprite_size',['width','height'])
 
 class ActionError(Exception):
     pass
 
 
 class ClientObject:
+    @classmethod
+    def init_cls(cls, surface):
+        cls.surface = surface
     def __init__(self, name, position):
         self.position = position
         self.name = name
         self.delayed = False
         self.REMOVE = False
+        sprite = self.surface.tiledict[self.tilename]
+        self.sprite = sprite_size(sprite.width, sprite.height)
     
     def handle_action(self, action, args):
         if hasattr(self, action):

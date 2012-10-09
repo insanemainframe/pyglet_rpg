@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from clientside.gui.window import GameWindow, create_tile, create_label
+from clientside.gui.window import  create_tile, create_label
 
 from share.mathlib import Point, NullPoint
 from clientside.view.objects_lib import StaticObject

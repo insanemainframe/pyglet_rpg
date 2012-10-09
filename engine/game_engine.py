@@ -19,15 +19,15 @@ class GameEngine:
     monster_count = 0
     def __init__(self):
         self.messages = {}
-        self.create_monsters(10, Zombie)
-        self.create_monsters(5, Lych)
-        #self.create_monsters(5, Ghast)
-        self.create_monsters(5, Cat)
+        self.create_monsters(100, Zombie)
+        self.create_monsters(20, Lych)
+        self.create_monsters(20, Ghast)
+        self.create_monsters(20, Cat)
         
     
     def create_monsters(self, n, monster_type):
         for i in range(n):
-            position = game.choice_position(monster_type, 30)
+            position = game.choice_position(monster_type, game.world.size)
             name = monster_type.__name__
             monster = monster_type('%s_%s' % (name, self.monster_count) , position)
             self.monster_count+=1
@@ -43,7 +43,7 @@ class GameEngine:
         #оставляем сообщение о подключении
         print 'New player %s position %s' % (name, position)
         
-        self.messages[name] = [ServerAccept(game.world.size, new_player.position)]
+        self.messages[name] = [ServerAccept(game.world.size, new_player.position, game.world.background)]
         for message in new_player.accept_response():
             self.messages[name].append(message)
     
@@ -81,11 +81,14 @@ class GameEngine:
         "получение ответов управляемых игрокв"
         #получаем ответы игроков
         for name, player in game.guided_players.items():
+            messages = []
             if self.messages[name]:
-                yield name, self.messages[name]
+                messages += self.messages[name]
                 self.messages[name] = []
             for response in player.handle_response():
-                yield (name, [response])
+                messages.append(response)
+            
+            yield name, messages
 
 
     def end_round(self):
@@ -94,9 +97,10 @@ class GameEngine:
             for player in location.players.values():
                 DynamicObject.complete_round(player)
                 player.complete_round()
-        
-        for location in self.active_locations:
             location.complete_round()
+        
+        #for location in self.active_locations:
+            #location.complete_round()
                 
             
     

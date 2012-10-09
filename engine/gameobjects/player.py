@@ -57,7 +57,9 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
         #если изменилась клетка или изменились статические объекты в локации
         #смотрим список видимых статических объектов
         if self.cord_changed or self.location.check_static_objects():
-            yield  protocol.LookStaticObjects(MapObserver.look_static_objects(self))
+            static_objects = MapObserver.look_static_objects(self)
+            if static_objects:
+                yield  protocol.LookStaticObjects(static_objects)
         
         #если есть новые события в локации
         if self.location.check_events():

@@ -3,7 +3,7 @@
 from time import time
 
 from share.mathlib import Point,NullPoint
-from clientside.gui.window import GameWindow, create_tile
+#from clientside.gui.window import gamesurface, create_tile
 
 
 from config import TILESIZE, ROUND_TIMER
@@ -54,7 +54,7 @@ class DeltaTimerObject:
 
             
 
-class Drawable(GameWindow):
+class Drawable:
     "рисуемые объекты"
     def __init__(self):
         self.shift = NullPoint
@@ -66,13 +66,13 @@ class Drawable(GameWindow):
             for layer,tilename, position, sprite_type in self.tiles:
                 if sprite_type=='tile':
                     x,y = (position-self.shift).get()
-                    if -TILESIZE<x<self.width and -TILESIZE<x<self.height:
-                        self.draw_tile(tilename, x,y)
+                    if -TILESIZE<x<self.surface.width+TILESIZE and -TILESIZE<y<self.surface.height+TILESIZE:
+                        self.surface.draw_tile(tilename, x,y)
                         
                 elif sprite_type=='label':
                     
                     x,y = (position-self.shift).get()
-                    self.draw_label(tilename,10, x,y)
+                    self.surface.draw_label(tilename,10, x,y)
         except ValueError as error:
             print self.tiles
             raise error
