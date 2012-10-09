@@ -93,6 +93,11 @@ class ObjectsView(Drawable, ViewTools):
             else:
                 if name not in self.eventnames:
                     self.remove_object(name)
+                    
+        for name, gameobject in self.objects.items():
+            if gameobject.delayed:
+                if name not in self.eventnames:
+                    self.remove_object(name)
         
         self.eventnames = []
         self.deleted_objects = []

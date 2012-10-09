@@ -1,4 +1,4 @@
-python client-server rpg, just for fun and self-education
+Python client-server hack-and-slash game, using pyglet(or pygame wrapper) and non-blocking sockets. Just for fun and self-education
 
 REQUIRMENTS:
     
@@ -21,24 +21,25 @@ for game client
 
 enter hostname
 
-or use '-d' for default hostname, defined in cofig.py
+or use '-d' for default hostname, defined in config.py
+
 ````
 python server.py -d
 ````
-````
 
+````
 python client.py -d
 ````
 
 CONTROL:
-    ````
+
 
     left mouse click or arrow keys(with right shift for acceleration) for move
 
     right mouse click for shooting
     
     SPACE for special ability
-    ````
+
 
 
 FILES:

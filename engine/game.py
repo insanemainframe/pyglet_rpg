@@ -26,8 +26,10 @@ class __GameSingleton(ObjectContainer, EventsContainer):
         self.world = World(proxy(self))
         
         self.world.start()
-        self.size = self.world.size
         print 'GameSingleton init'
+        self.worlds = {'ground': World, 'underground':UnderWorld}
+        for world in self.world.values:
+            world.start()
 
       
     def change_location(self, name, prev_loc, cur_loc):
