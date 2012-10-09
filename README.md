@@ -7,23 +7,28 @@ REQUIRMENTS:
     client: python 2.6>= [python-pyglet](http://pyglet.org/download.html) recomended  or [pygame](http://www.pygame.org/download.shtml)
 
 RUN:
-    ````
-    python server.py
-    ````
+````
+python server.py
+````
 
+for game server
 
-    for game server
-    
-    ````
-    python client.py
-    ````
+````
+python client.py
+````
 
+for game client
 
-    for game client
-    
-    enter hostname
+enter hostname
 
-    or use '-d' for default hostname, defined in cofig.py	
+or use '-d' for default hostname, defined in cofig.py
+````
+python server.py -d
+````
+````
+
+python client.py -d
+````
 
 CONTROL:
     ````

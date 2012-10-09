@@ -3,18 +3,11 @@
 from time import time
 
 from share.mathlib import Point,NullPoint
-#from clientside.gui.window import gamesurface, create_tile
 
 
 from config import TILESIZE, ROUND_TIMER
-
-
-
-
-
         
 
-########################################################################            
 class DeltaTimerObject:
     "объект с таймером и deltatime"
     def __init__(self):
