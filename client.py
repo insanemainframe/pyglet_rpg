@@ -145,13 +145,14 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
             elif action=='LookPlayers':
                 objects = message
                 self.objects.insert_objects(objects)
-                self.objects.filter()
+                
                 
             
             elif action=='LookEvents':
                 events = message
                 self.objects.insert_events(events)
                 self.objects.clear()
+                
             
             elif action=='LookStaticObjects':
                 static_objects = message
@@ -171,7 +172,7 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
                 print 'Unknown Action:%s' % action
         
         
-       
+        self.objects.filter()
         self.set_timer()
 
         
