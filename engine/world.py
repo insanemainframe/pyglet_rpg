@@ -421,9 +421,6 @@ class LocationObjects:
     
     #
     def add_solid(self, solid):
-        if solid.name=='ground':
-            print solid.world, type(solid)
-            raise Error()
         self.solids[solid.name] = solid
     
     def remove_solid(self, name):

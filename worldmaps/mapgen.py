@@ -48,9 +48,9 @@ from collections import Counter
 
 
 def load_map(mapname): 
-    map_file = 'worldmaps/%s.data' % mapname
-    map_image = 'worldmaps/%s.png' % mapname
-    dict_file = 'worldmaps/%s.py' % mapname
+    map_file = 'worldmaps/%s/map.data' % mapname
+    map_image = 'worldmaps/%s/map.png' % mapname
+    dict_file = 'worldmaps/%s/tiledict.py' % mapname
     tiledict = imp.load_source('tiledict',dict_file).tiledict
     if os.path.exists(map_file):
         mapfile = open(map_file,'r')
