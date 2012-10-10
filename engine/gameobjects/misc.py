@@ -5,6 +5,32 @@ from random import randrange
 from player import Player
 from config import *
 
+
+class Teleport(StaticObject, Solid):
+    radius = TILESIZE
+    BLOCKTILES = ['stone', 'forest', 'ocean']
+    def __init__(self, world, position):
+        StaticObject.__init__(self, world, position)
+        self.world.teleports.append(position)
+    
+    @wrappers.player_filter(Guided)
+    def collission(self, player):
+        print 'teleport', player, self.to_world
+        game.change_world(player, self.to_world)
+    
+
+        
+    def remove(self):
+        StaticObject.remove(self)
+        return True
+
+class Cave(Teleport):
+    to_world = 'underground'
+    
+class Stair(Teleport):
+    to_world = 'ground'
+
+
 class Misc(StaticObject):
     BLOCKTILES = Player.BLOCKTILES
     def __init__(self, world, position):
@@ -18,13 +44,12 @@ class Mushroom(Misc):
     count = 12
 
 class Plant(Misc):
-    count = 32
+    count = 10
 
 class WaterFlower(Misc):
     count = 21
-    def __init__(self, world, position):
-        Misc.__init__(self, world, position)
-        self.BLOCKTILES = ['grass', 'forest', 'bush', 'stone', 'underground']
+    BLOCKTILES = ['grass', 'forest', 'bush', 'stone', 'underground']
+
     
 
 class Stone(Misc):

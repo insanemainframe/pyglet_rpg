@@ -5,7 +5,6 @@ from mathlib import *
 
 from random import choice, random
 from time import time
-from copy import deepcopy
 
 game = None
 

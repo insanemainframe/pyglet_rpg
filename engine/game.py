@@ -3,7 +3,7 @@
 #разделяемое состояние всех объектов игры
 from config import *
 
-from random import randrange
+from random import randrange, choice
 from weakref import proxy
 
 #game = None
@@ -19,6 +19,7 @@ class __GameSingleton(ObjectContainer, EventsContainer):
     def __init__(self):
         ObjectContainer.__init__(self)
         EventsContainer.__init__(self)
+
     
     def start(self):
         from world import World, UnderWorld
@@ -30,6 +31,7 @@ class __GameSingleton(ObjectContainer, EventsContainer):
         self.worlds = {}
         self.worlds['ground'] = World('ground',proxy(self))
         self.worlds['underground'] = UnderWorld('underground', proxy(self))
+        self.worlds['underground2'] = UnderWorld('underground2', proxy(self))
         
         for world in self.worlds.values():
             world.start()
@@ -42,7 +44,8 @@ class __GameSingleton(ObjectContainer, EventsContainer):
         new_world = self.worlds[world]
         player.location.pop_player(player.name)
         
-        new_position = new_world.choice_position(player, new_world.size)
+        teleport_point = choice(new_world.teleports)
+        new_position = new_world.choice_position(player, 3, teleport_point)
         li, lj = (new_position/TILESIZE/LOCATIONSIZE).get()
         player._position = new_position
         player._prev_position = new_position

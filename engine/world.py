@@ -29,6 +29,7 @@ class MetaWorld(MetaWorldTools):
         self.game = game
         self.name = name
         self.mapname = mapname
+        self.teleports = []
         
         self.map, self.size, self.background = load_map(mapname)
         
@@ -133,6 +134,19 @@ class UnderWorld(MetaWorld):
     
     def start(self):
         self.create_item(200, Stair)
+        #self.create_item(200, DownCave)
+        self.create_object(100, Zombie)
+        self.create_object(20, Lych)
+        self.create_object(20, Ghast)
+        self.create_object(20, Cat)
+
+class UnderWorld2(MetaWorld):
+    "подземелье"
+    def __init__(self, name,  game):
+        MetaWorld.__init__(self, game, name,  'underground2')
+    
+    def start(self):
+        #self.create_item(200, UpCave)
         self.create_object(100, Zombie)
         self.create_object(20, Lych)
         self.create_object(20, Ghast)
