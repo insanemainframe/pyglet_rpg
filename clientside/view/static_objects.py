@@ -44,3 +44,27 @@ class Cave(StaticObject):
 
 class Stair(StaticObject):
     tilename = 'stair'
+
+
+
+
+class Misc(StaticObject):
+    def __init__(self, name, position, number):
+        StaticObject.__init__(self, name, position)
+        self.number = number
+    
+    def draw(self):
+        tilename = '%s_%s' % (self.tilename, self.number)
+        return [create_tile(self.position, tilename, -1)]
+
+class Mushroom(Misc):
+    tilename = 'mushroom'
+
+class Plant(Misc):
+    tilename = 'plant'
+    
+class WaterFlower(Misc):
+    tilename = 'water_flower'
+
+class Stone(Misc):
+    tilename = 'stone'

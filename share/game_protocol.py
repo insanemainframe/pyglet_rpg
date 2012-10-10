@@ -31,19 +31,20 @@ class Events:
 #инициализация
 class NewWorld(GameProtocol):
     "ответ сервера - инициализация клиента"
-    def __init__(self, world_size, position, background):
+    def __init__(self, wold_name, world_size, position, background):
+        self.wold_name = wold_name
         self.world_size = world_size
         self.position = position
         self.background = background
     
     def pack(self):
         x,y = self.position.get()
-        return self.world_size, (x,y), self.background
+        return self.wold_name, self.world_size, (x,y), self.background
     
     @classmethod
-    def unpack(cls, world_size, (x,y), background):
+    def unpack(cls, wold_name, world_size, (x,y), background):
         position = Point(x,y)
-        return world_size, position, background
+        return wold_name, world_size, position, background
 
 #
 

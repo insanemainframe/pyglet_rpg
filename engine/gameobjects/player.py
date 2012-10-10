@@ -36,8 +36,8 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
         
     def handle_response(self):
         if self.world_changed:
-            world, background = game.get_world_tuple(self.world)
-            yield NewWorld(world_size, self.position, background)
+            print 'new world!'
+            yield protocol.NewWorld(self.world.name, self.world.size, self.position, self.world.background)
             self.world_changed = False
         else:
             

@@ -34,7 +34,7 @@ class GameEngine:
         
         world = new_player.world
         
-        self.messages[name] = [NewWorld(world.size, new_player.position, world.background)]
+        self.messages[name] = [NewWorld(world.name, world.size, new_player.position, world.background)]
         for message in new_player.accept_response():
             self.messages[name].append(message)
     

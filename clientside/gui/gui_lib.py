@@ -51,6 +51,7 @@ class Drawable:
     "рисуемые объекты"
     def __init__(self):
         self.shift = NullPoint
+        self.tiles = []
     
     def draw(self):
         self.tiles.sort(lambda x,y: -1 if x[0]>y[0] else 1)

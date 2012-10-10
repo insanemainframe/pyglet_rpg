@@ -114,6 +114,10 @@ class World(MetaWorld):
     
     def start(self):
         self.create_item(100, Cave)
+        self.create_item(200, Stone)
+        self.create_item(200, Mushroom)
+        self.create_item(200, Plant)
+        self.create_item(200, WaterFlower)
         self.create_object(200, Zombie)
         self.create_object(50, Lych)
         self.create_object(50, Ghast)

@@ -73,13 +73,18 @@ class Surface:
             for image_file in files:
                 image = pyglet.image.load(join(root,image_file), decoder=PNGImageDecoder()).get_texture()
                 tilename = image_file[:-4]
-                self.tiledict[tilename] = image
+                self.tiledict[tilename] = image.get_texture()
     
     def draw_tile(self, tilename, x,y):
         x,y = self.x+x, self.y+y
         width = self.tiledict[tilename].width
         height = self.tiledict[tilename].height
-        self.tiledict[tilename].blit(x-width/2,y-height/2, width=width, height=height)
+        
+        tile = self.tiledict[tilename]
+        x,y = x-width/2,y-height/2
+        #glBindTexture(texture.target, texture.id)
+        
+        self.tiledict[tilename].blit(x,y, width=width, height=height)
     
     def draw_label(self, text,font_size, x,y):
         x,y = self.x+x, self.y+y

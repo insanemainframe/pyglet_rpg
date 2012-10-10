@@ -53,6 +53,7 @@ class __GameSingleton(ObjectContainer, EventsContainer):
         self.players[player.name].world = new_world.name
         player.world = proxy(new_world)
         player.location = new_location
+        player.world_changed = True
     
     def get_active_locations(self):
         "список активных локаций"

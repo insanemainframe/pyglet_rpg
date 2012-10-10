@@ -49,12 +49,12 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
         self.first_look = True
         self.accept()
     
-    def new_world(self, world_size, position, background):
+    def new_world(self, name, world_size, position, background):
         self.land = LandView(self.gamesurface, world_size, position, background)
         self.objects = ObjectsView(self.gamesurface)
         self.static_objects = StaticObjectView(self.gamesurface)
         
-        self.world_display.change('name', world_size, position)
+        self.world_display.change(name, world_size, position)
         
         from clientside.view.client_objects import MapAccess
         MapAccess.map = self.land.map
@@ -62,8 +62,8 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
     def accept(self):
         accept_data = self.wait_for_accept()
         if accept_data:
-            world_size, position, background = accept_data
-            self.new_world(world_size, position, background)            
+            wold_name, world_size, position, background = accept_data
+            self.new_world(wold_name, world_size, position, background)            
             
             
             self.accepted = True
@@ -173,8 +173,8 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
                 self.stats.update(*message)
             
             elif action=='NewWorld':
-                world_size, position, background = message
-                self.new_world(world_size, position, background)
+                wold_name, world_size, position, background = message
+                self.new_world(wold_name, world_size, position, background)
             else:
                 print 'Unknown Action:%s' % action
         

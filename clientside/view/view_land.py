@@ -26,6 +26,7 @@ class LandView(Drawable, MapTools):
         
         surface.set_camera_position(position)
         self.main_tile = background
+        print 'New world with background', self.main_tile, background
         
         
         
