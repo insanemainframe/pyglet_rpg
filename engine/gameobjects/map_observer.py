@@ -18,10 +18,9 @@ def resize(cord):
         else:
             return 0
 
-class MapObserver(MapTools):
+class MapObserver:
     "класс объекта видящего карту"
     def __init__(self, look_size):
-        MapTools.__init__(self, game.size, game.size)
         self.look_size = look_size
         self.look_radius = self.look_size*TILESIZE
         

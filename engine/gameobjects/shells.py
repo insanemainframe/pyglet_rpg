@@ -8,11 +8,11 @@ from config import *
 
 class Shell(ActiveState, Movable, DiplomacySubject, Temporary, Solid, Mortal):
      counter = 0
-     def __init__(self, position, direct, speed, fraction, striker, damage, alive_after_collission):
+     def __init__(self, world,position, direct, speed, fraction, striker, damage, alive_after_collission):
         name = "%s_%s" % (self.__class__.__name__, Shell.counter)
         Shell.counter+=1
         
-        DynamicObject.__init__(self, name, position)
+        DynamicObject.__init__(self, name, world,position)
         Movable.__init__(self, self.speed)
         Mortal.__init__(self, damage, alive_after_collission)
         DiplomacySubject.__init__(self, fraction)
@@ -43,8 +43,8 @@ class Ball(Explodable, Fragile,  Shell):
     BLOCKTILES = ['stone', 'forest']
     explode_time = 20
     alive_after_collission = False
-    def __init__(self, position, direct, fraction, striker, damage = 2):
-        Shell.__init__(self, position, direct, self.speed, fraction, striker, damage, self.alive_after_collission)
+    def __init__(self, world,position, direct, fraction, striker, damage = 2):
+        Shell.__init__(self, world,position, direct, self.speed, fraction, striker, damage, self.alive_after_collission)
         Temporary.__init__(self, 1)
         Explodable.__init__(self, self.explode_time)
         

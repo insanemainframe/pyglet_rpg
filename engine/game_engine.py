@@ -26,8 +26,7 @@ class GameEngine:
         "создание нового игрока"
        
         position = game.choice_position(Player)
-        new_player = Player(name, position , 7)
-        game.new_object(new_player)
+        new_player = Player(name, game.mainworld, position , 7)
         #
         #уже существующие объекты
         #оставляем сообщение о подключении

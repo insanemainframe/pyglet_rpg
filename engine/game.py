@@ -9,7 +9,7 @@ from weakref import proxy
 #game = None
 
 from share.mathlib import Point, NullPoint
-from game_lib import ObjectContainer, EventsContainer
+from game_lib import ObjectContainer, EventsContainer, ObjectItem
         
         
 
@@ -26,10 +26,12 @@ class __GameSingleton(ObjectContainer, EventsContainer):
         self.world = World(proxy(self))
         
         self.world.start()
+        self.mainworld = 'ground'
+        
         print 'GameSingleton init'
-        self.worlds = {'ground': World, 'underground':UnderWorld}
-        for world in self.world.values:
-            world.start()
+        #self.worlds = {'ground': World(proxy(self)), 'underground':UnderWorld(proxy(self))}
+        #for world in self.worlds.values():
+        #    world.start()
 
       
     def change_location(self, name, prev_loc, cur_loc):

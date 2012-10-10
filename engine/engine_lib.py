@@ -7,6 +7,7 @@ from random import choice, random
 from time import time
 from copy import deepcopy
 
+game = None
 
 class UnknownAction(Exception):
     pass
@@ -134,12 +135,14 @@ class GameObject(object):
     
 
 class DynamicObject(GameObject):
-    def __init__(self, name, position):
+    def __init__(self, name, world, position):
         GameObject.__init__(self, name, position)
         
+        self.world = world
         self.cord_changed = True
         self.position_changed = True
-        game.new_object(self)
+        game.new_object(world, self)
+        self.world_changed = False
     
     @property
     def prev_position(self):
@@ -174,7 +177,7 @@ class DynamicObject(GameObject):
 
 class StaticObject(GameObject):
     name_counter =0 
-    def __init__(self, position):
+    def __init__(self, world, position):
         counter = StaticObject.name_counter
         StaticObject.name_counter+=1
     
@@ -182,8 +185,8 @@ class StaticObject(GameObject):
         
         GameObject.__init__(self, name, position)
         
-        
-        game.new_static_object(self)
+        self.world = world
+        game.new_static_object(world, self)
     
     def get_tuple(self):
         return self.name, self.__class__.__name__, self.position, self.get_args()
@@ -309,7 +312,7 @@ class Deadly:
     
     def create_corpse(self):
         name = 'corpse_%s_%s' % (self.name, self.death_counter)
-        corpse = self.corpse(name, self.position)
+        corpse = self.corpse(name, self.world, self.position)
     
     def die(self):
         self.alive = False

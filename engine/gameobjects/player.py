@@ -20,8 +20,8 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
     SLOWTILES = {'water':0.5, 'bush':0.3}
     damage = 2
 
-    def __init__(self, name, player_position, look_size):
-        DynamicObject.__init__(self, name, player_position)
+    def __init__(self, name, world, player_position, look_size):
+        DynamicObject.__init__(self, name, world, player_position)
         Unit.__init__(self, self.speed, self.hp, Corpse, self.name)
         MapObserver.__init__(self, look_size)
         Striker.__init__(self,2, Ball, self.damage)
@@ -35,7 +35,11 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
         yield protocol.LookEvents(self.look_events())
         
     def handle_response(self):
-        
+        if self.world_changed:
+            world, background = game.get_world_tuple(self.world)
+            yield NewWorld(world_size, self.position, background)
+            self.world_changed = False
+            
         if not self.respawned:
             if self.position_changed:
                 yield protocol.MoveCamera(self.position-self.prev_position)

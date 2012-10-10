@@ -7,8 +7,8 @@ from config import *
 class Item(StaticObject, Solid, Temporary):
     radius = TILESIZE
     lifetime = 300
-    def __init__(self, position):
-        StaticObject.__init__(self, position)
+    def __init__(self, world, position):
+        StaticObject.__init__(self, world, position)
         Temporary.__init__(self, 10*self.lifetime)
     
     @wrappers.player_filter(Guided)
@@ -30,8 +30,8 @@ class Item(StaticObject, Solid, Temporary):
 
 class Corpse(StaticObject, Temporary):
     "кости остающиеся после смерти живых игроков"
-    def __init__(self, name, position):
-        StaticObject.__init__(self, position)
+    def __init__(self, name, world, position):
+        StaticObject.__init__(self, world, position)
         Temporary.__init__(self, 5)
     
     def update(self):
@@ -78,13 +78,13 @@ class Cloak(Item):
 class Teleport(StaticObject, Solid):
     radius = TILESIZE
     BLOCKTILES = ['stone', 'forest', 'ocean']
-    def __init__(self, position):
-        StaticObject.__init__(self, position)
+    def __init__(self, world, position):
+        StaticObject.__init__(self, world, position)
     
     @wrappers.player_filter(Guided)
     def collission(self, player):
-        print 'tleport', player, self.world
-        game.change_world(player, self.world)
+        print 'teleport', player, self.to_world
+        game.change_world(player, self.to_world)
     
 
         
@@ -92,7 +92,7 @@ class Teleport(StaticObject, Solid):
         StaticObject.remove(self)
         return True
 class Cave(Teleport):
-    world = 'underground'
+    to_world = 'underground'
     
 class Stair(Teleport):
-    world = 'ground'
+    to_world = 'ground'

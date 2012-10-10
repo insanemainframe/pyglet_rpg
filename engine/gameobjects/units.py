@@ -19,8 +19,8 @@ class Cat(Walker, Solid, Stalker, DynamicObject, DiplomacySubject):
     alive = True
     look_size = 300
     
-    def __init__(self, name, position):
-        DynamicObject.__init__(self, name, position)
+    def __init__(self, name, world, position):
+        DynamicObject.__init__(self, name, world, position)
         Solid.__init__(self, self.radius)
         Movable.__init__(self, self.speed)
         DiplomacySubject.__init__(self, 'good')
@@ -54,8 +54,8 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject):
     look_size = 10
     BLOCKTILES = ['stone', 'forest', 'ocean']
     SLOWTILES = {'water':0.5, 'bush':0.3}
-    def __init__(self, name, player_position, speed, hp):
-        DynamicObject.__init__(self, name, player_position)
+    def __init__(self, name, world, position, speed, hp):
+        DynamicObject.__init__(self, name, world, position)
         Unit.__init__(self, speed, hp, Corpse, 'monsters')
         Stalker.__init__(self, self.look_size)
         Respawnable.__init__(self, 30, 60)
@@ -71,7 +71,7 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject):
     @wrappers.alive_only(Deadly)
     def update(self):
         if not self.vector:
-            if chance(50):
+            if chance(100):
                 direct = self.hunt()
                 if direct:
                     self.move(direct)
@@ -97,8 +97,8 @@ class Zombie(Fighter, MetaMonster):
     damage = 1
     attack_speed = 10
     
-    def __init__(self, name, position):
-        MetaMonster.__init__(self, name, position, self.speed, self.hp)
+    def __init__(self, name, world, position):
+        MetaMonster.__init__(self, name, world, position, self.speed, self.hp)
         Fighter.__init__(self, self.damage, self.attack_speed)
     
     def complete_round(self):
@@ -112,8 +112,8 @@ class Ghast(Fighter, MetaMonster):
     damage = 5
     attack_speed = 30
     
-    def __init__(self, name, position):
-        MetaMonster.__init__(self, name, position, self.speed, self.hp)
+    def __init__(self, name, world, position):
+        MetaMonster.__init__(self, name, world, position, self.speed, self.hp)
         Fighter.__init__(self, self.damage, self.attack_speed)
     
     def complete_round(self):
@@ -126,8 +126,8 @@ class Lych(MetaMonster, Striker):
     speed = 15
     damage = 2
     
-    def __init__(self, name, position):
-        MetaMonster.__init__(self, name, position, self.speed, self.hp)
+    def __init__(self, name, world, position):
+        MetaMonster.__init__(self, name, world, position, self.speed, self.hp)
         Striker.__init__(self, 10, DarkBall, self.damage)
     
     @wrappers.alive_only(Deadly)

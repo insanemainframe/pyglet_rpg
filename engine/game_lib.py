@@ -56,7 +56,7 @@ class ObjectContainer(object):
         self.static_objects = {}
                     
     
-    def new_object(self, player):
+    def new_object(self, world, player):
         "создает динамический объект"
         if isinstance(player, engine_lib.DynamicObject):
             self.players[player.name] = player
@@ -73,7 +73,7 @@ class ObjectContainer(object):
             raise TypeError('new_object: %s not DynamicObject instance' % player.name)
         
     
-    def new_static_object(self, player):
+    def new_static_object(self, world,player):
         "создает статический оъект"
         if isinstance(player, engine_lib.StaticObject):
             ref = proxy(player)
