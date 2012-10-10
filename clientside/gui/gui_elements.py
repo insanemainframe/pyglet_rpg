@@ -94,7 +94,22 @@ class Stats:
         self.skills_display.draw()
         self.invisible_display.draw()
 
-
+class WorldDisplay:
+    def __init__(self, surface):
+        self.surface = surface
+        self.worldname = Label(self.surface, 'World: None',70,400)
+        self.position = Label(self.surface, 'Position: None', 70, 420)
+    
+    def change(self, name, size, position):
+        self.worldname.text = 'World: %s %sx%s' % (name, size, size)
+        self.position.text = 'Position %s' % position
+    
+    def update(self, position):
+        self.position.text = 'Position %s' % position
+    
+    def draw(self):
+        self.worldname.draw()
+        self.position.draw()
 
 class LoadingScreen:
     def __init__(self, surface,):

@@ -9,12 +9,25 @@ from worldmaps.mapgen import load_map
 
 from weakref import proxy
 
+class MetaWorldTools:
+    def create_object(self, n, object_type):
+        for i in range(n):
+            position = self.choice_position(object_type, self.size)
+            name =object_type.__name__
+            monster = object_type('%s_%s' % (name, MetaWorld.monster_count) , self.mapname, position)
+            MetaWorld.monster_count+=1
+    
+    def create_item(self, n, object_type):
+        for i in range(n):
+            position = self.choice_position(object_type, self.size)
+            monster = object_type(self.mapname, position)
 
-class MetaWorld:
+class MetaWorld(MetaWorldTools):
     "базовый класс карты"
     monster_count = 0
-    def __init__(self, game, mapname):
+    def __init__(self, game, name, mapname):
         self.game = game
+        self.name = name
         self.mapname = mapname
         
         self.map, self.size, self.background = load_map(mapname)
@@ -44,20 +57,37 @@ class MetaWorld:
             for location in row:
                 location.create_links()
     
+    def change_location(self, name, prev_loc, cur_loc):
+        "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
+        pi, pj = prev_loc
+        ci, cj = cur_loc
+        prev_location = self.locations[pi][pj]
+        cur_location = self.locations[ci][cj]
+                        
+        prev_location.pop_player(name)
+        cur_location.add_player(self.game.players[name].player)
+        
+        return proxy(self.locations[ci][cj])
+    
     def get_loc_cord(self, position):
         return (position/TILESIZE/LOCATIONSIZE).get()
     
-    def create_object(self, n, object_type):
-        for i in range(n):
-            position = self.choice_position(object_type, game.world.size)
-            name =object_type.__name__
-            monster = object_type('%s_%s' % (name, MetaWorld.monster_count) , self.mapname, position)
-            MetaWorld.monster_count+=1
     
-    def create_item(self, n, object_type):
-        for i in range(n):
-            position = self.choice_position(object_type, game.world.size)
-            monster = object_type(self.mapname, position)
+    def get_location(self, player):
+        "возвращает слокацию"
+        position = player.position
+        
+        i,j = (position/TILESIZE/LOCATIONSIZE).get()
+        return self.locations[i][j]
+    
+    def get_location_static(self, player):
+        "возвращает слокацию"
+        position = player.position
+        i,j = (position/TILESIZE/LOCATIONSIZE).get()
+        return self.locations[i][j]
+    
+    
+    
 
     
     def choice_position(self, player, radius=7, start=False):
@@ -79,8 +109,8 @@ class MetaWorld:
 
 class World(MetaWorld):
     "поверхность"
-    def __init__(self, game):
-        MetaWorld.__init__(self, game, 'ground')
+    def __init__(self, name, game):
+        MetaWorld.__init__(self, game, name, 'ground')
     
     def start(self):
         self.create_item(100, Cave)
@@ -94,8 +124,8 @@ class World(MetaWorld):
     
 class UnderWorld(MetaWorld):
     "подземелье"
-    def __init__(self, game):
-        MetaWorld.__init__(self, game, 'underground')
+    def __init__(self, name,  game):
+        MetaWorld.__init__(self, game, name,  'underground')
     
     def start(self):
         self.create_item(200, Stair)
@@ -264,17 +294,18 @@ class LocationObjects:
     
     def pop_player(self, name):
         "удаляет ссылку из списка игроков"
-        self.new_players = True
-        
-        player = self.players[name]
-        
-        if isinstance(player, engine_lib.ActiveState):
-            self.unset_primary_activity()
-        
-        if name in self.solids:
-            self.remove_solid(name)
-        
-        del self.players[player.name]
+        if name in self.players:
+            self.new_players = True
+            
+            player = self.players[name]
+            
+            if isinstance(player, engine_lib.ActiveState):
+                self.unset_primary_activity()
+            
+            if name in self.solids:
+                self.remove_solid(name)
+            
+            del self.players[player.name]
         
         
     def check_players(self):
@@ -427,19 +458,11 @@ class LocationObjects:
         del self.solids[name]
     
     def get_solids_list(self):
-        "выдает ссылку на твердый объект в локации и соседних локациях"
-        self._check_solids()
-        [location._check_solids() for location in self.nears]
-        
+        "выдает ссылку на твердый объект в локации и соседних локациях"        
         solids = sum([location.solids.values() for location in self.nears], self.solids.values())
         return solids
     
-    def _check_solids(self):
-        for name, solid in self.solids.items():
-            try:
-                a = solid.name
-            except ReferenceError:
-                print 'ReferenceError', name
+
     
     
     def update(self):

@@ -43,8 +43,12 @@ class Event:
 
 class ObjectItem:
     def __init__(self, player, world):
-        self.player = player
-        self.world = world
+        if isinstance(player, engine_lib.GameObject) and isinstance(world, str):
+            self.player = player
+            self.world = world
+            self.name = player.name
+        else:
+            raise TypeError('%s, %s' % (str(player), str(world)))
     
     
 
@@ -58,8 +62,9 @@ class ObjectContainer(object):
     
     def new_object(self, world, player):
         "создает динамический объект"
-        if isinstance(player, engine_lib.DynamicObject):
-            self.players[player.name] = player
+        if isinstance(player, engine_lib.DynamicObject) and isinstance(world, str):
+            self.players[player.name] = ObjectItem(player, world)
+            
             
             ref = proxy(player)
              
@@ -67,49 +72,64 @@ class ObjectContainer(object):
                 self.guided_players[player.name] = ref
                 
             #
-            i,j = self.world.get_loc_cord(player.position)
-            self.world.locations[i][j].add_player(ref)
+            world = self.worlds[world]
+            player.world = proxy(world)
+            
+            location = world.get_location(player)
+            location.add_player(ref)
+            player.location = location
         else:
-            raise TypeError('new_object: %s not DynamicObject instance' % player.name)
+            raise TypeError('new_object: %s not DynamicObject instance or %s not str' % (player.name, world))
         
     
     def new_static_object(self, world,player):
         "создает статический оъект"
         if isinstance(player, engine_lib.StaticObject):
             ref = proxy(player)
-            self.static_objects[player.name] = player
+            self.static_objects[player.name] = ObjectItem(player, world)
             
-            i,j = self.world.get_loc_cord(player.position)
-            self.world.locations[i][j].add_static_object(ref)
+            world = self.worlds[world]
+            player.world = proxy(world)
+            
+            location = world.get_location(player)
+            location.add_static_object(ref)
+            player.location = location
             
         else:
             raise TypeError('new_static_object: %s not StaticObject instance' % player.name)
     
     def remove_player_from_list(self, name):
+        print 'remove_player_from_list', name
         del self.players[name]
     
     def remove_static_object_from_list(self, name):
+        print 'remove_static_object_from_list', name
         del self.static_objects[name]
     
     def remove_guided(self, name):
         player = self.guided_players[name]
         
-        location = self.get_location(player.position)
+        location = player.location
         
         location.remove_player(name, True)
         
         del self.guided_players[name]
     
     def add_to_remove(self, player, force):
-         location = self.get_location(player.position)
+         location = player.location
          location.add_to_remove(player.name, force)
     
     def add_to_remove_static(self, player, force):
-         location = self.get_location(player.position)
+         location = player.location
          location.add_to_remove_static(player.name, force)
-        
-    def change_world(self, player, world):
-        pass
+    
+    def get_world(self, name):
+        return self.worlds[self.players[name].world]
+    
+    def get_world_static(self, name):
+        return self.static_objects[name].world
+    
+    
         
 
 
@@ -121,23 +141,27 @@ class EventsContainer:
     def add_event(self, name, object_type, position, vector, action, args=(), timeout=0, ):
         "добавляет событие"
         event = Event(name, object_type, position, action, args, timeout)
-
-        i,j = self.world.get_loc_cord(position)
-        self.world.locations[i][j].add_event(event)
+        
+        world = self.worlds[self.players[name].world]
+        
+        i,j = world.get_loc_cord(position)
+        world.locations[i][j].add_event(event)
     
         if vector:
             alt_position = position+vector
             event = Event(name, object_type, alt_position, action, args, timeout)
-            i,j = self.world.get_loc_cord(alt_position)
-            self.world.locations[i][j].add_event(event)
+            i,j = world.get_loc_cord(alt_position)
+            world.locations[i][j].add_event(event)
         
     
     def add_static_event(self, name, object_type, position, action, args=(), timeout=0):
         "добавляет со9-бытие статического объекта"
         event = Event(name, object_type, position, action, args, timeout)
+        
+        world = self.worlds[self.players[name].world]
 
-        i,j = self.world.get_loc_cord(position)
-        self.world.locations[i][j].add_static_event(event)
+        i,j = world.get_loc_cord(position)
+        world.locations[i][j].add_static_event(event)
         
     
 

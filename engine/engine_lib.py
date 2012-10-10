@@ -69,7 +69,6 @@ class GameObject(object):
         self._position = position
         self.gid = hash((name, position))
         
-        self.location = game.get_location(self._position)
         self._prev_position = position
     
     def regid(self):
@@ -89,7 +88,7 @@ class GameObject(object):
             
             cur_cord = position/TILESIZE
             
-            if 0<=cur_cord.x<=game.world.size and 0<=cur_cord.y<=game.world.size:
+            if 0<=cur_cord.x<=self.world.size and 0<=cur_cord.y<=self.world.size:
                 prev_cord = self._position/TILESIZE
                 
                 if cur_cord!=prev_cord:
@@ -98,10 +97,10 @@ class GameObject(object):
                 if position!=self._position:
                     self.position_changed = True
                     
-                prev_loc = game.get_loc_cord(self._position)
-                cur_loc = game.get_loc_cord(position)
+                prev_loc = self.world.get_loc_cord(self._position)
+                cur_loc = self.world.get_loc_cord(position)
                 if prev_loc!=cur_loc:
-                    self.location = game.change_location(self.name, prev_loc, cur_loc)
+                    self.location = self.world.change_location(self.name, prev_loc, cur_loc)
                 
                 self._prev_position = self._position
                 self._position  = position
@@ -118,7 +117,7 @@ class GameObject(object):
         return self.name!=player.name
     
     def get_location(self):
-        return game.get_location(self.position)
+        return self.world.get_location(self)
     
     def update(self):
         pass
@@ -138,7 +137,6 @@ class DynamicObject(GameObject):
     def __init__(self, name, world, position):
         GameObject.__init__(self, name, position)
         
-        self.world = world
         self.cord_changed = True
         self.position_changed = True
         game.new_object(world, self)
@@ -185,7 +183,6 @@ class StaticObject(GameObject):
         
         GameObject.__init__(self, name, position)
         
-        self.world = world
         game.new_static_object(world, self)
     
     def get_tuple(self):
@@ -312,7 +309,7 @@ class Deadly:
     
     def create_corpse(self):
         name = 'corpse_%s_%s' % (self.name, self.death_counter)
-        corpse = self.corpse(name, self.world, self.position)
+        corpse = self.corpse(name, self.world.name, self.position)
     
     def die(self):
         self.alive = False
@@ -363,7 +360,7 @@ class Respawnable:
         return False
     
     def handle_remove(self):
-        new_position = game.choice_position(self, 10 ,self.position)
+        new_position = game.choice_position(self.world.name, self, 10 ,self.position)
         vector = new_position - self.position
         self.change_position(new_position)
         self.add_event('remove')

@@ -13,7 +13,7 @@ from clientside.input import InputHandle
 
 from clientside.gui.gui_lib import DeltaTimerObject
 from clientside.gui import window
-from clientside.gui.gui_elements import FPSDisplay, Stats, LoadingScreen
+from clientside.gui.gui_elements import FPSDisplay, Stats, LoadingScreen, WorldDisplay
 
 from clientside.view.view_objects import ObjectsView
 from clientside.view.view_land import LandView
@@ -35,9 +35,10 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
         self.gamesurface = window.GameSurface(0,0,600, 600)
         self.rightsurface = window.StatsSurface(600, 0, height, width-600)
         
-        self.objects = ObjectsView(self.gamesurface)
+        self.world_display = WorldDisplay(self.rightsurface)
+        
         self.stats = Stats(self.rightsurface)
-        self.static_objects = StaticObjectView(self.gamesurface)
+       
         
         #текст загрузки
         self.loading = LoadingScreen(self.gamesurface)
@@ -50,7 +51,11 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
     
     def new_world(self, world_size, position, background):
         self.land = LandView(self.gamesurface, world_size, position, background)
-            
+        self.objects = ObjectsView(self.gamesurface)
+        self.static_objects = StaticObjectView(self.gamesurface)
+        
+        self.world_display.change('name', world_size, position)
+        
         from clientside.view.client_objects import MapAccess
         MapAccess.map = self.land.map
     
@@ -84,7 +89,9 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
             vector = self.shift
         self.shift = self.shift - vector
         #двигаем камеру
+        
         self.land.move_position(vector)
+        self.world_display.update(self.gamesurface.position)
         #обновляем карту и объекты
         self.land.update()
         
@@ -126,7 +133,7 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
             #если произошел респавн игрока
             if action=='Respawn':
                 new_position = message                
-                self.set_camera_position(new_position)
+                self.gamesurface.set_camera_position(new_position)
                 self.objects.clear()
                 self.static_objects.clear()
             
@@ -189,6 +196,7 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
             
             self.static_objects.draw()
             self.stats.draw()
+            self.world_display.draw()
         
         elif self.loading:
             self.loading.draw()

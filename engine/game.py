@@ -23,46 +23,47 @@ class __GameSingleton(ObjectContainer, EventsContainer):
     def start(self):
         from world import World, UnderWorld
 
-        self.world = World(proxy(self))
-        
-        self.world.start()
+
         self.mainworld = 'ground'
         
         print 'GameSingleton init'
-        #self.worlds = {'ground': World(proxy(self)), 'underground':UnderWorld(proxy(self))}
-        #for world in self.worlds.values():
-        #    world.start()
+        self.worlds = {}
+        self.worlds['ground'] = World('ground',proxy(self))
+        self.worlds['underground'] = UnderWorld('underground', proxy(self))
+        
+        for world in self.worlds.values():
+            world.start()
 
       
-    def change_location(self, name, prev_loc, cur_loc):
-        "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
-        pi, pj = prev_loc
-        ci, cj = cur_loc
-        prev_location = self.world.locations[pi][pj]
-        cur_location = self.world.locations[ci][cj]
-                        
-        prev_location.pop_player(name)
-        cur_location.add_player(self.players[name])
+
+    
+    def change_world(self, player, world):
+        prev_world = player.world
+        new_world = self.worlds[world]
+        player.location.pop_player(player.name)
         
-        return proxy(self.world.locations[ci][cj])
+        new_position = new_world.choice_position(player, new_world.size)
+        li, lj = (new_position/TILESIZE/LOCATIONSIZE).get()
+        player._position = new_position
+        player._prev_position = new_position
+        
+        new_location = new_world.locations[li][lj]
+        new_location.add_player(player)
+        
+        self.players[player.name].world = new_world.name
+        player.world = proxy(new_world)
+        player.location = new_location
     
     def get_active_locations(self):
         "список активных локаций"
-        return self.world.active_locations.values()
+        return sum([world.active_locations.values() for world in self.worlds.values()], [])
     
-    def get_location(self, position):
-        "возвращает список ближайших локаций"
-        i,j = (position/TILESIZE/LOCATIONSIZE).get()
-        return self.world.locations[i][j]
     
-    def get_loc_cord(self, position):
-        "коордианты локации позиции"
-        return self.world.get_loc_cord(position)
         
         
-    def choice_position(self, player, radius=7, start=False):
+    def choice_position(self, world, player, radius=7, start=False):
         "выбирает случайную позицию, доступную для объекта"
-        return self.world.choice_position(player, radius, start)
+        return self.worlds[world].choice_position(player, radius, start)
         
     
 

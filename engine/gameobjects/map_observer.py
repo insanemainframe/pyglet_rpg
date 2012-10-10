@@ -9,14 +9,7 @@ from engine.game_lib import Event
 
 from math import hypot
 
-def resize(cord):
-    if 0<=cord<=game.world.size:
-        return cord
-    else:
-        if cord>game.world.size:
-            return game.world.size
-        else:
-            return 0
+
 
 class MapObserver:
     "класс объекта видящего карту"
@@ -29,7 +22,16 @@ class MapObserver:
         
         self.prev_looked = set()
         self.prev_observed = set()
-        
+    
+    def resize(self,cord):
+        if 0<=cord<=self.world.size:
+            return cord
+        else:
+            if cord>self.world.size:
+                return self.world.size
+            else:
+                return 0
+    
     def look_map(self):
         "возвращает список координат видимых клеток из позиции position, с координаами относительно начала карты"
         position = self.position
@@ -39,17 +41,17 @@ class MapObserver:
         observed = set()
         looked = set()
         #
-        i_start = resize(I-rad)
-        i_end = resize(I+rad)
-        j_start = resize(J-rad)
-        j_end = resize(J+rad)
+        i_start = self.resize(I-rad)
+        i_end = self.resize(I+rad)
+        j_start = self.resize(J-rad)
+        j_end = self.resize(J+rad)
         
         for i in xrange(i_start, i_end):
             for j in xrange(j_start, j_end):
                 diff = hypot(I-i,J-j) - rad
                 if diff<0:
                     if (i,j) not in self.prev_observed:
-                        tile_type = game.world.map[i][j]
+                        tile_type = self.world.map[i][j]
                         looked.add((Point(i,j), tile_type))
                     observed.add((i,j))
 

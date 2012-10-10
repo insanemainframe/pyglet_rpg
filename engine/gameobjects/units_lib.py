@@ -23,7 +23,7 @@ class Lootable(Deadly):
     
     def die(self):
         if chance(60):
-            item = choice(self.loot)(self.world, self.position)
+            item = choice(self.loot)(self.world.name, self.position)
         Deadly.die(self)
 
 class Fighter:
@@ -74,7 +74,7 @@ class Striker:
     @wrappers.alive_only()
     def strike_ball(self, vector):
         if self.strike_counter==0 and vector:
-            ball = self.strike_shell(self.world, self.position, vector, self.fraction, self.name, self.damage)
+            ball = self.strike_shell(self.world.name, self.position, vector, self.fraction, self.name, self.damage)
             self.strike_counter+=self.strike_speed
     
     def plus_damage(self, damage):

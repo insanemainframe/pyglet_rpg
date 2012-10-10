@@ -66,8 +66,8 @@ class Movable(DynamicObject):
         resist = 1
         crossed = get_cross(self.position, move_vector)
         for (i,j), cross_position in crossed:
-            if 0<i<game.world.size and 0<j<game.world.size:
-                cross_tile =  game.world.map[i][j]
+            if 0<i<self.world.size and 0<j<self.world.size:
+                cross_tile =  self.world.map[i][j]
                 if cross_tile in self.BLOCKTILES:
                     move_vector = (cross_position - self.position)*0.99
                     self.vector = move_vector

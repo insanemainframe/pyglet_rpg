@@ -25,14 +25,16 @@ class GameEngine:
     def game_connect(self, name):
         "создание нового игрока"
        
-        position = game.choice_position(Player)
+        position = game.choice_position(game.mainworld, Player)
         new_player = Player(name, game.mainworld, position , 7)
         #
         #уже существующие объекты
         #оставляем сообщение о подключении
         print 'New player %s position %s' % (name, position)
         
-        self.messages[name] = [NewWorld(game.world.size, new_player.position, game.world.background)]
+        world = new_player.world
+        
+        self.messages[name] = [NewWorld(world.size, new_player.position, world.background)]
         for message in new_player.accept_response():
             self.messages[name].append(message)
     
@@ -88,10 +90,8 @@ class GameEngine:
                 player.complete_round()
             location.complete_round()
         
-        #for location in self.active_locations:
-            #location.complete_round()
+       
                 
-            
     
     def game_quit(self, name):
         print '%s quit' % name
