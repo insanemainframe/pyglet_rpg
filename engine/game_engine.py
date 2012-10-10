@@ -54,6 +54,8 @@ class GameEngine:
     def game_middle(self):
         "отыгрывание раунда игры"
         self.active_locations = game.get_active_locations()
+        
+        
         self.active_players = []
         
         for location in self.active_locations:

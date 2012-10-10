@@ -45,6 +45,11 @@ class Cave(StaticObject):
 class Stair(StaticObject):
     tilename = 'stair'
 
+class UpStair(StaticObject):
+    tilename = 'stair'
+
+class DownCave(StaticObject):
+    tilename = 'cave'
 
 
 
@@ -68,3 +73,6 @@ class WaterFlower(Misc):
 
 class Stone(Misc):
     tilename = 'stone'
+
+class Rubble(Misc):
+    tilename = 'rubble'

@@ -21,6 +21,7 @@ class SelectMultiplexer:
         
     def run_poll(self):
         "ожидание входящих пакетов с совкетов, обработка новых подключений"
+        
         while 1:
             #смотрим новые подключения и на чтение
             insocks = [client.insock for client in self.clients.values()]

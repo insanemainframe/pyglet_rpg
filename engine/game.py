@@ -22,24 +22,29 @@ class __GameSingleton(ObjectContainer, EventsContainer):
 
     
     def start(self):
-        from world import World, UnderWorld
+        from world import World, UnderWorld, UnderWorld2
 
 
         self.mainworld = 'ground'
         
-        print 'GameSingleton init'
+        print 'Engine initialization...'
+        
         self.worlds = {}
         self.worlds['ground'] = World('ground',proxy(self))
         self.worlds['underground'] = UnderWorld('underground', proxy(self))
-        self.worlds['underground2'] = UnderWorld('underground2', proxy(self))
+        self.worlds['underground2'] = UnderWorld2('underground2', proxy(self))
         
         for world in self.worlds.values():
+            print 'world %s initialization' % world.name
             world.start()
+        
+        print 'Engine initialization complete. \n'
 
       
 
     
     def change_world(self, player, world):
+        
         prev_world = player.world
         new_world = self.worlds[world]
         player.location.pop_player(player.name)
@@ -47,16 +52,19 @@ class __GameSingleton(ObjectContainer, EventsContainer):
         teleport_point = choice(new_world.teleports)
         new_position = new_world.choice_position(player, 3, teleport_point)
         li, lj = (new_position/TILESIZE/LOCATIONSIZE).get()
-        player._position = new_position
-        player._prev_position = new_position
+        player.set_position(new_position)
         
+
         new_location = new_world.locations[li][lj]
         new_location.add_player(player)
-        
+
         self.players[player.name].world = new_world.name
         player.world = proxy(new_world)
         player.location = new_location
+        
         player.world_changed = True
+        player.cord_changed = True
+        
     
     def get_active_locations(self):
         "список активных локаций"
@@ -78,6 +86,9 @@ game = __GameSingleton()
 
 import game_lib
 game_lib.init()
+
 import world
 world.init()
 
+import location
+location.init()

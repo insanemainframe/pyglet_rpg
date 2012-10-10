@@ -4,19 +4,30 @@ from engine.engine_lib import *
 from random import randrange
 from player import Player
 from config import *
+#Teleport(ttype, dest) - > TeleportType(mapname, position)
 
+class GetTeleport:
+    "фабрика  телепортов"
+    def __init__(self, ttype, dest):
+        self.dest = dest
+        self.ttype = ttype
+        self.BLOCKTILES = ttype.BLOCKTILES
+    
+    def __call__(self, world, position):
+        return self.ttype(world, position, self.dest)
+        
 
 class Teleport(StaticObject, Solid):
     radius = TILESIZE
-    BLOCKTILES = ['stone', 'forest', 'ocean']
-    def __init__(self, world, position):
+    BLOCKTILES = Player.BLOCKTILES
+    def __init__(self, world, position, dest):
         StaticObject.__init__(self, world, position)
         self.world.teleports.append(position)
+        self.dest = dest
     
     @wrappers.player_filter(Guided)
     def collission(self, player):
-        print 'teleport', player, self.to_world
-        game.change_world(player, self.to_world)
+        game.change_world(player, self.dest)
     
 
         
@@ -25,10 +36,16 @@ class Teleport(StaticObject, Solid):
         return True
 
 class Cave(Teleport):
-    to_world = 'underground'
+    pass
     
 class Stair(Teleport):
-    to_world = 'ground'
+    pass
+
+class UpStair(Teleport):
+    pass
+
+class DownCave(Teleport):
+    pass
 
 
 class Misc(StaticObject):
@@ -41,16 +58,23 @@ class Misc(StaticObject):
         return {'number': self.number}
 
 class Mushroom(Misc):
+    BLOCKTILES = Player.BLOCKTILES + ['water']
     count = 12
 
 class Plant(Misc):
+    BLOCKTILES = Player.BLOCKTILES + ['water']
     count = 10
 
 class WaterFlower(Misc):
-    count = 21
-    BLOCKTILES = ['grass', 'forest', 'bush', 'stone', 'underground']
+    count = 19
+    BLOCKTILES = ['grass', 'forest', 'bush', 'stone', 'underground', 'lava']
 
+    
+class Rubble(Misc):
+    count = 3
+    BLOCKTILES = Player.BLOCKTILES
     
 
 class Stone(Misc):
+    BLOCKTILES = Player.BLOCKTILES + ['water']
     count = 13

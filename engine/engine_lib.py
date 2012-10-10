@@ -82,6 +82,14 @@ class GameObject(object):
     def position(self, position):
         raise Error('Denied')
     
+    def set_position(self, position):
+        size = self.world.size*TILESIZE
+        if 0<=position.x<=size and 0<=position.y<=size:
+            self._position = position
+            self._prev_position = position
+        else:
+            raise Exception('Invalid position %s %s' % (position, self.name))
+            
     def change_position(self,position):
         if not position==self._position:
             
@@ -104,7 +112,7 @@ class GameObject(object):
                 self._prev_position = self._position
                 self._position  = position
             else:
-                print 'Invalid position %s %s' % (position, self.name)
+                raise Exception('Invalid position %s %s' % (position, self.name))
     
     def __hash__(self):
         return hash(self.name)
