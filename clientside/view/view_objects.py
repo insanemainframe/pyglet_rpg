@@ -34,22 +34,24 @@ class ObjectsView(Drawable, ViewTools):
         for gid in new_objects:
             name, object_type, position, args = looked_objects[gid]
             self.create_object(gid, name, object_type, position, args)
-            if object_type=='Self':
-                self.focus_object = gid
+            
             
         
         
     def insert_events(self, new_events=[]):
         events = []
-        for name, object_type, position, action, args in new_events:
-                if name in name in self.objects:
-                    events.append((name, object_type, position, action, args))
-                    self.eventnames.append(name)
+        for gid, object_type, position, action, args in new_events:
+                if gid in self.objects:
+                    events.append((gid, object_type, position, action, args))
+                    self.eventnames.append(gid)
+                else:
+                    print 'Warning: ',gid, 'not in', self.objects.keys()
+                    
                         
 
         
-        for object_name, object_type, position, action, args in events:
-            self.objects[object_name].handle_action(action, args)
+        for gid, object_type, position, action, args in events:
+            self.objects[gid].handle_action(action, args)
         
         #удаяем объекты с мтеокй REMOVE
 
@@ -87,17 +89,18 @@ class ObjectsView(Drawable, ViewTools):
     
     def filter(self):
         #удаляем объекты для которых больше нет на карте
-        for name in self.deleted_objects:
-            if not self.objects[name].delayed:
-                self.remove_object(name)
-            else:
-                if name not in self.eventnames:
-                    self.remove_object(name)
+        for gid in self.deleted_objects:
+            if gid in self.objects:
+                if not self.objects[gid].delayed:
+                    self.remove_object(gid)
+                else:
+                    if gid not in self.eventnames:
+                        self.remove_object(gid)
                     
-        for name, gameobject in self.objects.items():
+        for gid, gameobject in self.objects.items():
             if gameobject.delayed:
-                if name not in self.eventnames:
-                    self.remove_object(name)
+                if gid not in self.eventnames:
+                    self.remove_object(gid)
         
         self.eventnames = []
         self.deleted_objects = []

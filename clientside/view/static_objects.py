@@ -76,3 +76,6 @@ class Stone(Misc):
 
 class Rubble(Misc):
     tilename = 'rubble'
+
+class AloneTree(Misc):
+    tilename = 'alone_tree'

@@ -6,16 +6,15 @@ from config import *
 from random import randrange, choice
 from weakref import proxy
 
-#game = None
 
 from share.mathlib import Point, NullPoint
-from game_lib import ObjectContainer, EventsContainer, ObjectItem
+from singleton_lib import ObjectContainer, EventsContainer, ObjectItem
         
         
 
         
 class __GameSingleton(ObjectContainer, EventsContainer):
-    "синглтон игрового движка - хранит карту, все объекты, события и предоставляет доступ к ним"
+    "синглтон игрового движка - хранит карты, все объекты, и предоставляет доступ к ним"
     def __init__(self):
         ObjectContainer.__init__(self)
         EventsContainer.__init__(self)
@@ -44,7 +43,7 @@ class __GameSingleton(ObjectContainer, EventsContainer):
 
     
     def change_world(self, player, world):
-        
+        "переметить объект из одного мира в другой"
         prev_world = player.world
         new_world = self.worlds[world]
         player.location.pop_player(player.name)
@@ -89,8 +88,8 @@ class __GameSingleton(ObjectContainer, EventsContainer):
 
 game = __GameSingleton()
 
-import game_lib
-game_lib.init()
+import singleton_lib
+singleton_lib.init()
 
 import world
 world.init()

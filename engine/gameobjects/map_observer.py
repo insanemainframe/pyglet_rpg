@@ -2,10 +2,7 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from engine.game import game
-from share.map import *
 from share.mathlib import *
-from engine.game_lib import Event
 
 from math import hypot
 
@@ -71,25 +68,28 @@ class MapObserver:
             object_type = 'Self'
         return name, object_type, position, args
     
-    def look_players(self):
+    def look_players(self, force = False):
         all_players = self.location.get_players_list()
         players = {}
         
         for player in all_players:
             if self.in_radius(player.position):
-                gid = player.name
+                gid = player.gid
                 players[gid] = self.is_self_player(*player.get_tuple())
         
         players_names = players.keys()
         if players_names!=self.prev_players:
             result = players
         else:
-            result = None
+            result = {}
         self.prev_players = players_names
-        return result
+        if not force:
+            return result
+        else:
+            return players
         
     
-    def look_static_objects(self):
+    def look_static_objects(self, force = False):
         all_static_objects = self.location.get_static_objects_list()
         
         static_objects = {}
@@ -103,10 +103,13 @@ class MapObserver:
         if names!=self.prev_static_objects:
             result = static_objects
         else:
-            result = None
+            result = {}
         self.prev_static_objects = names
         
-        return result
+        if not force:
+            return result
+        else:
+            return static_objects
 
     
     def look_events(self):

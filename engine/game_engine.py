@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-from sys import path
-path.append('../')
-
 from share.mathlib import *
 from share.game_protocol import NewWorld
 
@@ -34,7 +31,7 @@ class GameEngine:
         
         world = new_player.world
         
-        self.messages[name] = [NewWorld(world.name, world.size, new_player.position, world.background)]
+        self.messages[name] = []
         for message in new_player.accept_response():
             self.messages[name].append(message)
     

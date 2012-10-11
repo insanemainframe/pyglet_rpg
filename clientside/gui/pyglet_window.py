@@ -131,7 +131,6 @@ class StatsSurface(Surface):
 class Label(pyglet.text.Label):
     def __init__(self, surface, text, x,y):
         x,y = surface.x+x, surface.y+y
-        print x,y
         pyglet.text.Label.__init__(self, text,
                               font_name='Times New Roman',
                               font_size=13,

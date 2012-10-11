@@ -134,12 +134,12 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
             if action=='Respawn':
                 new_position = message                
                 self.gamesurface.set_camera_position(new_position)
-                self.objects.clear()
-                self.static_objects.clear()
+                #print 'Respawn', new_position
             
             elif action=='MoveCamera':
                 move_vector = message
                 self.antilag_handle(move_vector)
+                #print 'MoveCamera', move_vector
                 
             elif action=='LookLand':
                 newtiles, observed = message

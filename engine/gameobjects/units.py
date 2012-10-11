@@ -70,15 +70,14 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject):
     
     @wrappers.alive_only(Deadly)
     def update(self):
-        if not self.vector:
-            if chance(100):
-                direct = self.hunt()
-                if direct:
-                    self.move(direct)
-                else:
-                    Walker.update(self)
+        if chance(50):
+            direct = self.hunt()
+            if direct:
+                self.move(direct)
             else:
                 Walker.update(self)
+        else:
+            Walker.update(self)
         Movable.update(self)
         Deadly.update(self)
     
@@ -92,7 +91,7 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject):
 
 
 class Zombie(Fighter, MetaMonster):
-    hp = 5
+    hp = 20
     speed = 15
     damage = 1
     attack_speed = 10
@@ -107,9 +106,9 @@ class Zombie(Fighter, MetaMonster):
     
 
 class Ghast(Fighter, MetaMonster):
-    hp = 30
-    speed = 7
-    damage = 5
+    hp = 50
+    speed = 10
+    damage = 10
     attack_speed = 30
     
     def __init__(self, name, world, position):
@@ -122,9 +121,9 @@ class Ghast(Fighter, MetaMonster):
 
 
 class Lych(MetaMonster, Striker):
-    hp = 5
-    speed = 15
-    damage = 2
+    hp = 25
+    speed = 10
+    damage = 5
     
     def __init__(self, name, world, position):
         MetaMonster.__init__(self, name, world, position, self.speed, self.hp)

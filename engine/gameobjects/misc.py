@@ -78,3 +78,7 @@ class Rubble(Misc):
 class Stone(Misc):
     BLOCKTILES = Player.BLOCKTILES + ['water']
     count = 13
+
+class AloneTree(Misc):
+    BLOCKTILES = ['forest', 'bush', 'water', 'ocean']
+    count = 13

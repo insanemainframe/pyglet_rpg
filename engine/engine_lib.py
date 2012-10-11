@@ -66,13 +66,13 @@ class GameObject(object):
         self.alive = True
         self.delayed = False
         self._position = position
-        self.gid = hash((name, position))
+        self.gid = str(hash((name, position)))
         
         self._prev_position = position
     
     def regid(self):
         
-        self.gid = hash((self.name, self.position, random()))
+        self.gid = str(hash((self.name, self.position, random())))
         
     @property
     def position(self):
@@ -172,7 +172,7 @@ class DynamicObject(GameObject):
         else:
             timeout = 0
         #print 'add_event', action, args
-        game.add_event(self.name, object_type, self.position, vector, action, args, timeout)
+        self.world.add_event(self.gid, object_type, self.position, vector, action, args, timeout)
     
     def complete_round(self):
         self.cord_changed = False
@@ -208,7 +208,7 @@ class StaticObject(GameObject):
             timeout = kwargs['timeout']
         else:
             timeout = 0
-        game.add_static_event(self.name, object_type, self.position, action, args, timeout)
+        self.world.add_static_event(self.gid, object_type, self.position, action, args, timeout)
 
     
     def complete_round(self):
@@ -372,10 +372,9 @@ class Respawnable:
     
     def handle_remove(self):
         new_position = game.choice_position(self.world.name, self, 10 ,self.position)
-        vector = new_position - self.position
-        self.change_position(new_position)
-        self.add_event('remove')
-        self.add_event('move', NullPoint.get())
+        
+        self.set_position(new_position)
+        
         self.alive = True
         self.regid()
         self.respawned = True
@@ -409,4 +408,4 @@ class Temporary:
 
 
 
-from game import game
+from singleton import game

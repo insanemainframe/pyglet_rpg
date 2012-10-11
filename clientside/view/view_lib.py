@@ -22,8 +22,14 @@ class ViewTools:
         game_object = self.object_dict[object_type](name, position, **args)
         
         self.objects[gid] = game_object
+        if object_type=='Self':
+                self.focus_object = gid
+        #print 'create_object', gid, name
     
     def remove_object(self, gid):
+        #print 'remove_object', gid, self.objects[gid].name
+        if self.objects[gid].__class__.__name__=='Self':
+                self.focus_object = False
         del self.objects[gid]
     
     def clear(self):

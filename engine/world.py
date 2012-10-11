@@ -3,10 +3,12 @@
 from config import *
 
 from share.mathlib import Point, NullPoint
-from game_objects import *
 
+from engine.game_objects import *
 from worldmaps.mapgen import load_map
 from engine.location import Location
+from engine.game_lib import Event
+
 
 from weakref import proxy
 
@@ -63,6 +65,27 @@ class MetaWorld(MetaWorldTools):
             for location in row:
                 location.create_links()
     
+    def add_static_event(self, name, object_type, position, action, args=(), timeout=0):
+        "добавляет со9-бытие статического объекта"
+        event = Event(name, object_type, position, action, args, timeout)
+        
+        i,j = self.get_loc_cord(position)
+        self.locations[i][j].add_static_event(event)
+    
+    def add_event(self, name, object_type, position, vector, action, args=(), timeout=0, ):
+        "добавляет событие"
+        event = Event(name, object_type, position, action, args, timeout)
+        
+        
+        i,j = self.get_loc_cord(position)
+        self.locations[i][j].add_event(event)
+    
+        if vector:
+            alt_position = position+vector
+            event = Event(name, object_type, alt_position, action, args, timeout)
+            i,j = self.get_loc_cord(alt_position)
+            self.locations[i][j].add_event(event)
+    
     def change_location(self, name, prev_loc, cur_loc):
         "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
         pi, pj = prev_loc
@@ -102,21 +125,26 @@ class MetaWorld(MetaWorldTools):
             start = start/TILESIZE
         lim = 1000
         counter = 0
-        while 1:
+        cords = set()
+        while len(cords)<self.size**2:
             
             position = start +Point(randrange(-radius, radius), randrange(-radius, radius))
-            i,j = position.get()
-            if 0<i<self.size and 0<j<self.size:
-                if not self.map[i][j] in player.BLOCKTILES:
-                    position = position*TILESIZE
-                    return position
-            counter+=1
-            if counter>lim:
-                print 'lim!'
-                lim*=2
-                radius = int(radius*1.5)
-                if radius>self.size/2:
-                    raise Exception('world[%s].choice_position: no place for %s' % (self.name, player))
+            cord = position
+            if cord not in cords:
+                cords.add(cord)
+                i,j =  cord.get()
+                if 0<i<self.size and 0<j<self.size:
+                    
+                    if not self.map[i][j] in player.BLOCKTILES:
+                        position = position*TILESIZE
+                        return position
+                counter+=1
+                if counter>lim:
+                    print 'lim!'
+                    lim*=2
+                    if radius<self.size/2:
+                        radius = int(radius*1.5)
+        raise Exception('world[%s].choice_position: no place for %s' % (self.name, player))
     
     def handle_over_range(self, player, position):
         pass
@@ -129,11 +157,14 @@ class World(MetaWorld):
         MetaWorld.__init__(self, game, name, 'ground')
     
     def start(self):
-        self.create_item(100, GetTeleport(Cave, 'underground'))
-        self.create_item(200, Stone)
+        self.create_item(200, GetTeleport(Cave, 'underground'))
+        
+        self.create_item(500, Stone)
         self.create_item(200, Mushroom)
-        self.create_item(200, Plant)
-        self.create_item(200, WaterFlower)
+        self.create_item(700, Plant)
+        self.create_item(500, WaterFlower) 
+        self.create_item(300, AloneTree)
+        
         self.create_object(200, Zombie)
         self.create_object(50, Lych)
         self.create_object(50, Ghast)
@@ -151,9 +182,8 @@ class UnderWorld(MetaWorld):
         self.create_item(200, GetTeleport(Stair,'ground'))
         self.create_item(200, GetTeleport(DownCave, 'underground2'))
         
-        self.create_item(200, Stone)
-        self.create_item(200, Mushroom)
-        self.create_item(200, Stone)
+        self.create_item(500, Mushroom)
+        self.create_item(500, Stone)
         self.create_item(50, Rubble)
         
         self.create_object(100, Zombie)
@@ -169,8 +199,8 @@ class UnderWorld2(MetaWorld):
     def start(self):
         self.create_item(200, GetTeleport(UpStair,'underground'))
         
-        self.create_item(200, Stone)
-        self.create_item(200, Mushroom)
+        self.create_item(500, Stone)
+        self.create_item(500, Mushroom)
         self.create_item(200, Stone)
         self.create_item(50, Rubble)
         
