@@ -1,10 +1,21 @@
 Python multiplayer client-server hack-and-slash game, using pyglet(or pygame wrapper) and non-blocking sockets.
+<<<<<<< HEAD
 Just for fun and self-education
 
 REQUIRMENTS:
     
 server: python2.7
 
+=======
+Just for fun and self-education. Sprites grabbed from [wesnoth](http://www.wesnoth.org/)
+
+Active branches: master - old stable version, [dev](https://github.com/insanemainframe/pyglet_rpg/tree/dev) - new deeply refactored testing version
+
+REQUIRMENTS:
+    
+server: python2.7
+
+>>>>>>> ce8b666a05ecf3bd1af68d8e6128fa7921f8c72c
 client: python 2.6>= [python-pyglet](http://pyglet.org/download.html) recomended  or [pygame](http://www.pygame.org/download.shtml)
 
 RUN:
@@ -20,6 +31,7 @@ python client.py
 
 for game client
 
+<<<<<<< HEAD
 enter hostname
 
 or use '-d' for default hostname, defined in config.py
@@ -31,6 +43,20 @@ python server.py -d
 ````
 python client.py -d
 ````
+=======
+and enter hostname
+
+or use '-d' for default hostname, defined in config.py
+
+````
+python server.py -d
+````
+
+````
+python client.py -d
+````
+
+>>>>>>> ce8b666a05ecf3bd1af68d8e6128fa7921f8c72c
 
 CONTROL:
 

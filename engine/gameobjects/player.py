@@ -50,7 +50,6 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
             yield protocol.LookPlayers(self.look_players(True))
             yield protocol.LookStaticObjects(self.look_static_objects(True))
             self.respawned = False
-            
  
         
         else:

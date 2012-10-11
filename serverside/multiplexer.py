@@ -136,8 +136,8 @@ class GeventMultiplexer:
 
 
 try:
-            from select import epoll, EPOLLIN, EPOLLOUT
-
+    from select import epoll, EPOLLIN, EPOLLOUT
+    
 except ImportError:
     try:
         from _gevent import core
@@ -152,6 +152,6 @@ except ImportError:
     else:
         
         Multiplexer = GeventMultiplexer
-
 else:
     Multiplexer = EpollMultiplexer
+

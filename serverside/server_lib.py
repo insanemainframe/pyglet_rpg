@@ -68,6 +68,7 @@ class SocketServer(Multiplexer):
 
     
     def _handle_write(self, client_name):
+
         "пишет пакеты на сокет пользователя"
         if self.responses[client_name]:
             with self.responses_lock:
