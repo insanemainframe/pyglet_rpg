@@ -7,7 +7,7 @@ from share.mathlib import Point, NullPoint
 from engine.game_objects import *
 from worldmaps.mapgen import load_map
 from engine.location import Location
-from engine.game_lib import Event
+from engine.singleton_lib import Event
 
 
 from weakref import proxy
@@ -161,7 +161,7 @@ class World(MetaWorld):
         
         self.create_item(500, Stone)
         self.create_item(200, Mushroom)
-        self.create_item(700, Plant)
+        self.create_item(800, Plant)
         self.create_item(500, WaterFlower) 
         self.create_item(300, AloneTree)
         
@@ -182,8 +182,8 @@ class UnderWorld(MetaWorld):
         self.create_item(200, GetTeleport(Stair,'ground'))
         self.create_item(200, GetTeleport(DownCave, 'underground2'))
         
-        self.create_item(500, Mushroom)
-        self.create_item(500, Stone)
+        self.create_item(600, Mushroom)
+        self.create_item(600, Stone)
         self.create_item(50, Rubble)
         
         self.create_object(100, Zombie)
@@ -199,15 +199,15 @@ class UnderWorld2(MetaWorld):
     def start(self):
         self.create_item(200, GetTeleport(UpStair,'underground'))
         
-        self.create_item(500, Stone)
-        self.create_item(500, Mushroom)
+        self.create_item(600, Stone)
+        self.create_item(600, Mushroom)
         self.create_item(200, Stone)
         self.create_item(50, Rubble)
         
         self.create_object(100, Zombie)
-        self.create_object(20, Lych)
-        self.create_object(20, Ghast)
-        self.create_object(20, Cat)
+        self.create_object(30, Lych)
+        self.create_object(30, Ghast)
+        self.create_object(30, Cat)
 
 
 

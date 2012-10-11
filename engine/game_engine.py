@@ -4,7 +4,7 @@
 from share.mathlib import *
 from share.game_protocol import NewWorld
 
-from engine.game import game
+from engine.singleton import game
 from engine.engine_lib import *
 from engine.game_objects import Player
 
