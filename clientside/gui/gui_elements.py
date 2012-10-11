@@ -98,18 +98,21 @@ class WorldDisplay:
     def __init__(self, surface):
         self.surface = surface
         self.worldname = Label(self.surface, 'World: None',120,400)
-        self.position = Label(self.surface, 'Position: None', 120, 420)
+        self.position = Label(self.surface, 'Position: None', 120, 440)
+        self.worldsize = Label(self.surface, 'Size: None', 120, 420)
     
     def change(self, name, size, position):
-        self.worldname.text = 'World: %s %sx%s' % (name, size, size)
-        self.position.text = 'Position %s' % position
+        self.worldname.text = 'World: %s' % name
+        self.worldsize.text = 'Size: %sx%s' % (size, size)
+        self.position.text = 'Position: %s' % position
     
     def update(self, position):
-        self.position.text = 'Position %s' % position
+        self.position.text = 'Position:\n %s' % position
     
     def draw(self):
         self.worldname.draw()
         self.position.draw()
+        self.worldsize.draw()
 
 class LoadingScreen:
     def __init__(self, surface,):

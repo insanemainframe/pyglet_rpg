@@ -21,7 +21,7 @@ class Bot(GameClient, Process):
         
         self.wait_for_accept()
         print 'accepted'
-        self.shift = NullPoint
+        self.shift = Point()
         self.antilag_init = lambda *args: args
     def run(self):
         d = 1

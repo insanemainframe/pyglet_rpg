@@ -3,7 +3,7 @@
 from config import *
 from client_config import CLIENTENGINE
 
-from share.mathlib import Point, NullPoint
+from share.mathlib import Point
 
 if CLIENTENGINE=='pyglet':
     from pyglet.window.key import *
@@ -23,7 +23,7 @@ class InputHandle:
     
     def __init__(self):
         self.step = TILESIZE/2
-        self.vector = NullPoint
+        self.vector = Point()
         self.vectors = {UP:Point(0,self.step), DOWN: Point(0,-self.step),
                LEFT : Point(-self.step,0), RIGHT : Point(self.step,0)}
             

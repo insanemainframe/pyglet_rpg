@@ -8,7 +8,7 @@ from os import walk
 from os.path import join
 from collections import defaultdict
 
-from share.mathlib import Point,NullPoint
+from share.mathlib import Point
 
 from config import TILESIZE, TILESDIR, ROUND_TIMER, HOSTNAME
 

@@ -83,4 +83,3 @@ class Point:
     def __hash__(self):
         return hash((self.x, self.y))
         
-NullPoint = Point()

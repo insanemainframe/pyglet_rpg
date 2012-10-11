@@ -7,7 +7,7 @@ from random import randrange, choice
 from weakref import proxy
 
 
-from share.mathlib import Point, NullPoint
+from share.mathlib import Point
 from singleton_lib import ObjectContainer, EventsContainer, ObjectItem
         
         

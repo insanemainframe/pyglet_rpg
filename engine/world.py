@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from share.mathlib import Point, NullPoint
+from share.mathlib import Point
 
 from engine.game_objects import *
 from worldmaps.mapgen import load_map

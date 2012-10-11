@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from clientside.gui.window import create_tile, create_label
 
-from share.mathlib import Point, NullPoint
+from share.mathlib import Point
 
 from inspect import getmro
 from collections import namedtuple
@@ -137,7 +137,7 @@ class Movable(Animated, DynamicObject):
     def __init__(self, frames=1):
         Animated.__init__(self)
         self.moving = False
-        self.vector = NullPoint
+        self.vector = Point()
         self.create_animation('moving', 'move', frames,2)
     
     def move(self, xy):
@@ -171,4 +171,4 @@ class Movable(Animated, DynamicObject):
     def force_complete(self):
         if self.vector:
             self.position+=self.vector
-            self.vector = NullPoint
+            self.vector = Point()

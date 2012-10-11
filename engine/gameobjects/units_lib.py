@@ -62,7 +62,7 @@ class Stalker:
                 victim = min(dists, key = lambda vector: abs(vector))
                 return victim
             else:
-                return NullPoint
+                return Point()
             
 class Striker:
     def __init__(self, strike_speed, shell, damage):

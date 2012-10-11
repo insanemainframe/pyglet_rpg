@@ -70,7 +70,7 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject):
     
     @wrappers.alive_only(Deadly)
     def update(self):
-        if chance(50):
+        if chance(70):
             direct = self.hunt()
             if direct:
                 self.move(direct)

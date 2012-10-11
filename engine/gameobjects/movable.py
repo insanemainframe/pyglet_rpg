@@ -25,7 +25,7 @@ class Movable(DynamicObject):
         self.stopped = 0
     
     @wrappers.alive_only()
-    def move(self, vector=NullPoint):
+    def move(self, vector=Point()):
         if not self.moved:
             self.moved = True
             if self.stopped>0:
@@ -77,7 +77,7 @@ class Movable(DynamicObject):
                 if cross_tile in self.SLOWTILES:
                     resist = self.SLOWTILES[cross_tile]
             else:
-                move_vector = NullPoint
+                move_vector = Point()
                 self.vector = move_vector
                 break
                 
@@ -105,8 +105,8 @@ class Movable(DynamicObject):
         self.stopped = time
     
     def abort_moving(self):
-        self.vector = NullPoint
-        self.move_vector = NullPoint
+        self.vector = Point()
+        self.move_vector = Point()
     
 
     

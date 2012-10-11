@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from clientside.gui.window import  create_tile, create_label
 
-from share.mathlib import Point, NullPoint
+from share.mathlib import Point
 from clientside.view.objects_lib import StaticObject
 
 from config import TILESIZE

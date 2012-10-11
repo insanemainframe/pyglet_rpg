@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from time import time
 
-from share.mathlib import Point,NullPoint
+from share.mathlib import Point
 
 
 from config import TILESIZE, ROUND_TIMER
@@ -50,7 +50,7 @@ class DeltaTimerObject:
 class Drawable:
     "рисуемые объекты"
     def __init__(self):
-        self.shift = NullPoint
+        self.shift = Point()
         self.tiles = []
     
     def draw(self):
