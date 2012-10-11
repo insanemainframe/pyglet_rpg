@@ -43,11 +43,17 @@ class Bot(GameClient, Process):
                 t = time()
     def on_close(self, a=''):
         exit()
-9
-for i in range(int(argv[1])):
-    bot = Bot()
-    bot.start()
-    
-while 1:
-    pass
+
+def main():
+    n = argv[1]
+
+    for i in range(int(argv[1])):
+        bot = Bot()
+        bot.start()
+        
+    while 1:
+        pass
+
+if __name__=='__main__':
+    main()
     

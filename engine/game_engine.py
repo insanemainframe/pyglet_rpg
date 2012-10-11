@@ -21,20 +21,17 @@ class GameEngine:
             
     def game_connect(self, name):
         "создание нового игрока"
-       
+        #выбираем позицию для нового игрока
         position = game.choice_position(game.mainworld, Player)
+        #создаем игрока
         new_player = Player(name, game.mainworld, position , 7)
-        #
-        #уже существующие объекты
+        
         #оставляем сообщение о подключении
-        print 'New player %s position %s' % (name, position)
-        
-        world = new_player.world
-        
         self.messages[name] = []
         for message in new_player.accept_response():
             self.messages[name].append(message)
-    
+        
+        print 'New player %s' % name
     
     
     def game_requests(self, messages):
@@ -50,11 +47,11 @@ class GameEngine:
     
     def game_middle(self):
         "отыгрывание раунда игры"
+        #получаем список активных локаций
         self.active_locations = game.get_active_locations()
         
         
-        self.active_players = []
-        
+        #обновляем объекты в активных локациях
         for location in self.active_locations:
             for player in location.players.values():
                 player.update()
@@ -62,6 +59,7 @@ class GameEngine:
             for static_object in location.static_objects.values():
                 static_object.update()
         
+        #обновляем активнеы локации
         for location in self.active_locations:
             location.update()
 
@@ -84,6 +82,7 @@ class GameEngine:
     def end_round(self):
         "завершение игрового раунда"
         for location in self.active_locations:
+            #завершаем раунд для объектов в локации
             for player in location.players.values():
                 DynamicObject.complete_round(player)
                 player.complete_round()

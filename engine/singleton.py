@@ -67,6 +67,7 @@ class __GameSingleton(ObjectContainer, EventsContainer):
         
         player.world_changed = True
         player.cord_changed = True
+        #обновляем хэш объекта
         player.regid()
         
     
@@ -88,6 +89,7 @@ class __GameSingleton(ObjectContainer, EventsContainer):
 
 game = __GameSingleton()
 
+#инициализируем модули, что бы избежать рекурсивного импорта
 import singleton_lib
 singleton_lib.init()
 

@@ -6,31 +6,30 @@ from share.ask_hostname import AskHostname
 from serverside.server_lib import SocketServer
 
 from config import PROFILE_SERVER, HOSTNAME
-from share.logger import SERVERLOG as LOG
 
 from threading import RLock
 
 class GameServer(SocketServer, AskHostname, Packer):
+    "игровой сервер"
     hostname = None
     client_requestes = {}
-    client_responses = {}
     client_list = set()
     
     def __init__(self):
-        AskHostname.__init__(self, HOSTNAME)
-        SocketServer.__init__(self)
-        Packer.__init__(self)
+        AskHostname.__init__(self, HOSTNAME) 
+        SocketServer.__init__(self) #работа с сокетами
+        Packer.__init__(self) #упаковка запросов/ответов в пакеты
         
-        self.new_clients_lock = RLock()
-        self.new_clients = []
+        self.new_clients = [] #стек новых клиентов
+        self.new_clients_lock = RLock() #
         
-        self.closed_clients_lock = RLock()
-        self.closed_clients = []
+        self.closed_clients = [] #стек отключившихся клиентов
+        self.closed_clients_lock = RLock() 
         
         
         self.server_lock = RLock()
         
-        self.game = GameEngine()
+        self.game = GameEngine() #сам игровой движок
             
 
     def timer_handler(self):
@@ -70,8 +69,9 @@ class GameServer(SocketServer, AskHostname, Packer):
         self.game.end_round()
         
         
-    
+    #поток движка
     def write(self, name, responses):
+        "пакует сообщение и кладет его в стек ответов"
         responses = [self.pack(response) for response in responses]
         self.put_messages(name, responses)
     
@@ -82,7 +82,6 @@ class GameServer(SocketServer, AskHostname, Packer):
         with self.server_lock:
             self.client_list.add(client)
             self.client_requestes[client] = []
-            self.client_responses[client] = []
         
         with self.new_clients_lock:
             self.new_clients.append(client)
@@ -90,19 +89,20 @@ class GameServer(SocketServer, AskHostname, Packer):
     
     #поток движка
     def read(self, client, message):
+        "распаковывает запрос с сокетсервера и кладет его в стек для обработки движком"
         request = self.unpack(message)
         with self.server_lock:
             self.client_requestes[client].append(request)
     
     #поток сервера
     def close(self, client):
+        "вызывается при отключении клиента, кладет его имя в стек отключившихся клиентов, для обработки движком"
         self.client_list.remove(client)
         with self.closed_clients_lock:
            self.closed_clients.append(client)
         
         with self.server_lock:
             del self.client_requestes[client]
-            del self.client_responses[client]
 
     def start(self):
         self.run()
@@ -122,7 +122,6 @@ if __name__ == '__main__':
         import cProfile
         cProfile.run('main()', '/tmp/game_server.stat')
         
-
     else:
         main()
 
