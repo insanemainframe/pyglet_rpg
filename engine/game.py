@@ -52,18 +52,23 @@ class __GameSingleton(ObjectContainer, EventsContainer):
         teleport_point = choice(new_world.teleports)
         new_position = new_world.choice_position(player, 3, teleport_point)
         li, lj = (new_position/TILESIZE/LOCATIONSIZE).get()
-        player.set_position(new_position)
+        
         
 
         new_location = new_world.locations[li][lj]
         new_location.add_player(player)
 
         self.players[player.name].world = new_world.name
+        
         player.world = proxy(new_world)
-        player.location = new_location
+        
+        player.location = proxy(new_location)
+        player.set_position(new_position)
+        
         
         player.world_changed = True
         player.cord_changed = True
+        player.regid()
         
     
     def get_active_locations(self):

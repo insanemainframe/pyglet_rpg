@@ -88,7 +88,9 @@ class GameObject(object):
             self._position = position
             self._prev_position = position
         else:
-            raise Exception('Invalid position %s %s' % (position, self.name))
+            data = (position, self.name, self.world.name, self.world.size)
+            self.world.handle_over_range(self, position)
+            #raise Exception('Invalid position %s %s world %s size %s' % data)
             
     def change_position(self,position):
         if not position==self._position:
@@ -112,6 +114,8 @@ class GameObject(object):
                 self._prev_position = self._position
                 self._position  = position
             else:
+                data = (position, self.name, self.world.name, self.world.size)
+                self.world.handle_over_range(self, position)
                 raise Exception('Invalid position %s %s' % (position, self.name))
     
     def __hash__(self):

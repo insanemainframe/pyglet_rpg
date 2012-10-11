@@ -97,8 +97,8 @@ class Stats:
 class WorldDisplay:
     def __init__(self, surface):
         self.surface = surface
-        self.worldname = Label(self.surface, 'World: None',70,400)
-        self.position = Label(self.surface, 'Position: None', 70, 420)
+        self.worldname = Label(self.surface, 'World: None',100,400)
+        self.position = Label(self.surface, 'Position: None', 100, 420)
     
     def change(self, name, size, position):
         self.worldname.text = 'World: %s %sx%s' % (name, size, size)

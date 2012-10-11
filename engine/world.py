@@ -92,8 +92,6 @@ class MetaWorld(MetaWorldTools):
         i,j = (position/TILESIZE/LOCATIONSIZE).get()
         return self.locations[i][j]
     
-    
-    
 
     
     def choice_position(self, player, radius=7, start=False):
@@ -119,6 +117,9 @@ class MetaWorld(MetaWorldTools):
                 radius = int(radius*1.5)
                 if radius>self.size/2:
                     raise Exception('world[%s].choice_position: no place for %s' % (self.name, player))
+    
+    def handle_over_range(self, player, position):
+        pass
     
     
 
