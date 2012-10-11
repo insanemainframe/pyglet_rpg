@@ -44,8 +44,7 @@ class ObjectsView(Drawable, ViewTools):
                 if gid in self.objects:
                     events.append((gid, object_type, position, action, args))
                     self.eventnames.append(gid)
-                else:
-                    print 'Warning: ',gid, 'not in', self.objects.keys()
+           
                     
                         
 

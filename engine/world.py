@@ -139,7 +139,8 @@ class MetaWorld(MetaWorldTools):
                     
                     if not self.map[i][j] in player.BLOCKTILES:
                         position = position*TILESIZE
-                        return position
+                        shift = Point(randrange(TILESIZE-1),randrange(TILESIZE-1))
+                        return position+shift
                 counter+=1
                 if counter>lim:
                     print 'lim!'

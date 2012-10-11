@@ -63,7 +63,7 @@ class Mushroom(Misc):
 
 class Plant(Misc):
     BLOCKTILES = Player.BLOCKTILES + ['water']
-    count = 10
+    count = 26
 
 class WaterFlower(Misc):
     count = 19
@@ -79,6 +79,10 @@ class Stone(Misc):
     BLOCKTILES = Player.BLOCKTILES + ['water']
     count = 13
 
-class AloneTree(Misc):
+class AloneTree(Misc, Solid):
     BLOCKTILES = ['forest', 'bush', 'water', 'ocean']
     count = 13
+    radius = TILESIZE
+    def __init__(self, world, position):
+        Misc.__init__(self, world, position)
+        Solid.__init__(self, self.radius)

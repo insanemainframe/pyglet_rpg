@@ -55,20 +55,20 @@ class MapObserver:
         self.prev_observed = observed
         return looked, observed
         
-    def in_radius_(self, position):
-        dist = abs(position - self.position)
-        return dist<=self.look_radius
     
     def in_radius(self, position):
+        "проверяет находится позиция в обозримых тайлах"
         cord = (position/TILESIZE).get()
         return cord in self.prev_observed
     
     def is_self_player(self, name, object_type, position, args):
+        "проверяет, являетя видимый игрок наблюдателем и меняет класс на Self"
         if name==self.name:
             object_type = 'Self'
         return name, object_type, position, args
     
     def look_players(self, force = False):
+        "список видимых игроков, если не изменился - пустой список"
         all_players = self.location.get_players_list()
         players = {}
         
@@ -90,6 +90,7 @@ class MapObserver:
         
     
     def look_static_objects(self, force = False):
+        "выдает список видимых статических объектов, или пустой список если он не измеинлся"
         all_static_objects = self.location.get_static_objects_list()
         
         static_objects = {}
@@ -122,7 +123,7 @@ class MapObserver:
         return events
         
     def look_static_events(self):
-        "поиск видимых сатических объеков и их событий"        
+        "поиск видимых статических событий"        
         static_events = set()
         for static_event in self.location.get_static_events():
             if self.in_radius(static_event.position):
