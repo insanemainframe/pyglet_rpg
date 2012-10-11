@@ -27,6 +27,7 @@ class MetaWorldTools:
             position = self.choice_position(object_type, self.size)
             monster = object_type(self.name, position)
 
+
 class MetaWorld(MetaWorldTools):
     "базовый класс карты"
     monster_count = 0
@@ -126,6 +127,7 @@ class MetaWorld(MetaWorldTools):
         lim = 1000
         counter = 0
         cords = set()
+        
         while len(cords)<self.size**2:
             
             position = start +Point(randrange(-radius, radius), randrange(-radius, radius))
@@ -169,10 +171,10 @@ class World(MetaWorld):
         self.create_object(50, Lych)
         self.create_object(50, Ghast)
         self.create_object(50, Cat)
-    
-    
-    
-    
+
+
+
+
 class UnderWorld(MetaWorld):
     "подземелье"
     def __init__(self, name,  game):
@@ -210,8 +212,6 @@ class UnderWorld2(MetaWorld):
         self.create_object(30, Cat)
 
 
-
-########################################################################
 
 
         
