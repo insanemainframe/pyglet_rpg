@@ -143,7 +143,6 @@ class MetaWorld(MetaWorldTools):
                         return position+shift
                 counter+=1
                 if counter>lim:
-                    print 'lim!'
                     lim*=2
                     if radius<self.size/2:
                         radius = int(radius*1.5)

@@ -48,17 +48,22 @@ class Movable(DynamicObject):
                     
                     
                     self.vector = self.vector - move_vector
-                    self.move_vector = move_vector
+                    move_vector = move_vector
                 else:
-                    self.move_vector = self.vector
-                self.change_position(self.position+self.move_vector)
+                    move_vector = self.vector
+                
+                if move_vector:
+                    self._detect_collisions(move_vector)
+                    
+                self.change_position(self.position+move_vector)
+                self.move_vector = move_vector
                 
                 
                 #добавляем событие
                
                 if self.position_changed:
                     self.add_event( 'move',  self.move_vector.get())
-                    self._detect_collisions(self)
+                    
                 
     
     def _tile_collission(self, move_vector):
@@ -85,17 +90,18 @@ class Movable(DynamicObject):
         move_vector *= resist
         return move_vector
     
-    @wrappers.player_filter_alive
-    def _detect_collisions(self, player):
+    def _detect_collisions(self, move_vector):
         solids = self.location.get_solids_list()
         
-        
+        dists = []
         for Player in solids:
             if Player.name != self.name:
-                distance = abs(Player.position - player.position)
-                if distance <= Player.radius+player.radius:
-                    Player.collission(player)
-                    player.collission(Player)
+                distance = abs(Player.position - self.position)
+                if distance <= Player.radius+self.radius:
+                    dists.append((distance, Player.radius))
+                    Player.collission(self)
+                    self.collission(Player)
+
     
     def complete_round(self):
         self.moved = False
