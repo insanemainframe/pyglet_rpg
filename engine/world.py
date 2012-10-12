@@ -16,14 +16,14 @@ engine_lib = None
 
 class MetaWorldTools:
     def create_object(self, n, object_type):
-        for i in range(n):
+        for i in xrange(n):
             position = self.choice_position(object_type, self.size)
-            name =object_type.__name__
+            name = object_type.__name__
             monster = object_type('%s_%s' % (name, MetaWorld.monster_count) , self.mapname, position)
             MetaWorld.monster_count+=1
     
     def create_item(self, n, object_type):
-        for i in range(n):
+        for i in xrange(n):
             position = self.choice_position(object_type, self.size)
             monster = object_type(self.name, position)
 
@@ -55,9 +55,9 @@ class MetaWorld(MetaWorldTools):
         print 'creating world "%s" %sx%s background %s locations %sx%s' % data
     
     def create_locations(self):
-        for i in range(self.location_size):
+        for i in xrange(self.location_size):
             locations = []
-            for j in range(self.location_size):
+            for j in xrange(self.location_size):
                 locations.append(Location(self, i,j))
             self.locations.append(locations)
     
@@ -92,8 +92,8 @@ class MetaWorld(MetaWorldTools):
     
     def change_location(self, name, prev_loc, cur_loc):
         "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
-        pi, pj = prev_loc
-        ci, cj = cur_loc
+        pi, pj = prev_loc.get()
+        ci, cj = cur_loc.get()
         prev_location = self.locations[pi][pj]
         cur_location = self.locations[ci][cj]
                         

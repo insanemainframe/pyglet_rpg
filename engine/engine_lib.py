@@ -110,8 +110,8 @@ class GameObject(object):
                 if position!=self._position:
                     self.position_changed = True
                     
-                prev_loc = self.location.cord.get()
-                cur_loc = self.world.get_loc_cord(position).get()
+                prev_loc = self.location.cord
+                cur_loc = self.world.get_loc_cord(position)
                 if prev_loc!=cur_loc:
                     self.location = self.world.change_location(self.name, prev_loc, cur_loc)
                 

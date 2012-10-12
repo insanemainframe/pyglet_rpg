@@ -73,7 +73,7 @@ class Movable(DynamicObject):
             if 0<i<self.world.size and 0<j<self.world.size:
                 cross_tile =  self.world.map[i][j]
                 if cross_tile in self.BLOCKTILES:
-                    move_vector = (cross_position - self.position)*0.99
+                    move_vector = (cross_position - self.position)*0.90
                     self.vector = move_vector
                     #если объект хрупкий - отмечаем для удаления
                     self.tile_collission(cross_tile)

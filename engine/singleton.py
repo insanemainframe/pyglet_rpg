@@ -48,7 +48,7 @@ class __GameSingleton(ObjectContainer):
         player.location.pop_player(player.name)
         
         teleport_point = choice(new_world.teleports)
-        new_position = new_world.choice_position(player, 3, teleport_point)
+        new_position = new_world.choice_position(player, 5, teleport_point)
         li, lj = (new_position/TILESIZE/LOCATIONSIZE).get()
         
         
