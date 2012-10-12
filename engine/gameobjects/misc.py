@@ -63,7 +63,11 @@ class Mushroom(Misc):
 
 class Plant(Misc):
     BLOCKTILES = Player.BLOCKTILES + ['water']
-    count = 26
+    count = 10
+
+class Flower(Misc):
+    BLOCKTILES = Player.BLOCKTILES + ['water']
+    count = 15
 
 class WaterFlower(Misc):
     count = 19

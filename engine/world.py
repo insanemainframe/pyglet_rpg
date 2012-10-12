@@ -70,7 +70,7 @@ class MetaWorld(MetaWorldTools):
         "добавляет со9-бытие статического объекта"
         event = Event(name, object_type, position, action, args, timeout)
         
-        i,j = self.get_loc_cord(position)
+        i,j = self.get_loc_cord(position).get()
         self.locations[i][j].add_static_event(event)
     
     def add_event(self, name, object_type, position, vector, action, args=(), timeout=0, ):
@@ -78,14 +78,17 @@ class MetaWorld(MetaWorldTools):
         event = Event(name, object_type, position, action, args, timeout)
         
         
-        i,j = self.get_loc_cord(position)
+        i,j = self.get_loc_cord(position).get()
         self.locations[i][j].add_event(event)
     
         if vector:
             alt_position = position+vector
             event = Event(name, object_type, alt_position, action, args, timeout)
-            i,j = self.get_loc_cord(alt_position)
-            self.locations[i][j].add_event(event)
+            i,j = self.get_loc_cord(alt_position).get()
+            try:
+                self.locations[i][j].add_event(event)
+            except IndexError:
+                pass
     
     def change_location(self, name, prev_loc, cur_loc):
         "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
@@ -100,7 +103,7 @@ class MetaWorld(MetaWorldTools):
         return proxy(self.locations[ci][cj])
     
     def get_loc_cord(self, position):
-        return (position/TILESIZE/LOCATIONSIZE).get()
+        return position/TILESIZE/LOCATIONSIZE
     
     
     def get_location(self, player):
@@ -135,7 +138,7 @@ class MetaWorld(MetaWorldTools):
             if cord not in cords:
                 cords.add(cord)
                 i,j =  cord.get()
-                if 0<i<self.size and 0<j<self.size:
+                if 1<i<self.size-1 and 1<j<self.size-1:
                     
                     if not self.map[i][j] in player.BLOCKTILES:
                         position = position*TILESIZE
@@ -163,7 +166,8 @@ class World(MetaWorld):
         
         self.create_item(500, Stone)
         self.create_item(200, Mushroom)
-        self.create_item(800, Plant)
+        self.create_item(500, Plant)
+        self.create_item(5000, Flower)
         self.create_item(500, WaterFlower) 
         self.create_item(300, AloneTree)
         

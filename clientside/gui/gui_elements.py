@@ -26,37 +26,38 @@ class Stats:
         y = 1
         dy = -15
         h = 600 #surface.height
+        x = 100
         
         hp_mess = 'hp: %s/%s' % (self.hp, self.hp_value)
-        self.hp_display = self.label(hp_mess, 70, h+y*dy)
+        self.hp_display = self.label(hp_mess, x, h+y*dy)
         y+=1
                           
         kills_mess = 'kills: %s' % self.kills
-        self.kills_display = self.label(kills_mess, 70, h+y*dy)
+        self.kills_display = self.label(kills_mess, x, h+y*dy)
         y+=1
                           
         deaths_mess = 'deaths: %s' % self.deaths
-        self.deaths_display = self.label(deaths_mess, 70, h+y*dy)
+        self.deaths_display = self.label(deaths_mess, x, h+y*dy)
         y+=1
         
         gold_mess = 'gold %s' % self.gold
-        self.gold_display = self.label(gold_mess, 70, h+y*dy)
+        self.gold_display = self.label(gold_mess, x, h+y*dy)
         y+=1
         
         speed_mess = 'speed: %s' % self.speed
-        self.speed_display = self.label(speed_mess, 70, h+y*dy)
+        self.speed_display = self.label(speed_mess, x, h+y*dy)
         y+=1
         
         damage_mess = 'damage: %s' % self.damage
-        self.damage_display = self.label(damage_mess, 70, h+y*dy)
+        self.damage_display = self.label(damage_mess, x, h+y*dy)
         y+=1
         
         skills_mess = 'skills: %s' % self.skills
-        self.skills_display = self.label(skills_mess, 70, h+y*dy)
+        self.skills_display = self.label(skills_mess, x, h+y*dy)
         y+=1
         
         invisible_mess = 'invisible: %s' % self.invisible
-        self.invisible_display = self.label(invisible_mess, 70, h+y*dy)
+        self.invisible_display = self.label(invisible_mess, x, h+y*dy)
         y+=1
         
         
@@ -97,9 +98,10 @@ class Stats:
 class WorldDisplay:
     def __init__(self, surface):
         self.surface = surface
-        self.worldname = Label(self.surface, 'World: None',120,400)
-        self.position = Label(self.surface, 'Position: None', 120, 440)
-        self.worldsize = Label(self.surface, 'Size: None', 120, 420)
+        x = 100
+        self.worldname = Label(self.surface, 'World: None',x,400)
+        self.position = Label(self.surface, 'Position: None', x, 440)
+        self.worldsize = Label(self.surface, 'Size: None', x, 420)
     
     def change(self, name, size, position):
         self.worldname.text = 'World: %s' % name
@@ -107,7 +109,7 @@ class WorldDisplay:
         self.position.text = 'Position: %s' % position
     
     def update(self, position):
-        self.position.text = 'Position:\n %s' % position
+        self.position.text = 'Position: %s' % position
     
     def draw(self):
         self.worldname.draw()

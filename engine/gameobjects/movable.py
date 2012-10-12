@@ -69,8 +69,7 @@ class Movable(DynamicObject):
     def _tile_collission(self, move_vector):
         "определения пересечяения вектора с непрохоодимыми и труднопроходимыми тайлами"
         resist = 1
-        crossed = get_cross(self.position, move_vector)
-        for (i,j), cross_position in crossed:
+        for (i,j), cross_position in get_cross(self.position, move_vector):
             if 0<i<self.world.size and 0<j<self.world.size:
                 cross_tile =  self.world.map[i][j]
                 if cross_tile in self.BLOCKTILES:

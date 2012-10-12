@@ -71,6 +71,9 @@ class Plant(Misc):
 class WaterFlower(Misc):
     tilename = 'water_flower'
 
+class Flower(Misc):
+    tilename = 'flower'
+
 class Stone(Misc):
     tilename = 'stone'
 

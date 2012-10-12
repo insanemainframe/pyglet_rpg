@@ -31,9 +31,8 @@ class MapObserver:
     
     def look_map(self):
         "возвращает список координат видимых клеток из позиции position, с координаами относительно начала карты"
-        position = self.position
         rad = self.look_size
-        I,J = (position/TILESIZE).get()
+        I,J = self.cord.get()
         #
         observed = set()
         looked = set()
@@ -45,8 +44,7 @@ class MapObserver:
         
         for i in xrange(i_start, i_end):
             for j in xrange(j_start, j_end):
-                diff = hypot(I-i,J-j) - rad
-                if diff<0:
+                if hypot(I-i,J-j) < rad:
                     if (i,j) not in self.prev_observed:
                         tile_type = self.world.map[i][j]
                         looked.add((Point(i,j), tile_type))
@@ -58,8 +56,10 @@ class MapObserver:
     
     def in_radius(self, position):
         "проверяет находится позиция в обозримых тайлах"
-        cord = (position/TILESIZE).get()
-        return cord in self.prev_observed
+        i,j = (position/TILESIZE).get()
+        I,J = self.cord.get()
+        diff = hypot(I-i,J-j)
+        return diff<self.look_size
     
     def is_self_player(self, name, object_type, position, args):
         "проверяет, являетя видимый игрок наблюдателем и меняет класс на Self"

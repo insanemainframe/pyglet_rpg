@@ -8,16 +8,15 @@ from weakref import proxy
 
 
 from share.mathlib import Point
-from singleton_lib import ObjectContainer, EventsContainer, ObjectItem
+from singleton_lib import ObjectContainer, ObjectItem
         
         
 
         
-class __GameSingleton(ObjectContainer, EventsContainer):
+class __GameSingleton(ObjectContainer):
     "синглтон игрового движка - хранит карты, все объекты, и предоставляет доступ к ним"
     def __init__(self):
         ObjectContainer.__init__(self)
-        EventsContainer.__init__(self)
 
     
     def start(self):

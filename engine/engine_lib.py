@@ -65,10 +65,12 @@ class GameObject(object):
         self.name = name
         self.alive = True
         self.delayed = False
-        self._position = position
-        self.gid = str(hash((name, position)))
         
+        self._position = position
+        self.cord = position/TILESIZE
         self._prev_position = position
+        
+        self.gid = str(hash((name, position)))
     
     def regid(self):
         
@@ -87,10 +89,11 @@ class GameObject(object):
         if 0<=position.x<=size and 0<=position.y<=size:
             self._position = position
             self._prev_position = position
+            self.cord = position/TILESIZE
         else:
             data = (position, self.name, self.world.name, self.world.size)
             self.world.handle_over_range(self, position)
-            #raise Exception('Invalid position %s %s world %s size %s' % data)
+            raise Warning('Invalid position %s %s world %s size %s' % data)
             
     def change_position(self,position):
         if not position==self._position:
@@ -102,12 +105,13 @@ class GameObject(object):
                 
                 if cur_cord!=prev_cord:
                     self.cord_changed = True
+                    self.cord = cur_cord
                     
                 if position!=self._position:
                     self.position_changed = True
                     
-                prev_loc = self.world.get_loc_cord(self._position)
-                cur_loc = self.world.get_loc_cord(position)
+                prev_loc = self.location.cord.get()
+                cur_loc = self.world.get_loc_cord(position).get()
                 if prev_loc!=cur_loc:
                     self.location = self.world.change_location(self.name, prev_loc, cur_loc)
                 
@@ -116,7 +120,7 @@ class GameObject(object):
             else:
                 data = (position, self.name, self.world.name, self.world.size)
                 self.world.handle_over_range(self, position)
-                raise Exception('Invalid position %s %s' % (position, self.name))
+                print 'Warning: Invalid position %s %s' % (position, self.name)
     
     def __hash__(self):
         return hash(self.name)
@@ -405,6 +409,7 @@ class Temporary:
         t = time()
         if t-self.creation_time >= self.lifetime:
             self.to_remove(True)
+
 
 
 

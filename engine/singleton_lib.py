@@ -130,36 +130,6 @@ class ObjectContainer(object):
     
         
 
-
-
-class EventsContainer:
-    def __init__(self):                
-        pass
-    
-    def add_event(self, name, object_type, position, vector, action, args=(), timeout=0, ):
-        "добавляет событие"
-        event = Event(name, object_type, position, action, args, timeout)
-        
-        world = self.worlds[self.players[name].world]
-        
-        i,j = world.get_loc_cord(position)
-        world.locations[i][j].add_event(event)
-    
-        if vector:
-            alt_position = position+vector
-            event = Event(name, object_type, alt_position, action, args, timeout)
-            i,j = world.get_loc_cord(alt_position)
-            world.locations[i][j].add_event(event)
-        
-    
-    def add_static_event(self, name, object_type, position, action, args=(), timeout=0):
-        "добавляет со9-бытие статического объекта"
-        event = Event(name, object_type, position, action, args, timeout)
-        
-        world = self.worlds[self.players[name].world]
-
-        i,j = world.get_loc_cord(position)
-        world.locations[i][j].add_static_event(event)
         
     
 

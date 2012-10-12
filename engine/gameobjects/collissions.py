@@ -144,17 +144,17 @@ def get_cross(position, vector):
                 if not ij in crossed:
                     counter+=1
                     crossed.append(ij)
-                    results.append((ij.get(), cross))
+                    yield (ij.get(), cross)
                     cur_tile = ij
                     if ij == end_cord:
-                        return results
+                        raise StopIteration
             if not counter:
                 #print 'COUNTER BREAK'
-                return results
+                raise StopIteration
         else:
             #print 'BREAK'
-            return results
-    return results
+            raise StopIteration
+    raise StopIteration
 
 
 #qaprint get_cross(Point(0*TILESIZE,0*TILESIZE), Point(2*TILESIZE,5*TILESIZE))
