@@ -4,6 +4,7 @@ from config import *
 
 from sys import exit
 
+print 'Loading modules...'
 
 from share.mathlib import *
 from share.ask_hostname import AskHostname
@@ -25,6 +26,7 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
     vector = Point(0,0)
     hostname = HOSTNAME
     def __init__(self, height, width):
+        print 'Initialization...'
         #инициализация родтельских классов
         AskHostname.__init__(self, HOSTNAME)
         window.GUIWindow.__init__(self, height, width)
@@ -134,12 +136,10 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
             if action=='Respawn':
                 new_position = message                
                 self.gamesurface.set_camera_position(new_position)
-                #print 'Respawn', new_position
             
             elif action=='MoveCamera':
                 move_vector = message
                 self.antilag_handle(move_vector)
-                #print 'MoveCamera', move_vector
                 
             elif action=='LookLand':
                 newtiles, observed = message
@@ -204,6 +204,7 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
         
     def run(self):
         "старт"
+        print 'Running..'
         self.run_app()
     
     def on_close(self):

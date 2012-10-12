@@ -17,14 +17,14 @@ engine_lib = None
 class MetaWorldTools:
     def create_object(self, n, object_type):
         for i in xrange(n):
-            position = self.choice_position(object_type, self.size)
+            position = self.choice_position(object_type, self.size/2)
             name = object_type.__name__
             monster = object_type('%s_%s' % (name, MetaWorld.monster_count) , self.mapname, position)
             MetaWorld.monster_count+=1
     
     def create_item(self, n, object_type):
         for i in xrange(n):
-            position = self.choice_position(object_type, self.size)
+            position = self.choice_position(object_type, self.size/2)
             monster = object_type(self.name, position)
     
     def resize(self,cord):
@@ -36,36 +36,6 @@ class MetaWorldTools:
             else:
                 return 0
     
-    def get_all_cords(self, rad, start, tilefilter=[]):
-        I,J = start.get()
-        i_start = self.resize(I-rad)
-        i_end = self.resize(I+rad)
-        j_start = self.resize(J-rad)
-        j_end = self.resize(J+rad)
-        
-        cords = set()
-        for i in xrange(i_start, i_end):
-            for j in xrange(j_start, j_end):
-                if hypot(I-i,J-j) < rad:
-                    if self.map[i][j] not in tilefilter:
-                        cords.add(Point(i,j))
-        return cords
-    
-    def _choice_position(self, player, radius=7, start=False):
-        "выбирает случайную позицию, доступную для объекта"
-        if not start:
-            start = Point(self.size/2,self.size/2)
-        else:
-            start = start/TILESIZE
-        
-        all_cords = self.get_all_cords(radius, start, player.BLOCKTILES)
-        if all_cords:
-            cord = choice(all_cords)
-            shift = Point(randrange(TILESIZE-1),randrange(TILESIZE-1))
-            position = cord*TILESIZE + shift
-            return position
-        else:
-            raise Error
             
 
 
@@ -134,14 +104,18 @@ class MetaWorld(MetaWorldTools):
     def change_location(self, name, prev_loc, cur_loc):
         "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
         pi, pj = prev_loc.get()
-        ci, cj = cur_loc.get()
         prev_location = self.locations[pi][pj]
-        cur_location = self.locations[ci][cj]
-                        
-        prev_location.pop_player(name)
-        cur_location.add_player(self.game.players[name].player)
-        
-        return proxy(self.locations[ci][cj])
+        ci, cj = cur_loc.get()
+        if 0<ci<self.location_size and 0<cj<self.location_size :
+            
+            cur_location = self.locations[ci][cj]
+                            
+            prev_location.pop_player(name)
+            cur_location.add_player(self.game.players[name].player)
+            
+            return proxy(self.locations[ci][cj])
+        else:
+            return proxy(prev_location)
     
     def get_loc_cord(self, position):
         return position/TILESIZE/LOCATIONSIZE

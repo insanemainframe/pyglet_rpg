@@ -19,7 +19,7 @@ class GetTeleport:
 
 class Teleport(StaticObject, Solid):
     radius = TILESIZE
-    BLOCKTILES = Player.BLOCKTILES
+    BLOCKTILES = Player.BLOCKTILES + ['water']
     def __init__(self, world, position, dest):
         StaticObject.__init__(self, world, position)
         self.world.teleports.append(position)

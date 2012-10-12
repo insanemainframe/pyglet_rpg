@@ -36,6 +36,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
         yield protocol.LookEvents(self.look_events())
         
     def handle_response(self):
+        #если попал в новый мир
         if self.world_changed:
             yield protocol.NewWorld(self.world.name, self.world.size, self.position, self.world.background)
             yield protocol.LookLand(*self.look_map())
@@ -43,7 +44,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
             yield protocol.LookStaticObjects(self.look_static_objects(True))
             self.world_changed = False
             
-    
+        #если респавнился
         elif self.respawned:
             yield protocol.Respawn(self.position)
             yield protocol.LookLand(*self.look_map())
@@ -76,10 +77,9 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
                     yield  protocol.LookStaticObjects(static_objects)
             
             #если есть новые события в локации
-            if self.location.check_events():
+            if self.has_events or self.location.check_events():
                 events = self.look_events()
-                if events:
-                    yield protocol.LookEvents(events)
+                yield protocol.LookEvents(events)
             
             #если есть новй события статическиъ объекктов
             if self.location.check_static_events():

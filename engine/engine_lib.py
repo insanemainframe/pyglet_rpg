@@ -71,6 +71,8 @@ class GameObject(object):
         self._prev_position = position
         
         self.gid = str(hash((name, position)))
+        
+        self.has_events = False
     
     def regid(self):
         
@@ -177,10 +179,13 @@ class DynamicObject(GameObject):
             timeout = 0
         #print 'add_event', action, args
         self.world.add_event(self.gid, object_type, self.position, vector, action, args, timeout)
+        self.has_events = True
     
     def complete_round(self):
         self.cord_changed = False
         self.position_changed = False
+        self.has_events = False
+        
     
     def get_tuple(self):
         return self.name, self.__class__.__name__, self.prev_position, self.get_args()
