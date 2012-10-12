@@ -27,7 +27,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
         Striker.__init__(self,2, Ball, self.damage)
         Respawnable.__init__(self, 10, 30)
         Stats.__init__(self)
-        Skill.__init__(self,100)
+        Skill.__init__(self,10)
         self.change_objects = False
     
     def accept_response(self):

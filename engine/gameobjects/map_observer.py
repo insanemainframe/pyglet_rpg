@@ -20,14 +20,7 @@ class MapObserver:
         self.prev_looked = set()
         self.prev_observed = set()
     
-    def resize(self,cord):
-        if 0<=cord<=self.world.size:
-            return cord
-        else:
-            if cord>self.world.size:
-                return self.world.size
-            else:
-                return 0
+
     
     def look_map(self):
         "возвращает список координат видимых клеток из позиции position, с координаами относительно начала карты"
@@ -37,10 +30,10 @@ class MapObserver:
         observed = set()
         looked = set()
         #
-        i_start = self.resize(I-rad)
-        i_end = self.resize(I+rad)
-        j_start = self.resize(J-rad)
-        j_end = self.resize(J+rad)
+        i_start = self.world.resize(I-rad)
+        i_end = self.world.resize(I+rad)
+        j_start = self.world.resize(J-rad)
+        j_end = self.world.resize(J+rad)
         
         for i in xrange(i_start, i_end):
             for j in xrange(j_start, j_end):

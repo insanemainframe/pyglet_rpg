@@ -26,6 +26,47 @@ class MetaWorldTools:
         for i in xrange(n):
             position = self.choice_position(object_type, self.size)
             monster = object_type(self.name, position)
+    
+    def resize(self,cord):
+        if 0<=cord<=self.size:
+            return cord
+        else:
+            if cord>self.size:
+                return self.size
+            else:
+                return 0
+    
+    def get_all_cords(self, rad, start, tilefilter=[]):
+        I,J = start.get()
+        i_start = self.resize(I-rad)
+        i_end = self.resize(I+rad)
+        j_start = self.resize(J-rad)
+        j_end = self.resize(J+rad)
+        
+        cords = set()
+        for i in xrange(i_start, i_end):
+            for j in xrange(j_start, j_end):
+                if hypot(I-i,J-j) < rad:
+                    if self.map[i][j] not in tilefilter:
+                        cords.add(Point(i,j))
+        return cords
+    
+    def _choice_position(self, player, radius=7, start=False):
+        "выбирает случайную позицию, доступную для объекта"
+        if not start:
+            start = Point(self.size/2,self.size/2)
+        else:
+            start = start/TILESIZE
+        
+        all_cords = self.get_all_cords(radius, start, player.BLOCKTILES)
+        if all_cords:
+            cord = choice(all_cords)
+            shift = Point(randrange(TILESIZE-1),randrange(TILESIZE-1))
+            position = cord*TILESIZE + shift
+            return position
+        else:
+            raise Error
+            
 
 
 class MetaWorld(MetaWorldTools):
@@ -119,7 +160,8 @@ class MetaWorld(MetaWorldTools):
         i,j = (position/TILESIZE/LOCATIONSIZE).get()
         return self.locations[i][j]
     
-
+    
+    
     
     def choice_position(self, player, radius=7, start=False):
         "выбирает случайную позицию, доступную для объекта"
