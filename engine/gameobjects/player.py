@@ -13,6 +13,7 @@ import  share.game_protocol as protocol
 
 class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, DynamicObject):
     "класс игрока"
+    min_dist = 10
     prev_looked = set()
     speed = 30
     hp = 60
@@ -120,3 +121,12 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
     
     def complete_round(self):
         Movable.complete_round(self)
+    
+    @classmethod
+    def choice_position(cls, world, location, i ,j):
+        for player  in location.get_players_list():
+            if player.fraction=='monsters':
+                dist = abs(Point(i,j)*TILESIZE - player.position)
+                if dist<=cls.min_dist*TILESIZE:
+                    return False
+        return True

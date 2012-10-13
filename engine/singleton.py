@@ -63,6 +63,7 @@ class __GameSingleton(ObjectContainer):
         
         player.location = proxy(new_location)
         player.set_position(new_position)
+        player.move_vector = Point()
         
         
         player.world_changed = True

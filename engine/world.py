@@ -52,9 +52,9 @@ class MetaWorld(MetaWorldTools):
         
         self.teleports = [Point(self.size/2, self.size/2)]
         
-        self.location_size = self.size/LOCATIONSIZE
-        if self.location_size*LOCATIONSIZE<self.size:
-            self.location_size+=1
+        self.location_size = self.size/LOCATIONSIZE +1
+        #if self.location_size*LOCATIONSIZE<self.size:
+        #    self.location_size+=1
         
         
         self.locations = []
@@ -102,7 +102,7 @@ class MetaWorld(MetaWorldTools):
             try:
                 self.locations[i][j].add_event(event)
             except IndexError:
-                print 'location IndexError', i,j
+                print 'location IndexError %s[%s:%s] %s' (self.name, i,j, name)
     
     def change_location(self, name, prev_loc, cur_loc):
         "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
@@ -124,18 +124,25 @@ class MetaWorld(MetaWorldTools):
         return position/TILESIZE/LOCATIONSIZE
     
     
-    def get_location(self, player):
+    def get_location(self, position):
         "возвращает слокацию"
-        position = player.position
         
         i,j = (position/TILESIZE/LOCATIONSIZE).get()
-        return self.locations[i][j]
+        try:
+            return self.locations[i][j]
+        except IndexError as Error:
+            print('Warning: invalid location cord %s[%s:%s]' % (self.name,i,j))
+            raise Error
+        
     
-    def get_location_static(self, player):
+    def get_location_static(self, position):
         "возвращает слокацию"
-        position = player.position
         i,j = (position/TILESIZE/LOCATIONSIZE).get()
-        return self.locations[i][j]
+        try:
+            return self.locations[i][j]
+        except IndexError as Error:
+            print('Warning: invalid location cord %s[%s:%s]' % (self.name,i,j))
+            raise Error
     
     
     
@@ -160,9 +167,12 @@ class MetaWorld(MetaWorldTools):
                 if 1<i<self.size-1 and 1<j<self.size-1:
                     
                     if not self.map[i][j] in player.BLOCKTILES:
+                        #проверяем, подходит ли клетка объекту
                         position = position*TILESIZE
-                        shift = Point(randrange(TILESIZE-1),randrange(TILESIZE-1))
-                        return position+shift
+                        location = self.get_location(position)
+                        if player.choice_position(self, location, i ,j):
+                            shift = Point(randrange(TILESIZE-1),randrange(TILESIZE-1))
+                            return position+shift
                 counter+=1
                 if counter>lim:
                     lim*=2

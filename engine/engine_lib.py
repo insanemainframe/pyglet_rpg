@@ -87,6 +87,7 @@ class GameObject(object):
         raise Error('Denied')
     
     def set_position(self, position):
+        "принудительная установка позиции"
         size = self.world.size*TILESIZE
         if 0<=position.x<=size and 0<=position.y<=size:
             self._position = position
@@ -98,6 +99,7 @@ class GameObject(object):
             raise Warning('Invalid position %s %s world %s size %s' % data)
             
     def change_position(self,position):
+        "вызывается при смене позиции"
         if not position==self._position:
             
             cur_cord = position/TILESIZE
@@ -122,7 +124,12 @@ class GameObject(object):
             else:
                 data = (position, self.name, self.world.name, self.world.size)
                 self.world.handle_over_range(self, position)
+                self.move_vector = Point()
                 print 'Warning: Invalid position %s %s' % (position, self.name)
+    
+    @staticmethod
+    def choice_position(world_map, location, i ,j):
+        return True
     
     def __hash__(self):
         return hash(self.name)
@@ -134,7 +141,7 @@ class GameObject(object):
         return self.name!=player.name
     
     def get_location(self):
-        return self.world.get_location(self)
+        return self.world.get_location(self.position)
     
     def update(self):
         pass
@@ -362,7 +369,7 @@ class Mortal:
             self.alive = self.alive_after_collission
             #
             if self.striker in game.players:
-                striker = game.players[self.striker]
+                striker = game.players[self.striker].player
                 if isinstance(striker, Guided):
                     if prev_state and not player.alive:
                         striker.plus_kills()
@@ -385,6 +392,7 @@ class Respawnable:
         self.set_position(new_position)
         
         self.alive = True
+        self.move_vector = Point()
         self.regid()
         self.respawned = True
         self.spawn()

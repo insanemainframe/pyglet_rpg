@@ -12,6 +12,7 @@ class GetTeleport:
         self.dest = dest
         self.ttype = ttype
         self.BLOCKTILES = ttype.BLOCKTILES
+        self.choice_position = ttype.choice_position
     
     def __call__(self, world, position):
         return self.ttype(world, position, self.dest)
@@ -20,6 +21,7 @@ class GetTeleport:
 class Teleport(StaticObject, Solid):
     radius = TILESIZE
     BLOCKTILES = Player.BLOCKTILES + ['water']
+    min_dist = 3
     def __init__(self, world, position, dest):
         StaticObject.__init__(self, world, position)
         self.world.teleports.append(position)
@@ -29,8 +31,16 @@ class Teleport(StaticObject, Solid):
     def collission(self, player):
         game.change_world(player, self.dest)
     
-
+    @classmethod
+    def choice_position(cls, world, location, i ,j):
+        for tpoint in world.teleports:
+            dist = abs(Point(i,j)*TILESIZE - tpoint)
+            #print(dist, i,j, tpoint)
+            if dist<=cls.min_dist*TILESIZE:
+                return False
+        return True
         
+    
     def remove(self):
         StaticObject.remove(self)
         return True
@@ -39,6 +49,7 @@ class Cave(Teleport):
     pass
     
 class Stair(Teleport):
+    min_dist = 10
     pass
 
 class UpStair(Teleport):

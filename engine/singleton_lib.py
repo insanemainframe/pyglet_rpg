@@ -75,7 +75,7 @@ class ObjectContainer(object):
             world = self.worlds[world]
             player.world = proxy(world)
             
-            location = world.get_location(player)
+            location = world.get_location(player.position)
             location.add_player(ref)
             player.location = location
         else:
@@ -91,7 +91,7 @@ class ObjectContainer(object):
             world = self.worlds[world]
             player.world = proxy(world)
             
-            location = world.get_location(player)
+            location = world.get_location(player.position)
             location.add_static_object(ref)
             player.location = location
             

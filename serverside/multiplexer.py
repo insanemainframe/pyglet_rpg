@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from select import select, epoll, EPOLLIN, EPOLLOUT
 from socket import error as socket_error
 
 from config import *
@@ -72,93 +71,22 @@ class EpollMultiplexer:
                         if fileno in self.outfilenos:
                             client_name = self.outfilenos[fileno]
                             self._handle_write(client_name)
+                    
+                    elif event==EPOLLHUP:
+                        self._handle_error(Error, fileno, event)
                             
                 except socket_error as Error:
                     self._handle_error(Error, fileno, event)
 
-class EventMultiplexer:
-    poll_engine = 'libevent'
-    def __init__(self):
-        self.events = {}
-    
-    def register_in(self, fileno):
-        if fileno==self.in_fileno:
-            self.events[fileno] = event.read(fileno, self._handle_accept, IN)
-        elif fileno==self.out_fileno:
-            self.events[fileno] = event.read(fileno, self._handle_accept, OUT)
-        else:
-            client_name = self.infilenos[fileno]
-            self.events[fileno] = event.read(fileno, self._handle_read, client_name)
-    
-    def register_out(self, fileno):
-        client_name = self.outfilenos[fileno]
-        self.events[fileno] = event.write(fileno, self._handle_write, client_name)
-    
-    def unregister(self, fileno):
-        self.events[fileno].delete()
-    
-    def run_poll(self):
-        event.dispatch()
-
-class GeventMultiplexer:
-    poll_engine = 'gevent'
-    def __init__(self):
-        self.events = {}
-    
-    def cb_accept(self, event, evtype):
-        return self._handle_accept(event.arg)
-        
-    def cb_read(self, event, evtype):
-        print('cb_read', event.arg)
-        client_name = event.arg
-        return self._handle_read(client_name)
-        
-    def cb_write(self, event, evtype,):
-        print('cb_write', event.arg)
-        client_name = event.arg
-        return self._handle_write(client_name)
-    
-    def register_in(self, fileno):
-        if fileno==self.in_fileno:
-            event = core.event(core.EV_READ, fileno, self.cb_accept, IN)
-        elif fileno==self.out_fileno:
-            event = core.event(core.EV_READ, fileno, self.cb_accept, OUT)
-        else:
-            client_name = self.infilenos[fileno]
-            event = core.event(core.EV_READ, fileno, self.cb_read, client_name)
-        self.events[fileno] = event
-        event.add()
-    
-    def register_out(self, fileno):
-        client_name = self.outfilenos[fileno]
-        event = core.event(core.EV_WRITE, fileno, self.cb_write, client_name)
-        self.events[fileno] = event
-        event.add()
-    
-    def unregister(self, fileno):
-        self.events[fileno].delete()
-    
-    def run_poll(self):
-        core.dispatch()
 
 
 try:
-    from select import epoll, EPOLLIN, EPOLLOUT
-    
+    from select import epoll, EPOLLIN, EPOLLOUT, EPOLLHUP
+
 except ImportError:
-    try:
-        from _gevent import core
-    except ImportError:
-        try:
-            import event
-        except ImportError:
-            from select import select
-            Multiplexer = SelectMultiplexer
-        else:
-            Multiplexer = EventMultiplexer
-    else:
-        
-        Multiplexer = GeventMultiplexer
+    from select import select
+    Multiplexer = SelectMultiplexer
+
 else:
     Multiplexer = EpollMultiplexer
 
