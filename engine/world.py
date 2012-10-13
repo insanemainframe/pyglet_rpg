@@ -6,7 +6,7 @@ from share.mathlib import Point
 
 from engine.game_objects import *
 from worldmaps.mapgen import load_map
-from engine.location import Location
+from engine.location import Location, near_cords
 from engine.singleton_lib import Event
 
 
@@ -17,14 +17,14 @@ engine_lib = None
 class MetaWorldTools:
     def create_object(self, n, object_type):
         for i in xrange(n):
-            position = self.choice_position(object_type, self.size/2)
+            position = self.choice_position(object_type, self.size/2, ask_player = True)
             name = object_type.__name__
             monster = object_type('%s_%s' % (name, MetaWorld.monster_count) , self.mapname, position)
             MetaWorld.monster_count+=1
     
     def create_item(self, n, object_type):
         for i in xrange(n):
-            position = self.choice_position(object_type, self.size/2)
+            position = self.choice_position(object_type, self.size/2, ask_player = True)
             monster = object_type(self.name, position)
     
     def resize(self,cord):
@@ -133,6 +133,12 @@ class MetaWorld(MetaWorldTools):
         except IndexError as Error:
             print('Warning: invalid location cord %s[%s:%s]' % (self.name,i,j))
             raise Error
+    
+    def get_near_tiles(self, i,j):
+        insize = lambda i,j: 0<i<self.size and 0<j<self.size
+        cords = [(i+ni, j+nj) for ni,nj in near_cords if insize(i+ni, j+nj)]
+        tiles = [self.map[i][j] for i,j in cords]
+        return tiles
         
     
     def get_location_static(self, position):
@@ -147,7 +153,7 @@ class MetaWorld(MetaWorldTools):
     
     
     
-    def choice_position(self, player, radius=7, start=False):
+    def choice_position(self, player, radius=7, start=False, ask_player = False):
         "выбирает случайную позицию, доступную для объекта"
         if not start:
             start = Point(self.size/2,self.size/2)
@@ -156,8 +162,9 @@ class MetaWorld(MetaWorldTools):
         lim = 1000
         counter = 0
         cords = set()
+        timeout = self.size**2
         
-        while len(cords)<self.size**2:
+        while len(cords)<timeout:
             
             position = start +Point(randrange(-radius, radius), randrange(-radius, radius))
             cord = position
@@ -170,14 +177,15 @@ class MetaWorld(MetaWorldTools):
                         #проверяем, подходит ли клетка объекту
                         position = position*TILESIZE
                         location = self.get_location(position)
-                        if player.choice_position(self, location, i ,j):
+                        exp = ask_player and player.choice_position(self, location, i ,j)
+                        if counter>1000 or exp:
                             shift = Point(randrange(TILESIZE-1),randrange(TILESIZE-1))
                             return position+shift
-                counter+=1
-                if counter>lim:
-                    lim*=2
-                    if radius<self.size/2:
-                        radius = int(radius*1.5)
+            counter+=1
+            if counter>lim:
+                lim*=2
+                if radius<self.size/2:
+                    radius = int(radius*1.5)
         raise Exception('world[%s].choice_position: no place for %s' % (self.name, player))
     
     def handle_over_range(self, player, position):
@@ -197,7 +205,8 @@ class World(MetaWorld):
         self.create_item(200, Mushroom)
         self.create_item(500, Plant)
         self.create_item(7000, Flower)
-        self.create_item(500, WaterFlower) 
+        self.create_item(300, WaterFlower) 
+        self.create_item(200, BigWaterFlower) 
         self.create_item(300, AloneTree)
         
         self.create_object(100, Bat)
@@ -219,6 +228,7 @@ class UnderWorld(MetaWorld):
         self.create_item(200, GetTeleport(DownCave, 'underground2'))
         
         self.create_item(1000, Mushroom)
+        self.create_item(100, WaterFlower) 
         self.create_item(1000, Stone)
         self.create_item(50, Rubble)
         

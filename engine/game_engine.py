@@ -22,7 +22,7 @@ class GameEngine:
     def game_connect(self, name):
         "создание нового игрока"
         #выбираем позицию для нового игрока
-        position = game.mainworld.choice_position(Player)
+        position = game.mainworld.choice_position(Player, ask_player = True)
         #создаем игрока
         new_player = Player(name, game.mainworld.name, position , 7)
         

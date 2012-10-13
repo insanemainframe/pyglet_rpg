@@ -81,8 +81,17 @@ class Flower(Misc):
     count = 15
 
 class WaterFlower(Misc):
-    count = 19
+    count = 9
     BLOCKTILES = ['grass', 'forest', 'bush', 'stone', 'underground', 'lava']
+
+class BigWaterFlower(WaterFlower):
+    count = 9
+    @classmethod
+    def choice_position(cls, world, location, i ,j):
+        for tile in world.get_near_tiles(i,j):
+                if tile in cls.BLOCKTILES:
+                    return False
+        return True
 
     
 class Rubble(Misc):

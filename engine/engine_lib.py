@@ -51,10 +51,6 @@ class wrappers:
                 return method(self,player)
         return wrap
     
-    @staticmethod
-    def action(method):
-        method.wrappers_action = True
-        return method
     
     
 
@@ -253,6 +249,11 @@ class Guided(ActiveState):
         else:
             print 'no action %s' % action_name
             raise ActionError('no action %s' % action_name)
+    
+    @staticmethod
+    def action(method):
+        method.wrappers_action = True
+        return method
 
 class Solid():
     def __init__(self, radius):
@@ -387,7 +388,7 @@ class Respawnable:
         return False
     
     def handle_remove(self):
-        new_position = self.world.choice_position(self, 10 ,self.position)
+        new_position = self.world.choice_position(self, 10 ,self.position, ask_player = True)
         
         self.set_position(new_position)
         

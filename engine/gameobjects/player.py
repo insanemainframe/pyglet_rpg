@@ -23,7 +23,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
 
     def __init__(self, name, world, player_position, look_size):
         DynamicObject.__init__(self, name, world, player_position)
-        Unit.__init__(self, self.speed, self.hp, Corpse, self.name)
+        Unit.__init__(self, self.speed, self.hp, Corpse, 'players')
         MapObserver.__init__(self, look_size)
         Striker.__init__(self,2, Ball, self.damage)
         Respawnable.__init__(self, 10, 30)
@@ -90,21 +90,21 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
             if self.stats_changed:
                 yield protocol.PlayerStats(*Stats.get_stats(self))
             
-    @wrappers.action
+    @Guided.action
     @wrappers.alive_only()
     def Strike(self, vector):
         self.strike_ball(vector)
     
-    @wrappers.action
+    @Guided.action
     @wrappers.alive_only()
     def Move(self, vector):
         Movable.move(self, vector)
     
-    @wrappers.action
+    @Guided.action
     def Look(self):
         return MapObserver.look(self)
     
-    @wrappers.action
+    @Guided.action
     def Skill(self):
         self.skill()
     
@@ -129,4 +129,8 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
                 dist = abs(Point(i,j)*TILESIZE - player.position)
                 if dist<=cls.min_dist*TILESIZE:
                     return False
+                    
+        for tile in world.get_near_tiles(i,j):
+            if tile in cls.BLOCKTILES:
+                return False
         return True
