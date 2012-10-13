@@ -139,6 +139,17 @@ class MetaMonster(Movable, DynamicObject, Deadly, Fighter):
         Fighter.round_update(self)
         Deadly.round_update(self)
 
+class Bat(MetaMonster):
+    tilename = 'bat'
+    move_frames = 10
+    dead_frames = 3
+    fight_frames =1
+    def __init__(self, name, position, hp, hp_value):
+        MetaMonster.__init__(self, name, position,
+                    self.move_frames, self.dead_frames, self.fight_frames,
+                    hp, hp_value)
+                    
+
 class Zombie(MetaMonster):
     tilename = 'zombie'
     move_frames = 2

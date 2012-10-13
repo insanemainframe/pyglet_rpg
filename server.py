@@ -1,13 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import print_function
+
+from config import PROFILE_SERVER, HOSTNAME
+
+
 from engine.game_engine import GameEngine
 from share.protocol_lib import Packer
 from share.ask_hostname import AskHostname
 from serverside.server_lib import SocketServer
 
-from config import PROFILE_SERVER, HOSTNAME
-
 from threading import RLock
+
+
 
 class GameServer(SocketServer, AskHostname, Packer):
     "игровой сервер"
@@ -78,7 +83,7 @@ class GameServer(SocketServer, AskHostname, Packer):
     #поток сервера
     def accept(self, client):
         "вызывается при подключении клиента"
-        print 'accept client %s' % client
+        print('accept client %s' % client)
         with self.server_lock:
             self.client_list.add(client)
             self.client_requestes[client] = []
@@ -118,7 +123,7 @@ def main():
 
 if __name__ == '__main__':
     if PROFILE_SERVER:
-        print 'profile'
+        print('profile')
         import cProfile
         cProfile.run('main()', '/tmp/game_server.stat')
         

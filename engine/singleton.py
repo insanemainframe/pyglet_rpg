@@ -23,20 +23,21 @@ class __GameSingleton(ObjectContainer):
         from world import World, UnderWorld, UnderWorld2
 
 
-        self.mainworld = 'ground'
         
-        print 'Engine initialization...'
+        print('Engine initialization...')
         
         self.worlds = {}
         self.worlds['ground'] = World('ground',proxy(self))
         self.worlds['underground'] = UnderWorld('underground', proxy(self))
         self.worlds['underground2'] = UnderWorld2('underground2', proxy(self))
         
+        self.mainworld = self.worlds['ground']
+        
         for world in self.worlds.values():
-            print 'world %s initialization' % world.name
+            print('world %s initialization' % world.name)
             world.start()
         
-        print 'Engine initialization complete. \n'
+        print('Engine initialization complete. \n')
 
       
 
@@ -74,12 +75,9 @@ class __GameSingleton(ObjectContainer):
         "список активных локаций"
         return sum([world.active_locations.values() for world in self.worlds.values()], [])
     
-    
+
         
-        
-    def choice_position(self, world, player, radius=7, start=False):
-        "выбирает случайную позицию, доступную для объекта"
-        return self.worlds[world].choice_position(player, radius, start)
+
         
     
 

@@ -380,7 +380,7 @@ class Respawnable:
         return False
     
     def handle_remove(self):
-        new_position = game.choice_position(self.world.name, self, 10 ,self.position)
+        new_position = self.world.choice_position(self, 10 ,self.position)
         
         self.set_position(new_position)
         

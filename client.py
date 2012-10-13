@@ -52,6 +52,7 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
         self.accept()
     
     def new_world(self, name, world_size, position, background):
+        "создание нового мира"
         self.land = LandView(self.gamesurface, world_size, position, background)
         self.objects = ObjectsView(self.gamesurface)
         self.static_objects = StaticObjectView(self.gamesurface)
@@ -62,6 +63,7 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
         MapAccess.map = self.land.map
     
     def accept(self):
+        "ждем ответа от сервера"
         accept_data = self.wait_for_accept()
         if accept_data:
             wold_name, world_size, position, background = accept_data
@@ -80,6 +82,7 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
             print 'Accepting failed'
     
     def update(self, dt):
+        "вызывается на каждом фрейме"
         #перехвт ввода
         self.handle_input()
         #обработка соединения

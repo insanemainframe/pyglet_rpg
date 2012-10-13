@@ -20,9 +20,11 @@ class Unit(Solid, Movable, Deadly, DiplomacySubject, GameObject):
 
 class Lootable(Deadly):
     loot = [Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
+    def __init__(self, cost):
+        self.cost = cost if cost<= 100 else 50
     
     def die(self):
-        if chance(60):
+        if chance(self.cost):
             item = choice(self.loot)(self.world.name, self.position)
         Deadly.die(self)
 
@@ -59,7 +61,7 @@ class Stalker:
                     if not player.invisible:
                         dists.append(player.position - self.position)
             if dists:
-                victim = min(dists, key = lambda vector: abs(vector))
+                victim = min(dists, key = abs)
                 return victim
             else:
                 return Point()
@@ -116,11 +118,11 @@ class Stats:
 
 class Walker(Movable):
     def update(self):
-        positivex = -1 if random()>0.5 else 1
-        positivey = -1 if random()>0.5 else 1
+        positive_x = -1 if random()>0.5 else 1
+        positive_y = -1 if random()>0.5 else 1
         partx = random()*10
         party = random()*10
-        x = positivex*self.speed*partx
-        y = positivey*self.speed*party
+        x = positive_x*self.speed*partx
+        y = positive_y*self.speed*party
         direct = Point(x,y)
         self.move(direct)

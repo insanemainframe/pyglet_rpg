@@ -20,6 +20,11 @@ class Shell(ActiveState, Movable, DiplomacySubject, Temporary, Solid, Mortal):
         self.direct = direct*(abs(one_step)/abs(direct))
         self.alive = True
         self.striker = striker
+    
+     @wrappers.player_filter(Deadly)
+     def collission(self, player):
+         player.move(self.direct)
+         Mortal.collission(self, player)
 
 
 

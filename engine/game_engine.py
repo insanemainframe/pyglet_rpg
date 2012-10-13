@@ -22,16 +22,16 @@ class GameEngine:
     def game_connect(self, name):
         "создание нового игрока"
         #выбираем позицию для нового игрока
-        position = game.choice_position(game.mainworld, Player)
+        position = game.mainworld.choice_position(Player)
         #создаем игрока
-        new_player = Player(name, game.mainworld, position , 7)
+        new_player = Player(name, game.mainworld.name, position , 7)
         
         #оставляем сообщение о подключении
         self.messages[name] = []
         for message in new_player.accept_response():
             self.messages[name].append(message)
         
-        print 'New player %s' % name
+        print('New player %s' % name)
     
     
     def game_requests(self, messages):
@@ -92,7 +92,7 @@ class GameEngine:
                 
     
     def game_quit(self, name):
-        print '%s quit' % name
+        print('%s quit' % name)
         del self.messages[name]
         game.remove_guided(name)
     

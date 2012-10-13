@@ -53,19 +53,26 @@ class EpollMultiplexer:
     
     def run_poll(self):
          while 1:
-            events = self.poller.poll()
-            for fileno, event in events:
+            event_pairs = dict(self.poller.poll())
+            while event_pairs:
+                fileno, event = event_pairs.popitem()
                 try:
                     if fileno==self.in_fileno:
                         self._handle_accept(IN)
+                        
                     elif fileno==self.out_fileno:
                         self._handle_accept(OUT)
+                        
                     elif event==EPOLLIN: 
-                        client_name = self.infilenos[fileno]
-                        self._handle_read(client_name)
+                        if fileno in self.infilenos:
+                            client_name = self.infilenos[fileno]
+                            self._handle_read(client_name)
+                            
                     elif event==EPOLLOUT:
-                        client_name = self.outfilenos[fileno]
-                        self._handle_write(client_name)
+                        if fileno in self.outfilenos:
+                            client_name = self.outfilenos[fileno]
+                            self._handle_write(client_name)
+                            
                 except socket_error as Error:
                     self._handle_error(Error, fileno, event)
 
@@ -102,12 +109,12 @@ class GeventMultiplexer:
         return self._handle_accept(event.arg)
         
     def cb_read(self, event, evtype):
-        print 'cb_read', event.arg
+        print('cb_read', event.arg)
         client_name = event.arg
         return self._handle_read(client_name)
         
     def cb_write(self, event, evtype,):
-        print 'cb_write', event.arg
+        print('cb_write', event.arg)
         client_name = event.arg
         return self._handle_write(client_name)
     

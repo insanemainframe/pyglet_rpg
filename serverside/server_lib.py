@@ -115,7 +115,7 @@ class SocketServer(Multiplexer):
         elif stream==OUT:
             conn, (address, fileno) = self.outsock.accept()
             conn.setblocking(0)
-            print('output Connection from %s (%s)' % (fileno, address))
+            ('output Connection from %s (%s)' % (fileno, address))
         else:
             raise HandleAcceptError('unknnowsn stream %s' % stream)
         
@@ -156,7 +156,7 @@ class SocketServer(Multiplexer):
         self.register_in(insock_fileno)
         self.register_out(outsock_fileno)
         
-        print 'accepting_client %s' % client_name
+        print('accepting_client %s' % client_name)
 
         #реагируем на появление нового клиента
         with self.server_lock:
@@ -167,19 +167,20 @@ class SocketServer(Multiplexer):
         t = time()
         while self.running:
             self.timer_handler()
-            #self.write_to_all()
             delta = time()-t
             timeout = SERVER_TIMER - delta if delta<SERVER_TIMER else 0
             t = time()
             sleep(timeout)
 
     def run(self):
-        print '\nServer running at %s:(%s,%s) multiplexer: %s' % (self.hostname, IN_PORT, OUT_PORT, self.poll_engine)
+        print('\nServer running at %s:(%s,%s) multiplexer: %s' % (self.hostname, IN_PORT, OUT_PORT, self.poll_engine))
         self.insock.listen(self.listen_num)
         self.outsock.listen(self.listen_num)
+        
         #регистрируем сокеты на ожидание подключений
         self.register_in(self.insock.fileno())
         self.register_in(self.outsock.fileno())
+        
         #запускаем поток движка
         #self.thread = Thread(target=self._timer_thread)
         self.thread = Thread(target=self.run_poll)
@@ -193,20 +194,25 @@ class SocketServer(Multiplexer):
     
     def _handle_close(self, client_name, message):
         "закрытие подключения"
-        print 'Closing %s: %s' % (client_name, message)
+        print('Closing %s: %s' % (client_name, message))
         
         with self.server_lock:
             self.close(client_name)
         
+        #
         infileno = self.clients[client_name].insock.fileno()
         outfileno = self.clients[client_name].outsock.fileno()
+        
+        self.unregister(infileno)
+        self.unregister(outfileno)
+        
+        
         
         del self.infilenos[infileno]
         del self.outfilenos[outfileno]
         
         #закрываем подключения и удаляем
-        self.unregister(infileno)
-        self.unregister(outfileno)
+        
         self.clients[client_name].insock.close()
         self.clients[client_name].outsock.close()
         del  self.clients[client_name]
@@ -232,10 +238,10 @@ class SocketServer(Multiplexer):
     
     def stop_debug_info(self):
         "информация для дебага"
-        print '\n\nDebug info:'
-        print 'len(self.clients)', len(self.clients)
-        print 'self.clients', self.clients
-        print 'End of debug info\n\n'
+        print('\n\nDebug info:')
+        print('len(self.clients)', len(self.clients))
+        print('self.clients', self.clients)
+        print('End of debug info\n\n')
     
 
         

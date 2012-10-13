@@ -90,7 +90,10 @@ class MetaWorld(MetaWorldTools):
         
         
         i,j = self.get_loc_cord(position).get()
-        self.locations[i][j].add_event(event)
+        try:
+            self.locations[i][j].add_event(event)
+        except IndexError:
+            print 'location IndexError', i,j
     
         if vector:
             alt_position = position+vector
@@ -99,7 +102,7 @@ class MetaWorld(MetaWorldTools):
             try:
                 self.locations[i][j].add_event(event)
             except IndexError:
-                pass
+                print 'location IndexError', i,j
     
     def change_location(self, name, prev_loc, cur_loc):
         "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
@@ -183,14 +186,15 @@ class World(MetaWorld):
         self.create_item(500, Stone)
         self.create_item(200, Mushroom)
         self.create_item(500, Plant)
-        self.create_item(5000, Flower)
+        self.create_item(7000, Flower)
         self.create_item(500, WaterFlower) 
         self.create_item(300, AloneTree)
         
-        self.create_object(200, Zombie)
-        self.create_object(50, Lych)
-        self.create_object(50, Ghast)
-        self.create_object(50, Cat)
+        self.create_object(100, Bat)
+        self.create_object(500, Zombie)
+        self.create_object(100, Lych)
+        self.create_object(100, Ghast)
+        self.create_object(30, Cat)
 
 
 
@@ -204,14 +208,15 @@ class UnderWorld(MetaWorld):
         self.create_item(200, GetTeleport(Stair,'ground'))
         self.create_item(200, GetTeleport(DownCave, 'underground2'))
         
-        self.create_item(600, Mushroom)
-        self.create_item(600, Stone)
+        self.create_item(1000, Mushroom)
+        self.create_item(1000, Stone)
         self.create_item(50, Rubble)
         
-        self.create_object(100, Zombie)
-        self.create_object(20, Lych)
-        self.create_object(20, Ghast)
-        self.create_object(20, Cat)
+        self.create_object(200, Bat)
+        self.create_object(200, Zombie)
+        self.create_object(50, Lych)
+        self.create_object(50, Ghast)
+        self.create_object(30, Cat)
 
 class UnderWorld2(MetaWorld):
     "подземелье"
@@ -221,14 +226,15 @@ class UnderWorld2(MetaWorld):
     def start(self):
         self.create_item(200, GetTeleport(UpStair,'underground'))
         
-        self.create_item(600, Stone)
-        self.create_item(600, Mushroom)
+        self.create_item(1000, Stone)
+        self.create_item(1000, Mushroom)
         self.create_item(200, Stone)
         self.create_item(50, Rubble)
         
+        self.create_object(200, Bat)
         self.create_object(100, Zombie)
-        self.create_object(30, Lych)
-        self.create_object(30, Ghast)
+        self.create_object(100, Lych)
+        self.create_object(100, Ghast)
         self.create_object(30, Cat)
 
 

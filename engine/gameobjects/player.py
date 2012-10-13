@@ -15,7 +15,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
     "класс игрока"
     prev_looked = set()
     speed = 30
-    hp = 40
+    hp = 60
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     SLOWTILES = {'water':0.5, 'bush':0.3}
     damage = 2
