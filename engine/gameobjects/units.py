@@ -32,7 +32,7 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, DynamicObject):
         DynamicObject.__init__(self, name, position)
         Unit.__init__(self, self.speed, self.hp, Corpse, self.owner.fraction)
         Stalker.__init__(self, self.look_size)
-        Striker.__init__(self, 10, Ball, self.damage)
+        Striker.__init__(self, 10, AllyBall, self.damage)
         Temporary.__init__(self, self.lifetime)
         
         self.stopped = False

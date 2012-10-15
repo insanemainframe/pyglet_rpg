@@ -73,7 +73,8 @@ class Ball(Explodable, Fragile,  Shell):
         self.alive = False
 
 
-        
+class AllyBall(Ball):
+    pass
                     
 
 

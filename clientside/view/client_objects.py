@@ -79,11 +79,13 @@ class Deadly(Animated):
     
 class Player(Sweemer, Movable, DynamicObject, Deadly):
     tilename = 'player'
+    move_frames = 2
+    defend_frames = 1
     def __init__(self, name, position, hp, hp_value):
         DynamicObject.__init__(self, name, position)
-        Movable.__init__(self, 2)
+        Movable.__init__(self, self.move_frames)
         
-        Deadly.__init__(self, hp, hp_value, 1)
+        Deadly.__init__(self, hp, hp_value, self.defend_frames)
     
     def draw(self):
         if self.dead or self.defended:
@@ -116,7 +118,9 @@ class Self(Player):
     tilename = 'self'
 
 class Ally(Player):
-    tilename = 'player'
+    tilename = 'ally'
+    move_frames = 11
+    defend_frames = 3
 
 class MetaMonster(Movable, DynamicObject, Deadly, Fighter):
     def __init__(self, name, position, move_frames, dead_frames, fight_frames,hp, hp_value):
@@ -246,6 +250,10 @@ class Ball(Movable, DynamicObject, Animated):
 class DarkBall(Ball):
     tilename = 'darkball'
     explode_tile = 'darkball_explode'
+
+class AllyBall(Ball):
+    tilename = 'ally_ball'
+    explode_tile = 'ally_ball_explode'
 
 class SkillBall(Ball):
     tilename = 'skillball'
