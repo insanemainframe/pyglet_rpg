@@ -12,15 +12,10 @@ TILESIZE = 40
 LOCATIONSIZE = 6
 
 #
-TILESDIR = 'images/'
-
-#
 ROUND_TIMER = 0.1
 SERVER_TIMER = 0.1
 
-PROFILE_CLIENT = 0
 PROFILE_SERVER = 0
 
 SERVER_PROFILE_FILE = '/tmp/game_server.stat'
-CLIENT_PROFILE_FILE = '/tmp/game_client.stat'
 

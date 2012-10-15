@@ -6,7 +6,8 @@ from share.mathlib import Point
 
 
 from config import TILESIZE, ROUND_TIMER
-        
+from client_config import *
+
 
 class DeltaTimerObject:
     "объект с таймером и deltatime"

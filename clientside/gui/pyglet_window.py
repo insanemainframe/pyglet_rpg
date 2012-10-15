@@ -15,7 +15,8 @@ from collections import defaultdict
 
 from share.mathlib import Point
 
-from config import TILESIZE, TILESDIR, ROUND_TIMER, HOSTNAME
+from config import TILESIZE, ROUND_TIMER, HOSTNAME
+from client_config import TILESDIR
 
 
 class GUIWindow(Window):

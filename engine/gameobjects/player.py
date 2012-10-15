@@ -90,6 +90,10 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
             if self.stats_changed:
                 yield protocol.PlayerStats(*Stats.get_stats(self))
             
+            #
+            if self.world.game.guided_changed:
+                yield protocol.PlayersList(self.world.game.get_guided_list(self.name))
+            
     @Guided.action
     @wrappers.alive_only()
     def Strike(self, vector):

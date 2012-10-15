@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
+from client_config import *
+
 
 from sys import exit
 
@@ -14,7 +16,7 @@ from clientside.input import InputHandle
 
 from clientside.gui.gui_lib import DeltaTimerObject
 from clientside.gui import window
-from clientside.gui.gui_elements import FPSDisplay, Stats, LoadingScreen, WorldDisplay
+from clientside.gui.gui_elements import *
 
 from clientside.view.view_objects import ObjectsView
 from clientside.view.view_land import LandView
@@ -38,8 +40,8 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
         self.rightsurface = window.StatsSurface(600, 0, height, width-600)
         
         self.world_display = WorldDisplay(self.rightsurface)
-        
         self.stats = Stats(self.rightsurface)
+        self.plist = PlayersOnlineDisplay(self.rightsurface)
        
         
         #текст загрузки
@@ -175,6 +177,9 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
             elif action=='PlayerStats':
                 self.stats.update(*message)
             
+            elif action == 'PlayersList':
+               self.plist.update(message)
+            
             elif action=='NewWorld':
                 wold_name, world_size, position, background = message
                 self.new_world(wold_name, world_size, position, background)
@@ -200,6 +205,7 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
             self.static_objects.draw()
             self.stats.draw()
             self.world_display.draw()
+            self.plist.draw()
         
         elif self.loading:
             self.loading.draw()

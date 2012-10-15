@@ -17,6 +17,7 @@ class __GameSingleton(ObjectContainer):
     "синглтон игрового движка - хранит карты, все объекты, и предоставляет доступ к ним"
     def __init__(self):
         ObjectContainer.__init__(self)
+        self.guided_changed = False
 
     
     def start(self):
@@ -71,6 +72,10 @@ class __GameSingleton(ObjectContainer):
     def get_active_locations(self):
         "список активных локаций"
         return sum([world.active_locations.values() for world in self.worlds.values()], [])
+    
+    def get_guided_list(self, self_name):
+        f = lambda cont:  ('(%s)'% player.name if player.name==self_name else player.name, player.kills)
+        return [f(player) for player in self.guided_players.values()]
     
 
 

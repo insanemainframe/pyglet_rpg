@@ -103,6 +103,7 @@ class Stats:
     
     def plus_kills(self):
         self.kills+=1
+        self.world.game.guided_changed = True
     
     def update(self):
         stats = (self.hp, self.hp_value, self.speed, self.damage,

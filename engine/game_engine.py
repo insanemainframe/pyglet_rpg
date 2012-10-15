@@ -32,6 +32,7 @@ class GameEngine:
         for message in new_player.accept_response():
             self.messages[name].append(message)
         
+        game.guided_changed = True
         print('New player %s' % name)
     
     
@@ -89,6 +90,8 @@ class GameEngine:
                 player.complete_round()
             location.complete_round()
         
+        game.guided_changed = False
+        
        
                 
     
@@ -96,6 +99,7 @@ class GameEngine:
         print('%s quit' % name)
         del self.messages[name]
         game.remove_guided(name)
+        game.guided_changed = True
     
     
                 

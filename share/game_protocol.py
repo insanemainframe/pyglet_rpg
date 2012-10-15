@@ -147,6 +147,19 @@ class PlayerStats(GameProtocol):
     def unpack(cls, hp, hp_value, speed, damage, gold, kills, death_counter, skills, invisible):
         return hp, hp_value, speed, damage, gold, kills, death_counter, skills, invisible
 
+#
+class PlayersList(GameProtocol):
+    def __init__(self, player_list):
+        self.player_list = player_list
+    
+    def pack(self):
+        return (self.player_list,)
+    
+    @classmethod
+    def unpack(cls, player_list):
+        print player_list
+        return player_list
+
 #РЕСПАВН
 class Respawn(GameProtocol):
     def __init__(self, position):
@@ -190,7 +203,7 @@ class Skill(GameProtocol):
     def __init__(self):
         pass
     
-    def pack(a=None):
+    def pack(self):
         return []
     
     @classmethod

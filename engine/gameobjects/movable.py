@@ -42,9 +42,9 @@ class Movable(DynamicObject):
                     part = self.speed / abs(self.vector) # доля пройденного пути в векторе
                     move_vector = self.vector * part if part<1 else self.vector
                     #определяем столкновения с тайлами
-                    if move_vector:
+                    new_cord = (self.position+move_vector)/TILESIZE
+                    if self.cord!= new_cord:
                         move_vector = self._tile_collission(move_vector)
-                    
                     
                     
                     self.vector = self.vector - move_vector
@@ -54,15 +54,13 @@ class Movable(DynamicObject):
                 
                 if move_vector:
                     self._detect_collisions(move_vector)
-                    
-                self.change_position(self.position+move_vector)
-                self.move_vector = move_vector
                 
+                    self.change_position(self.position+move_vector)
+                    self.move_vector = move_vector
                 
-                #добавляем событие
-               
-                if self.position_changed:
-                    self.add_event( 'move',  self.move_vector.get())
+                    #добавляем событие
+                    if self.position_changed:
+                        self.add_event( 'move',  self.move_vector.get())
                     
                 
     

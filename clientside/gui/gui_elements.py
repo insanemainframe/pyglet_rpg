@@ -116,6 +116,28 @@ class WorldDisplay:
         self.position.draw()
         self.worldsize.draw()
 
+class PlayersOnlineDisplay:
+    def __init__(self, surface):
+        self.surface = surface
+        self.x = 100
+        self.y = 380
+        self.title = Label(self.surface, 'Online:', self.x, self.y)
+        self.plist = []
+    
+    def update(self, player_list):
+        self.plist = []
+        i = 0
+        for player, frags in player_list:
+            i+=1
+            text = '%s [%s]' % (player,frags)
+            label = Label(self.surface, text, self.x, self.y-i*15)
+            self.plist.append(label)
+        
+    
+    def draw(self):
+        self.title.draw()
+        [label.draw() for label in self.plist]
+
 class LoadingScreen:
     def __init__(self, surface,):
         self.surface = surface
