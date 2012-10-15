@@ -73,13 +73,6 @@ class __GameSingleton(ObjectContainer):
         return sum([world.active_locations.values() for world in self.worlds.values()], [])
     
 
-        
-
-        
-    
-
-            
-
 
 game = __GameSingleton()
 

@@ -64,7 +64,7 @@ class GameServer(SocketServer, AskHostname, Packer):
         self.game.game_requests(client_requestes)
         
         #обновляем движок
-        self.game.game_middle()
+        self.game.game_update()
         
         #вставляем ответы в очередь на отправку
         for name, messages in self.game.game_responses():

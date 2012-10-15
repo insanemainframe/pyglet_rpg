@@ -15,13 +15,16 @@ def intersec_point(A,B,C,D):
     if vector.y:
         div = vector.x.__truediv__(vector.y)
         divx = True
+        
     elif vector.x:
         div = vector.y.__truediv__(vector.x)
         divx = False
+        
     if C.x==D.x:
         x = C.x - A.x
         y = x/div if divx else x*div
         return A+ Point(x,y)
+        
     elif C.y == D.y:
         y = C.y - A.y
         x = y*div if divx else y/div
@@ -43,7 +46,7 @@ def cross_tile(A, B, tilecord):
                 tilecord + Point(0,-1) : (start, start + Point(CELL, null)),
                 tilecord + Point(-1,0) : (start, start + Point(null, CELL))}
     
-    return [(ij, intersec_point(A,B,C, D)) for ij,(C, D) in cds.items() if interception(A,B,C,D)]
+    return ((ij, intersec_point(A,B,C, D)) for ij,(C, D) in cds.items() if interception(A,B,C,D))
 
 
 def get_tile(cord):
@@ -133,28 +136,14 @@ def _get_cross(position, vector):
 def get_cross(position, vector):
     "возвращает i,j пересекаемых векторов тайлов и координаты этих пересечений"
     end_cord = (position+vector)/TILESIZE #i,j конечнй точки
-    results = []
-    cur_tile = position/TILESIZE
-    crossed = []# [cur_tile]
-    while 1:
-        counter = 0
-        crossed_tiles = cross_tile(position, position+vector, cur_tile)
-        if crossed_tiles:
-            for ij, cross in crossed_tiles:
-                if not ij in crossed:
-                    counter+=1
-                    crossed.append(ij)
-                    yield (ij.get(), cross)
-                    cur_tile = ij
-                    if ij == end_cord:
-                        raise StopIteration
-            if not counter:
-                #print 'COUNTER BREAK'
-                raise StopIteration
-        else:
-            #print 'BREAK'
-            raise StopIteration
+    
+    for ij, cross in cross_tile(position, position+vector, position/TILESIZE):
+        yield (ij.get(), cross)
+        if ij == end_cord:
+            break
     raise StopIteration
+
+
 
 
 #qaprint get_cross(Point(0*TILESIZE,0*TILESIZE), Point(2*TILESIZE,5*TILESIZE))

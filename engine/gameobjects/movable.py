@@ -4,7 +4,7 @@ from config import *
 
 from share.mathlib import *
 from engine.engine_lib import *
-from engine.gameobjects.collissions import *
+from engine.collissions import *
 
 
 from math import hypot

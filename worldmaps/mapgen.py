@@ -60,7 +60,7 @@ def load_map(mapname):
         mapfile = open(map_file,'r')
         tmap = loads(decompress(mapfile.read()))
         mapfile.close()
-        print('map loaded from pickle')
+        print('\tmap loaded from pickle')
         return tmap
     
     print('/data/map.data doesnt exist')
@@ -70,6 +70,7 @@ def load_map(mapname):
     image = Image.open(map_image)
     size = image.size
     m =image.load()
+    
     tilemap =[]
     for i in range(size[0]):
         row=[]
@@ -79,10 +80,14 @@ def load_map(mapname):
             counter[tile]+=1
             row.append(tile)
         tilemap.append(row)
-    print('map loaded',size)
+        
+    print('\tmap loaded:',size)
+    
     mapfile = open(map_file,'w')
     background = counter.most_common()[0][0]
+    
     s = compress(dumps((tilemap, size[0], background)))
     mapfile.write(s)
     mapfile.close()
+    
     return tilemap, size[0], background

@@ -12,8 +12,10 @@ class World(MetaWorld):
         MetaWorld.__init__(self, game, name, 'ground')
     
     def start(self):
+        print('\t Creating teleports')
         self.create_item(200, GetTeleport(Cave, 'underground'))
         
+        print('\t Creating decorartions')
         self.create_item(500, Stone)
         self.create_item(200, Mushroom)
         self.create_item(500, Plant)
@@ -22,6 +24,7 @@ class World(MetaWorld):
         self.create_item(200, BigWaterFlower) 
         self.create_item(300, AloneTree)
         
+        print('\t Creating monsters')
         self.create_object(100, Bat)
         self.create_object(500, Zombie)
         self.create_object(100, Lych)
@@ -35,14 +38,17 @@ class UnderWorld(MetaWorld):
         MetaWorld.__init__(self, game, name,  'underground')
     
     def start(self):
+        print('\t Creating teleports')
         self.create_item(200, GetTeleport(Stair,'ground'))
         self.create_item(200, GetTeleport(DownCave, 'underground2'))
         
+        print('\t Creating decorartions')
         self.create_item(1000, Mushroom)
         self.create_item(100, WaterFlower) 
         self.create_item(1000, Stone)
         self.create_item(50, Rubble)
         
+        print('\t Creating monsters')
         self.create_object(200, Bat)
         self.create_object(200, Zombie)
         self.create_object(50, Lych)
@@ -55,13 +61,16 @@ class UnderWorld2(MetaWorld):
         MetaWorld.__init__(self, game, name,  'underground2')
     
     def start(self):
+        print('\t Creating teleports')
         self.create_item(200, GetTeleport(UpStair,'underground'))
         
+        print('\t Creating decorartions')
         self.create_item(1000, Stone)
         self.create_item(1000, Mushroom)
         self.create_item(200, Stone)
         self.create_item(50, Rubble)
         
+        print('\t Creating monsters')
         self.create_object(200, Bat)
         self.create_object(100, Zombie)
         self.create_object(100, Lych)

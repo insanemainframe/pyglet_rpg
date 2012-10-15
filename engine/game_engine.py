@@ -13,7 +13,7 @@ from config import *
 
 #####################################################################
 class GameEngine:
-    "класс игры"
+    "интерфейс к движку игры"
     monster_count = 0
     def __init__(self):
         game.start()
@@ -46,7 +46,7 @@ class GameEngine:
                             pass
     
     
-    def game_middle(self):
+    def game_update(self):
         "отыгрывание раунда игры"
         #получаем список активных локаций
         self.active_locations = game.get_active_locations()
