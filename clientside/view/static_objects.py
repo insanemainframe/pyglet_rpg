@@ -51,6 +51,8 @@ class UpStair(StaticObject):
 class DownCave(StaticObject):
     tilename = 'cave'
 
+class Lamp(Item):
+    tilename = 'lamp'
 
 
 class Misc(StaticObject):

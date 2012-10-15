@@ -112,9 +112,11 @@ class Player(Sweemer, Movable, DynamicObject, Deadly):
     
 
 
-class Self(Player, Deadly, DynamicObject):
+class Self(Player):
     tilename = 'self'
 
+class Ally(Player):
+    tilename = 'player'
 
 class MetaMonster(Movable, DynamicObject, Deadly, Fighter):
     def __init__(self, name, position, move_frames, dead_frames, fight_frames,hp, hp_value):
@@ -138,6 +140,9 @@ class MetaMonster(Movable, DynamicObject, Deadly, Fighter):
     def round_update(self):
         Fighter.round_update(self)
         Deadly.round_update(self)
+
+
+
 
 class Bat(MetaMonster):
     tilename = 'bat'

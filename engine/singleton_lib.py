@@ -101,6 +101,7 @@ class ObjectContainer(object):
             raise TypeError('new_static_object: %s not StaticObject instance' % player.name)
     
     def remove_player_from_list(self, name):
+        self.players[name].player.handle_remove()
         del self.players[name]
     
     def remove_static_object_from_list(self, name):

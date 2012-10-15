@@ -57,6 +57,7 @@ class wrappers:
 #####################################################################
 class GameObject(object):
     def __init__(self, name, position):
+        self.related_objects = []
         self.name = name
         self.alive = True
         self.delayed = False
@@ -70,6 +71,9 @@ class GameObject(object):
         self.has_events = False
     
     def handle_creating(self):
+        pass
+    
+    def handle_remove(self):
         pass
     
     def regid(self):

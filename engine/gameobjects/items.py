@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from engine.engine_lib import *
 
+
 from config import *
 
 class Item(StaticObject, Solid, Temporary):
@@ -73,7 +74,11 @@ class Cloak(Item):
     invisible_time = 300
     def effect(self, player):
         player.set_invisible(self.invisible_time)
-
-
-
-
+    
+class Lamp(Item):
+     def effect(self, player):
+         from engine.gameobjects.units import Ally
+         position = self.world.choice_position(Ally, 5, player.position,True)
+         ally = Ally(player, position)
+         self.world.new_object(ally)
+        

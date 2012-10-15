@@ -10,9 +10,69 @@ from engine.gameobjects.shells import *
 from engine.gameobjects.movable import Movable
 
 
+class Ally(Unit, Stalker, Temporary, Walker, Striker, DynamicObject):
+    lifetime = 60
+    hp = 60
+    damage = 5
+    speed = 40
+    radius = TILESIZE
+    look_size = 10
+    BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
+    SLOWTILES = {'water':0.5, 'bush':0.3}
+    name_counter = 0
+    leash_size = 6
+    
+    def __init__(self, owner, position):
+        name = 'ally_%s' % Ally.name_counter
+        Ally.name_counter+=1
+        
+        self.owner = owner
+        self.owner.related_objects.append(self)
+        
+        DynamicObject.__init__(self, name, position)
+        Unit.__init__(self, self.speed, self.hp, Corpse, self.owner.fraction)
+        Stalker.__init__(self, self.look_size)
+        Striker.__init__(self, 10, Ball, self.damage)
+        Temporary.__init__(self, self.lifetime)
+        
+        self.stopped = False
+        
+        
+        self.spawn()
+    
+    def update(self):
+        o_pos = self.owner.position
+        pos = self.position
+        dist = abs(o_pos-pos)/TILESIZE
+        if dist < self.leash_size:
+            direct = self.hunt(False)
+            if direct:
+                delta = random()*TILESIZE
+                direct += Point(delta, -delta)
+                self.strike_ball(direct)
+            else:
+                Walker.update(self)
+        else:
+            self.move(o_pos - pos)
+        
+        Movable.update(self)
+        Striker.update(self)
+        Deadly.update(self)
+        Temporary.update(self)
+    
+    
+    def complete_round(self):
+        Movable.complete_round(self)
+        Striker.complete_round(self)
+    
+    def get_args(self):
+        return Deadly.get_args(self)
+    
+    def handle_remove(self):
+        self.owner.related_objects.remove(self)
 
 
-class Cat(Walker, Solid, Stalker, DynamicObject, DiplomacySubject):
+class Cat(Walker, Solid, Stalker, DiplomacySubject, DynamicObject):
     speed = 20
     radius = TILESIZE
     rainbow_time = 30
@@ -49,44 +109,7 @@ class Cat(Walker, Solid, Stalker, DynamicObject, DiplomacySubject):
     def complete_round(self):
         Movable.complete_round(self)
 
-class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject):
-    radius = TILESIZE
-    look_size = 10
-    BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
-    SLOWTILES = {'water':0.5, 'bush':0.3}
-    def __init__(self, name, position, speed, hp):
-        DynamicObject.__init__(self, name, position)
-        Unit.__init__(self, speed, hp, Corpse, 'monsters')
-        Stalker.__init__(self, self.look_size)
-        Respawnable.__init__(self, 30, 60)
-        Lootable.__init__(self, self.loot_cost)
-        
-        self.stopped = False
-        
-        self.spawn()
-    
-    def hit(self, damage):
-        self.stop(10)
-        Deadly.hit(self, damage)
-    
-    @wrappers.alive_only(Deadly)
-    def update(self):
-        if chance(70):
-            direct = self.hunt()
-            if direct:
-                self.move(direct)
-            else:
-                Walker.update(self)
-        else:
-            Walker.update(self)
-        Movable.update(self)
-        Deadly.update(self)
-    
-    def get_args(self):
-        return Deadly.get_args(self)
-    
-    def complete_round(self):
-        Movable.complete_round(self)
+
         
 
 class Bat(Fighter, MetaMonster):

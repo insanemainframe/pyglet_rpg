@@ -19,7 +19,7 @@ class Unit(Solid, Movable, Deadly, DiplomacySubject, GameObject):
         Solid.__init__(self, TILESIZE/2)
 
 class Lootable(Deadly):
-    loot = [Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
+    loot = [Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
     def __init__(self, cost):
         self.cost = cost if cost<= 100 else 50
     
@@ -129,3 +129,43 @@ class Walker(Movable):
         y = positive_y*self.speed*party
         direct = Point(x,y)
         self.move(direct)
+
+
+class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject):
+    radius = TILESIZE
+    look_size = 10
+    BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
+    SLOWTILES = {'water':0.5, 'bush':0.3}
+    def __init__(self, name, position, speed, hp):
+        DynamicObject.__init__(self, name, position)
+        Unit.__init__(self, speed, hp, Corpse, 'monsters')
+        Stalker.__init__(self, self.look_size)
+        Respawnable.__init__(self, 30, 60)
+        Lootable.__init__(self, self.loot_cost)
+        
+        self.stopped = False
+        
+        self.spawn()
+    
+    def hit(self, damage):
+        self.stop(10)
+        Deadly.hit(self, damage)
+    
+    @wrappers.alive_only(Deadly)
+    def update(self):
+        if chance(70):
+            direct = self.hunt()
+            if direct:
+                self.move(direct)
+            else:
+                Walker.update(self)
+        else:
+            Walker.update(self)
+        Movable.update(self)
+        Deadly.update(self)
+    
+    def get_args(self):
+        return Deadly.get_args(self)
+    
+    def complete_round(self):
+        Movable.complete_round(self)

@@ -39,14 +39,15 @@ class __GameSingleton(ObjectContainer):
       
 
     
-    def change_world(self, player, world):
+    def change_world(self, player, world, new_position = False):
         "переметить объект из одного мира в другой"
         prev_world = player.world
         new_world = self.worlds[world]
         player.location.pop_player(player.name)
         
         teleport_point = choice(new_world.teleports)
-        new_position = new_world.choice_position(player, 5, teleport_point)
+        if not new_position:
+            new_position = new_world.choice_position(player, 5, teleport_point)
         li, lj = (new_position/TILESIZE/LOCATIONSIZE).get()
         
         
@@ -67,6 +68,10 @@ class __GameSingleton(ObjectContainer):
         player.cord_changed = True
         #обновляем хэш объекта
         player.regid()
+        
+        for related in player.related_objects:
+            position = new_world.choice_position(related, 3, new_position)
+            self.change_world(related, world, position)
         
     
     def get_active_locations(self):
