@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 from engine.engine_lib import *
-from movable import Movable
+from engine.gameobjects.movable import Movable
 
 from config import *
 

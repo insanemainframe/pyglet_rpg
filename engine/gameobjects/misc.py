@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from engine.engine_lib import *
-from random import randrange
-from player import Player
 from config import *
-#Teleport(ttype, dest) - > TeleportType(mapname, position)
+
+from random import randrange
+
+from engine.engine_lib import *
+from engine.gameobjects.player import Player
 
 class GetTeleport:
     "фабрика  телепортов"

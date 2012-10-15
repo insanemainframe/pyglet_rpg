@@ -7,7 +7,7 @@ from share.mathlib import *
 from collections import defaultdict
 from weakref import proxy
 
-import engine_lib
+from engine import engine_lib
 
 class Event:
     def __init__(self, name, object_type, position, action, args, timeout=0):

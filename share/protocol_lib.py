@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import SERIALISATION, ZLIB
+
 import struct
-
 from socket import htonl, ntohl, error as socket_error
-
 from zlib import compress as zcompress, decompress as zdecompress
 
+from share import game_protocol
 from share.logger import PROTOCOLLOG as LOG
 
 if SERIALISATION=='json':
@@ -58,7 +58,7 @@ def send(channel, data):
             channel.send(size)
         except socket_error as Error:
             if Error[0]==11:
-                print 'send: error 11'
+                print('send: error 11')
             elif Error[0]==104:
                 return 
             elif Error[0]==32:
@@ -73,7 +73,7 @@ def send(channel, data):
             channel.send(data)
         except socket_error as Error:
             if Error[0]==11:
-                print 'send: error 11'
+                print('send: error 11')
             elif Error[0]==104:
                 return
             elif Error[0]==32:
@@ -103,16 +103,15 @@ def receivable(channel):
                     #сокет недоступен для чтения
                     yield None
                 elif errno==35:
-                    print 'socket error 35'
+                    print('socket error 35')
                     yield None
                 else:
-                    print 'receivable socket error#', str(errno)
+                    print('receivable socket error#', str(errno))
                     raise Error
             else:
                 if new_size:
                     size+=new_size
                 else:
-                    print 'NO SIZE'
                     raise StopIteration
         if not size:
             raise StopIteration
@@ -121,12 +120,12 @@ def receivable(channel):
         try:
             size = struct.unpack("!Q", size)[0]
             size = ntohl(size)
-        except struct.error, e:
+        except struct.error as Error:
             #в случае ошибки конвертации размера
-            print 'protocol_lib.receive struct error %s size %s' % (e, len(size))
+            print('protocol_lib.receive struct error %s size %s' % (Error, len(size)))
             yield None
         except OverflowError:
-            print 'OverflowError', size
+            print('OverflowError', size)
             yield None
         else:
             #получаем пакет данных
@@ -140,16 +139,16 @@ def receivable(channel):
                         #сокет недоступен для чтения
                         yield None
                     elif errno==35:
-                        print 'socket error 35'
+                        print('socket error 35')
                         yield None
                     else:
-                        print 'socket error while receiving apckage: %s' % str(Error)
+                        print('socket error while receiving apckage: %s' % str(Error))
                         raise Error
                 else:
                     if new_data:
                         data+=new_data
                     else:
-                        print 'NO DATA'
+                        print('NO DATA')
                         raise StopIteration
 
             yield data
@@ -195,8 +194,7 @@ def decompress(data):
         return data
 
 #####################################################################
-import game_protocol
-from types import ClassType
+
 
 class Packer:
     "упаковщик/распаковщик данных с помощью классов из game_protocol"
@@ -205,7 +203,7 @@ class Packer:
         self.method_handlers = {}
         for name in dir(game_protocol):
             Class = getattr(game_protocol, name)
-            if type(Class) is ClassType:
+            if type(Class) is type:
                 if issubclass(Class, game_protocol.GameProtocol):
                     self.method_handlers[name] = Class
 
@@ -215,7 +213,7 @@ class Packer:
             try:
                 data = protocol_object.pack()
             except Exception as error:
-                print 'pack error in %s' % protocol_object
+                print('pack error in %s' % protocol_object)
                 raise error
             else:
                 try:
@@ -223,7 +221,7 @@ class Packer:
                     result = dumps((method, data))
                     return result
                 except MarshalError:
-                    print 'MarshalError', method, data
+                    print('MarshalError', method, data)
                     return ''
         else:
             raise TypeError('protocol_lib.pack: %s not GameProtocol instance' % protocol_object)
@@ -233,15 +231,15 @@ class Packer:
         try:
             data = loads(data)
         except MarshalError:
-            print 'MarshalError'
+            print('MarshalError')
             return None
         else:
             method, data = data
             if method in self.method_handlers:
                 try:
                     message = self.method_handlers[method].unpack(*data)
-                except Exception, excp:
-                    print 'Unpack errror:%s %s %s' % (method, excp, str(data))
+                except Exception as excp:
+                    print('Unpack errror:%s %s %s' % (method, excp, str(data)))
                     raise excp
                 else:
                     return method, message

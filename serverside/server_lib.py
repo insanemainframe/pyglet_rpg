@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from share.protocol_lib import send, receivable, PackageError
-from multiplexer import Multiplexer
-
 import socket
 from time import sleep, time
 from threading import Thread, RLock
 from collections import namedtuple
+
+from share.protocol_lib import send, receivable, PackageError
+from serverside.multiplexer import Multiplexer
 
 
 IN, OUT = 0,1

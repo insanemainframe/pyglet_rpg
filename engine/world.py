@@ -68,7 +68,7 @@ class MetaWorld(MetaWorldTools):
         self.create_locations()
         self.create_links()
         data = (mapname, self.size, self.size, self.background, len(self.locations), len(self.locations[0]))
-        print 'creating world "%s" %sx%s background %s locations %sx%s' % data
+        print('creating world "%s" %sx%s background %s locations %sx%s' % data)
     
     def create_locations(self):
         "создает локации"
@@ -108,7 +108,7 @@ class MetaWorld(MetaWorldTools):
         try:
             self.locations[i][j].add_event(event)
         except IndexError:
-            print 'location IndexError', i,j
+            print('location IndexError', i,j)
     
         if vector:
             alt_position = position+vector
@@ -117,7 +117,7 @@ class MetaWorld(MetaWorldTools):
             try:
                 self.locations[i][j].add_event(event)
             except IndexError:
-                print 'location IndexError %s[%s:%s] %s' (self.name, i,j, name)
+                print('location IndexError %s[%s:%s] %s' (self.name, i,j, name))
     
     def change_location(self, name, prev_loc, cur_loc):
         "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"

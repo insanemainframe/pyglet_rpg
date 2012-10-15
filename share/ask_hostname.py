@@ -21,7 +21,7 @@ class AskHostname:
                 self.hostname = result
                 break
             else:
-                print 'invalid value: %s' % self.error
+                print('invalid value: %s' % self.error)
     
     def check(self, message):
         if re.match(self.pattern, message):

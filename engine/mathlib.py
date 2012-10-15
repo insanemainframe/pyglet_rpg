@@ -50,6 +50,6 @@ if __name__=='__main__':
     #print position, vector, position+ vector, position/TILESIZE, vector/TILESIZE, (position+ vector)/TILESIZE
     #print 'result', get_cross(position, vector)
     
-    print rotate(Point(40, 0), 30)
+    print(rotate(Point(40, 0), 30))
     
     

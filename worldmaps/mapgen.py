@@ -41,7 +41,11 @@ class Generator:
                     pass
     
 import os, imp
-from cPickle import loads, dumps
+try:
+    from cPickle import loads, dumps
+except ImportError:
+    from pickle import loads, dumps
+
 from collections import Counter
 
 
@@ -56,10 +60,10 @@ def load_map(mapname):
         mapfile = open(map_file,'r')
         tmap = loads(decompress(mapfile.read()))
         mapfile.close()
-        print 'map loaded from pickle'
+        print('map loaded from pickle')
         return tmap
     
-    print '/data/map.data doesnt exist'
+    print('/data/map.data doesnt exist')
     from PIL import Image
     
     counter = Counter()
@@ -75,7 +79,7 @@ def load_map(mapname):
             counter[tile]+=1
             row.append(tile)
         tilemap.append(row)
-    print 'map loaded',size
+    print('map loaded',size)
     mapfile = open(map_file,'w')
     background = counter.most_common()[0][0]
     s = compress(dumps((tilemap, size[0], background)))

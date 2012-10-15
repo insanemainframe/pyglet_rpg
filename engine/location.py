@@ -6,7 +6,7 @@ from share.mathlib import Point
 
 from weakref import proxy
 
-import engine_lib
+from engine import engine_lib
 
 #список инкременаторов к индексу на соседние локации
 near_cords = [cord.get() for cord in (Point(-1,1),Point(0,1),Point(1,1),
@@ -57,7 +57,7 @@ class LocationActivity:
         if key in self.world.active_locations:
             del self.world.active_locations[key]
         else:
-            print 'key error', key
+            print('key error', key)
     
 
  

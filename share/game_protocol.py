@@ -4,7 +4,7 @@
 from share.mathlib import Point
 
 #########################################################################
-class GameProtocol:
+class GameProtocol(object):
     pass
 #общие методы классов протоколов
 
@@ -42,8 +42,8 @@ class NewWorld(GameProtocol):
         return self.wold_name, self.world_size, (x,y), self.background
     
     @classmethod
-    def unpack(cls, wold_name, world_size, (x,y), background):
-        position = Point(x,y)
+    def unpack(cls, wold_name, world_size, xy, background):
+        position = Point(*xy)
         return wold_name, world_size, position, background
 
 #

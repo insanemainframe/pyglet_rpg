@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from gameobjects.player import *
-from gameobjects.units import *
-from gameobjects.items import *
-from gameobjects.shells import *
-from gameobjects.misc import *
+from engine.gameobjects.player import *
+from engine.gameobjects.units import *
+from engine.gameobjects.items import *
+from engine.gameobjects.shells import *
+from engine.gameobjects.misc import *
 
 
 

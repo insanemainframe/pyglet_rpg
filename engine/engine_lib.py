@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from share.mathlib import *
-from mathlib import *
+from engine.mathlib import *
 
 from random import choice, random
 from time import time
@@ -123,7 +123,7 @@ class GameObject(object):
                 data = (position, self.name, self.world.name, self.world.size)
                 self.world.handle_over_range(self, position)
                 self.move_vector = Point()
-                print 'Warning: Invalid position %s %s' % (position, self.name)
+                print('Warning: Invalid position %s %s' % (position, self.name))
     
     @staticmethod
     def choice_position(world_map, location, i ,j):
@@ -244,11 +244,10 @@ class Guided(ActiveState):
                 
                 return method(*args)
             else:
-                print dir(method)
-                print "%s isn't guided action" % action_name
+                print("%s isn't guided action" % action_name)
                 ActionError('no action %s' % action_name)
         else:
-            print 'no action %s' % action_name
+            print('no action %s' % action_name)
             raise ActionError('no action %s' % action_name)
     
 

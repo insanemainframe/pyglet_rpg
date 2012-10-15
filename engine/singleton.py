@@ -8,7 +8,7 @@ from weakref import proxy
 
 
 from share.mathlib import Point
-from singleton_lib import ObjectContainer, ObjectItem
+from engine.singleton_lib import ObjectContainer, ObjectItem
         
         
 
@@ -20,7 +20,7 @@ class __GameSingleton(ObjectContainer):
 
     
     def start(self):
-        from world import World, UnderWorld, UnderWorld2
+        from engine.world import World, UnderWorld, UnderWorld2
 
 
         
