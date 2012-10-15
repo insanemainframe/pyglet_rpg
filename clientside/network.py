@@ -38,8 +38,7 @@ class SocketClient:
         print 'connect to %s:%s' % (self.hostname, PORTS[stream])
         sock.connect((self.hostname, PORTS[stream]))
         sock.setblocking(0)
-        if stream==IN:
-            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+      
         fileno = sock.fileno()
         
         return sock, fileno

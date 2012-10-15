@@ -53,8 +53,8 @@ class SocketServer(Multiplexer):
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((self.hostname, PORTS[stream]))
         sock.setblocking(0)
-        if stream==OUT:
-            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1) #не дожидаться буферизации
+        #if stream==OUT:
+        #    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1) #не дожидаться буферизации
         fileno = sock.fileno()
         return sock, fileno
     

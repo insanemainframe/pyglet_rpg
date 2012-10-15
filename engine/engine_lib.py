@@ -393,7 +393,9 @@ class Respawnable:
         return False
     
     def handle_remove(self):
-        new_position = self.world.choice_position(self, 10 ,self.position, ask_player = True)
+        cord = self.world.size*TILESIZE/2
+        start = Point(cord, cord)
+        new_position = self.world.choice_position(self, 10 ,start, ask_player = True)
         
         self.set_position(new_position)
         
