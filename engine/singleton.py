@@ -9,8 +9,8 @@ from weakref import proxy
 
 from share.mathlib import Point
 from engine.singleton_lib import ObjectContainer, ObjectItem
-        
-        
+from engine import gameworlds
+
 
         
 class __GameSingleton(ObjectContainer):
@@ -20,16 +20,12 @@ class __GameSingleton(ObjectContainer):
 
     
     def start(self):
-        from engine.world import World, UnderWorld, UnderWorld2
-
-
-        
         print('Engine initialization...')
         
         self.worlds = {}
-        self.worlds['ground'] = World('ground',proxy(self))
-        self.worlds['underground'] = UnderWorld('underground', proxy(self))
-        self.worlds['underground2'] = UnderWorld2('underground2', proxy(self))
+        self.worlds['ground'] = gameworlds.World('ground',proxy(self))
+        self.worlds['underground'] = gameworlds.UnderWorld('underground', proxy(self))
+        self.worlds['underground2'] = gameworlds.UnderWorld2('underground2', proxy(self))
         
         self.mainworld = self.worlds['ground']
         
