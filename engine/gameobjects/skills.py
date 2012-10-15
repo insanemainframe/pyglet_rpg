@@ -14,7 +14,8 @@ class Skill:
     def skill(self):
         if self.skills>0:
             for direct in self.directs:
-                ball = SkillBall(self.world.name, self.position, direct, self.fraction, self.name, self.damage)
+                ball = SkillBall(self.position, direct, self.fraction, self.name, self.damage)
+                self.world.new_object(ball)
             self.skills-=1
     
     def plus_skill(self):

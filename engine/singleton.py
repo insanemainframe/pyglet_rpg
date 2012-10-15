@@ -87,12 +87,4 @@ class __GameSingleton(ObjectContainer):
 
 game = __GameSingleton()
 
-#инициализируем модули, что бы избежать рекурсивного импорта
-import singleton_lib
-singleton_lib.init()
 
-import world
-world.init()
-
-import location
-location.init()

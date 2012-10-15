@@ -6,7 +6,6 @@ from mathlib import *
 from random import choice, random
 from time import time
 
-game = None
 
 class UnknownAction(Exception):
     pass
@@ -69,6 +68,9 @@ class GameObject(object):
         self.gid = str(hash((name, position)))
         
         self.has_events = False
+    
+    def handle_creating(self):
+        pass
     
     def regid(self):
         
@@ -154,12 +156,11 @@ class GameObject(object):
     
 
 class DynamicObject(GameObject):
-    def __init__(self, name, world, position):
+    def __init__(self, name, position):
         GameObject.__init__(self, name, position)
         
         self.cord_changed = True
         self.position_changed = True
-        game.new_object(world, self)
         self.world_changed = False
     
     @property
@@ -171,7 +172,7 @@ class DynamicObject(GameObject):
         raise Warning('@prev_position.setter')
     
     def to_remove(self, force=False):
-        game.add_to_remove(self, force)
+        self.world.game.add_to_remove(self, force)
     
     def add_event(self, action, *args,**kwargs):
         object_type = self.__class__.__name__
@@ -198,7 +199,7 @@ class DynamicObject(GameObject):
 
 class StaticObject(GameObject):
     name_counter =0 
-    def __init__(self, world, position):
+    def __init__(self, position):
         counter = StaticObject.name_counter
         StaticObject.name_counter+=1
     
@@ -206,7 +207,6 @@ class StaticObject(GameObject):
         
         GameObject.__init__(self, name, position)
         
-        game.new_static_object(world, self)
     
     def get_tuple(self):
         return self.name, self.__class__.__name__, self.position, self.get_args()
@@ -229,13 +229,14 @@ class StaticObject(GameObject):
 
     
     def to_remove(self, force=False):
-        game.add_to_remove_static(self, force)
+        self.world.game.add_to_remove_static(self, force)
 
 class ActiveState:
     pass
 
 class Guided(ActiveState):
     "управляемый игроком объекта"
+    
     def handle_action(self, action_name, args):
         if hasattr(self, action_name):
             method = getattr(self, action_name)
@@ -250,10 +251,14 @@ class Guided(ActiveState):
             print 'no action %s' % action_name
             raise ActionError('no action %s' % action_name)
     
+
+    
     @staticmethod
     def action(method):
         method.wrappers_action = True
         return method
+    
+
 
 class Solid():
     def __init__(self, radius):
@@ -337,7 +342,8 @@ class Deadly:
     
     def create_corpse(self):
         name = 'corpse_%s_%s' % (self.name, self.death_counter)
-        corpse = self.corpse(name, self.world.name, self.position)
+        corpse = self.corpse(name, self.position)
+        self.world.new_static_object(corpse)
     
     def die(self):
         self.alive = False
@@ -369,8 +375,8 @@ class Mortal:
             player.hit(self.damage)
             self.alive = self.alive_after_collission
             #
-            if self.striker in game.players:
-                striker = game.players[self.striker].player
+            if self.striker in self.world.game.players:
+                striker = self.world.game.players[self.striker].player
                 if isinstance(striker, Guided):
                     if prev_state and not player.alive:
                         striker.plus_kills()
@@ -427,4 +433,3 @@ class Temporary:
 
 
 
-from singleton import game

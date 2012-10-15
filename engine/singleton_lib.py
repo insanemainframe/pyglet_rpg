@@ -7,6 +7,7 @@ from share.mathlib import *
 from collections import defaultdict
 from weakref import proxy
 
+import engine_lib
 
 class Event:
     def __init__(self, name, object_type, position, action, args, timeout=0):
@@ -23,10 +24,7 @@ class Event:
     
     def update(self):
         self.timeouted-=1
-        if self.timeouted:
-            return True
-        else:
-            return False
+        return bool(self.timeouted)
     
     def __hash__(self):
         return hash((self.name, self.action, self.args))
@@ -58,6 +56,8 @@ class ObjectContainer(object):
         self.guided_players = {} #управляемые игроки
         self.players = {}
         self.static_objects = {}
+        
+        self.monster_count = 0
                     
     
     def new_object(self, world, player):
@@ -74,6 +74,7 @@ class ObjectContainer(object):
             #
             world = self.worlds[world]
             player.world = proxy(world)
+            player.handle_creating()
             
             location = world.get_location(player.position)
             location.add_player(ref)
@@ -90,6 +91,7 @@ class ObjectContainer(object):
             
             world = self.worlds[world]
             player.world = proxy(world)
+            player.handle_creating()
             
             location = world.get_location(player.position)
             location.add_static_object(ref)
@@ -134,6 +136,3 @@ class ObjectContainer(object):
     
 
 
-def init():
-    import engine_lib
-    global engine_lib

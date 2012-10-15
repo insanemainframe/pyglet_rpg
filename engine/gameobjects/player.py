@@ -21,8 +21,8 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
     SLOWTILES = {'water':0.5, 'bush':0.3}
     damage = 2
 
-    def __init__(self, name, world, player_position, look_size):
-        DynamicObject.__init__(self, name, world, player_position)
+    def __init__(self, name, player_position, look_size):
+        DynamicObject.__init__(self, name, player_position)
         Unit.__init__(self, self.speed, self.hp, Corpse, 'players')
         MapObserver.__init__(self, look_size)
         Striker.__init__(self,2, Ball, self.damage)

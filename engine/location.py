@@ -6,8 +6,7 @@ from share.mathlib import Point
 
 from weakref import proxy
 
-engine_lib = None
-
+import engine_lib
 
 #список инкременаторов к индексу на соседние локации
 near_cords = [cord.get() for cord in (Point(-1,1),Point(0,1),Point(1,1),
@@ -383,6 +382,4 @@ class Location(LocationActivity, LocationEvents, LocationObjects):
         LocationEvents.complete_round(self)
 
 
-def init():
-    global engine_lib
-    import engine_lib
+

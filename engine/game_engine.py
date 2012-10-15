@@ -24,7 +24,8 @@ class GameEngine:
         #выбираем позицию для нового игрока
         position = game.mainworld.choice_position(Player, ask_player = True)
         #создаем игрока
-        new_player = Player(name, game.mainworld.name, position , 7)
+        new_player = Player(name, position , 7)
+        game.mainworld.new_object(new_player)
         
         #оставляем сообщение о подключении
         self.messages[name] = []

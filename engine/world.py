@@ -8,24 +8,31 @@ from engine.game_objects import *
 from worldmaps.mapgen import load_map
 from engine.location import Location, near_cords
 from engine.singleton_lib import Event
+from engine import engine_lib
 
 
 from weakref import proxy
 
-engine_lib = None
 
 class MetaWorldTools:
     def create_object(self, n, object_type):
         for i in xrange(n):
             position = self.choice_position(object_type, self.size/2, ask_player = True)
             name = object_type.__name__
-            monster = object_type('%s_%s' % (name, MetaWorld.monster_count) , self.mapname, position)
-            MetaWorld.monster_count+=1
+            
+            monster = object_type('%s_%s' % (name, self.game.monster_count) , position)
+            
+            self.new_object(monster)
+            
+            self.game.monster_count+=1
     
     def create_item(self, n, object_type):
         for i in xrange(n):
             position = self.choice_position(object_type, self.size/2, ask_player = True)
-            monster = object_type(self.name, position)
+            
+            item = object_type(position)
+            
+            self.new_static_object(item)
     
     def resize(self,cord):
         if 0<=cord<=self.size:
@@ -53,8 +60,6 @@ class MetaWorld(MetaWorldTools):
         self.teleports = [Point(self.size/2, self.size/2)]
         
         self.location_size = self.size/LOCATIONSIZE +1
-        #if self.location_size*LOCATIONSIZE<self.size:
-        #    self.location_size+=1
         
         
         self.locations = []
@@ -66,6 +71,7 @@ class MetaWorld(MetaWorldTools):
         print 'creating world "%s" %sx%s background %s locations %sx%s' % data
     
     def create_locations(self):
+        "создает локации"
         for i in xrange(self.location_size):
             locations = []
             for j in xrange(self.location_size):
@@ -73,9 +79,18 @@ class MetaWorld(MetaWorldTools):
             self.locations.append(locations)
     
     def create_links(self):
+        "создает ссылки в локациях"
         for row in self.locations:
             for location in row:
                 location.create_links()
+    
+    def new_object(self, player):
+        self.game.new_object(self.name, player)
+        
+    def new_static_object(self, player):
+        self.game.new_static_object(self.name, player)
+        
+    
     
     def add_static_event(self, name, object_type, position, action, args=(), timeout=0):
         "добавляет со9-бытие статического объекта"
@@ -121,6 +136,7 @@ class MetaWorld(MetaWorldTools):
             return proxy(prev_location)
     
     def get_loc_cord(self, position):
+        "возвращает координаты локации для заданой позиции"
         return position/TILESIZE/LOCATIONSIZE
     
     
@@ -135,23 +151,12 @@ class MetaWorld(MetaWorldTools):
             raise Error
     
     def get_near_tiles(self, i,j):
+        "возвращает список соседних тайлов"
         insize = lambda i,j: 0<i<self.size and 0<j<self.size
         cords = [(i+ni, j+nj) for ni,nj in near_cords if insize(i+ni, j+nj)]
         tiles = [self.map[i][j] for i,j in cords]
         return tiles
         
-    
-    def get_location_static(self, position):
-        "возвращает слокацию"
-        i,j = (position/TILESIZE/LOCATIONSIZE).get()
-        try:
-            return self.locations[i][j]
-        except IndexError as Error:
-            print('Warning: invalid location cord %s[%s:%s]' % (self.name,i,j))
-            raise Error
-    
-    
-    
     
     def choice_position(self, player, radius=7, start=False, ask_player = False):
         "выбирает случайную позицию, доступную для объекта"
@@ -261,8 +266,6 @@ class UnderWorld2(MetaWorld):
 
 
         
-def init():
-    global engine_lib
-    import engine_lib
+
     
 

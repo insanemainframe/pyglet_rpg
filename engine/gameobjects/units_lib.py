@@ -25,7 +25,8 @@ class Lootable(Deadly):
     
     def die(self):
         if chance(self.cost):
-            item = choice(self.loot)(self.world.name, self.position)
+            item = choice(self.loot)(self.position)
+            self.world.new_static_object(item)
         Deadly.die(self)
 
 class Fighter:
@@ -54,7 +55,7 @@ class Stalker:
         self.look_size = look_size
     
     def hunt(self, inradius = False):
-            players = self.get_location().get_players_list()
+            players = self.location.get_players_list()
             dists = []
             for player in players:
                 if player.fraction!=self.fraction and  player.fraction!='good':
@@ -76,7 +77,8 @@ class Striker:
     @wrappers.alive_only()
     def strike_ball(self, vector):
         if self.strike_counter==0 and vector:
-            ball = self.strike_shell(self.world.name, self.position, vector, self.fraction, self.name, self.damage)
+            ball = self.strike_shell(self.position, vector, self.fraction, self.name, self.damage)
+            self.world.new_object(ball)
             self.strike_counter+=self.strike_speed
     
     def plus_damage(self, damage):

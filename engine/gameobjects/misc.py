@@ -14,28 +14,29 @@ class GetTeleport:
         self.BLOCKTILES = ttype.BLOCKTILES
         self.choice_position = ttype.choice_position
     
-    def __call__(self, world, position):
-        return self.ttype(world, position, self.dest)
+    def __call__(self, position):
+        return self.ttype(position, self.dest)
         
 
 class Teleport(StaticObject, Solid):
     radius = TILESIZE
     BLOCKTILES = Player.BLOCKTILES + ['water']
     min_dist = 3
-    def __init__(self, world, position, dest):
-        StaticObject.__init__(self, world, position)
-        self.world.teleports.append(position)
+    def __init__(self, position, dest):
+        StaticObject.__init__(self, position)
         self.dest = dest
+    
+    def handle_creating(self):
+        self.world.teleports.append(self.position)
     
     @wrappers.player_filter(Guided)
     def collission(self, player):
-        game.change_world(player, self.dest)
+        self.world.game.change_world(player, self.dest)
     
     @classmethod
     def choice_position(cls, world, location, i ,j):
         for tpoint in world.teleports:
             dist = abs(Point(i,j)*TILESIZE - tpoint)
-            #print(dist, i,j, tpoint)
             if dist<=cls.min_dist*TILESIZE:
                 return False
         return True
@@ -61,8 +62,8 @@ class DownCave(Teleport):
 
 class Misc(StaticObject):
     BLOCKTILES = Player.BLOCKTILES
-    def __init__(self, world, position):
-        StaticObject.__init__(self, world, position)
+    def __init__(self, position):
+        StaticObject.__init__(self, position)
         self.number = randrange(self.count)
     
     def get_args(self):
@@ -107,6 +108,6 @@ class AloneTree(Misc, Solid):
     BLOCKTILES = ['forest', 'bush', 'water', 'ocean']
     count = 13
     radius = TILESIZE
-    def __init__(self, world, position):
-        Misc.__init__(self, world, position)
+    def __init__(self, position):
+        Misc.__init__(self, position)
         Solid.__init__(self, self.radius)

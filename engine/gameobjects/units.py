@@ -19,8 +19,8 @@ class Cat(Walker, Solid, Stalker, DynamicObject, DiplomacySubject):
     alive = True
     look_size = 300
     
-    def __init__(self, name, world, position):
-        DynamicObject.__init__(self, name, world, position)
+    def __init__(self, name, position):
+        DynamicObject.__init__(self, name, position)
         Solid.__init__(self, self.radius)
         Movable.__init__(self, self.speed)
         DiplomacySubject.__init__(self, 'good')
@@ -54,8 +54,8 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject):
     look_size = 10
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     SLOWTILES = {'water':0.5, 'bush':0.3}
-    def __init__(self, name, world, position, speed, hp):
-        DynamicObject.__init__(self, name, world, position)
+    def __init__(self, name, position, speed, hp):
+        DynamicObject.__init__(self, name, position)
         Unit.__init__(self, speed, hp, Corpse, 'monsters')
         Stalker.__init__(self, self.look_size)
         Respawnable.__init__(self, 30, 60)
@@ -98,8 +98,8 @@ class Bat(Fighter, MetaMonster):
     BLOCKTILES = ['stone', 'forest']
     SLOWTILES = {}
     
-    def __init__(self, name, world, position):
-        MetaMonster.__init__(self, name, world, position, self.speed, self.hp)
+    def __init__(self, name, position):
+        MetaMonster.__init__(self, name, position, self.speed, self.hp)
         Fighter.__init__(self, self.damage, self.attack_speed)
     
     def complete_round(self):
@@ -113,8 +113,8 @@ class Zombie(Fighter, MetaMonster):
     attack_speed = 10
     loot_cost = 30
     
-    def __init__(self, name, world, position):
-        MetaMonster.__init__(self, name, world, position, self.speed, self.hp)
+    def __init__(self, name, position):
+        MetaMonster.__init__(self, name, position, self.speed, self.hp)
         Fighter.__init__(self, self.damage, self.attack_speed)
     
     def complete_round(self):
@@ -129,8 +129,8 @@ class Ghast(Fighter, MetaMonster):
     attack_speed = 30
     loot_cost = 90
     
-    def __init__(self, name, world, position):
-        MetaMonster.__init__(self, name, world, position, self.speed, self.hp)
+    def __init__(self, name, position):
+        MetaMonster.__init__(self, name, position, self.speed, self.hp)
         Fighter.__init__(self, self.damage, self.attack_speed)
     
     def complete_round(self):
@@ -144,8 +144,8 @@ class Lych(MetaMonster, Striker):
     damage = 5
     loot_cost = 60
     
-    def __init__(self, name, world, position):
-        MetaMonster.__init__(self, name, world, position, self.speed, self.hp)
+    def __init__(self, name, position):
+        MetaMonster.__init__(self, name, position, self.speed, self.hp)
         Striker.__init__(self, 10, DarkBall, self.damage)
     
     @wrappers.alive_only(Deadly)
