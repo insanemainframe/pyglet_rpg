@@ -76,55 +76,47 @@ class LocationEvents:
     
     def add_event(self,event):
         self.events.append(event)
+        self.new_events = True
         
-        if event.timeouted:
-            self.timeouted_events.append(event)
     
     def get_events(self):
         events = sum([location.events for location in self.nears], self.events)
         return events
     
     def check_events(self):
-        if self.events:
+        if self.new_events:
             return True
         for location in self.nears:
-            if location.events:
+            if location.new_events:
                 return True
         
         return False
     
     def clear_events(self):
-        self.events = [event for event in self.timeouted_events if event.update()]
-        if self.events:
-            self.new_events = True
-        else:
-            self.new_events = False
+        self.events = []
+        self.new_events = False
         
     
     def add_static_event(self, event):
         self.static_events.append(event)
+        self.new_static_events = True
         
-        if event.timeouted:
-            self.timeouted_static_events.append(event)
     
     def get_static_events(self):
         static_events = sum([location.static_events for location in self.nears], self.static_events)
         return static_events
     
     def check_static_events(self):
-        if self.static_events:
+        if self.new_static_events:
             return True
         for location in self.nears:
-            if len(location.static_events):
+            if location.new_static_events:
                 return True
         return False
     
     def clear_static_events(self):
-        self.static_events = [event for event in self.timeouted_static_events if event.update()]
-        if self.static_events:
-            self.new_static_events = True
-        else:
-            self.new_static_events = False
+        self.static_events = []
+        self.new_static_events = False
     
     def complete_round(self):
         self.clear_events()

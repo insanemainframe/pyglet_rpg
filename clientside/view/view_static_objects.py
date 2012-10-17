@@ -12,25 +12,9 @@ class StaticObjectView(Drawable, ViewTools):
     def __init__(self, surface):
         Drawable.__init__(self)
         ViewTools.__init__(self, surface, static_objects)
-        self.eventnames = []
     
-    def insert_objects(self, static_objects):
-        looked_keys = set(static_objects.keys())
-        client_keys = set(self.objects.keys())
+
         
-        new_objects = looked_keys - client_keys
-        self.deleted_objects = client_keys - looked_keys
-        
-        for gid in new_objects:
-            self.create_object(gid, *static_objects[gid])
-        
-        
-    
-    def insert_events(self,  events):
-        for name, object_type, position, action, args, timeouted in events:
-            if name in self.objects:
-                self.objects[name].handle_action(action, args)
-                self.eventnames.append(name)
     
     
     def round_update(self):
@@ -43,6 +27,12 @@ class StaticObjectView(Drawable, ViewTools):
         
         self.eventnames = []
         self.deleted_objects = []
+        
+        new_events = [(gid, object_type, position, timeout-1, action, args)
+        for gid, object_type, position, timeout, action, args in self.timeout_events]
+        self.timeout_events = []
+        if new_events:
+            self.insert_events(new_events)
         
             
     

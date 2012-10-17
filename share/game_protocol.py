@@ -16,8 +16,8 @@ class Events:
         
     @classmethod
     def unpack_events(cls, events):
-        return [(name, object_type,  Point(x,y), action, args)
-            for (name, object_type, (x,y), action, args) in events]
+        return [(name, object_type,  Point(x,y), timeout, action, args)
+            for (name, object_type, (x,y), timeout, action, args) in events]
 
 
     

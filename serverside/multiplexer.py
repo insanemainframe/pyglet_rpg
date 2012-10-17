@@ -35,6 +35,7 @@ class SelectMultiplexer:
                 else:
                     client_name = self.infilenos[fileno]
                     self._handle_read(client_name)
+            self.write_all()
 
 class EpollMultiplexer:
     poll_engine = 'linux epoll'

@@ -18,42 +18,12 @@ class ObjectsView(Drawable, ViewTools):
         Drawable.__init__(self)
         ViewTools.__init__(self, surface, client_objects)
         self.focus_object = False
-        self.eventnames = []
+        
         
     def antilag(self, shift):
         if self.focus_object:
             self.objects[self.focus_object].vector+=shift
     
-    def insert_objects(self, looked_objects):
-        looked_keys = set( looked_objects.keys())
-        client_keys = set(self.objects.keys())
-        
-        new_objects = looked_keys - client_keys
-        self.deleted_objects = client_keys - looked_keys
-        
-        for gid in new_objects:
-            name, object_type, position, args = looked_objects[gid]
-            self.create_object(gid, name, object_type, position, args)
-            
-            
-        
-        
-    def insert_events(self, new_events=[]):
-        events = []
-        for gid, object_type, position, action, args in new_events:
-                if gid in self.objects:
-                    events.append((gid, object_type, position, action, args))
-                    self.eventnames.append(gid)
-           
-                    
-                        
-
-        
-        for gid, object_type, position, action, args in events:
-            self.objects[gid].handle_action(action, args)
-        
-        #удаяем объекты с мтеокй REMOVE
-
                 
 
     def update(self, delta):
@@ -106,6 +76,12 @@ class ObjectsView(Drawable, ViewTools):
     
     def round_update(self):
         [game_object.round_update() for game_object in self.objects.values()]
+        
+        new_events = [(gid, object_type, position, timeout-1, action, args)
+        for gid, object_type, position, timeout, action, args in self.timeout_events]
+        self.timeout_events = []
+        if new_events:
+            self.insert_events(new_events)
         
     def force_complete(self):
         [game_object.force_complete() for game_object in self.objects.values()]

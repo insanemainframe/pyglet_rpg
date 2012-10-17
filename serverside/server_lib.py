@@ -46,6 +46,8 @@ class SocketServer(Multiplexer):
         self.closed = []
         
         self.responses_lock = RLock() #блокировка для действий с сокетсервером куызщтыуы куйгууыеуы
+        
+        self.r_times = []
             
     def _create_socket(self, stream):
         "создает неблокирубщий сокет на заданном порте"
@@ -68,7 +70,6 @@ class SocketServer(Multiplexer):
 
     
     def _handle_write(self, client_name):
-
         "пишет пакеты на сокет пользователя"
         if self.responses[client_name]:
             with self.responses_lock:
@@ -78,6 +79,8 @@ class SocketServer(Multiplexer):
             for response in to_write:
                 send(sock, response)
             return True
+
+        
     
     def _handle_read(self, client_name):
         "читает один пакет данных из сокета, если это возможно"
@@ -166,12 +169,20 @@ class SocketServer(Multiplexer):
         "отдельный поток для обращения к движку и рассылке ответов"
         t = time()
         while self.running:
+            r_time = time()
+            
             self.timer_handler()
+            
+            r_time2 = time() - r_time
+            self.r_times.append(r_time2)
+            
             delta = time()-t
             timeout = SERVER_TIMER - delta if delta<SERVER_TIMER else 0
             t = time()
             sleep(timeout)
+    
 
+    
     def run(self):
         print('\nServer running at %s:(%s,%s) multiplexer: %s' % (self.hostname, IN_PORT, OUT_PORT, self.poll_engine))
         self.insock.listen(self.listen_num)
@@ -233,6 +244,11 @@ class SocketServer(Multiplexer):
         #
         self.insock.close()
         self.outsock.close()
+        #считаем среднее время на раунд
+        count = len(self.r_times)
+        all_time = sum(self.r_times)
+        m_time = all_time/count
+        print('median time %s/%s = %s' % (all_time, count, m_time))
         print('Stopped')
         
     
