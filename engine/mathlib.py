@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-from sys import path
-path.append('../')
-
 from math import hypot
 
 

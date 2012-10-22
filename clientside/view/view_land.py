@@ -13,10 +13,22 @@ from collections import defaultdict
 
 class LandView(Drawable, MapTools):
     "клиентская карта"
-    def __init__(self, surface, world_size, position, background):
-        MapTools.__init__(self, world_size, world_size)
+    def __init__(self, surface):
+        MapTools.__init__(self, 0, 0)
         Drawable.__init__(self)
         self.surface = surface
+        self.accepted = False
+
+        self.observed = set()
+        self.tiles = []
+        self.map = defaultdict(lambda: defaultdict(lambda: 'fog'))
+        self.world_size = 0
+        self.background = 'fog'
+        self.main_tile = 'fog'
+        
+        
+    def set_world(self, world_size, position, background):
+        MapTools.__init__(self, world_size, world_size)
         self.observed = set()
         self.background = background+'_full'
         
@@ -24,11 +36,10 @@ class LandView(Drawable, MapTools):
         self.map = defaultdict(lambda: defaultdict(lambda: 'fog'))
         self.tiles = []
         
-        surface.set_camera_position(position)
+        self.surface.set_camera_position(position)
         self.main_tile = background
+        self.accepted = True
         print 'New world with background', self.main_tile, background
-        
-        
         
     def move_position(self, vector):
         "перемещаем камеру"

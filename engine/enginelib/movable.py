@@ -3,15 +3,14 @@
 from config import *
 
 from share.mathlib import *
-from engine.engine_lib import *
-from engine.collissions import *
+from engine.enginelib.meta import *
+from engine.enginelib.collissions import *
+from engine.enginelib import wrappers
 
 
 from math import hypot
 
 
-
-##########################################################
 
 class Movable(DynamicObject):
     "класс движущихся объектов"
@@ -26,6 +25,7 @@ class Movable(DynamicObject):
     
     @wrappers.alive_only()
     def move(self, vector=Point()):
+        labs = abs
         if not self.moved:
             self.moved = True
             if self.stopped>0:
@@ -39,7 +39,7 @@ class Movable(DynamicObject):
                 if self.vector:
                     
                     #проверка столкновения
-                    part = self.speed / abs(self.vector) # доля пройденного пути в векторе
+                    part = self.speed / labs(self.vector) # доля пройденного пути в векторе
                     move_vector = self.vector * part if part<1 else self.vector
                     #определяем столкновения с тайлами
                     new_cord = (self.position+move_vector)/TILESIZE
@@ -53,14 +53,14 @@ class Movable(DynamicObject):
                     move_vector = self.vector
                 
                 if move_vector:
-                    self._detect_collisions(move_vector)
+                    #self._detect_collisions(move_vector)
                 
                     self.change_position(self.position+move_vector)
                     self.move_vector = move_vector
                 
                     #добавляем событие
                     if self.position_changed:
-                        self.add_event( 'move',  self.move_vector.get())
+                        self.add_event('move',  self.move_vector.get())
                     
                 
     
@@ -78,6 +78,9 @@ class Movable(DynamicObject):
                     break
                 if cross_tile in self.SLOWTILES:
                     resist = self.SLOWTILES[cross_tile]
+                
+                #опеределяем колиззии с объектами в данной клетке
+                self.detect_collisions(Point(i,j))
             else:
                 move_vector = Point()
                 self.vector = move_vector
@@ -86,19 +89,13 @@ class Movable(DynamicObject):
             
         move_vector *= resist
         return move_vector
-    
-    def _detect_collisions(self, move_vector):
-        solids = self.location.get_solids_list()
         
-        dists = []
-        for Player in solids:
-            if Player.name != self.name:
-                distance = abs(Player.position - self.position)
-                if distance <= Player.radius+self.radius:
-                    dists.append((distance, Player.radius))
-                    Player.collission(self)
-                    self.collission(Player)
-
+    def detect_collisions(self, cord):
+        for player in self.world.tiles[cord].copy():
+            if player.name != self.name:
+                player.collission(self)
+                self.collission(player)
+        
     
     def complete_round(self):
         self.moved = False

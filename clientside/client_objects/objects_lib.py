@@ -9,7 +9,7 @@ from collections import namedtuple
 
 sprite_size = namedtuple('sprite_size',['width','height'])
 
-class ActionError(Exception):
+class ActionError(BaseException):
     pass
 
 
@@ -53,14 +53,17 @@ class StaticObject(ClientObject):
     
     
     def hover(self):
+        print 'hover', self.name
         self.hovered = True
     
     def draw(self):
-        if self.hovered:
-            tilename = self.tilename + '_hover'
-        else:
-            tilename = self.tilename
-        return [create_tile(self.position, tilename, -1)]
+        
+        return [create_tile(self.position, self.tilename, -1, hover=self.hovered)]
+    
+
+    def unhover(self):
+        print 'unhover', self.name
+        self.hovered = False
     
 
 

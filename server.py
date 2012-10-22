@@ -2,115 +2,129 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-from config import PROFILE_SERVER, HOSTNAME
+from config import SERVER_TIMER, HOSTNAME, PROFILE_SERVER, SERVER_PROFILE_FILE
+
+from sys import exit as sys_exit, exc_info
+import traceback
+import cProfile
+from time import time, sleep
+from collections import defaultdict
+
+from engine.engine_interface import GameEngine
+from share.packer import pack, unpack
+from share.ask_hostname import ask_hostname
+from serverside.socket_server import SocketServer
 
 
-from engine.game_engine import GameEngine
-from share.protocol_lib import Packer
-from share.ask_hostname import AskHostname
-from serverside.server_lib import SocketServer
+save_time = 600
 
-from threading import RLock
-
-
-
-class GameServer(SocketServer, AskHostname, Packer):
+class GameServer(object):
     "игровой сервер"
-    hostname = None
-    client_requestes = {}
-    client_list = set()
     
-    def __init__(self):
-        AskHostname.__init__(self, HOSTNAME) 
-        SocketServer.__init__(self) #работа с сокетами
-        Packer.__init__(self) #упаковка запросов/ответов в пакеты
+    def __init__(self, hostname):
+        self.server = SocketServer(hostname)
+
+        self.client_list = set()    
+        self.client_requestes = defaultdict(list)
         
-        self.new_clients = [] #стек новых клиентов
-        self.new_clients_lock = RLock() #
+        #сам игровой движок
+        self.game = GameEngine(save_time)
         
-        self.closed_clients = [] #стек отключившихся клиентов
-        self.closed_clients_lock = RLock() 
-        
-        
-        self.server_lock = RLock()
-        
-        self.game = GameEngine() #сам игровой движок
+        self.round_counter = 0
+        self.r_times = []
             
 
-    def timer_handler(self):
+    def game_worker(self):
         "обращается к движку по расписанию"
         #смотрим новых клиентов
-        with self.new_clients_lock:
-            new_clients = self.new_clients
-            self.new_clients = []
-        if new_clients:
-            for new_client in new_clients:
-                self.game.game_connect(new_client)
+        for client_name in self.server.get_accepted():
+            accept_response = pack(self.game.game_connect(client_name))
+            self.server.put_response(client_name, accept_response)
+            self.client_list.add(client_name)
         
         #смотрим отключившихся клиентов
-        with self.closed_clients_lock:
-            closed_clients = self.closed_clients
-            self.closed_clients = []
-        if closed_clients:
-            for closed_client in closed_clients:
-                self.game.game_quit(closed_client)
+        for client_name in self.server.get_closed():
+            self.game.game_quit(client_name)
+            self.client_list.remove(client_name)
         
         #смотрим новые запросы и очищаем очередь
-        with self.server_lock:
-            client_requestes = self.client_requestes
-            self.client_requestes = {client: [] for client in self.client_list}
+        
+        for client, message in self.server.get_requestes():
+            self.client_requestes[client].append(unpack(message))
+
         
         #отправляем запросы движку
-        self.game.game_requests(client_requestes)
+        self.game.game_requests(self.client_requestes)
+        self.client_requestes.clear()
         
         #обновляем движок
         self.game.game_update()
         
         #вставляем ответы в очередь на отправку
         for name, messages in self.game.game_responses():
-            self.write(name, messages)
+            for message in messages:
+                response = pack(message)
+                self.server.put_response(name, response)
         
         #завершаем раунд игры
         self.game.end_round()
+
+
+    def stop(self, stop_reason = ''):
+        #считаем среднее время на раунд
+        print('%s \n GameServer stopping...' % str(stop_reason))
+        self.server.stop()
+        count = len(self.r_times)
+        if count:
+            all_time = sum(self.r_times)
+            m_time = all_time/count
+            print('median time %s/%s = %s' % (all_time, count, m_time))
+        if isinstance(stop_reason, BaseException):
+            raise stop_reason
         
-        
-    #поток движка
-    def write(self, name, responses):
-        "пакует сообщение и кладет его в стек ответов"
-        responses = [self.pack(response) for response in responses]
-        self.put_messages(name, responses)
-    
-    #поток сервера
-    def accept(self, client):
-        "вызывается при подключении клиента"
-        print('accept client %s' % client)
-        with self.server_lock:
-            self.client_list.add(client)
-            self.client_requestes[client] = []
-        
-        with self.new_clients_lock:
-            self.new_clients.append(client)
-        
-    
-    #поток движка
-    def read(self, client, message):
-        "распаковывает запрос с сокетсервера и кладет его в стек для обработки движком"
-        request = self.unpack(message)
-        with self.server_lock:
-            self.client_requestes[client].append(request)
-    
-    #поток сервера
-    def close(self, client):
-        "вызывается при отключении клиента, кладет его имя в стек отключившихся клиентов, для обработки движком"
-        self.client_list.remove(client)
-        with self.closed_clients_lock:
-           self.closed_clients.append(client)
-        
-        with self.server_lock:
-            del self.client_requestes[client]
 
     def start(self):
-        self.run()
+        print('Running...')
+        stop_reason = 'None'
+        try:
+            self.server.start()
+            print('GameServer running')
+            t = time()
+            while 1:
+                if not self.server.excp.empty():
+                    print('error in SocketServer')
+                    stop_reason = self.server.excp.get_nowait()
+                    break
+
+                r_time = time()
+            
+                self.game_worker()
+                
+                self.r_times.append(time() - r_time)
+                
+                delta = time()-t
+                timeout = SERVER_TIMER - delta if delta<SERVER_TIMER else 0
+                t = time()
+                sleep(timeout)
+            print('game loop end')
+
+        except KeyboardInterrupt:
+            stop_reason= 'KeyboardInterrupt'
+            self.game.save()
+            print('stop_reason:', stop_reason)
+
+        except:
+            except_type, except_class, tb = exc_info()
+            print('exception!', except_type, except_class)
+            for line in traceback.extract_tb(tb):
+                print(line)
+
+
+        finally:
+            print('game loop exit')
+         
+            self.stop(stop_reason)
+            sys_exit()
     
 
 
@@ -118,14 +132,14 @@ class GameServer(SocketServer, AskHostname, Packer):
         
 
 def main():
-    server = GameServer()
+    hostname = ask_hostname(HOSTNAME)
+    server = GameServer(hostname)
     server.start()
 
 if __name__ == '__main__':
     if PROFILE_SERVER:
         print('profile')
-        import cProfile
-        cProfile.run('main()', '/tmp/game_server.stat')
+        cProfile.run('main()', SERVER_PROFILE_FILE)
         
     else:
         main()

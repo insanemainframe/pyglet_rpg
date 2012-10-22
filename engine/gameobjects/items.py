@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from engine.engine_lib import *
-
-
 from config import *
+
+
+from engine.enginelib.meta import *
+from engine.enginelib.equipment import Equipment
+from engine.enginelib import wrappers
+
 
 class Item(StaticObject, Solid, Temporary):
     radius = TILESIZE
@@ -12,15 +15,16 @@ class Item(StaticObject, Solid, Temporary):
         StaticObject.__init__(self, position)
         Temporary.__init__(self, 10*self.lifetime)
     
-    @wrappers.player_filter(Guided)
+    @wrappers.player_filter(Equipment)
     def collission(self, player):
-        self.effect(player)
-        self.to_remove()
+        self.world.remove_object(self)
+        player.add_item(self)
+        
     
     def update(self):
         Temporary.update(self)
     
-    def effect(self, player):
+    def effect(self):
         pass
     
     def remove(self):
@@ -42,43 +46,44 @@ class Corpse(StaticObject, Temporary):
 class HealPotion(Item):
     "излечивает"
     hp = 5
-    def effect(self, player):
-        player.heal(self.hp)
+    def effect(self):
+        self.owner.heal(self.hp)
 
 class SpeedPotion(Item):
     "увеличивает скорость"
     speed = 5
-    def effect(self, player):
-        player.plus_speed(self.speed)
+    def effect(self):
+        self.owner.plus_speed(self.speed)
     
 class Sword(Item):
     "увеличивает урон"
     damage = 1
-    def effect(self, player):
-        player.plus_damage(self.damage)
+    def effect(self):
+        self.owner.plus_damage(self.damage)
 
 class Gold(Item):
-    def effect(self, player):
-        player.plus_gold()
+    def effect(self):
+        self.owner.plus_gold()
 
 class Armor(Item):
     armor = 3
-    def effect(self, player):
-        player.plus_hp(self.armor)
+    def effect(self):
+        self.owner.plus_hp(self.armor)
 
 class Sceptre(Item):
-    def effect(self, player):
-        player.plus_skill()
+    def effect(self):
+        self.owner.plus_skill()
     
 class Cloak(Item):
     invisible_time = 300
-    def effect(self, player):
-        player.set_invisible(self.invisible_time)
+    def effect(self):
+        self.owner.set_invisible(self.invisible_time)
     
 class Lamp(Item):
-     def effect(self, player):
+     def effect(self):
          from engine.gameobjects.units import Ally
-         position = self.world.choice_position(Ally, 5, player.position,True)
-         ally = Ally(player, position)
+         position = self.world.choice_position(Ally, 5, self.owner.position,True)
+         ally = Ally(position)
+         ally.bind_master(self.owner)
          self.world.new_object(ally)
         

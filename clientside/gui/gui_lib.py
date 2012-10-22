@@ -58,11 +58,11 @@ class Drawable:
         self.tiles.sort(lambda x,y: -1 if x[0]>y[0] else 1)
         
         try:
-            for layer,tilename, position, sprite_type in self.tiles:
+            for layer,tilename, position, sprite_type, hover in self.tiles:
                 if sprite_type=='tile':
                     x,y = (position-self.shift).get()
                     if -TILESIZE<x<self.surface.width+TILESIZE and -TILESIZE<y<self.surface.height+TILESIZE:
-                        self.surface.draw_tile(tilename, x,y)
+                        self.surface.draw_tile(tilename, x,y, hover)
                         
                 elif sprite_type=='label':
                     

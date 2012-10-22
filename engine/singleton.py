@@ -3,20 +3,26 @@
 #разделяемое состояние всех объектов игры
 from config import *
 
-from random import randrange, choice
-from weakref import proxy
 
+from weakref import proxy
+from random import  choice
 
 from share.mathlib import Point
-from engine.singleton_lib import ObjectContainer, ObjectItem
-from engine import gameworlds
+
+from engine.enginelib import meta
+from engine.enginelib.meta import DynamicObject, StaticObject
+from engine.world import gameworlds
 
 
         
-class __GameSingleton(ObjectContainer):
+class __GameSingleton(object):
     "синглтон игрового движка - хранит карты, все объекты, и предоставляет доступ к ним"
     def __init__(self):
-        ObjectContainer.__init__(self)
+        self.guided_players = {} #управляемые игроки
+        self.players = {}
+        self.static_objects = {}
+        
+        self.monster_count = 0
         self.guided_changed = False
 
     
@@ -24,7 +30,7 @@ class __GameSingleton(ObjectContainer):
         print('Engine initialization...')
         
         self.worlds = {}
-        self.worlds['ground'] = gameworlds.World('ground',proxy(self))
+        self.worlds['ground'] = gameworlds.World('ground',proxy(self)) 
         self.worlds['underground'] = gameworlds.UnderWorld('underground', proxy(self))
         self.worlds['underground2'] = gameworlds.UnderWorld2('underground2', proxy(self))
         
@@ -33,17 +39,64 @@ class __GameSingleton(ObjectContainer):
         for world in self.worlds.values():
             print('world %s initialization' % world.name)
             world.start()
+            world.save()
         
         print('Engine initialization complete. \n')
-
-      
-
     
+        
+    def new_object(self, player):
+        "создает динамический объект"
+        if isinstance(player, meta.DynamicObject):
+            self.players[player.name] = player
+             
+            if isinstance(player, meta.Guided):
+                self.guided_players[player.name] = proxy(player)
+                
+        else:
+            self.static_objects[player.name] = player
+        
+    
+    
+    def remove_object(self, player):
+        name = player.name
+        if name in self.players or name in self.static_objects:
+            if isinstance(player, DynamicObject):
+                player = self.players[name]
+                del self.players[name]
+            else:
+                player = self.static_objects[name]
+                del self.static_objects[name]
+            
+            player.handle_remove()
+            player.world.remove_object(player)
+    
+
+
+    def remove_guided(self, name):
+        player = self.guided_players[name]
+        
+        location = player.location
+        
+        location.remove_object(player, True)
+        
+        del self.guided_players[name]
+        try:
+            self.remove_object(player)
+        except:
+            pass
+    
+    def add_to_remove(self, player, force):
+        location = player.location
+        location.add_to_remove(player, force)
+
+
     def change_world(self, player, world, new_position = False):
         "переметить объект из одного мира в другой"
         prev_world = player.world
         new_world = self.worlds[world]
-        player.location.pop_player(player.name)
+        
+        prev_world.remove_object(player)
+        player.location.pop_object(player)
         
         teleport_point = choice(new_world.teleports)
         if not new_position:
@@ -53,11 +106,12 @@ class __GameSingleton(ObjectContainer):
         
 
         new_location = new_world.locations[li][lj]
-        new_location.add_player(player)
+        new_location.add_object(player)
+        new_world.add_object(player)
 
-        self.players[player.name].world = new_world.name
         
         player.world = proxy(new_world)
+        
         
         player.location = proxy(new_location)
         player.set_position(new_position)
@@ -66,23 +120,32 @@ class __GameSingleton(ObjectContainer):
         
         player.world_changed = True
         player.cord_changed = True
+        if isinstance(player, DynamicObject):
+            player.move_vector = Point()
+            player.vector = Point()
         #обновляем хэш объекта
         player.regid()
         
-        for related in player.related_objects:
-            position = new_world.choice_position(related, 3, new_position)
-            self.change_world(related, world, position)
+        for slave in player.slaves.copy():
+            position = new_world.choice_position(slave, 3, new_position)
+            self.change_world(slave, world, position)
         
+        for related in player.related_objects:
+            related.world = proxy(new_world)
+            related.location = proxy(new_location)
     
     def get_active_locations(self):
         "список активных локаций"
-        return sum([world.active_locations.values() for world in self.worlds.values()], [])
+        lsum = sum
+        return lsum([world.active_locations.values() for world in self.worlds.values()], [])
     
     def get_guided_list(self, self_name):
         f = lambda cont:  ('(%s)'% player.name if player.name==self_name else player.name, player.kills)
         return [f(player) for player in self.guided_players.values()]
     
-
+    def save(self):
+        for world in self.worlds.values():
+            world.save()
 
 game = __GameSingleton()
 

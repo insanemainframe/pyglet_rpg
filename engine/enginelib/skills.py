@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from engine.engine_lib import *
+from engine.enginelib.meta import *
 from engine.gameobjects.shells import SkillBall
 
 class Skill:

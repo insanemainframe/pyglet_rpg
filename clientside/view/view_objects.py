@@ -4,7 +4,7 @@
 from config import *
 
 from clientside.gui.gui_lib import Drawable
-from clientside.view import client_objects
+from clientside.client_objects import dynamic_objects
 from clientside.view.view_lib import ViewTools
 
 from share.mathlib import *
@@ -16,7 +16,7 @@ class ObjectsView(Drawable, ViewTools):
     "отображение объектов"
     def __init__(self, surface):
         Drawable.__init__(self)
-        ViewTools.__init__(self, surface, client_objects)
+        ViewTools.__init__(self, surface, dynamic_objects)
         self.focus_object = False
         
         

@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from engine.engine_lib import *
+from engine.enginelib.meta import *
 from engine.mathlib import chance
 from engine.gameobjects.items import *
-from engine.gameobjects.movable import Movable
+from engine.enginelib.movable import Movable
+from engine.enginelib import wrappers
+
 
 
 from random import randrange, random      
@@ -26,7 +28,7 @@ class Lootable(Deadly):
     def die(self):
         if chance(self.cost):
             item = choice(self.loot)(self.position)
-            self.world.new_static_object(item)
+            self.world.new_object(item)
         Deadly.die(self)
 
 class Fighter:
@@ -140,7 +142,7 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject):
         DynamicObject.__init__(self, name, position)
         Unit.__init__(self, speed, hp, Corpse, 'monsters')
         Stalker.__init__(self, self.look_size)
-        Respawnable.__init__(self, 30, 60)
+        Respawnable.__init__(self, 60, 100)
         Lootable.__init__(self, self.loot_cost)
         
         self.stopped = False

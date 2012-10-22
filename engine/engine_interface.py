@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 #
 from share.mathlib import *
-from share.game_protocol import NewWorld
+from share.game_protocol import NewWorld, ServerAccept
 
 from engine.singleton import game
-from engine.engine_lib import *
+from engine.enginelib.meta import *
 from engine.game_objects import Player
 
 
@@ -15,7 +15,7 @@ from config import *
 class GameEngine:
     "интерфейс к движку игры"
     monster_count = 0
-    def __init__(self):
+    def __init__(self, save_time):
         game.start()
         self.messages = {}
             
@@ -34,6 +34,8 @@ class GameEngine:
         
         game.guided_changed = True
         print('New player %s' % name)
+
+        return ServerAccept()
     
     
     def game_requests(self, messages):
@@ -93,7 +95,8 @@ class GameEngine:
         game.guided_changed = False
         
        
-                
+    def save(self):
+        game.save()
     
     def game_quit(self, name):
         print('%s quit' % name)

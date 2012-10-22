@@ -1,53 +1,89 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from config import *
+from config import IN_PORT, OUT_PORT, SOCKET_SERVER_PROFILE, SOCKET_SERVER_PROFILE_FILE
 
+import cProfile
 import socket
-from time import sleep, time
-from threading import Thread, RLock
+from sys import exc_info, exit as sys_exit
+import traceback
+from threading import Thread
+from multiprocessing import Process, Queue, Event
 from collections import namedtuple
+from socket import error as socket_error
+
 
 from share.protocol_lib import send, receivable, PackageError
 from serverside.multiplexer import Multiplexer
 
 
-IN, OUT = 0,1
-PORTS = {IN:IN_PORT, OUT:OUT_PORT}
+IN, OUT = 0, 1
+PORTS = {IN: IN_PORT, OUT: OUT_PORT}
 
-class HandleAcceptError(Exception):
+
+class HandleAcceptError(BaseException):
     pass
 
 
+client_tuple = namedtuple('client_tuple', ('insock', 'outsock', 'generator'))
 
-#####################################################################
-client_tuple = namedtuple('client_tuple' ,('insock','outsock', 'generator'))
 
-class SocketServer(Multiplexer):
+class SocketServer(Multiplexer, Process):
     "получает/отправляет данные через сокеты"
-    def __init__(self, timer_value=SERVER_TIMER, listen_num=100):
+    def __init__(self, hostname, listen_num=100):
+        Process.__init__(self)
         Multiplexer.__init__(self)
         self.listen_num = listen_num
-        
+        self.hostname = hostname
+
         self.insock, self.in_fileno = self._create_socket(IN)
         self.outsock, self.out_fileno = self._create_socket(OUT)
-        
+
         self.infilenos = {}
         self.insocks = {}
         self.outfilenos = {}
-        
+
         self.address_buf = {}
-        
-        self.responses = {}
-        
+
+        self.accepted = Queue()
+        self.closed = Queue()
+        self.requestes = Queue()
+        self.responses = Queue()
+        self.excp = Queue()
+
+        self.sender_thread  = Thread(target = self._sender)
+
         self.clients = {}
         self.client_counter = 0
-        self.running = True
-        
-        self.closed = []
-        
-        self.responses_lock = RLock() #блокировка для действий с сокетсервером куызщтыуы куйгууыеуы
+
+        self.stop_event = Event()
+                
         
         self.r_times = []
+
+    #интерфейс
+    def get_accepted(self):
+        while not self.accepted.empty():
+            yield self.accepted.get_nowait()
+        raise StopIteration
+
+    def get_closed(self):
+        while not self.closed.empty():
+            yield self.closed.get_nowait()
+        raise StopIteration
+
+    def get_requestes(self):
+        while not self.requestes.empty():
+            client, request = self.requestes.get_nowait()
+            yield client, request
+        raise StopIteration
+
+    def put_response(self, client_name, response):
+        self.responses.put_nowait((client_name, response))
+
+
+    def _handle_exception(self, except_type, except_class, tb):
+        self.excp.put_nowait((except_type, except_class, traceback.extract_tb(tb)))
+        self.stop()
             
     def _create_socket(self, stream):
         "создает неблокирубщий сокет на заданном порте"
@@ -55,32 +91,26 @@ class SocketServer(Multiplexer):
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((self.hostname, PORTS[stream]))
         sock.setblocking(0)
-        #if stream==OUT:
-        #    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1) #не дожидаться буферизации
         fileno = sock.fileno()
         return sock, fileno
-    
-    #поток движка
-    def put_messages(self, client_name, messages):
-        "добавить ответ в стек"
-        with self.responses_lock:
-            if client_name in self.responses:
-                self.responses[client_name].extend(messages)
-    
 
-    
-    def _handle_write(self, client_name):
-        "пишет пакеты на сокет пользователя"
-        if self.responses[client_name]:
-            with self.responses_lock:
-                to_write =  self.responses[client_name]
-                self.responses[client_name] = []
-            sock = self.clients[client_name].outsock
-            for response in to_write:
-                send(sock, response)
-            return True
+    def _sender(self):
+        try:
+            while not self.stop_event.is_set():
+                client_name, response = self.responses.get()
+                if client_name in self.clients:
+                    sock = self.clients[client_name].outsock
+                    try:
+                        send(sock, response)
+                    except socket_error as error:
+                        print('sender error', str(error))
+            print('sender stop')
 
-        
+        except:
+            self._handle_exception(*exc_info())
+
+            
+
     
     def _handle_read(self, client_name):
         "читает один пакет данных из сокета, если это возможно"
@@ -104,7 +134,7 @@ class SocketServer(Multiplexer):
             return False
         else:
             if request:
-                self.read(client_name, request)
+                self.requestes.put_nowait((client_name, request))
             return True
             
         
@@ -120,7 +150,7 @@ class SocketServer(Multiplexer):
             conn.setblocking(0)
             ('output Connection from %s (%s)' % (fileno, address))
         else:
-            raise HandleAcceptError('unknnowsn stream %s' % stream)
+            raise HandleAcceptError('unknnown stream %s' % stream)
         
         conn.setblocking(0)
         
@@ -130,7 +160,7 @@ class SocketServer(Multiplexer):
             if stream==IN:
                 insock = conn
                 outsock = self.address_buf[address]
-                
+
             else:
                  outsock = conn
                  insock = self.address_buf[address]
@@ -153,69 +183,62 @@ class SocketServer(Multiplexer):
         self.infilenos[insock_fileno] = client_name
         self.outfilenos[outsock_fileno] = client_name
         
-        with self.responses_lock:
-            self.responses[client_name] = []
         
-        self.register_in(insock_fileno)
-        self.register_out(outsock_fileno)
+        self._register_in(insock_fileno)
+
         
         print('accepting_client %s' % client_name)
 
         #реагируем на появление нового клиента
-        with self.server_lock:
-            self.accept(client_name)
+        self.accepted.put_nowait(client_name)
         
-    def _timer_thread(self):
-        "отдельный поток для обращения к движку и рассылке ответов"
-        t = time()
-        while self.running:
-            r_time = time()
-            
-            self.timer_handler()
-            
-            r_time2 = time() - r_time
-            self.r_times.append(r_time2)
-            
-            delta = time()-t
-            timeout = SERVER_TIMER - delta if delta<SERVER_TIMER else 0
-            t = time()
-            sleep(timeout)
     
 
     
     def run(self):
-        print('\nServer running at %s:(%s,%s) multiplexer: %s' % (self.hostname, IN_PORT, OUT_PORT, self.poll_engine))
+        if SOCKET_SERVER_PROFILE:
+            cProfile.runctx('self._run()', globals(),locals(),SOCKET_SERVER_PROFILE_FILE)
+        else:
+            self._run()
+    def _run(self):
+        self.running = True
+
         self.insock.listen(self.listen_num)
         self.outsock.listen(self.listen_num)
         
         #регистрируем сокеты на ожидание подключений
-        self.register_in(self.insock.fileno())
-        self.register_in(self.outsock.fileno())
+        self._register_in(self.insock.fileno())
+        self._register_in(self.outsock.fileno())
         
-        #запускаем поток движка
-        #self.thread = Thread(target=self._timer_thread)
-        self.thread = Thread(target=self.run_poll)
-        self.thread.start()
-        #
+
+        
+       
+        print('\nServer running at %s:(%s,%s) multiplexer: %s \n' % (self.hostname, IN_PORT, OUT_PORT, self.poll_engine))
         try:
-            self._timer_thread()
-            #self.run_poll()
+            #запускаем sender
+            self.sender_thread.start()
+        
+            #запускаем мультиплексор
+            self._run_poll()
+        except:
+            self._handle_exception(*exc_info())
+
         finally:
-            self.stop()
+            print 'polling exit'
+            self._handle_stop()
+
     
     def _handle_close(self, client_name, message):
         "закрытие подключения"
         print('Closing %s: %s' % (client_name, message))
         
-        with self.server_lock:
-            self.close(client_name)
+        self.closed.put_nowait(client_name)
         
         #
         infileno = self.clients[client_name].insock.fileno()
         outfileno = self.clients[client_name].outsock.fileno()
         
-        self.unregister(infileno)
-        self.unregister(outfileno)
+        self._unregister(infileno)
         
         
         
@@ -226,38 +249,30 @@ class SocketServer(Multiplexer):
         
         self.clients[client_name].insock.close()
         self.clients[client_name].outsock.close()
-        del  self.clients[client_name]
+        del self.clients[client_name]
 
         
-        with self.responses_lock:
-            del self.responses[client_name]
-        
-    def stop(self):
-        "сотановка сервера"
+    
+    def stop(self, reason=None):
+        print('SocketServer stopping..')
         self.running = False
-        self.thread._Thread__stop()
-        #
-        self.stop_debug_info()
-        #
-        self.unregister(self.insock.fileno())
-        self.unregister(self.outsock.fileno())
-        #
-        self.insock.close()
-        self.outsock.close()
-        #считаем среднее время на раунд
-        count = len(self.r_times)
-        all_time = sum(self.r_times)
-        m_time = all_time/count
-        print('median time %s/%s = %s' % (all_time, count, m_time))
-        print('Stopped')
+        self.stop_event.set() 
+
+    def _handle_stop(self):
+        "сотановка сервера"
+        try:
+            self.sender_thread._Thread__stop()
+                        #
+            self._unregister(self.in_fileno)
+            
+            self.insock.close()
+            self.outsock.close()
+        finally:    
+            print('SocketServer stopped')
+            sys_exit
+            
         
     
-    def stop_debug_info(self):
-        "информация для дебага"
-        print('\n\nDebug info:')
-        print('len(self.clients)', len(self.clients))
-        print('self.clients', self.clients)
-        print('End of debug info\n\n')
     
 
         

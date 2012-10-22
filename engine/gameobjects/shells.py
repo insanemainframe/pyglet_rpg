@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-from engine.engine_lib import *
-from engine.gameobjects.movable import Movable
+from engine.enginelib.meta import *
+from engine.enginelib.movable import Movable
+from engine.enginelib import wrappers
+
 
 from config import *
 

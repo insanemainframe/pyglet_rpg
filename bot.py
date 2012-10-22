@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from clientside.network import GameClient
+from clientside.gameclient import GameClient
 from share.mathlib import *
+from share.ask_hostname import ask_hostname
 from config import *
 from time import sleep, time
 from sys import argv, exit
@@ -13,14 +14,12 @@ from engine.mathlib import chance
 from random import randrange
 
 class Bot(GameClient, Process):
-    def __init__(self):
-        self.hostname =  HOSTNAME 
-        #
-        GameClient.__init__(self)
+    def __init__(self, hostname):
+
+        GameClient.__init__(self, self, hostname)
         Process.__init__(self)
         
-        self.wait_for_accept()
-        print 'accepted'
+        
         self.shift = Point()
         self.antilag_init = lambda *args: args
     
@@ -28,28 +27,39 @@ class Bot(GameClient, Process):
         d = 1
         t = time()
         while 1:
-            sleep(ROUND_TIMER)
-            self.socket_loop()
-            self.in_messages = []
-            if time()-t>1:
-                d*=-1
-                x = randrange(-500, 500)
-                y = randrange(-500, 500)
-                if d>0:
-                    self.send_move(Point(x,y))
-                else:
-                    self.send_ball(Point(x,y))
-                if chance(10):
-                    self.send_skill()
-                t = time()
+            if not self.accepted:
+                self.accept()
+            else:
+                
+                sleep(ROUND_TIMER)
+                self.update()
+                self.in_messages = []
+                if time()-t>1:
+                    d*=-1
+                    x = randrange(-500, 500)
+                    y = randrange(-500, 500)
+                    if d>0:
+                        self.send_move(Point(x,y))
+                    else:
+                        self.send_ball(Point(x,y))
+                    if chance(10):
+                        self.send_skill()
+                    if chance(10):
+                        self.send_apply_item(randrange(8))
+                    t = time()
     def on_close(self, a=''):
         exit()
 
 def main():
-    n = argv[1]
+    if len(argv)==2:
+        n = int(argv[1])
+    else:
+        n = int(argv[2])
 
-    for i in range(int(argv[1])):
-        bot = Bot()
+    hostname = ask_hostname(HOSTNAME)
+
+    for i in range(n):
+        bot = Bot(hostname)
         bot.start()
         
     while 1:

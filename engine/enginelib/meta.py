@@ -2,62 +2,32 @@
 # -*- coding: utf-8 -*-
 from share.mathlib import *
 from engine.mathlib import *
+from engine.enginelib import wrappers
+
 
 from random import choice, random
 from time import time
 
 
-class UnknownAction(Exception):
+class UnknownAction(BaseException):
     pass
 
 
-class ActionDenied(Exception):
+class ActionDenied(BaseException):
     pass
 
-class ActionError(Exception):
+class ActionError(BaseException):
     def __init__(self, message):
         self.message = message
     
     def __str__(self):
         return 'ActionError: %s' % self.message
 
-class wrappers:
-    @staticmethod
-    def alive_only(Class=None):
-        def wrapper(method):
-            def wrap(self,*args):
-                if self.alive:
-                    return method(self, *args)
-                else:
-                    if Class:
-                        return getattr(Class, method.__name__)(self, *args)
-            return wrap
-        return wrapper
-    
-    @staticmethod
-    def player_filter(Class):
-        def wrapper(method):
-            def wrap(self, player):
-                if isinstance(player, Class):
-                    return method(self,player)
-            return wrap
-        return wrapper
-    
-    @staticmethod
-    def player_filter_alive(method):
-        def wrap(self, player):
-            if player.alive:
-                return method(self,player)
-        return wrap
-    
-    
-    
 
 
-#####################################################################
+
 class GameObject(object):
     def __init__(self, name, position):
-        self.related_objects = []
         self.name = name
         self.alive = True
         self.delayed = False
@@ -68,7 +38,38 @@ class GameObject(object):
         
         self.gid = str(hash((name, position)))
         
+        self.master = None
+        self.slaves = set()
+        self.owner = None
+        self.related_objects = set()
+        
         self.has_events = False
+    
+    def bind_slave(self, slave):
+        self.slaves.add(slave)
+    
+    def unbind_slave(self, slave):
+        self.slaves.remove(slave)
+
+    def bind_master(self, master):
+        self.master = master
+        self.master.bind_slave(self)
+        self.handle_bind_master()
+
+    def unbind_master(self):
+        self.master.unbind_slave(self)
+        self.master = None
+    
+    
+    def bind(self, related):
+        self.related_objects.add(related)
+        related.owner = self
+        related.world = self.world
+        related.location = self.location
+    
+    def unbind(self, related):
+        self.related_objects.remove(related)
+        related.owner = None
     
     def handle_creating(self):
         pass
@@ -92,9 +93,13 @@ class GameObject(object):
         "принудительная установка позиции"
         size = self.world.size*TILESIZE
         if 0<=position.x<=size and 0<=position.y<=size:
+            prev_cord = self._position/TILESIZE
             self._position = position
             self._prev_position = position
             self.cord = position/TILESIZE
+            
+            self.world.update_tiles(self, prev_cord, self.cord)
+            
         else:
             data = (position, self.name, self.world.name, self.world.size)
             self.world.handle_over_range(self, position)
@@ -105,6 +110,7 @@ class GameObject(object):
         if not position==self._position:
             
             cur_cord = position/TILESIZE
+            prev_cord = self._position/TILESIZE
             
             if 0<=cur_cord.x<=self.world.size and 0<=cur_cord.y<=self.world.size:
                 prev_cord = self._position/TILESIZE
@@ -119,15 +125,17 @@ class GameObject(object):
                 prev_loc = self.location.cord
                 cur_loc = self.world.get_loc_cord(position)
                 if prev_loc!=cur_loc:
-                    self.location = self.world.change_location(self.name, prev_loc, cur_loc)
+                    self.world.change_location(self, prev_loc, cur_loc)
                 
                 self._prev_position = self._position
                 self._position  = position
+                #
+                self.world.update_tiles(self, prev_cord, cur_cord)
+                
             else:
                 data = (position, self.name, self.world.name, self.world.size)
                 self.world.handle_over_range(self, position)
                 self.move_vector = Point()
-                print('Warning: Invalid position %s %s' % (position, self.name))
     
     @staticmethod
     def choice_position(world_map, location, i ,j):
@@ -142,9 +150,6 @@ class GameObject(object):
     def __ne__(self, player):
         return self.name!=player.name
     
-    def get_location(self):
-        return self.world.get_location(self.position)
-    
     def update(self):
         pass
     
@@ -156,6 +161,9 @@ class GameObject(object):
     
     def remove(self):
         return True
+
+    def to_remove(self, force=False):
+        self.world.game.add_to_remove(self, force)
     
     
 
@@ -175,8 +183,6 @@ class DynamicObject(GameObject):
     def prev_position(self):
         raise Warning('@prev_position.setter')
     
-    def to_remove(self, force=False):
-        self.world.game.add_to_remove(self, force)
     
     def add_event(self, action, *args,**kwargs):
         object_type = self.__class__.__name__
@@ -231,9 +237,6 @@ class StaticObject(GameObject):
         pass
     
 
-    
-    def to_remove(self, force=False):
-        self.world.game.add_to_remove_static(self, force)
 
 class ActiveState:
     pass
@@ -270,21 +273,16 @@ class Solid():
     def collission(self, player):
         pass
 
-#####################################################################
 
-
-        
-    
-
-####################################################################
 
 
         
 class Deadly:
     "класс для живых объектов"
-    def __init__(self, corpse, hp, heal_speed=0.01, death_time=20):
+    heal_time = 300
+    def __init__(self, corpse, hp, death_time=20):
         self.hp_value = hp
-        self.heal_speed = heal_speed
+        self.heal_speed = self.hp_value/self.heal_time
         self.death_time = death_time
         self.death_time_value = death_time
         self.corpse = corpse
@@ -296,8 +294,6 @@ class Deadly:
         self.alive = True
         self.hp = self.hp_value
         
-    
-
     
     def hit(self, hp):
         self.hitted = 10
@@ -324,6 +320,7 @@ class Deadly:
     
     def plus_hp(self, armor):
         self.hp_value+=armor
+        self.heal_speed = self.hp_value/self.heal_time
         self.add_event('change_hp', self.hp_value, self.hp)
     
     def update(self):
@@ -346,7 +343,7 @@ class Deadly:
     def create_corpse(self):
         name = 'corpse_%s_%s' % (self.name, self.death_counter)
         corpse = self.corpse(name, self.position)
-        self.world.new_static_object(corpse)
+        self.world.new_object(corpse)
     
     def die(self):
         self.alive = False
@@ -379,7 +376,7 @@ class Mortal:
             self.alive = self.alive_after_collission
             #
             if self.striker in self.world.game.players:
-                striker = self.world.game.players[self.striker].player
+                striker = self.world.game.players[self.striker]
                 if isinstance(striker, Guided):
                     if prev_state and not player.alive:
                         striker.plus_kills()

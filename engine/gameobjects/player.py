@@ -2,24 +2,27 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from engine.engine_lib import *
+from engine.enginelib.meta import *
 from engine.mathlib import chance
-from engine.gameobjects.units_lib import *
+from engine.enginelib.units_lib import *
 from engine.gameobjects.shells import Ball
-from engine.gameobjects.movable import Movable
-from engine.gameobjects.skills import *
-from engine.gameobjects.map_observer import MapObserver
+from engine.enginelib.movable import Movable
+from engine.enginelib.skills import *
+from engine.enginelib.map_observer import MapObserver
+from engine.enginelib import wrappers
+
 import  share.game_protocol as protocol
 
-class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, DynamicObject):
+class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equipment, DynamicObject):
     "класс игрока"
     min_dist = 10
     prev_looked = set()
     speed = 30
-    hp = 60
+    hp = 600
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     SLOWTILES = {'water':0.5, 'bush':0.3}
-    damage = 2
+    damage = 100
+    default_skills = 100
 
     def __init__(self, name, player_position, look_size):
         DynamicObject.__init__(self, name, player_position)
@@ -28,7 +31,8 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
         Striker.__init__(self,2, Ball, self.damage)
         Respawnable.__init__(self, 10, 30)
         Stats.__init__(self)
-        Skill.__init__(self,10)
+        Skill.__init__(self,self.default_skills)
+        Equipment.__init__(self)
         self.change_objects = False
     
     def accept_response(self):
@@ -86,13 +90,18 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
             if self.location.check_static_events():
                 yield protocol.LookStaticEvents(self.look_static_events(self))
             
-            #если изменились собственные статы
-            if self.stats_changed:
-                yield protocol.PlayerStats(*Stats.get_stats(self))
+        #если изменились собственные статы
+        if self.stats_changed:
+            yield protocol.PlayerStats(*Stats.get_stats(self))
+        
+        #если изменился список игроков лнлайн
+        if self.world.game.guided_changed:
+            yield protocol.PlayersList(self.world.game.get_guided_list(self.name))
             
-            #
-            if self.world.game.guided_changed:
-                yield protocol.PlayersList(self.world.game.get_guided_list(self.name))
+        #если изменилис предметы
+        if self.equipment_changed:
+            yield protocol.EquipmentDict(self.look_items())
+            self.equipment_changed = False
             
     @Guided.action
     @wrappers.alive_only()
@@ -112,6 +121,10 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
     def Skill(self):
         self.skill()
     
+    @Guided.action
+    def ApplyItem(self, slot):
+        self.apply_item(slot)
+    
     def get_args(self):
         return Deadly.get_args(self)
     
@@ -128,7 +141,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Dyna
     
     @classmethod
     def choice_position(cls, world, location, i ,j):
-        for player  in location.get_players_list():
+        for player in location.get_players_list():
             if player.fraction=='monsters':
                 dist = abs(Point(i,j)*TILESIZE - player.position)
                 if dist<=cls.min_dist*TILESIZE:

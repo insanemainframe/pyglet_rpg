@@ -6,7 +6,7 @@ from share.mathlib import *
 
 from math import hypot
 
-
+lhypot = hypot
 
 class MapObserver:
     "класс объекта видящего карту"
@@ -37,7 +37,7 @@ class MapObserver:
         
         for i in xrange(i_start, i_end):
             for j in xrange(j_start, j_end):
-                if hypot(I-i,J-j) < rad:
+                if lhypot(I-i,J-j) < rad:
                     if (i,j) not in self.prev_observed:
                         tile_type = self.world.map[i][j]
                         looked.add((Point(i,j), tile_type))
@@ -47,11 +47,11 @@ class MapObserver:
         return looked, observed
         
     
-    def in_radius(self, position):
+    def in_radius(self, cord):
         "проверяет находится позиция в обозримых тайлах"
-        i,j = (position/TILESIZE).get()
+        i,j = cord.get()
         I,J = self.cord.get()
-        diff = hypot(I-i,J-j)
+        diff = lhypot(I-i,J-j)
         return diff<self.look_size
     
     def is_self_player(self, name, object_type, position, args):
@@ -66,7 +66,7 @@ class MapObserver:
         players = {}
         
         for player in all_players:
-            if self.in_radius(player.position):
+            if self.in_radius(player.cord):
                 gid = player.gid
                 players[gid] = self.is_self_player(*player.get_tuple())
         
@@ -89,7 +89,7 @@ class MapObserver:
         static_objects = {}
         
         for static_object in all_static_objects:
-            if self.in_radius(static_object.position):
+            if self.in_radius(static_object.cord):
                 gid = static_object.gid
                 static_objects[gid] = static_object.get_tuple()
         
@@ -110,16 +110,16 @@ class MapObserver:
         "поиск вдимывх событий"
         events = set()
         for event in self.location.get_events():
-            if self.in_radius(event.position):
+            if self.in_radius(event.cord):
                 events.add(event)
-                
+        
         return events
         
     def look_static_events(self):
         "поиск видимых статических событий"        
         static_events = set()
         for static_event in self.location.get_static_events():
-            if self.in_radius(static_event.position):
+            if self.in_radius(static_event.cord):
                 static_events.add(static_event)
                 
         return static_events

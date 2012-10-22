@@ -2,63 +2,16 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from share.mathlib import Point
-
 from weakref import proxy
 
-from engine import engine_lib
+from share.mathlib import Point
+from engine.enginelib.meta import DynamicObject, StaticObject, ActiveState, Solid
+
 
 #список инкременаторов к индексу на соседние локации
 near_cords = [cord.get() for cord in (Point(-1,1),Point(0,1),Point(1,1),
                                     Point(-1,0),             Point(1,0),
                                     Point(-1,-1),Point(0,-1),Point(1,-1))]
-
-class LocationActivity:
-    "функционал локации для работы с ее активностью"
-    def __init__(self):
-        self.primary_activity = 0
-        self.slavery_activity = 0
-    
-
-    def unset_primary_activity(self):
-        self.primary_activity-=1
-        if self.primary_activity<=0:
-            [location.unset_slavery_activity() for location in self.nears]
-            if self.slavery_activity==0:
-                self.unset_activity()
-    
-    def set_primary_activity(self):
-        self.primary_activity+=1
-        if self.primary_activity==1:
-            [location.set_slavery_activity() for location in self.nears]
-            
-            if self.slavery_activity<=0:
-                self.set_activity()
-        
-
-    def unset_slavery_activity(self):
-        self.slavery_activity -= 1
-        
-        if self.primary_activity<=0 and self.slavery_activity==0:
-            self.unset_activity()
-    
-    def set_slavery_activity(self):
-        self.slavery_activity += 1
-        
-        if self.primary_activity<=0 and self.slavery_activity==1:
-            self.set_activity()
-    
-    
-    def set_activity(self):
-        self.world.active_locations[self.cord.get()] = proxy(self)
-    
-    def unset_activity(self):
-        key = self.cord.get()
-        if key in self.world.active_locations:
-            del self.world.active_locations[key]
-        else:
-            print('key error', key)
-    
 
  
 
@@ -142,32 +95,77 @@ class LocationObjects:
         self.remove_static_list = {}
         
     
-    def add_player(self, player):
+    def add_object(self, player):
         "добавляет ссылку на игрока"
-        self.new_players = True
-        self.players[player.name] = player
-        
-        if isinstance(player, engine_lib.ActiveState):
+        if isinstance(player, ActiveState):
             self.set_primary_activity()
-        
-        if isinstance(player, engine_lib.Solid):
+
+        if isinstance(player, Solid):
             self.add_solid(player)
-   
-    
-    def pop_player(self, name):
-        "удаляет ссылку из списка игроков"
-        if name in self.players:
+
+        if isinstance(player, DynamicObject):
             self.new_players = True
+            self.players[player.name] = proxy(player)
+        else:
+            self.static_objects[player.name] = proxy(player)
+            self.new_static_objects = True
+
+        
+    
+    def pop_object(self, player):
+        "удаляет ссылку из списка игроков"
+        name = player.name
+        if name in self.players or name in self.static_objects:
+            if isinstance(player, DynamicObject):
+                player = self.players[name]
+                del self.players[player.name]
+                self.new_players = True
+            else:
+                self.new_static_objects = True
+                player = self.static_objects[name]
+                del self.static_objects[player.name]
+
+            if isinstance(player, ActiveState):
+                    self.unset_primary_activity()
+                
+            if isinstance(player, Solid):
+                self.remove_solid(name)
+
+            if name in self.remove_list:
+                del self.remove_list[name]
+
+
+    def remove_object(self, player, force = False):
+        "удаляет игрока, если его метод remove возвращает true"
+        name = player.name
+        if isinstance(player, DynamicObject):
+            del self.players[name]
+        else:
+            del self.static_objects[name]
+
+        result = player.remove()
+        if result or force:
+            position = player.position
+            if player.delayed:
+                player.add_event('delay', ())
+                
             
-            player = self.players[name]
-            
-            if isinstance(player, engine_lib.ActiveState):
-                self.unset_primary_activity()
             
             if name in self.solids:
                 self.remove_solid(name)
+                
+            if isinstance(player, ActiveState):
+                self.unset_primary_activity()
             
-            del self.players[player.name]
+            self.new_players = True
+            
+            self.world.game.remove_object(player)
+
+            if name in self.remove_list:
+                del self.remove_list[name]
+
+        else:
+            player.handle_remove()
         
         
     def check_players(self):
@@ -189,66 +187,13 @@ class LocationObjects:
     def clear_players(self):
         "удаляет игроков отмеченных для удаления в списке remove_list"
         if self.remove_list:
-            remove_list = self.remove_list.copy()
+            for name, force in self.remove_list.items():
+                player = self.players[name]
+                self.remove_object(player, force)
+
             self.remove_list.clear()
-            
-            for name, force in remove_list.items():
-                self.remove_player(name, force)
     
-    def remove_player(self, name, force = False):
-        "удаляет игрока, если его метод remove возвращает true"
-        player = self.players[name]
-        result = player.remove()
-        if result or force:
-            position = player.position
-            if player.delayed:
-                player.add_event('delay', ())
-                
-            if name in self.remove_list:
-                self.remove_list.remove(name)
-            
-            if name in self.solids:
-                self.remove_solid(name)
-                
-            if isinstance(player, engine_lib.ActiveState):
-                self.unset_primary_activity()
-            
-            self.new_players = True
-            del self.players[name]
-            self.world.game.remove_player_from_list(name)
-        else:
-            player.handle_remove()
     
-    def add_to_remove(self, name, force):
-        "добавляе игрок в список на удаление"
-        self.remove_list[name] = force
-
-    
-    #статические объекты
-
-    def add_static_object(self, player):
-        "добавляет ссылку на статический объект"
-        self.static_objects[player.name] = player
-        if isinstance(player, engine_lib.ActiveState):
-            self.set_primary_activity()
-        if isinstance(player, engine_lib.Solid):
-            self.add_solid(player)
-        self.new_static_objects = True
-
-    
-    def pop_static_object(self, name):
-        "удаляет ссылку из списка сатических объектов"
-        player = self.static_objects[name]
-        
-        if isinstance(player, engine_lib.ActiveState):
-            self.unset_primary_activity()
-        
-        if name in self.solids:
-            self.remove_solid(name)
-        
-        self.new_static_objects = True
-        del self.static_objects[player.name]
-        
 
     
     def get_static_objects_list(self):
@@ -259,7 +204,6 @@ class LocationObjects:
         return static_objects
     
 
-    
     
     
     def check_static_objects(self):
@@ -276,45 +220,31 @@ class LocationObjects:
     def clear_static_objects(self):
         "удаляет статические оъекты добавленные для удаления"
         if self.remove_static_list:
-            remove_list = self.remove_static_list.copy()
+            for name, force in self.remove_static_list.items():
+                if name in self.static_objects:
+                    player = self.static_objects[name]
+                    self.remove_object(player, force)
+                else:
+                    print('Warning: clear_static_objects, %s not in location list' % name)
+                    print('Warning: clear_static_objects, %s not in location list' % name)
+
             self.remove_static_list.clear()
-    
-            for name, force in remove_list.items():
-                self.remove_static_object(name, force)
         
 
-    
-    def remove_static_object(self, name, force = False):
-        "удаляет статические объекты, если метод remove вернул False то откладывет удаление объекта"
-        result = self.static_objects[name].remove()
-        if result or force:
-            
-            player = self.static_objects[name]
-            position = player.position
-            if player.delayed:
-                player.add_event('delay', ())
-            
-            if name in self.solids:
-                self.remove_solid(name)
-            
-            if isinstance(player, engine_lib.ActiveState):
-                self.unset_primary_activity()
-    
-            
-            self.new_static_objects = True
-            del self.static_objects[name]
-            self.world.game.remove_static_object_from_list(name)
+
   
     
-
-    
-    def add_to_remove_static(self, name, force):
+    def add_to_remove(self, player, force):
         "добавляет статический объект в список для удаления"
-        self.remove_static_list[name] = force
+        name = player.name
+        if isinstance(player, DynamicObject):
+            self.remove_list[name] = force
+        else:
+            self.remove_static_list[name] = force
     
     #
     def add_solid(self, solid):
-        self.solids[solid.name] = solid
+        self.solids[solid.name] = proxy(solid)
     
     def remove_solid(self, name):
         del self.solids[name]
@@ -325,7 +255,6 @@ class LocationObjects:
         return solids
     
 
-    
     
     def update(self):
         "очистка объекьтов"
@@ -340,12 +269,58 @@ class LocationObjects:
         self.new_players = False
         self.new_static_objects = False
 
+class LocationActivity:
+    "функционал локации для работы с ее активностью"
+    def __init__(self):
+        self.primary_activity = 0
+        self.slavery_activity = 0
+    
+
+    def unset_primary_activity(self):
+        self.primary_activity-=1
+        if self.primary_activity<=0:
+            [location.unset_slavery_activity() for location in self.nears]
+            if self.slavery_activity==0:
+                self.unset_activity()
+    
+    def set_primary_activity(self):
+        self.primary_activity+=1
+        if self.primary_activity==1:
+            [location.set_slavery_activity() for location in self.nears]
+            
+            if self.slavery_activity<=0:
+                self.set_activity()
+        
+
+    def unset_slavery_activity(self):
+        self.slavery_activity -= 1
+        
+        if self.primary_activity<=0 and self.slavery_activity==0:
+            self.unset_activity()
+    
+    def set_slavery_activity(self):
+        self.slavery_activity += 1
+        
+        if self.primary_activity<=0 and self.slavery_activity==1:
+            self.set_activity()
+    
+    
+    def set_activity(self):
+        self.world.active_locations[self.cord.get()] = self
+    
+    def unset_activity(self):
+        key = self.cord.get()
+        if key in self.world.active_locations:
+            del self.world.active_locations[key]
+        else:
+            print('key error', key)
+
 
 
 class Location(LocationActivity, LocationEvents, LocationObjects):
     "небольшие локаци на карте, содержат ссылки на соседние локации и хранят ссылки на объекты и события"
     def __init__(self, world, i,j):
-        self.world = proxy(world)
+        self.world = world
         self.i, self.j = i,j
         self.cord = Point(i,j)
         
@@ -363,7 +338,7 @@ class Location(LocationActivity, LocationEvents, LocationObjects):
             except IndexError:
                 pass
             else:
-                self.nears.append(proxy(near_location))
+                self.nears.append(near_location)
         
     
     def update(self):

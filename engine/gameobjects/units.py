@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from engine.engine_lib import *
+from engine.enginelib.meta import *
 from engine.mathlib import chance
-from engine.gameobjects.units_lib import *
+from engine.enginelib.units_lib import *
 from engine.gameobjects.items import *
 from engine.gameobjects.shells import *
-from engine.gameobjects.movable import Movable
+from engine.enginelib.movable import Movable
+from engine.enginelib import wrappers
+
 
 
 class Ally(Unit, Stalker, Temporary, Walker, Striker, DynamicObject):
@@ -22,15 +24,12 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, DynamicObject):
     name_counter = 0
     leash_size = 6
     
-    def __init__(self, owner, position):
+    def __init__(self, position):
         name = 'ally_%s' % Ally.name_counter
         Ally.name_counter+=1
-        
-        self.owner = owner
-        self.owner.related_objects.append(self)
-        
+                
         DynamicObject.__init__(self, name, position)
-        Unit.__init__(self, self.speed, self.hp, Corpse, self.owner.fraction)
+        Unit.__init__(self, self.speed, self.hp, Corpse, 'good')
         Stalker.__init__(self, self.look_size)
         Striker.__init__(self, 10, AllyBall, self.damage)
         Temporary.__init__(self, self.lifetime)
@@ -40,20 +39,26 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, DynamicObject):
         
         self.spawn()
     
+    def handle_bind_master(self):
+        self.fraction = self.master.fraction
+    
     def update(self):
-        o_pos = self.owner.position
-        pos = self.position
-        dist = abs(o_pos-pos)/TILESIZE
-        if dist < self.leash_size:
-            direct = self.hunt(False)
-            if direct:
-                delta = random()*TILESIZE
-                direct += Point(delta, -delta)
-                self.strike_ball(direct)
+        if self.master:
+            o_pos = self.master.position
+            pos = self.position
+            dist = abs(o_pos-pos)/TILESIZE
+            if dist < self.leash_size:
+                direct = self.hunt(False)
+                if direct:
+                    delta = random()*TILESIZE
+                    direct += Point(delta, -delta)
+                    self.strike_ball(direct)
+                else:
+                    Walker.update(self)
             else:
-                Walker.update(self)
+                self.move(o_pos - pos)
         else:
-            self.move(o_pos - pos)
+            Walker.update(self)
         
         Movable.update(self)
         Striker.update(self)
@@ -69,7 +74,8 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, DynamicObject):
         return Deadly.get_args(self)
     
     def handle_remove(self):
-        self.owner.related_objects.remove(self)
+        if self.master:
+            self.unbind_master()
 
 
 class Cat(Walker, Solid, Stalker, DiplomacySubject, DynamicObject):

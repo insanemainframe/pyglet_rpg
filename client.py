@@ -3,45 +3,56 @@
 from config import *
 from client_config import *
 
-
 from sys import exit
 
 print 'Loading modules...'
+#вьюверы для карты, объектов, статики
+from clientside.view.view_objects import ObjectsView
+from clientside.view.view_land import LandView
+from clientside.view.view_static_objects import StaticObjectView
 
+#класс точки
 from share.mathlib import *
-from share.ask_hostname import AskHostname
+from share.ask_hostname import ask_hostname
 
-from clientside.network import GameClient
+from clientside.gameclient import GameClient
 from clientside.input import InputHandle
 
 from clientside.gui.gui_lib import DeltaTimerObject
 from clientside.gui import window
 from clientside.gui.gui_elements import *
+from clientside.gui import surfaces
+  
 
-from clientside.view.view_objects import ObjectsView
-from clientside.view.view_land import LandView
-from clientside.view.view_static_objects import StaticObjectView
 
-class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWindow):
+
+class Gui(DeltaTimerObject, InputHandle, window.GUIWindow):
     accepted = False
-    shift = Point(0,0)
     vector = Point(0,0)
-    hostname = HOSTNAME
-    def __init__(self, height, width):
-        print 'Initialization...'
+    def __init__(self, hostname, (height, width)):
         #инициализация родтельских классов
-        AskHostname.__init__(self, HOSTNAME)
         window.GUIWindow.__init__(self, height, width)
         InputHandle.__init__(self)
         DeltaTimerObject.__init__(self)
-        GameClient.__init__(self)
+
+        #клиент игры
+        self.client = GameClient(self,hostname)
+
         
-        self.gamesurface = window.GameSurface(0,0,600, 600)
-        self.rightsurface = window.StatsSurface(600, 0, height, width-600)
+        #поверхности
+        self.gamesurface = surfaces.GameSurface(self, 0,0,600, 600)
+        self.rightsurface = surfaces.StatsSurface(self, 600, 0, height, width-600)
+        self.surfaces = [self.gamesurface, self.rightsurface]
         
         self.world_display = WorldDisplay(self.rightsurface)
-        self.stats = Stats(self.rightsurface)
+        self.stats = StatsDisplay(self.rightsurface)
         self.plist = PlayersOnlineDisplay(self.rightsurface)
+        self.equipment = EquipmentDisplay(self.rightsurface)
+
+
+        self.land = LandView(self.gamesurface)
+        self.objects = ObjectsView(self.gamesurface)
+        self.static_objects = StaticObjectView(self.gamesurface)
        
         
         #текст загрузки
@@ -49,94 +60,93 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
         
         #счетчик фпс
         self.fps_display = FPSDisplay()
-        #
+        #хелп
+        self.help_display = HelpScreen(self.gamesurface)
+        
         self.first_look = True
-        self.accept()
+
+        self.accepted = False
+
+        #устанавливаем обновления на каждом кадре
+        self.set_round_update(self.round_update, self.timer_value)
+        self.set_update(self.update)
     
     def new_world(self, name, world_size, position, background):
         "создание нового мира"
-        self.land = LandView(self.gamesurface, world_size, position, background)
-        self.objects = ObjectsView(self.gamesurface)
-        self.static_objects = StaticObjectView(self.gamesurface)
-        
+        self.land.set_world(world_size, position, background)
         self.world_display.change(name, world_size, position)
         
-        from clientside.view.client_objects import MapAccess
+        from clientside.client_objects.objects_lib import MapAccess
         MapAccess.map = self.land.map
     
-    def accept(self):
-        "ждем ответа от сервера"
-        accept_data = self.wait_for_accept()
-        if accept_data:
-            wold_name, world_size, position, background = accept_data
-            self.new_world(wold_name, world_size, position, background)            
-            
-            
-            self.accepted = True
-            self.loading = False
-            #устанавливаем обновления на каждом кадре
-            self.set_round_update(self.round_update, self.timer_value)
-            self.set_update(self.update)
-            
-            return True
-            
-        else:
-            print 'Accepting failed'
+
     
     def update(self, dt):
         "вызывается на каждом фрейме"
+        #обработка соединения
+        if self.accepted:
+            self.client.update()
+        else:
+            self.client.accept()
+            self.accepted = True
         #перехвт ввода
         self.handle_input()
-        #обработка соединения
-        self.socket_loop()
+
+        
+
         #нахождение проходимого на этом фрейме куска вектора
         delta = self.get_delta()
-        vector = self.shift*delta
-        if vector> self.shift:
-            vector = self.shift
-        self.shift = self.shift - vector
+        vector = self.client.shift*delta
+        if vector> self.client.shift:
+            vector = self.client.shift
+        self.client.shift = self.client.shift - vector
+
         #двигаем камеру
-        
         self.land.move_position(vector)
         self.world_display.update(self.gamesurface.position)
+
         #обновляем карту и объекты
         self.land.update()
-        
         self.objects.update(delta)
         self.static_objects.update()
     
+
     def antilag_init(self, shift):
         "заранее перемещаем камеру по вектору движения"
-        self.shift = shift
+        self.client.shift = shift
         if self.objects.focus_object:
-            self.objects.antilag(self.antilag_shift)
+            self.objects.antilag(self.client.antilag_shift)
     
+
     def antilag_handle(self, move_vector):
         "если камера была перемещена заранее - то вычитаем антилаг-смещение из смещения камеры, полученного с сервера"
-        if self.antilag:
-            vector = move_vector - self.antilag_shift 
-            self.shift += vector
+        if self.client.antilag:
+            vector = move_vector - self.client.antilag_shift 
+            self.client.shift += vector
         else:
-            self.shift += move_vector
+            self.client.shift += move_vector
         
-        self.antilag = False
-        self.antilag_shift = Point(0,0)
+        self.client.antilag = False
+        self.client.antilag_shift = Point(0,0)
         
+
     def force_complete(self):
         "экстренно завершает все обновления"
-        if self.shift:
-            self.land.move_position(self.shift)
-            self.shift = Point(0,0)
+        if self.client.shift:
+            self.land.move_position(self.client.shift)
+            self.client.shift = Point(0,0)
             self.land.update()
             self.objects.force_complete()
     
+
     def round_update(self, dt):
         "обработка данных полученных с сервера"
         self.force_complete()
         self.objects.round_update()
         self.static_objects.round_update()
+  
         
-        for action, message in self.pop_messages():
+        for action, message in self.client.get_messages():
             #если произошел респавн игрока
             if action=='Respawn':
                 new_position = message                
@@ -157,7 +167,6 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
             elif action=='LookPlayers':
                 objects = message
                 self.objects.insert_objects(objects)
-                
                 
             
             elif action=='LookEvents':
@@ -180,9 +189,13 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
             elif action == 'PlayersList':
                self.plist.update(message)
             
+            elif action == 'EquipmentDict':
+                self.equipment.update(message)
+            
             elif action=='NewWorld':
                 wold_name, world_size, position, background = message
                 self.new_world(wold_name, world_size, position, background)
+            
             else:
                 print 'Unknown Action:%s' % action
         
@@ -198,26 +211,29 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
         #включаем отображение альфа-канала
         self.enable_alpha()
         
-        if self.accepted:
-            self.land.draw()
-            self.objects.draw()
-            
-            self.static_objects.draw()
-            self.stats.draw()
-            self.world_display.draw()
-            self.plist.draw()
+        self.land.draw()
+        self.objects.draw()
+        self.rightsurface.draw_background(0,0,'rightside')
         
-        elif self.loading:
-            self.loading.draw()
+        self.static_objects.draw()
+        self.stats.draw()
+        self.world_display.draw()
+        self.plist.draw()
+        self.equipment.draw()
+        
+
+        self.help_display.draw()
         self.fps_display.draw()
+    
+
         
     def run(self):
         "старт"
-        print 'Running..'
         self.run_app()
     
+
     def on_close(self):
-        self.close_connection()
+        self.client.close_connection()
         exit()
 
 ########################################################################
@@ -232,8 +248,9 @@ class Gui(DeltaTimerObject, GameClient, InputHandle, AskHostname, window.GUIWind
 
 
 def main():
-    g = Gui(800, 600)
-    g.run()
+    hostname = ask_hostname(HOSTNAME)
+    game = Gui(hostname, (800, 600))
+    game.run()
 
 if __name__=='__main__':
     if PROFILE_CLIENT:

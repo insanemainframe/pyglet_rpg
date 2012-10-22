@@ -3,7 +3,7 @@
 from clientside.gui.window import  create_tile, create_label
 
 from share.mathlib import Point
-from clientside.view.objects_lib import StaticObject
+from clientside.client_objects.objects_lib import StaticObject
 
 from config import TILESIZE
 
@@ -16,7 +16,8 @@ class Corpse(StaticObject):
     tilename = 'corpse'
 
 class Item(StaticObject):
-    pass
+    def draw(self):
+        return [create_tile(self.position, self.tilename, 1, self.hovered)]
     
 class HealPotion(Item):
     tilename = 'heal_potion'
@@ -39,16 +40,21 @@ class Sceptre(Item):
 class Cloak(Item):
     tilename = 'cloak'
 
-class Cave(StaticObject):
+class Teleport(StaticObject):
+    def draw(self):
+        return [create_tile(self.position, self.tilename, -1, self.hovered)]
+
+
+class Cave(Teleport):
     tilename = 'cave'
 
-class Stair(StaticObject):
+class Stair(Teleport):
     tilename = 'stair'
 
-class UpStair(StaticObject):
+class UpStair(Teleport):
     tilename = 'stair'
 
-class DownCave(StaticObject):
+class DownCave(Teleport):
     tilename = 'cave'
 
 class Lamp(Item):
