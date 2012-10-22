@@ -19,6 +19,9 @@ from config import TILESIZE, ROUND_TIMER, HOSTNAME
 from client_config import TILESDIR
 
 
+LEFT_BUTTON = 1
+RIGHT_BUTTON = 4
+
 class GUIWindow(Window):
     def __init__(self, height, width):
         Window.__init__(self, height, width)
@@ -133,9 +136,12 @@ class Surface:
         return False
     
     def on_mouse_motion(self, x, y, dx, dy):
-        self.window.static_objects.handle_mouse(x,y)
-    
+        for element in self.elements:
+            if element.on_mouse_motion(x, y, dx, dy):
+                return True
+        return False
     def on_mouse_press(self, x, y, button, modifiers):
+        print 'surface on_mouse_press'
         for element in self.elements:
             if element.on_mouse_press(x, y, button, modifiers):
                 return True

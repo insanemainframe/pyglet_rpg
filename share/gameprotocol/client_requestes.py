@@ -8,15 +8,16 @@ from share.mathlib import Point
 
 #передвижение
 class Move(GameProtocol):
-    def __init__(self, vector):
+    def __init__(self, vector, destination):
         self.vector = vector
+        self.destination = destination
     
     def pack(self):
-        return self.vector.get()
+        return self.vector.get(), self.destination
     
     @classmethod
-    def unpack(cls, x,y):
-        return [Point(x,y)]
+    def unpack(cls, (x,y), destination):
+        return (Point(x,y), destination)
 
 #стрельба
 class Strike(GameProtocol):

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
-from client_config import CLIENTENGINE
 
 from share.mathlib import Point
 

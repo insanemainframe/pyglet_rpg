@@ -44,6 +44,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         #если попал в новый мир
         if self.world_changed:
             yield protocol.NewWorld(self.world.name, self.world.size, self.position, self.world.background)
+            #yield protocol.MoveCamera(Po)
             yield protocol.LookLand(*self.look_map())
             yield protocol.LookPlayers(self.look_players(True))
             yield protocol.LookStaticObjects(self.look_static_objects(True))
@@ -52,6 +53,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         #если респавнился
         elif self.respawned:
             yield protocol.Respawn(self.position)
+            #yield protocol.MoveCamera(self.move_vector)
             yield protocol.LookLand(*self.look_map())
             yield protocol.LookPlayers(self.look_players(True))
             yield protocol.LookStaticObjects(self.look_static_objects(True))
@@ -110,8 +112,8 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     
     @Guided.action
     @wrappers.alive_only()
-    def Move(self, vector):
-        Movable.move(self, vector)
+    def Move(self, vector, destination):
+        Movable.move(self, vector, destination)
     
     @Guided.action
     def Look(self):

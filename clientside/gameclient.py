@@ -41,8 +41,8 @@ class GameClient(SocketClient):
 
 
         
-    def send_move(self, vector):
-        message = pack(Move(vector))
+    def send_move(self, vector, destination = False):
+        message = pack(Move(vector, destination))
         self.put_message(message)
         #предварительное движение
         if vector and not self.shift and not self.antilag:

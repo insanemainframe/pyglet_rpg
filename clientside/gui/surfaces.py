@@ -3,11 +3,10 @@
 from config import TILESIZE, ROUND_TIMER, HOSTNAME
 
 from share.mathlib import *
-from clientside.gui.window import Surface
+from clientside.gui.window import Surface, LEFT_BUTTON, RIGHT_BUTTON
 
 from pyglet.window.key import *
-LEFT_BUTTON = 1
-RIGHT_BUTTON = 4
+
 
 
 class GameSurface(Surface):
@@ -21,13 +20,12 @@ class GameSurface(Surface):
         self.prev_position = False
         
         self.window = window
-        
+        self.destination = False
         
         self.control_keys = [UP, DOWN, LEFT, RIGHT, RSHIFT, SPACE]
         self.vector = Point()
         self.striking = False
 
-        self.prev_hovered = False
         
         self.step = TILESIZE/2
         self.vector = Point()
@@ -60,61 +58,17 @@ class GameSurface(Surface):
             if element.on_key_release(symbol, modifiers):
                 return True
         return False
-    
-    def find_object(self, objects, x,y):
-        m_position =  Point(x,y) - self.center
-        m_position = self.position +m_position
 
-        for gid, game_object in objects.items():
-            dist = abs(game_object.position - m_position)
-            #print game_object.position
-            if dist <= TILESIZE:
-                return game_object, gid
-    
-    def on_mouse_motion(self, x, y, dx, dy):
-        objects = self.window.static_objects.objects
-        result = self.find_object(objects,x,y)
-        if result:
-            hovered, gid = result
-            if not self.prev_hovered==gid:
-                hovered.hover()
-                if self.prev_hovered:
-                    if self.prev_hovered in objects:
-                        if self.prev_hovered in objects:
-                            print 'Unhover'
-                            objects[self.prev_hovered].unhover()
-                            self.prev_hovered = False
-                
-            self.prev_hovered = gid
-        else:
-            print 'not hoveres'
-            if self.prev_hovered:
-                print 'prev_hovered', self.prev_hovered
-                if self.prev_hovered in objects:
-                    print 'Unhover'
-                    objects[self.prev_hovered].unhover()
-                    self.prev_hovered = False
-                else:
-                    print self.prev_hovered, 'not in objects', objects.keys()
-
-    
     def on_mouse_press(self, x, y, button, modifiers):
-        "перехватывавем нажатие левой кнопки мышки"
-        #левая кнопка - движение
-        if button==LEFT_BUTTON:
-            objects = self.window.static_objects.objects
-            result = self.find_object(objects,x,y)
-            if result:
-                hovered, gid = result
-                self.vector = hovered.position-self.position 
-            else:
-                self.vector = (Point(x,y) - self.center)
-            
-            
-        elif button==RIGHT_BUTTON:
+        if button==RIGHT_BUTTON:
             vector = (Point(x,y) - self.center)
             self.window.client.send_ball(vector)
             self.striking = vector
+            return True
+        else:
+            Surface.on_mouse_press(self, x, y, button, modifiers)
+    
+    
     
     def on_mouse_release(self, x, y, button, modifiers):
         if button==LEFT_BUTTON:
@@ -140,9 +94,10 @@ class GameSurface(Surface):
             #получаем их сумму и если она не равна нулю - посылаем
             vector = sum(vectors, Point(0,0))*speed
             if vector:
-                self.window.client.send_move(vector)
+                self.window.client.send_move(vector, self.destination)
+                self.destination = False
         elif self.vector:
-            self.window.client.send_move(self.vector)
+            self.window.client.send_move(self.vector, self.destination)
         if self.striking:
             self.window.client.send_ball(self.striking)
 

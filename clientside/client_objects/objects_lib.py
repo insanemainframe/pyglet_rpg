@@ -53,7 +53,6 @@ class StaticObject(ClientObject):
     
     
     def hover(self):
-        print 'hover', self.name
         self.hovered = True
     
     def draw(self):
@@ -62,7 +61,6 @@ class StaticObject(ClientObject):
     
 
     def unhover(self):
-        print 'unhover', self.name
         self.hovered = False
     
 

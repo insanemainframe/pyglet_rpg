@@ -24,7 +24,7 @@ class Movable(DynamicObject):
         self.stopped = 0
     
     @wrappers.alive_only()
-    def move(self, vector=Point()):
+    def move(self, vector=Point(), destination=False):
         labs = abs
         if not self.moved:
             self.moved = True
@@ -44,7 +44,7 @@ class Movable(DynamicObject):
                     #определяем столкновения с тайлами
                     new_cord = (self.position+move_vector)/TILESIZE
                     if self.cord!= new_cord:
-                        move_vector = self._tile_collission(move_vector)
+                        move_vector = self._tile_collission(move_vector, destination)
                     
                     
                     self.vector = self.vector - move_vector
@@ -52,19 +52,21 @@ class Movable(DynamicObject):
                 else:
                     move_vector = self.vector
                 
+                if self.world_changed:
+                        self.move_vector = Point()
+                        self.vector = Point()
+
                 if move_vector:
-                    #self._detect_collisions(move_vector)
-                
                     self.change_position(self.position+move_vector)
                     self.move_vector = move_vector
                 
                     #добавляем событие
-                    if self.position_changed:
+                    if self.move_vector:
                         self.add_event('move',  self.move_vector.get())
                     
                 
     
-    def _tile_collission(self, move_vector):
+    def _tile_collission(self, move_vector, destination):
         "определения пересечяения вектора с непрохоодимыми и труднопроходимыми тайлами"
         resist = 1
         for (i,j), cross_position in get_cross(self.position, move_vector):
@@ -81,10 +83,19 @@ class Movable(DynamicObject):
                 
                 #опеределяем колиззии с объектами в данной клетке
                 self.detect_collisions(Point(i,j))
+                if self.world_changed:
+                    break
             else:
                 move_vector = Point()
                 self.vector = move_vector
                 break
+        else:
+            if destination and cross_tile:
+                for player in self.world.tiles[cross_tile]:
+                    if player.name==destination:
+                        player.collission(self)
+                        self.collission(player)
+
                 
             
         move_vector *= resist

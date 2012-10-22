@@ -22,7 +22,7 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, DynamicObject):
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     SLOWTILES = {'water':0.5, 'bush':0.3}
     name_counter = 0
-    leash_size = 6
+    leash_size = 4
     
     def __init__(self, position):
         name = 'ally_%s' % Ally.name_counter

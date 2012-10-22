@@ -53,7 +53,7 @@ class Gui(DeltaTimerObject, InputHandle, window.GUIWindow):
         self.land = LandView(self.gamesurface)
         self.objects = ObjectsView(self.gamesurface)
         self.static_objects = StaticObjectView(self.gamesurface)
-       
+
         
         #текст загрузки
         self.loading = LoadingScreen(self.gamesurface)
