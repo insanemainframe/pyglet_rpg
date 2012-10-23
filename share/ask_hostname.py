@@ -5,7 +5,6 @@ from sys import argv
 
 PATTERN = '^\d+\.\d+\.\d+\.\d+$'
 
-
 def ask_hostname(default):
     
     if len(argv)>1:

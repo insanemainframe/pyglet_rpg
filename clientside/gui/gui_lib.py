@@ -53,11 +53,21 @@ class Drawable:
     def __init__(self):
         self.shift = Point()
         self.tiles = []
+
+    def tile_sorter(self, tile, Tile):
+        if tile[2].y>Tile[2].y:
+            return -1
+        elif tile[2].y<Tile[2].y:
+            return 1
+        else:
+            return 0
+
     
     def draw(self):
         self.tiles.sort(lambda x,y: -1 if x[0]>y[0] else 1)
         
         try:
+            self.tiles.sort(self.tile_sorter)
             for layer,tilename, position, sprite_type, hover in self.tiles:
                 if sprite_type=='tile':
                     x,y = (position-self.shift).get()
