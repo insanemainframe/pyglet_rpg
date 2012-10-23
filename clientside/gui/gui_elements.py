@@ -107,7 +107,7 @@ class EquipmentDisplay(Drawable, GuiElement):
         self.key_to_num =  {k:i+1 for i,k in enumerate(self.control_keys)}
         
         self.x = 100
-        self.y = 400
+        self.y = 300
         self.dy = 40
         self.tilenames = {}
         for item_type_name in dir(item_types):
@@ -168,7 +168,7 @@ class PlayersOnlineDisplay(GuiElement):
     def __init__(self, surface):
         GuiElement.__init__(self, surface)
         self.x = 100
-        self.y = 300
+        self.y = 400
         self.title = Label(self.surface, 'Online:', self.x, self.y)
         self.plist = []
     
