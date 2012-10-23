@@ -75,8 +75,9 @@ class WorldDisplay(GuiElement):
     x = 30
     template = """<font color=white>
                 <br>World: %s
+                <br>Size: %s 
                 <br>Position: %s
-                <br>Size: %s </font>"""
+                </font>"""
     def __init__(self, surface):
         GuiElement.__init__(self, surface)
 

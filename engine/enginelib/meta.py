@@ -135,7 +135,7 @@ class GameObject(object):
             else:
                 data = (position, self.name, self.world.name, self.world.size)
                 self.world.handle_over_range(self, position)
-                self.move_vector = Point()
+                self.flush()
     
     @staticmethod
     def choice_position(world_map, location, i ,j):
