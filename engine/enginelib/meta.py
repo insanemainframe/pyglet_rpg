@@ -282,10 +282,10 @@ class Impassable(Solid):
         
 class Deadly:
     "класс для живых объектов"
-    heal_time = 300
+    heal_time = 1200
     def __init__(self, corpse, hp, death_time=20):
         self.hp_value = hp
-        self.heal_speed = self.hp_value/self.heal_time
+        self.heal_speed = self.hp_value/float(self.heal_time)
         self.death_time = death_time
         self.death_time_value = death_time
         self.corpse = corpse
@@ -313,7 +313,10 @@ class Deadly:
         else:
             return False
     
-    def heal(self, hp):
+    def heal(self, hp = False):
+        if not hp:
+            hp = self.heal_speed
+
         new_hp = self.hp+ hp
         if new_hp>self.hp_value:
             new_hp = self.hp_value
@@ -323,7 +326,7 @@ class Deadly:
     
     def plus_hp(self, armor):
         self.hp_value+=armor
-        self.heal_speed = self.hp_value/self.heal_time
+        self.heal_speed = self.hp_value/float(self.heal_time)
         self.add_event('change_hp', self.hp_value, self.hp)
     
     def update(self):
@@ -333,7 +336,7 @@ class Deadly:
                 self.hitted-=1
             else:
                 if self.hp<self.hp_value:
-                    self.hp+=self.heal_speed
+                    self.heal()
         else:
             if self.death_time>0:
                 self.death_time-=1
