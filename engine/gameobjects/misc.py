@@ -4,6 +4,9 @@ from config import *
 
 from random import randrange
 
+from share.mathlib import Point
+from engine.mathlib import chance
+
 from engine.enginelib.meta import *
 from engine.gameobjects.player import Player
 from engine.enginelib import wrappers
@@ -15,6 +18,13 @@ class Misc(StaticObject):
         StaticObject.__init__(self, position)
         self.number = randrange(self.count)
     
+    @classmethod
+    def choice_position(cls, world, location, i ,j):
+        if len(world.tiles[Point(i,j)]):
+            return False
+        else:
+            return True
+
     def get_args(self):
         return {'number': self.number}
 
@@ -53,10 +63,36 @@ class Stone(Misc):
     BLOCKTILES = Player.BLOCKTILES + ['water']
     count = 13
 
-class AloneTree(Misc, Solid):
-    BLOCKTILES = ['forest', 'bush', 'water', 'ocean']
-    count = 13
+class WindMill(Misc):
+    BLOCKTILES = Player.BLOCKTILES + ['water']
+    count = 1
+
+class AloneBush(Misc, Solid):
+    BLOCKTILES = Player.BLOCKTILES + ['water']
+    count = 9
     radius = TILESIZE
     def __init__(self, position):
         Misc.__init__(self, position)
         Solid.__init__(self, self.radius)
+
+class AloneTree(Misc, Impassable):
+    BLOCKTILES = Player.BLOCKTILES + ['water']
+    count = 5
+    radius = TILESIZE
+    def __init__(self, position):
+        Misc.__init__(self, position)
+        Impassable.__init__(self, self.radius)
+
+    @classmethod
+    def choice_position(cls, world, location, i ,j):
+        if len(world.tiles[Point(i,j)]):
+            return False
+
+        for ij in world.get_near_cords(i,j):
+                for player in world.tiles[Point(*ij)]:
+                    if isinstance(player, AloneTree):
+                        return True
+        if chance(98):
+            return False
+        else:
+            return True

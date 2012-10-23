@@ -9,11 +9,12 @@ from clientside.client_objects import static_objects
 from share.mathlib import *
 
 class StaticObjectView(Drawable, ViewTools, GuiElement):
-    def __init__(self, surface):
+    def __init__(self, window, surface):
         Drawable.__init__(self)
-        ViewTools.__init__(self, surface, static_objects)
+        ViewTools.__init__(self, window, surface, static_objects)
         GuiElement.__init__(self, surface)
         self.prev_hovered = False
+        
         
 
     
@@ -75,14 +76,22 @@ class StaticObjectView(Drawable, ViewTools, GuiElement):
     def on_mouse_press(self, x, y, button, modifiers):
         "перехватывавем нажатие левой кнопки мышки"
         #левая кнопка - движение
+        if self.window.objects.focus_object:
+            focus = self.window.objects.focus_object
+            focus_position = self.window.objects.objects[focus].position
+        else:
+            focus_position = self.surface.position
+
         if button==LEFT_BUTTON:
             result = self.find_object(x,y)
             if result:
                 hovered, gid = result
-                self.surface.vector = hovered.position-self.surface.position 
+ 
+                self.surface.vector = hovered.position - focus_position
                 self.destination = hovered.name
             else:
-                self.surface.vector = (Point(x,y) - self.surface.center)
+                self.surface.vector = Point(x,y) - (self.surface.center - (self.surface.position - focus_position))
+
             return True
         return False
             

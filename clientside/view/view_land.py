@@ -13,9 +13,10 @@ from collections import defaultdict
 
 class LandView(Drawable, MapTools):
     "клиентская карта"
-    def __init__(self, surface):
+    def __init__(self, window, surface):
         MapTools.__init__(self, 0, 0)
         Drawable.__init__(self)
+        self.window = window
         self.surface = surface
         self.accepted = False
 
@@ -53,13 +54,13 @@ class LandView(Drawable, MapTools):
             
     def look_around(self):
         "список тайлов в поле зрения"
-        rad_h = int(self.surface.rad_h/TILESIZE)
-        rad_w = int(self.surface.rad_w/TILESIZE)
+        rad_h = int(self.surface.rad_h/TILESIZE)+1
+        rad_w = int(self.surface.rad_w/TILESIZE)+1
         
         I,J = (self.surface.position/TILESIZE).get()
 
-        range_i = xrange(I-rad_w-1, I+rad_w+3)
-        range_j = xrange(J-rad_h-1, J+rad_h+2)
+        range_i = xrange(I-rad_w - 3, I+rad_w+3)
+        range_j = xrange(J-rad_h -3, J+rad_h+3)
         
         looked = set()
         for i in range_i:

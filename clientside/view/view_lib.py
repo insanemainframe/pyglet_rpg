@@ -4,8 +4,9 @@ from types import ClassType
 
 class ViewTools:
     "создает словарь из классов клиентских объектов"
-    def __init__(self, surface, module):
+    def __init__(self, window, surface, module):
         self.surface = surface
+        self.window = window
         
         self.module = module
         self.module.Meta.init_cls(surface)
@@ -15,6 +16,8 @@ class ViewTools:
         
         self.eventnames = []
         self.timeout_events = []
+
+        self.focus_object = False
         
         for name in dir(self.module):
             Class = getattr(self.module, name)
@@ -48,15 +51,16 @@ class ViewTools:
             
     def create_object(self, gid, name, object_type, position, args={}):
         game_object = self.object_dict[object_type](name, position, **args)
+        game_object.gid = gid
         
         self.objects[gid] = game_object
         if object_type=='Self':
-                self.focus_object = gid
+            self.focus_object = gid
         #print 'create_object', gid, name
     
     def remove_object(self, gid):
         #print 'remove_object', gid, self.objects[gid].name
-        if self.objects[gid].__class__.__name__=='Self':
+        if self.objects[gid].gid == self.focus_object :
                 self.focus_object = False
         del self.objects[gid]
     

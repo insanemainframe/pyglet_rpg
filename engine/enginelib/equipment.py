@@ -23,9 +23,8 @@ class Equipment:
             item = self.equipment[item_type].pop()
             self.unbind(item)
         
-    def apply_item(self, slot):
+    def apply_item(self, item_type):
         try:
-            item_type = self.equipment.keys()[slot]
             item = self.equipment[item_type].pop()
             
             item.effect()

@@ -17,14 +17,14 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     "класс игрока"
     min_dist = 10
     prev_looked = set()
-    speed = 30
-    hp = 600
+    speed = TILESIZE*0.5
+    hp = 60
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     SLOWTILES = {'water':0.5, 'bush':0.3}
-    damage = 100
-    default_skills = 100
+    damage = 5
+    default_skills = 10
 
-    def __init__(self, name, player_position, look_size):
+    def __init__(self, name, player_position, look_size=9):
         DynamicObject.__init__(self, name, player_position)
         Unit.__init__(self, self.speed, self.hp, Corpse, 'players')
         MapObserver.__init__(self, look_size)
@@ -42,26 +42,24 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         
     def handle_response(self):
         #если попал в новый мир
-        if self.world_changed:
-            yield protocol.NewWorld(self.world.name, self.world.size, self.position, self.world.background)
-            #yield protocol.MoveCamera(Po)
+        if self.world_changed or self.respawned:
+            if self.world_changed:
+                yield protocol.NewWorld(self.world.name, self.world.size, self.position, self.world.background)
+                self.world_changed = False
+
+            elif self.respawned:
+                yield protocol.Respawn(self.position)
+                self.respawned = False
+
+            yield protocol.MoveCamera(self.move_vector)
             yield protocol.LookLand(*self.look_map())
             yield protocol.LookPlayers(self.look_players(True))
+            yield protocol.LookEvents(self.look_events())
             yield protocol.LookStaticObjects(self.look_static_objects(True))
-            self.world_changed = False
             
-        #если респавнился
-        elif self.respawned:
-            yield protocol.Respawn(self.position)
-            #yield protocol.MoveCamera(self.move_vector)
-            yield protocol.LookLand(*self.look_map())
-            yield protocol.LookPlayers(self.look_players(True))
-            yield protocol.LookStaticObjects(self.look_static_objects(True))
-            self.respawned = False
- 
-        
+            
         else:
-            if self.position_changed and not (self.respawned or self.world_changed):
+            if self.position_changed:
                 yield protocol.MoveCamera(self.move_vector)
         
             #если изменилась клетка - смотрим новые тайлы и список тайлов в радусе обзора
@@ -113,7 +111,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     @Guided.action
     @wrappers.alive_only()
     def Move(self, vector, destination):
-        Movable.move(self, vector, destination)
+            Movable.move(self, vector, destination)
     
     @Guided.action
     def Look(self):
@@ -152,4 +150,11 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         for tile in world.get_near_tiles(i,j):
             if tile in cls.BLOCKTILES:
                 return False
+
+
+        for ij in world.get_near_cords(i,j) + [(i,j)]:
+                for player in world.tiles[Point(*ij)]:
+                    if isinstance(player, Solid):
+                        return False
+
         return True

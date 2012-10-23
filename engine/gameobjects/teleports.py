@@ -57,5 +57,5 @@ class Stair(Teleport):
 class UpStair(Teleport):
     pass
 
-class DownCave(Teleport):
+class DeepCave(Teleport):
     pass

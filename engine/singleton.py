@@ -6,6 +6,7 @@ from config import *
 
 from weakref import proxy
 from random import  choice
+from collections import OrderedDict
 
 from share.mathlib import Point
 
@@ -29,8 +30,8 @@ class __GameSingleton(object):
     def start(self):
         print('Engine initialization...')
         
-        self.worlds = {}
-        self.worlds['ground'] = gameworlds.World('ground',proxy(self)) 
+        self.worlds = OrderedDict()
+        self.worlds['ground'] = gameworlds.Ground('ground',proxy(self)) 
         self.worlds['underground'] = gameworlds.UnderWorld('underground', proxy(self))
         self.worlds['underground2'] = gameworlds.UnderWorld2('underground2', proxy(self))
         
@@ -115,14 +116,13 @@ class __GameSingleton(object):
         
         player.location = proxy(new_location)
         player.set_position(new_position)
-        player.move_vector = Point()
+        player.flush()
         
         
         player.world_changed = True
         player.cord_changed = True
         if isinstance(player, DynamicObject):
-            player.move_vector = Point()
-            player.vector = Point()
+            player.flush()
         #обновляем хэш объекта
         player.regid()
         

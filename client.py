@@ -38,10 +38,10 @@ class Gui(DeltaTimerObject, InputHandle, window.GUIWindow):
         #клиент игры
         self.client = GameClient(self,hostname)
 
-        
+        gs_size = 700
         #поверхности
-        self.gamesurface = surfaces.GameSurface(self, 0,0,600, 600)
-        self.rightsurface = surfaces.StatsSurface(self, 600, 0, height, width-600)
+        self.gamesurface = surfaces.GameSurface(self, 0,0,gs_size, gs_size)
+        self.rightsurface = surfaces.StatsSurface(self, gs_size, 0, height, width-gs_size)
         self.surfaces = [self.gamesurface, self.rightsurface]
         
         self.world_display = WorldDisplay(self.rightsurface)
@@ -50,9 +50,9 @@ class Gui(DeltaTimerObject, InputHandle, window.GUIWindow):
         self.equipment = EquipmentDisplay(self.rightsurface)
 
 
-        self.land = LandView(self.gamesurface)
-        self.objects = ObjectsView(self.gamesurface)
-        self.static_objects = StaticObjectView(self.gamesurface)
+        self.land = LandView(self, self.gamesurface)
+        self.objects = ObjectsView(self, self.gamesurface)
+        self.static_objects = StaticObjectView(self, self.gamesurface)
 
         
         #текст загрузки
@@ -213,14 +213,18 @@ class Gui(DeltaTimerObject, InputHandle, window.GUIWindow):
         
         self.land.draw()
         self.objects.draw()
-        self.rightsurface.draw_background(0,0,'rightside')
+        
         
         self.static_objects.draw()
+
+        #отрисовка бара
+        self.rightsurface.draw_background(0,0,'rightside')
         self.stats.draw()
         self.world_display.draw()
         self.plist.draw()
         self.equipment.draw()
         
+
 
         self.help_display.draw()
         self.fps_display.draw()
@@ -249,7 +253,7 @@ class Gui(DeltaTimerObject, InputHandle, window.GUIWindow):
 
 def main():
     hostname = ask_hostname(HOSTNAME)
-    game = Gui(hostname, (800, 600))
+    game = Gui(hostname, (900, 700))
     game.run()
 
 if __name__=='__main__':

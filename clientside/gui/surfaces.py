@@ -13,8 +13,9 @@ class GameSurface(Surface):
     "разделяемое состояние элементов gui"
     def __init__(self, window, x,y,width, height):
         Surface.__init__(self, x,y,width, height)
-        self.rad_h = self.height/2
-        self.rad_w = self.width/2
+        print width, height
+        self.rad_h = self.height/2+1
+        self.rad_w = self.width/2+1
         
         self.position = Point(0,0)
         self.prev_position = False
@@ -60,8 +61,14 @@ class GameSurface(Surface):
         return False
 
     def on_mouse_press(self, x, y, button, modifiers):
+        if self.window.objects.focus_object:
+            focus = self.window.objects.focus_object
+            focus_position = self.window.objects.objects[focus].position
+        else:
+            focus_position = self.position
+
         if button==RIGHT_BUTTON:
-            vector = (Point(x,y) - self.center)
+            vector =  Point(x,y) - (self.center - (self.position - focus_position))
             self.window.client.send_ball(vector)
             self.striking = vector
             return True

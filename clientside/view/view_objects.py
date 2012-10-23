@@ -14,10 +14,11 @@ from collections import defaultdict
 
 class ObjectsView(Drawable, ViewTools):
     "отображение объектов"
-    def __init__(self, surface):
+    def __init__(self, window, surface):
         Drawable.__init__(self)
-        ViewTools.__init__(self, surface, dynamic_objects)
+        ViewTools.__init__(self, window, surface, dynamic_objects)
         self.focus_object = False
+
         
         
     def antilag(self, shift):

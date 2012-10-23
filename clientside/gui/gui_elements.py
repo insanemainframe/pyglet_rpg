@@ -19,12 +19,13 @@ FPSDisplay = ClockDisplay
 class Stat:
     j = 1
     dy = -15
-    x = 10
-    y = 600
+    x = 30
+    
     def __init__(self, surface, template):
         self.template = template
         self.label = Label(surface, template, self.x, self.y+Stat.j*self.dy, False)
         Stat.j+=1
+        
 
     def update(self, *args):
         self.label.text = self.template % args
@@ -36,6 +37,7 @@ class Stat:
 class StatsDisplay(GuiElement):
     def __init__(self, surface):
         GuiElement.__init__(self, surface)
+        Stat.y = 670
         stat = partial(Stat, surface)
 
         self.hp = stat('hp: %s/%s')
@@ -70,16 +72,18 @@ class StatsDisplay(GuiElement):
 
 
 class WorldDisplay(GuiElement):
-    x = 10
-    y = 450
+    x = 30
     template = """<font color=white>
                 <br>World: %s
                 <br>Position: %s
                 <br>Size: %s </font>"""
     def __init__(self, surface):
         GuiElement.__init__(self, surface)
+
+        self.y = 500
         self.label = TextLabel(self.surface, self.template, self.x, self.y, 100)
         self.name, self.size = '', 0
+        
     
     def change(self, name, size, position):
         self.label.text = self.template % (name, size, position)
@@ -99,10 +103,11 @@ class EquipmentDisplay(Drawable, GuiElement):
     def __init__(self, surface):
         GuiElement.__init__(self, surface)
         Drawable.__init__(self)
-        self.slots = {k:i for i,k in enumerate(self.control_keys)}
+        self.slots = {}
+        self.key_to_num =  {k:i+1 for i,k in enumerate(self.control_keys)}
         
         self.x = 100
-        self.y = 300
+        self.y = 400
         self.dy = 40
         self.tilenames = {}
         for item_type_name in dir(item_types):
@@ -121,26 +126,36 @@ class EquipmentDisplay(Drawable, GuiElement):
         
         yn = 0
         
+        n = 1
+
         for item, number in items_dict.items():
             point = Point(self.x, self.y - yn*self.dy)
             tilename = self.tilenames[item]
             
-            point2 = point + Point(self.surface.x, self.surface.y)
-            sprite = create_tile(point2, tilename)
-            label = create_label(str(number), point)
+            width = self.surface.tiledict[tilename].width
+            height = self.surface.tiledict[tilename].height
+
+            shift = Point(width, height/2)
+
+            sprite = create_tile(point  - shift, tilename)
+            label = create_label("F-%s [%s]" % (n, number), point)
             
             self.tiles.append(label)
             self.tiles.append(sprite)
+
+            self.slots[n] = item
             
             yn+=1
-        print self.tiles
+            n+=1
     
     def on_key_press(self, symbol, modifiers):
         "движение с помощью клавиатуры"
         if symbol in self.control_keys:
             self.pressed[symbol] = True
-            slot = self.slots[symbol]
-            self.surface.window.client.send_apply_item(slot)
+            slot = self.key_to_num[symbol]
+            if slot in self.slots:
+                item_type = self.slots[slot]
+                self.surface.window.client.send_apply_item(item_type)
             return True
         return False
 
@@ -153,7 +168,7 @@ class PlayersOnlineDisplay(GuiElement):
     def __init__(self, surface):
         GuiElement.__init__(self, surface)
         self.x = 100
-        self.y = 380
+        self.y = 300
         self.title = Label(self.surface, 'Online:', self.x, self.y)
         self.plist = []
     

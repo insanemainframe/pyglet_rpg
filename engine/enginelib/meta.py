@@ -273,6 +273,9 @@ class Solid():
     def collission(self, player):
         pass
 
+class Impassable(Solid):
+    pass
+
 
 
 
@@ -401,7 +404,7 @@ class Respawnable:
         self.set_position(new_position)
         
         self.alive = True
-        self.move_vector = Point()
+        self.flush()
         self.regid()
         self.respawned = True
         self.spawn()

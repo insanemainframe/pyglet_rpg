@@ -48,6 +48,9 @@ class Teleport(StaticObject):
 class Cave(Teleport):
     tilename = 'cave'
 
+class DeepCave(Teleport):
+    tilename = 'cave_deep'
+
 class Stair(Teleport):
     tilename = 'stair'
 
@@ -93,3 +96,10 @@ class Rubble(Misc):
 
 class AloneTree(Misc):
     tilename = 'alone_tree'
+
+
+class AloneBush(Misc):
+    tilename = 'alone_bush'
+
+class WindMill(Misc):
+    tilename = 'windmill'

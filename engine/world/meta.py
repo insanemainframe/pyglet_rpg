@@ -43,8 +43,7 @@ class MetaWorld(PersistentWorld):
         self.create_locations()
         self.create_links()
         PersistentWorld.loading(self)
-        if not self.loaded:
-            print('Generating world, this can take a while...')
+            
         
 
     
@@ -166,6 +165,12 @@ class MetaWorld(PersistentWorld):
         cords = [(i+ni, j+nj) for ni,nj in near_cords if insize(i+ni, j+nj)]
         tiles = [self.map[i][j] for i,j in cords]
         return tiles
+
+    def get_near_cords(self, i,j):
+        "возвращает список соседних тайлов"
+        insize = lambda i,j: 0<i<self.size and 0<j<self.size
+        cords = [(i+ni, j+nj) for ni,nj in near_cords if insize(i+ni, j+nj)]
+        return cords
     
     def add_to_tile(self, player, cur_cord):
         self.tiles[cur_cord].add(player)

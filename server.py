@@ -16,12 +16,11 @@ from share.ask_hostname import ask_hostname
 from serverside.socket_server import SocketServer
 
 
-save_time = 600
+
 
 class GameServer(object):
     "игровой сервер"
-    
-    def __init__(self, hostname):
+    def __init__(self, hostname, save_time = 600):
         self.server = SocketServer(hostname)
 
         self.client_list = set()    

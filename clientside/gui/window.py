@@ -97,11 +97,14 @@ class Surface:
             mul = 1.2
         else:
             mul = 1
-        width = self.tiledict[tilename].width * mul
-        height = self.tiledict[tilename].height * mul
+        twidth = self.tiledict[tilename].width
+        theight = self.tiledict[tilename].height
+        
+        width = twidth * mul
+        height = theight * mul
         
         tile = self.tiledict[tilename]
-        x,y = x-width/2,y-height/2
+        x,y = x-twidth/2, y - theight/2
         #glBindTexture(texture.target, texture.id)
         
         self.tiledict[tilename].blit(x,y, width=width, height=height)
@@ -141,7 +144,6 @@ class Surface:
                 return True
         return False
     def on_mouse_press(self, x, y, button, modifiers):
-        print 'surface on_mouse_press'
         for element in self.elements:
             if element.on_mouse_press(x, y, button, modifiers):
                 return True

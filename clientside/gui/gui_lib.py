@@ -61,8 +61,8 @@ class Drawable:
             for layer,tilename, position, sprite_type, hover in self.tiles:
                 if sprite_type=='tile':
                     x,y = (position-self.shift).get()
-                    if -TILESIZE<x<self.surface.width+TILESIZE and -TILESIZE<y<self.surface.height+TILESIZE:
-                        self.surface.draw_tile(tilename, x,y, hover)
+                    #if -TILESIZE<x<self.surface.width+TILESIZE and -TILESIZE<y<self.surface.height+TILESIZE:
+                    self.surface.draw_tile(tilename, x,y, hover)
                         
                 elif sprite_type=='label':
                     
