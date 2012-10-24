@@ -3,7 +3,9 @@
 from sys import path; path.append('../../')
 
 from share.mathlib import *
+
 from math import hypot
+from collections import namedtuple
 
 from config import *
 
@@ -49,88 +51,6 @@ def cross_tile(A, B, tilecord):
     return ((ij, intersec_point(A,B,C, D)) for ij,(C, D) in cds.items() if interception(A,B,C,D))
 
 
-def get_tile(cord):
-    "выдает отрезки сторон квадрата"
-    a = cord*TILESIZE
-    A = (cord + Point(0,1))*TILESIZE
-    
-    b = A
-    B = (cord + Point(1,1))*TILESIZE
-    
-    c = B
-    C = (cord + Point(1,0))*TILESIZE
-    
-    d = a
-    D = C
-    return ((a,A),(b,B), (c,C),(d,D))
-    
-def tile_intersec(player, tilemin, tilemax):
-    return player.x>tilemin.x and player.y<tilemax.y and player.y>tilemin.y and player.y<tilemax.y
-
-def Range(s,e):
-    if e<s:
-        return range(s,e,-1)
-    else:
-        return range(s,e)
-
-def sort_crossed(position):
-    def wrap(a,b):
-        cord, iposition = a
-        cord2, iposition2 = b
-        dist1 = abs(iposition-position)
-        dist2 = abs(iposition2-position)
-        if dist1>dist2:
-            return 1
-        elif dist1<dist2:
-            return -1
-        else:
-            return 0
-    return wrap
-
-def sort_borders(position):
-    def wrap(a,b):
-        dist1 = abs(a-position)
-        dist2 = abs(b-position)
-        if dist1>dist2:
-            return 1
-        elif dist1<dist2:
-            return -1
-        else:
-            return 0
-    return wrap
-
-def _get_cross(position, vector):
-    "альтерантивная функция"
-    A = (position)/TILESIZE
-    B = (position+Point(0,vector.y))/TILESIZE
-    C = (position + vector)/TILESIZE
-    D = (position + Point(vector.x,0))/TILESIZE
-    #получаем прямоугольник тайлов
-    tiles = []
-    for i in Range(B.x, C.x):
-        for j in Range(A.y, B.y):
-            tiles.append(Point(i,j))
-    #ищем сред них пересекаемые
-    crossed = [(A.get(), position)]
-    for cord in tiles[1:]:
-        #получаем границы тайла
-        tile_sides = get_tile(cord)
-        crossed_sides =[]
-        for C,D in tile_sides:
-            if interception(position,vector,C,D):
-                i_point = intersec_point(position, vector, C,D)
-                crossed_sides.append(i_point)
-        #если есть пеерсечение с одной из сторон
-        if crossed_sides:
-            crossed_sides.sort(sort_borders(position))
-            crossed.append((cord.get(), crossed_sides[0]))
-            
-    #сортируем по близости к исходной точке
-    crossed.sort(sort_crossed(position))
-    if crossed:
-        return crossed
-    else:
-        return []
     
 
 def get_cross(position, vector):
@@ -146,4 +66,90 @@ def get_cross(position, vector):
 
 
 
-#qaprint get_cross(Point(0*TILESIZE,0*TILESIZE), Point(2*TILESIZE,5*TILESIZE))
+#####################################################################
+
+cross_tuple = namedtuple('cross_tuple', ['point', 'cord', 'dist'])
+
+def round_cord(cord, Ceil = False):
+    cord = cord/TILESIZE
+    if Ceil:
+        cord = int(ceil(float(cord)))
+
+    else:
+        cord = int(float(cord))
+
+    return cord*TILESIZE
+
+
+
+def get_interception_point(p1, p2, p3, p4):
+    x1, x2, x3, x4 = p1.x, p2.x, p3.x, p4.x
+    y1, y2, y3, y4 = p1.y, p2.y, p3.y, p4.y
+
+    not_par = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+
+    if not_par:    
+        x_numerator = (x1*y2 - y1*x2)*(x3 - x4) - (x1 - x2)*(x3*y4 - y3*x4)
+        x_denumerator = (x1-x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+
+        y_numerator = (x1*y2 - y1*x2)*(y3 - y4) - (y1 - y2)*(x3*y4 - y3*x4)
+        y_denumerator = (x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4)
+
+        x = x_numerator/x_denumerator
+        y = y_numerator/y_denumerator
+
+        return Point(x,y)
+    else:
+        return False
+
+
+def walk_by_cord(c1, c2, start, end, cord):
+    if c1>c2:
+        crange = range(c2, c1+TILESIZE, TILESIZE)
+    else:
+        crange = range(c1, c2 +TILESIZE, TILESIZE)
+    if cord=='x':
+        point = lambda c, two: Point(c, two.y+1)
+        cord = lambda x, ipoint: (c/TILESIZE, ipoint.y/TILESIZE)
+    else:
+        point = lambda c, two: Point(two.x+1, c)
+        cord = lambda x, ipoint: (ipoint.x/TILESIZE, c/TILESIZE)
+
+    for c in crange:
+        s = point(c, start)
+        e = point(c, end)
+        i_point =  get_interception_point(start, end, s, e)
+        if i_point:
+            dist = abs(i_point - start)
+            yield cross_tuple(i_point, cord(c, i_point), dist)
+
+
+
+def new_get_cross(start, vector):
+    end = start + vector
+
+    if start.x == end.x:
+        vector = Point(vector.x+1, vector.y)
+        end = start + vector
+    if start.y == end.y:
+        vector = Point(vector.x, vector.y+1)
+        end = start + vector
+
+    x1 = round_cord(start.x)
+    x2 = round_cord(end.x)
+
+    y1 = round_cord(start.y)
+    y2 = round_cord(end.y)
+
+    xlist = list(walk_by_cord(x1, x2, start, end, 'x')) #[1:]
+    ylist = list(walk_by_cord(y1, y2, start, end, 'y')) #[1:]
+
+
+    crossed = ylist + xlist
+
+    #print [cross.cord for cross in crossed]
+    crossed.sort(key = lambda cross: cross.dist)
+
+
+    for cross in crossed:
+        yield cross.cord, cross.point

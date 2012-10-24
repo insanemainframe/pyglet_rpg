@@ -1,11 +1,11 @@
 #!/bin/sh
 
 echo "CYTHON";
-for i in $(find . -name '*.cy');
+for i in $(find . -name '*.pyx');
 	do
 	f="${i%.*}";
 	echo "$f"
-	cython "$f.cy"
+	cython "$f.pyx"
 	done
 
 

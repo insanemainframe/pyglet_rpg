@@ -87,7 +87,7 @@ class GameObject(object):
     
     @position.setter
     def position(self, position):
-        raise Error('Denied')
+        raise Exception('Denied')
     
     def set_position(self, position):
         "принудительная установка позиции"
@@ -181,7 +181,7 @@ class DynamicObject(GameObject):
     
     @prev_position.setter
     def prev_position(self):
-        raise Warning('@prev_position.setter')
+        raise Exception('@prev_position.setter')
     
     
     def add_event(self, action, *args,**kwargs):
