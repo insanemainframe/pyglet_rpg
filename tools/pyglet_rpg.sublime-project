@@ -4,7 +4,7 @@
 		{
 			"path": "/home/innuendo/games/pyglet_rpg",
 			"folder_exclude_patterns": ["images", "tools", "__pycache__"],
-			"file_exclude_patterns": ["__init__.py", "*.png", "*.data", "*.pickle"]
+			"file_exclude_patterns": ["__init__.py", "*.png", "*.data", "*.pickle", "*.c"]
 		}
 	]
 }

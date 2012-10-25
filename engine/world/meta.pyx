@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from share.mathlib import Point
+from share.mathlib cimport Point
 
 from engine.world.world_persistence import PersistentWorld
 from engine.world.location import Location, near_cords
-from engine.events cimport Event
+from engine.events import Event
 from engine.enginelib.meta import DynamicObject, StaticObject
 
 
@@ -22,7 +22,7 @@ class MetaWorld(PersistentWorld):
     "базовый класс карты"
     monster_count = 0
     
-    def __init__(self, game, name):
+    def __init__(self, game, str name):
         PersistentWorld.__init__(self, self.mapname)
         self.game = game
         self.name = name
@@ -98,14 +98,15 @@ class MetaWorld(PersistentWorld):
         self.game.remove_object(player)
 
     
-    def add_static_event(self, name, object_type, position, action, args=(), timeout=0):
+    def add_static_event(self, str name, str object_type, Point position, action, args=(), timeout=0):
         "добавляет со9-бытие статического объекта"
+        cdef int i,j
         event = Event(name, object_type, position, action, args, timeout)
         
         i,j = self.get_loc_cord(position).get()
         self.locations[i][j].add_static_event(event)
     
-    def add_event(self, name, object_type, position, vector, action, args=(), timeout=0, ):
+    def add_event(self, str name, str object_type, Point position, Point vector, action, args=(), timeout=0, ):
         "добавляет событие"
         event = Event(name, object_type, position, action, args, timeout)
         
@@ -125,8 +126,10 @@ class MetaWorld(PersistentWorld):
             except IndexError:
                 print('location IndexError %s[%s:%s] %s' (self.name, i,j, name))
     
-    def change_location(self, player, prev_loc, cur_loc):
+    def change_location(self, player, Point prev_loc, Point cur_loc):
         "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
+        cdef int pi, pj, ci, cj
+
         pi, pj = prev_loc.get()
         prev_location = self.locations[pi][pj]
         ci, cj = cur_loc.get()
@@ -145,14 +148,15 @@ class MetaWorld(PersistentWorld):
         else:
             return prev_location
     
-    def get_loc_cord(self, position):
+    def get_loc_cord(self, Point position):
         "возвращает координаты локации для заданой позиции"
         return position/TILESIZE/LOCATIONSIZE
     
     
-    def get_location(self, position):
+    def get_location(self, Point position):
         "возвращает слокацию"
-        
+        cdef int i,j
+
         i,j = (position/TILESIZE/LOCATIONSIZE).get()
         try:
             return self.locations[i][j]
@@ -160,36 +164,43 @@ class MetaWorld(PersistentWorld):
             print('Warning: invalid location cord %s[%s:%s]' % (self.name,i,j))
             raise Error
     
-    def get_near_tiles(self, i,j):
+    def get_near_tiles(self, int i, int j):
         "возвращает список соседних тайлов"
+        cdef list cords, tiles
+
         insize = lambda i,j: 0<i<self.size and 0<j<self.size
         cords = [(i+ni, j+nj) for ni,nj in near_cords if insize(i+ni, j+nj)]
         tiles = [self.map[i][j] for i,j in cords]
         return tiles
 
-    def get_near_cords(self, i,j):
+    def get_near_cords(self, int i, int j):
         "возвращает список соседних тайлов"
+        cdef list cords
+
         insize = lambda i,j: 0<i<self.size and 0<j<self.size
         cords = [(i+ni, j+nj) for ni,nj in near_cords if insize(i+ni, j+nj)]
         return cords
     
-    def add_to_tile(self, player, cur_cord):
+    def add_to_tile(self, player, Point cur_cord):
         self.tiles[cur_cord].add(player)
         
-    def pop_from_tile(self, player, cur_cord):
+    def pop_from_tile(self, player, Point cur_cord):
         tile = self.tiles[cur_cord]
         if player in tile:
             tile.remove(player)
     
-    def update_tiles(self, player, prev_cord, cur_cord):
+    def update_tiles(self, player, Point prev_cord, Point cur_cord):
         if player in self.tiles[prev_cord]:
             self.tiles[prev_cord].remove(player)
         self.tiles[cur_cord].add(player)
     
         
     
-    def choice_position(self, player, radius=7, start=False, ask_player = False):
+    def choice_position(self, player, int radius=7, Point  start=Point(0,0) , ask_player = False):
         "выбирает случайную позицию, доступную для объекта"
+        cdef int lim, counter, timeout
+        cdef Point position, cord
+
         if not start:
             start = Point(self.size/2,self.size/2)
         else:
@@ -223,12 +234,14 @@ class MetaWorld(PersistentWorld):
                     radius = int(radius*1.5)
         raise BaseException('world[%s].choice_position: no place for %s' % (self.name, player))
     
-    def handle_over_range(self, player, position):
+    def handle_over_range(self, player, Point position):
         pass
     
     
     
     def create_object(self, n, object_type):
+        cdef Point position 
+
         n = int(n/WORLD_MUL)
         for i in xrange(n):
             position = self.choice_position(object_type, self.size/2, ask_player = True)
@@ -240,7 +253,9 @@ class MetaWorld(PersistentWorld):
             
             self.game.monster_count+=1
     
-    def create_item(self, n, object_type):
+    def create_item(self, int n, object_type):
+        cdef Point position 
+
         n = int(n/WORLD_MUL)
         for i in xrange(n):
             position = self.choice_position(object_type, self.size/2, ask_player = True)
@@ -249,7 +264,7 @@ class MetaWorld(PersistentWorld):
             
             self.new_object(item)
     
-    def resize(self,cord):
+    def resize(self, cord):
         if 0<=cord<=self.size:
             return cord
         else:

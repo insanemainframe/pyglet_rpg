@@ -100,7 +100,8 @@ class GameEngine:
     
     def game_quit(self, name):
         print('%s quit' % name)
-        del self.messages[name]
+        if name in self.messages:
+            del self.messages[name]
         game.remove_guided(name)
         game.guided_changed = True
     

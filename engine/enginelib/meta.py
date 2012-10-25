@@ -243,16 +243,13 @@ class ActiveState:
 
 class Guided(ActiveState):
     "управляемый игроком объекта"
+    __actions__ = {}
     
     def handle_action(self, action_name, args):
-        if hasattr(self, action_name):
-            method = getattr(self, action_name)
-            if hasattr(method, 'wrappers_action'):
-                
-                return method(*args)
-            else:
-                print("%s isn't guided action" % action_name)
-                ActionError('no action %s' % action_name)
+        if action_name in self.__actions__:
+            method = self.__actions__[action_name]
+            return method(*args)
+
         else:
             print('no action %s' % action_name)
             raise ActionError('no action %s' % action_name)
@@ -374,18 +371,18 @@ class Mortal:
         self.damage = damage
         self.alive_after_collission = alive_after_collission
     
-    @wrappers.player_filter(Deadly)
     def collission(self, player):
-        if player.fraction!=self.fraction:
-            prev_state = player.alive
-            player.hit(self.damage)
-            self.alive = self.alive_after_collission
-            #
-            if self.striker in self.world.game.players:
-                striker = self.world.game.players[self.striker]
-                if isinstance(striker, Guided):
-                    if prev_state and not player.alive:
-                        striker.plus_kills()
+        if isinstance(player, Deadly):
+            if player.fraction!=self.fraction:
+                prev_state = player.alive
+                player.hit(self.damage)
+                self.alive = self.alive_after_collission
+                #
+                if self.striker in self.world.game.players:
+                    striker = self.world.game.players[self.striker]
+                    if isinstance(striker, Guided):
+                        if prev_state and not player.alive:
+                            striker.plus_kills()
 
 ####################################################################
 

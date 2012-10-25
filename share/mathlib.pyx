@@ -1,31 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-from math import hypot
+from math import hypot, floor
 from config import *
-
-# <
-# 0   
-# ==
-# 2   
-# >
-# 4
-# <=
-# 1   
-# !=
-# 3   
-# >=
-# 5
 
     
 cdef class Point:
     "класс точек и векторов"
     def __init__(self, float x, float y):
-        try:
-            self.x = int(x)
-            self.y = int(y)
-        except TypeError:
-            raise TypeError("%s %s not int or float" % (str(x),str(y)))
+        self.x = int(floor(x))
+        self.y = int(floor(y))
+
 
     def __richcmp__(Point self, Point point, int op):
         if op==0:
@@ -47,10 +32,10 @@ cdef class Point:
     def __abs__(Point self):
         return hypot(self.x,self.y)
     
-    def __add__(self, point):
+    def __add__(Point self, Point point):
         return Point(self.x + point.x, self.y + point.y)
     
-    def __sub__(self, point):
+    def __sub__(Point self, Point point):
         "-"
         return Point(self.x - point.x, self.y - point.y)
     def __neg__(Point self):

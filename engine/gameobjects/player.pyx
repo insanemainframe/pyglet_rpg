@@ -2,16 +2,24 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from engine.enginelib.meta import *
+from share.mathlib cimport Point
+
+import  share.game_protocol as protocol
+
+
+from engine.enginelib.meta import Respawnable, Guided,  DynamicObject, Solid, Deadly, DiplomacySubject
 from engine.mathlib import chance
-from engine.enginelib.units_lib import *
-from engine.gameobjects.shells import Ball
-from engine.enginelib.movable import Movable
-from engine.enginelib.skills import *
+from engine.enginelib.units_lib import Unit, Stats, Striker
+from engine.enginelib.movable import Movable 
+from engine.enginelib.equipment import Equipment
+from engine.enginelib.skills import Skill
 from engine.enginelib.map_observer import MapObserver
 from engine.enginelib import wrappers
 
-import  share.game_protocol as protocol
+from engine.gameobjects.shells import Ball
+from engine.gameobjects.items import Corpse
+
+
 
 class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equipment, DynamicObject):
     "класс игрока"
@@ -24,7 +32,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     damage = 5
     default_skills = 10
 
-    def __init__(self, name, player_position, look_size=9):
+    def __init__(self, name, Point player_position, look_size=9):
         DynamicObject.__init__(self, name, player_position)
         Unit.__init__(self, self.speed, self.hp, Corpse, 'players')
         MapObserver.__init__(self, look_size)
@@ -105,33 +113,37 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
             yield protocol.EquipmentDict(self.look_items())
             self.equipment_changed = False
             
-    @wrappers.alive_only()
-    def Strike(self, vector):
-        self.strike_ball(vector)
+    def Strike(self, Point vector):
+        if self.alive:
+            self.strike_ball(vector)
     
-    @wrappers.alive_only()
-    def Move(self, vector, destination):
+    def Move(self, Point vector, destination):
+        if self.alive:
             Movable.move(self, vector, destination)
     
     def Look(self):
         return MapObserver.look(self)
     
     def Skill(self):
-        self.skill()
+        if self.alive:
+            self.skill()
     
     def ApplyItem(self, slot):
-        self.apply_item(slot)
+        if self.alive:
+            self.apply_item(slot)
     
     def get_args(self):
         return Deadly.get_args(self)
     
-    @wrappers.alive_only(Deadly)
     def update(self):
-        Movable.update(self)
-        Striker.update(self)
-        Deadly.update(self)
-        Stats.update(self)
-        DiplomacySubject.update(self)
+        if self.alive:
+            Movable.update(self)
+            Striker.update(self)
+            Deadly.update(self)
+            Stats.update(self)
+            DiplomacySubject.update(self)
+        else:
+            Deadly.update(self)
     
     def complete_round(self):
         Movable.complete_round(self)

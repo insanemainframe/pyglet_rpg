@@ -77,7 +77,7 @@ class SocketServer(Multiplexer, Process):
             yield client, request
         raise StopIteration
 
-    def put_response(self, client_name, response):
+    def put_response(self, str client_name, str response):
         self.responses.put_nowait((client_name, response))
 
 
@@ -95,6 +95,8 @@ class SocketServer(Multiplexer, Process):
         return sock, fileno
 
     def _sender(self):
+        cdef str client_name, response
+
         try:
             while not self.stop_event.is_set():
                 client_name, response = self.responses.get()
@@ -114,7 +116,7 @@ class SocketServer(Multiplexer, Process):
             
 
     
-    def _handle_read(self, client_name):
+    def _handle_read(self, str client_name):
         "читает один пакет данных из сокета, если это возможно"
         try:
             request = self.clients[client_name].generator.next()
