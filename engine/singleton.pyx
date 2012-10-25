@@ -12,12 +12,14 @@ from share.mathlib cimport Point
 
 from engine.enginelib import meta
 from engine.enginelib.meta import DynamicObject, StaticObject
-from engine.world import gameworlds
+from engine.world.meta import MetaWorld
 
 
         
 class __GameSingleton(object):
     "синглтон игрового движка - хранит карты, все объекты, и предоставляет доступ к ним"
+
+
     def __init__(self):
         self.guided_players = {} #управляемые игроки
         self.players = {}
@@ -26,14 +28,15 @@ class __GameSingleton(object):
         self.monster_count = 0
         self.guided_changed = False
 
+        self.worlds = {}
+
     
     def start(self):
         print('Engine initialization...')
         
-        self.worlds = OrderedDict()
-        self.worlds['ground'] = gameworlds.Ground('ground',proxy(self)) 
-        self.worlds['underground'] = gameworlds.UnderWorld('underground', proxy(self))
-        self.worlds['underground2'] = gameworlds.UnderWorld2('underground2', proxy(self))
+        self.worlds['ground'] = MetaWorld(self, 'ground')
+        self.worlds['underground'] = MetaWorld(self, 'underground')
+        self.worlds['underground2'] = MetaWorld(self, 'underground2')
         
         self.mainworld = self.worlds['ground']
         

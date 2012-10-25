@@ -12,20 +12,17 @@ from engine.enginelib import meta
 
 class PersistentWorld(object):
     loaded = False
-    def __new__(cls, *args, **kwargs):
-        inst = object.__new__(cls)
-        if cls.world_exists():
+
+    def __init__(self, mapname):
+        self.mapname = mapname
+        self.map, self.size, self.background = load_map(mapname)
+        if self.world_exists():
             try:
-                loaded = cls.load_world()
+                loaded = self.load_world()
             except BaseException as error:
                 print 'MetaWorld.__new__ error %s' %str(error)
             else:
-                inst.loaded = loaded
-        return inst
-
-    def __init__(self, mapname):
-        self.map, self.size, self.background = load_map(mapname)
-
+                self.loaded = loaded
 
     def loading(self):
         data = (self.mapname, self.size, self.size, self.background, len(self.locations), len(self.locations[0]))
@@ -39,11 +36,9 @@ class PersistentWorld(object):
            
             print('\t  world "%s" loaded from pickle: %sx%s background %s locations %sx%s' % data)
 
-    @classmethod
     def world_exists(cls):
         return exists(WORLD_PICKLE_PATH % cls.mapname)
     
-    @classmethod
     def load_world(cls):
         with open(WORLD_PICKLE_PATH % cls.mapname, 'rb') as w_file:
             world = load(w_file)

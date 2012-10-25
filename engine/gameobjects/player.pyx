@@ -32,7 +32,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     damage = 5
     default_skills = 10
 
-    def __init__(self, name, Point player_position, look_size=9):
+    def __init__(self, name, Point player_position, look_size=LOOK_RADIUS):
         DynamicObject.__init__(self, name, player_position)
         Unit.__init__(self, self.speed, self.hp, Corpse, 'players')
         MapObserver.__init__(self, look_size)

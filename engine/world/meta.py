@@ -6,7 +6,7 @@ from share.mathlib import Point
 
 from engine.world.world_persistence import PersistentWorld
 from engine.world.location import Location, near_cords
-from engine.events cimport Event
+from engine.events import Event
 from engine.enginelib.meta import DynamicObject, StaticObject
 
 
@@ -14,7 +14,7 @@ from random import randrange
 from weakref import proxy
 from collections import defaultdict
 from time import time
-
+import imp
 
 
 
@@ -23,7 +23,7 @@ class MetaWorld(PersistentWorld):
     monster_count = 0
     
     def __init__(self, game, name):
-        PersistentWorld.__init__(self, self.mapname)
+        PersistentWorld.__init__(self, name)
         self.game = game
         self.name = name
         
@@ -44,6 +44,10 @@ class MetaWorld(PersistentWorld):
         self.create_links()
         if WORLD_PERSISTENCE:
             PersistentWorld.loading(self)
+
+        init = imp.load_source('init', 'worldmaps/%s/init.py' % name)
+        self._start =  init.main
+        self.start = lambda: self._start(self)
             
         
 

@@ -12,7 +12,7 @@ from share.mathlib import Point
 
 from engine.enginelib import meta
 from engine.enginelib.meta import DynamicObject, StaticObject
-from engine.world import gameworlds
+from engine.world.meta import MetaWorld
 
 
         
@@ -30,11 +30,10 @@ class __GameSingleton(object):
     def start(self):
         print('Engine initialization...')
         
-        self.worlds = OrderedDict()
-        self.worlds['ground'] = gameworlds.Ground('ground',proxy(self)) 
-        self.worlds['underground'] = gameworlds.UnderWorld('underground', proxy(self))
-        self.worlds['underground2'] = gameworlds.UnderWorld2('underground2', proxy(self))
-        
+        self.worlds = {}
+        self.worlds['ground'] = MetaWorld(self, 'ground')
+        self.worlds['underground'] = MetaWorld(self, 'underground')
+        self.worlds['underground2'] = MetaWorld(self, 'underground2')
         self.mainworld = self.worlds['ground']
         
         for world in self.worlds.values():
