@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from share.mathlib import *
-from engine.enginelib.meta import *
-from engine.enginelib.collissions import *
+from share.mathlib cimport Point
+
+from engine.enginelib.meta import DynamicObject, Impassable
+
+from engine.enginelib.collissions import get_cross
 from engine.enginelib import wrappers
 
 
@@ -16,7 +18,7 @@ class Movable(DynamicObject):
     "класс движущихся объектов"
     BLOCKTILES = []
     SLOWTILES = {}
-    def __init__(self,  speed):
+    def __init__(self,  int speed):
         self._vector  = Point(0,0)
         self.speed = speed
         self._move_vector = Point(0,0)
@@ -36,7 +38,9 @@ class Movable(DynamicObject):
         self._vector = Point(0,0)
     
     @wrappers.alive_only()
-    def move(self, vector=Point(0,0), destination=False):
+    def move(self, Point vector, destination=False):
+        cdef Point move_vector, new_cord
+
         labs = abs
         if not self._moved:
             self._moved = True
@@ -80,8 +84,11 @@ class Movable(DynamicObject):
                     
                 
     
-    def _tile_collission(self, move_vector, destination):
+    def _tile_collission(self, Point move_vector, destination):
         "определения пересечяения вектора с непрохоодимыми и труднопроходимыми тайлами"
+        cdef int resist, i,j
+        cdef Point cross_position
+
         resist = 1
         for (i,j), cross_position in get_cross(self.position, move_vector):
             if 0<i<self.world.size and 0<j<self.world.size:
@@ -116,7 +123,7 @@ class Movable(DynamicObject):
             
         return move_vector, resist
         
-    def _detect_collisions(self, cord):
+    def _detect_collisions(self, Point cord):
         for player in self.world.tiles[cord].copy():
             if player.name != self.name:
                 player.collission(self)
@@ -142,7 +149,7 @@ class Movable(DynamicObject):
     @wrappers.alive_only()
     def update(self):
         if not self._moved and self._vector:
-            Movable.move(self)
+            Movable.move(self, Point(0,0))
     
     def plus_speed(self, speed):
         self.speed+=speed

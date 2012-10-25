@@ -59,7 +59,7 @@ def unpack( data):
                 print('Unpack errror:%s %s %s' % (method, excp, str(data)))
                 raise excp
             else:
-                return method, message
+                return str(method), message
         else:
             print 'Unknown protocol'
             raise MethodError(method,data)

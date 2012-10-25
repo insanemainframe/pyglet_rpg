@@ -50,10 +50,11 @@ class PersistentWorld(object):
             return world
     
     def save(self):
-        world = WorldSave(self.players, self.static_objects)
-        with open(WORLD_PICKLE_PATH % self.mapname, 'wb') as w_file:
-            dump(world, w_file)
-            print 'world %s saved' % self.name
+        if WORLD_PERSISTENCE:
+            world = WorldSave(self.players, self.static_objects)
+            with open(WORLD_PICKLE_PATH % self.mapname, 'wb') as w_file:
+                dump(world, w_file)
+                print 'world %s saved' % self.name
 
 
 class WorldSave:

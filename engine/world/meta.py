@@ -42,7 +42,8 @@ class MetaWorld(PersistentWorld):
         
         self.create_locations()
         self.create_links()
-        PersistentWorld.loading(self)
+        if WORLD_PERSISTENCE:
+            PersistentWorld.loading(self)
             
         
 
@@ -228,6 +229,7 @@ class MetaWorld(PersistentWorld):
     
     
     def create_object(self, n, object_type):
+        n = int(n/WORLD_MUL)
         for i in xrange(n):
             position = self.choice_position(object_type, self.size/2, ask_player = True)
             name = object_type.__name__
@@ -239,6 +241,7 @@ class MetaWorld(PersistentWorld):
             self.game.monster_count+=1
     
     def create_item(self, n, object_type):
+        n = int(n/WORLD_MUL)
         for i in xrange(n):
             position = self.choice_position(object_type, self.size/2, ask_player = True)
             

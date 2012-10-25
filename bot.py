@@ -20,7 +20,7 @@ class Bot(GameClient, Process):
         Process.__init__(self)
         
         
-        self.shift = Point()
+        self.shift = Point(0,0)
         self.antilag_init = lambda *args: args
     
     def run(self):

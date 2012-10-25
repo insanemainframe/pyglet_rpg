@@ -51,7 +51,7 @@ class DeltaTimerObject:
 class Drawable:
     "рисуемые объекты"
     def __init__(self):
-        self.shift = Point()
+        self.shift = Point(0,0)
         self.tiles = []
 
     def tile_sorter(self, tile, Tile):

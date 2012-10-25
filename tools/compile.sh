@@ -8,7 +8,6 @@ for i in $(find . -name '*.pyx');
 	cython "$f.pyx"
 	done
 
-
 echo "GCC";
 
 for i in $(find . -name '*.c');

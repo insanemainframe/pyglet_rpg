@@ -138,7 +138,7 @@ class Movable(Animated, DynamicObject):
     def __init__(self, frames=1):
         Animated.__init__(self)
         self.moving = False
-        self.vector = Point()
+        self.vector = Point(0,0)
         self.create_animation('moving', 'move', frames,2)
     
     def move(self, xy):
@@ -172,4 +172,4 @@ class Movable(Animated, DynamicObject):
     def force_complete(self):
         if self.vector:
             self.position+=self.vector
-            self.vector = Point()
+            self.vector = Point(0,0)

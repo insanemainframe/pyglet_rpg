@@ -67,7 +67,7 @@ class Stalker:
                 victim = min(dists, key = abs)
                 return victim
             else:
-                return Point()
+                return Point(0,0)
             
 class Striker:
     def __init__(self, strike_speed, shell, damage):

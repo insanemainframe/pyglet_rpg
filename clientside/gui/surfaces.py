@@ -24,12 +24,12 @@ class GameSurface(Surface):
         self.destination = False
         
         self.control_keys = [UP, DOWN, LEFT, RIGHT, RSHIFT, SPACE]
-        self.vector = Point()
+        self.vector = Point(0,0)
         self.striking = False
 
         
         self.step = TILESIZE/2
-        self.vector = Point()
+        self.vector = Point(0,0)
         self.vectors = {UP:Point(0,self.step), DOWN: Point(0,-self.step),
                LEFT : Point(-self.step,0), RIGHT : Point(self.step,0)}
     
