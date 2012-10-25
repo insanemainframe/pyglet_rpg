@@ -27,5 +27,5 @@ SOCKET_SERVER_PROFILE_FILE = '/tmp/socket_server.stat'
 WORLD_PICKLE_PATH = 'worldmaps/%s/world.pickle'
 WORLD_PERSISTENCE = False
 
-WORLD_MUL = 100
+WORLD_MUL = 1
 

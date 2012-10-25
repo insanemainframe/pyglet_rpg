@@ -150,6 +150,11 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     
     @classmethod
     def choice_position(cls, world, location, i ,j):
+        cdef int dist
+        cdef str tile
+        cdef list BLOCKTILES
+        BLOCKTILES = cls.BLOCKTILES
+
         for player in location.get_players_list():
             if player.fraction=='monsters':
                 dist = abs(Point(i,j)*TILESIZE - player.position)
@@ -157,7 +162,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
                     return False
                     
         for tile in world.get_near_tiles(i,j):
-            if tile in cls.BLOCKTILES:
+            if tile in BLOCKTILES:
                 return False
 
 

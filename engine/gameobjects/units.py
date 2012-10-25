@@ -92,13 +92,13 @@ class Cat(Walker, Solid, Stalker, DiplomacySubject, DynamicObject):
         DiplomacySubject.__init__(self, 'good')
         self.heal_counter = 0
     
-    @wrappers.player_filter(Guided)
     def collission(self, player):
-        if self.heal_counter==0:
-            self.rainbow(player)
-        self.heal_counter+=1
-        if self.heal_counter==10:
-            self.heal_counter = 0
+        if isinstance( player, Guided):
+            if self.heal_counter==0:
+                self.rainbow(player)
+            self.heal_counter+=1
+            if self.heal_counter==10:
+                self.heal_counter = 0
     
     def rainbow(self, player):
         player.heal(5)
@@ -177,21 +177,21 @@ class Lych(MetaMonster, Striker):
         MetaMonster.__init__(self, name, position, self.speed, self.hp)
         Striker.__init__(self, 10, DarkBall, self.damage)
     
-    @wrappers.alive_only(Deadly)
     def update(self):
-        if chance(50):
-            direct = self.hunt(False)
-            if direct:
-                delta = random()*TILESIZE
-                direct += Point(delta, -delta)
-                self.strike_ball(direct)
+        if self.alive:
+            if chance(50):
+                direct = self.hunt(False)
+                if direct:
+                    delta = random()*TILESIZE
+                    direct += Point(delta, -delta)
+                    self.strike_ball(direct)
+                else:
+                    Walker.update(self)
             else:
                 Walker.update(self)
-        else:
-            Walker.update(self)
-            
-        Movable.update(self)
-        Striker.update(self)
+                
+            Movable.update(self)
+            Striker.update(self)
         Deadly.update(self)
     
     def complete_round(self):

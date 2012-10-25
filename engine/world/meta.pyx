@@ -200,6 +200,10 @@ class MetaWorld(PersistentWorld):
         "выбирает случайную позицию, доступную для объекта"
         cdef int lim, counter, timeout
         cdef Point position, cord
+        cdef list BLOCKTILES
+        cdef set cords
+        
+        BLOCKTILES = player.BLOCKTILES
 
         if not start:
             start = Point(self.size/2,self.size/2)
@@ -219,7 +223,7 @@ class MetaWorld(PersistentWorld):
                 i,j =  cord.get()
                 if 1<i<self.size-1 and 1<j<self.size-1:
                     
-                    if not self.map[i][j] in player.BLOCKTILES:
+                    if not self.map[i][j] in BLOCKTILES:
                         #проверяем, подходит ли клетка объекту
                         position = position*TILESIZE
                         location = self.get_location(position)

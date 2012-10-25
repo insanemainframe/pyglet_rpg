@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#from sys import path; path.append('../../')
+cdef dict cds
 
 from share.mathlib cimport Point
 
-from math import hypot
+from math import hypot, ceil
 from collections import namedtuple
 
 from config import *
@@ -14,6 +14,7 @@ from config import *
 def intersec_point(Point A,Point B,Point C,Point D):
     "ищет точку пересечения двух векторов"
     cdef Point vector
+    cdef float div, divx, divy, x,y
 
     vector = (B-A)
     if vector.y:
@@ -41,12 +42,16 @@ def interception(Point A,Point B,Point C,Point D):
     return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
 
 
+
+
 def cross_tile(Point A, Point B, Point tilecord):
     "выдает соседние тайлы с которыми пересекается вектор и координаты пересечения"
-    cdef Point  start, C,D, ij
+    cdef Point  start, ij
+    cdef int null, CELL
 
     start = tilecord*TILESIZE
     null, CELL = 0 , TILESIZE
+    
     cds = {tilecord + Point(0,1) : (start + Point(null ,CELL), start+Point(CELL,CELL)),
                 tilecord + Point(1,0) : (start + Point(CELL, CELL), start + Point(CELL, null)),
                 tilecord + Point(0,-1) : (start, start + Point(CELL, null)),
@@ -79,7 +84,8 @@ cross_tuple = namedtuple('cross_tuple', ['point', 'cord', 'dist'])
 def round_cord(cord, Ceil = False):
     cord = cord/TILESIZE
     if Ceil:
-        cord = int(ceil(float(cord)))
+        cord = ceil(float(cord))
+        cord = int(cord)
 
     else:
         cord = int(float(cord))
