@@ -8,7 +8,7 @@ server: python2.7
 
 client: python 2.6>= [python-pyglet](http://pyglet.org/download.html) 
 
-if you want compile extensions: cython, python-dev, gcc
+if you want build extensions with [cython](http://cython.org/): cython, python-dev, gcc
 
 
 RUN:
