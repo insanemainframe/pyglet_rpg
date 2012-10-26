@@ -88,7 +88,6 @@ def dumps(data):
         except BaseException as excp:
             raise ZlibError(excp.message, data)
 
-            raise error
 
 def compress(data):
     if ZLIB:

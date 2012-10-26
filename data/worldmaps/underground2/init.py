@@ -6,7 +6,10 @@ from engine.gameobjects.teleports import *
 from engine.gameobjects.units import *
 from engine.gameobjects.misc import *
 
+from random import choice
 
+
+items = [Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
     
 def main(self):
     if not self.loaded:
@@ -18,6 +21,7 @@ def main(self):
         self.create_item(1000, Mushroom)
         self.create_item(200, Stone)
         self.create_item(50, Rubble)
+        self.create_item(300, choice(items))
         
         print('\t Creating monsters...')
         self.create_object(200, Bat)

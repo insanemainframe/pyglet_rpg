@@ -27,6 +27,8 @@ class ActionError(BaseException):
 
 
 class GameObject(object):
+    BLOCKTILES = []
+    
     def __init__(self, name, position):
         self.name = name
         self.alive = True
@@ -438,3 +440,12 @@ class Temporary:
 
 
 
+class Corpse(StaticObject, Temporary):
+    "кости остающиеся после смерти живых игроков"
+    def __init__(self, name, position):
+        StaticObject.__init__(self, position)
+        Temporary.__init__(self, 5)
+    
+    def update(self):
+        StaticObject.update(self)
+        Temporary.update(self)

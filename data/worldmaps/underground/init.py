@@ -5,7 +5,10 @@ from config import *
 from engine.gameobjects.teleports import *
 from engine.gameobjects.units import *
 from engine.gameobjects.misc import *
+from random import choice
 
+
+items = [Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
 
     
 def main(self):
@@ -19,6 +22,8 @@ def main(self):
         self.create_item(100, WaterFlower) 
         self.create_item(1000, Stone)
         self.create_item(50, Rubble)
+
+        self.create_item(200, choice(items))
         
         print('\t Creating monsters...')
         self.create_object(200, Bat)

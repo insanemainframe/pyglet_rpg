@@ -55,6 +55,9 @@ cdef class Point:
     def get(Point self):
         return (self.x, self.y)
 
+    def in_radius(self, Point point, float radius):
+        return ((self.x-point.x)**2 +(self.y-point.y)**2) <= radius**2
+
     def __repr__(Point self):
         return "%s:%s" % self.get()
 

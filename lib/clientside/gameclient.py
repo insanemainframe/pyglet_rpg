@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from config import TILESIZE
+
 from share.packer import pack, unpack
 from share.gameprotocol.client_requestes import *
 from share.mathlib import *

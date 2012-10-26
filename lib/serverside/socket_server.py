@@ -274,7 +274,7 @@ class SocketServer(Multiplexer, Process):
             self.outsock.close()
         finally:    
             print('SocketServer stopped')
-            sys_exit
+            sys_exit()
             
         
     

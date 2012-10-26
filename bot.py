@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sys import argv, exit, path
+from sys import argv, exit as sys_exit, path
+from os import _exit as os_exit
 path.append('lib')
 
 from clientside.gameclient import GameClient
@@ -11,7 +12,7 @@ from time import sleep, time
 
 
 from threading import Thread
-from multiprocessing import Process
+from multiprocessing import Process, Event
 
 
 
@@ -22,11 +23,11 @@ from random import randrange
 
 
 class Bot(GameClient, Process):
-    def __init__(self, hostname):
+    def __init__(self, hostname, running):
 
         GameClient.__init__(self, self, hostname)
         Process.__init__(self)
-        
+        self.running = running
         
         self.shift = Point(0,0)
         self.antilag_init = lambda *args: args
@@ -34,7 +35,7 @@ class Bot(GameClient, Process):
     def run(self):
         d = 1
         t = time()
-        while 1:
+        while not self.running.is_set():
             if not self.accepted:
                 self.accept()
             else:
@@ -56,7 +57,10 @@ class Bot(GameClient, Process):
                         self.send_apply_item(randrange(8))
                     t = time()
     def on_close(self, a=''):
-        exit()
+        self.running.set()
+        print 'close'
+        sys_exit()
+        os_exit() 
 
 def main():
     if len(argv)==2:
@@ -65,12 +69,13 @@ def main():
         n = int(argv[2])
 
     hostname = ask_hostname(HOSTNAME)
+    running = Event()
 
     for i in range(n):
-        bot = Bot(hostname)
+        bot = Bot(hostname, running = running)
         bot.start()
         
-    while 1:
+    while not running.is_set():
         pass
 
 if __name__=='__main__':

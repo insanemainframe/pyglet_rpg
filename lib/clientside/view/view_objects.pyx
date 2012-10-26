@@ -39,7 +39,7 @@ class ObjectsView(Drawable, ViewTools):
             self.tiles.extend(game_object.draw())
     
     def remove_timeouted(self):
-        cdef ser remove_list
+        cdef set remove_list
         cdef str name
 
         remove_list = set()

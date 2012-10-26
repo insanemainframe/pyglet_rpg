@@ -9,6 +9,7 @@ from engine.enginelib import wrappers
 
 
 class Item(StaticObject, Solid, Temporary):
+    BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     radius = TILESIZE
     lifetime = 300
     def __init__(self, position):
@@ -32,16 +33,6 @@ class Item(StaticObject, Solid, Temporary):
         return True
 
 
-
-class Corpse(StaticObject, Temporary):
-    "кости остающиеся после смерти живых игроков"
-    def __init__(self, name, position):
-        StaticObject.__init__(self, position)
-        Temporary.__init__(self, 5)
-    
-    def update(self):
-        StaticObject.update(self)
-        Temporary.update(self)
 
 class HealPotion(Item):
     "излечивает"

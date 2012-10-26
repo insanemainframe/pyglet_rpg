@@ -5,6 +5,12 @@ from config import *
 from engine.gameobjects.teleports import *
 from engine.gameobjects.units import *
 from engine.gameobjects.misc import *
+from engine.gameobjects.items import *
+
+from random import choice
+
+
+items = [Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
 
 
 def main(self):
@@ -23,6 +29,8 @@ def main(self):
         self.create_item(10000, AloneTree)
         self.create_item(1000, AloneBush)
         self.create_item(100, WindMill)
+
+        self.create_item(100, choice(items))
         
         
         print('\t Creating monsters...')
