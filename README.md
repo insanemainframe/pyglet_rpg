@@ -8,6 +8,9 @@ server: python2.7
 
 client: python 2.6>= [python-pyglet](http://pyglet.org/download.html) 
 
+if you want compile extensions: cython, python-dev, gcc
+
+
 RUN:
 ````
 python server.py
@@ -32,6 +35,12 @@ python server.py -d
 
 ````
 python client.py -d
+````
+
+building(optional)
+
+````
+./tools/compile.sh
 ````
 
 
