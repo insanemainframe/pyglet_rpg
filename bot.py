@@ -1,17 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from sys import argv, exit, path
+path.append('lib')
+
 from clientside.gameclient import GameClient
 from share.mathlib import *
 from share.ask_hostname import ask_hostname
 from config import *
 from time import sleep, time
-from sys import argv, exit
+
+
 from threading import Thread
 from multiprocessing import Process
 
 
+
+
 from engine.mathlib import chance
 from random import randrange
+
+
 
 class Bot(GameClient, Process):
     def __init__(self, hostname):

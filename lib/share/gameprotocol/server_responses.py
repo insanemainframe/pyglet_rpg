@@ -74,7 +74,7 @@ class LookLand(GameProtocol):
     
     @classmethod
     def unpack(cls,land,observed):
-        land =  [(Point(x,y),tilename) for x,y, tilename in land]
+        land =  [(Point(x,y), str(tilename)) for x,y, tilename in land]
         observed =  [(i,j) for (i,j) in observed]
 
         return land, observed

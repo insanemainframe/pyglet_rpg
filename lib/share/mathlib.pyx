@@ -4,12 +4,13 @@
 from math import hypot, floor
 from config import *
 
-    
+
 cdef class Point:
     "класс точек и векторов"
-    def __init__(self, float x, float y):
-        self.x = int(floor(x))
-        self.y = int(floor(y))
+    def __init__(self, int x, int y):
+
+        self.x = x
+        self.y = y
 
 
     def __richcmp__(Point self, Point point, int op):
@@ -46,10 +47,10 @@ cdef class Point:
         return Point(self.x*number, self.y*number)
     
     def __div__(Point self, float number):
-        return Point(round(self.x/number), round(self.y/number))
+        return Point(floor(self.x/number), floor(self.y/number))
     
     def __truediv__(Point self, float number):
-        return Point(round(self.x/number), round(self.y/number))
+        return Point(floor(self.x/number), floor(self.y/number))
 
     def get(Point self):
         return (self.x, self.y)

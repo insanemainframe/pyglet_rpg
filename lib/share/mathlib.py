@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-from math import hypot
+from math import hypot, floor
 from config import *
 
 
@@ -70,12 +70,13 @@ class Point:
     def __mul__(self, number):
         '*'
         return Point(self.x*number, self.y*number)
-    @number_wrap
-    def __div__(self, number):
-        return Point(round(self.x/number), round(self.y/number))
-    @number_wrap
-    def __truediv__(self, number):
-        return Point(round(self.x/number), round(self.y/number))
+
+    def __div__( self,  number):
+        return Point(floor(self.x/number), floor(self.y/number))
+    
+    def __truediv__( self,  number):
+        return Point(floor(self.x/number), floor(self.y/number))
+
     def get(self):
         return (self.x, self.y)
     def __repr__(self):

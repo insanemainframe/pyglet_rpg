@@ -45,7 +45,7 @@ class MetaWorld(PersistentWorld):
         if WORLD_PERSISTENCE:
             PersistentWorld.loading(self)
 
-        init = imp.load_source('init', 'worldmaps/%s/init.py' % name)
+        init = imp.load_source('init', WORLD_PATH %name + 'init.py')
         self._start =  init.main
         self.start = lambda: self._start(self)
             

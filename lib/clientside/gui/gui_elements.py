@@ -201,7 +201,7 @@ class LoadingScreen(GuiElement):
 
 class HelpScreen(GuiElement):
     control_keys = [H]
-    help_file = 'clientside/help.html'
+    help_file = 'data/help.html'
     text = '<font color="white">Press "H" for help</font>'
     def __init__(self, surface,):
         GuiElement.__init__(self, surface)

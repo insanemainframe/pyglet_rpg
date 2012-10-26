@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 from config import *
 
 from share.mathlib cimport Point
@@ -45,10 +46,9 @@ class MetaWorld(PersistentWorld):
         if WORLD_PERSISTENCE:
             PersistentWorld.loading(self)
 
-        init = imp.load_source('init', 'worldmaps/%s/init.py' % name)
+        init = imp.load_source('init', WORLD_PATH %name + 'init.py')
         self._start =  init.main
         self.start = lambda: self._start(self)
-            
             
         
 
@@ -105,7 +105,8 @@ class MetaWorld(PersistentWorld):
     
     def add_static_event(self, str name, str object_type, Point position, action, args=(), timeout=0):
         "добавляет со9-бытие статического объекта"
-        cdef int i,j
+        cdef Event event
+
         event = Event(name, object_type, position, action, args, timeout)
         
         i,j = self.get_loc_cord(position).get()
@@ -113,6 +114,7 @@ class MetaWorld(PersistentWorld):
     
     def add_event(self, str name, str object_type, Point position, Point vector, action, args=(), timeout=0, ):
         "добавляет событие"
+        cdef Event event
         event = Event(name, object_type, position, action, args, timeout)
         
         
@@ -134,7 +136,6 @@ class MetaWorld(PersistentWorld):
     def change_location(self, player, Point prev_loc, Point cur_loc):
         "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
         cdef int pi, pj, ci, cj
-
         pi, pj = prev_loc.get()
         prev_location = self.locations[pi][pj]
         ci, cj = cur_loc.get()
@@ -160,8 +161,7 @@ class MetaWorld(PersistentWorld):
     
     def get_location(self, Point position):
         "возвращает слокацию"
-        cdef int i,j
-
+        
         i,j = (position/TILESIZE/LOCATIONSIZE).get()
         try:
             return self.locations[i][j]
@@ -180,8 +180,6 @@ class MetaWorld(PersistentWorld):
 
     def get_near_cords(self, int i, int j):
         "возвращает список соседних тайлов"
-        cdef list cords
-
         insize = lambda i,j: 0<i<self.size and 0<j<self.size
         cords = [(i+ni, j+nj) for ni,nj in near_cords if insize(i+ni, j+nj)]
         return cords
@@ -201,14 +199,10 @@ class MetaWorld(PersistentWorld):
     
         
     
-    def choice_position(self, player, int radius=7, Point  start=Point(0,0) , ask_player = False):
+    def choice_position(self, player, int radius=7, Point start=Point(0,0), ask_player = False):
         "выбирает случайную позицию, доступную для объекта"
         cdef int lim, counter, timeout
-        cdef Point position, cord
-        cdef list BLOCKTILES
         cdef set cords
-        
-        BLOCKTILES = player.BLOCKTILES
 
         if not start:
             start = Point(self.size/2,self.size/2)
@@ -228,7 +222,7 @@ class MetaWorld(PersistentWorld):
                 i,j =  cord.get()
                 if 1<i<self.size-1 and 1<j<self.size-1:
                     
-                    if not self.map[i][j] in BLOCKTILES:
+                    if not self.map[i][j] in player.BLOCKTILES:
                         #проверяем, подходит ли клетка объекту
                         position = position*TILESIZE
                         location = self.get_location(position)
@@ -249,8 +243,6 @@ class MetaWorld(PersistentWorld):
     
     
     def create_object(self, n, object_type):
-        cdef Point position 
-
         n = int(n/WORLD_MUL)
         for i in xrange(n):
             position = self.choice_position(object_type, self.size/2, ask_player = True)
@@ -262,9 +254,7 @@ class MetaWorld(PersistentWorld):
             
             self.game.monster_count+=1
     
-    def create_item(self, int n, object_type):
-        cdef Point position 
-
+    def create_item(self, n, object_type):
         n = int(n/WORLD_MUL)
         for i in xrange(n):
             position = self.choice_position(object_type, self.size/2, ask_player = True)
@@ -273,7 +263,7 @@ class MetaWorld(PersistentWorld):
             
             self.new_object(item)
     
-    def resize(self, cord):
+    def resize(self,cord):
         if 0<=cord<=self.size:
             return cord
         else:

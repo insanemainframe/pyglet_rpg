@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from sys import path, argv; path.append('../')
-from config import CLIENT_PROFILE_FILE
+from client_config import CLIENT_PROFILE_FILE
 
 import pstats
 if len(argv)>1:

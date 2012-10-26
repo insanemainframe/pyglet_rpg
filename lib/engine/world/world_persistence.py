@@ -37,17 +37,17 @@ class PersistentWorld(object):
             print('\t  world "%s" loaded from pickle: %sx%s background %s locations %sx%s' % data)
 
     def world_exists(cls):
-        return exists(WORLD_PICKLE_PATH % cls.mapname)
+        return exists(WORLD_PATH % cls.mapname + 'world.pickle')
     
     def load_world(cls):
-        with open(WORLD_PICKLE_PATH % cls.mapname, 'rb') as w_file:
+        with open(wWORLD_PATH % cls.mapname + 'world.pickle', 'rb') as w_file:
             world = load(w_file)
             return world
     
     def save(self):
         if WORLD_PERSISTENCE:
             world = WorldSave(self.players, self.static_objects)
-            with open(WORLD_PICKLE_PATH % self.mapname, 'wb') as w_file:
+            with open(WORLD_PATH % self.mapname + 'world.pickle', 'wb') as w_file:
                 dump(world, w_file)
                 print 'world %s saved' % self.name
 

@@ -24,10 +24,10 @@ SOCKET_SERVER_PROFILE = 1
 SERVER_PROFILE_FILE = '/tmp/game_server.stat'
 SOCKET_SERVER_PROFILE_FILE = '/tmp/socket_server.stat'
 
-WORLD_PICKLE_PATH = 'worldmaps/%s/world.pickle'
+WORLD_PATH = 'data/worldmaps/%s/'
 WORLD_PERSISTENCE = False
 
-WORLD_MUL = 100
+WORLD_MUL = 1
 
 LOOK_RADIUS = 10
 
