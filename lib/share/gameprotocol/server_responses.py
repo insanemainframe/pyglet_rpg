@@ -7,12 +7,11 @@ class Events:
     #name, object_type, action, args=()
     @classmethod
     def pack_events(cls, events):
-        return [event.get_tuple() for event in events]
+        return {name:tuple(event) for name, event in events.items()}
         
     @classmethod
     def unpack_events(cls, events):
-        return [(name, object_type,  Point(x,y), timeout, action, args)
-            for (name, object_type, (x,y), timeout, action, args) in events]
+        return events
 
 
 
@@ -92,7 +91,7 @@ class LookEvents(GameProtocol, Events):
         events = cls.unpack_events(events)
         return events
 
-class LookPlayers(GameProtocol):
+class LookObjects(GameProtocol):
     def __init__(self, players):
         self.players = players
     
@@ -107,22 +106,7 @@ class LookPlayers(GameProtocol):
             for gid, (name, o_type, (x,y), args) in players.items()])
         return players
 
-class LookStaticObjects(LookPlayers):
-    pass
 
-
-class LookStaticEvents(GameProtocol, Events):
-    def __init__(self, static_objects_events):
-        self.static_objects_events = static_objects_events
-        
-    def pack(self):
-        static_objects_events = self.pack_events(self.static_objects_events)
-        return [static_objects_events]
-    
-    @classmethod
-    def unpack(cls, static_objects_events):
-        static_objects_events = cls.unpack_events(static_objects_events)
-        return static_objects_events
 
 #статы игрока
 class PlayerStats(GameProtocol):

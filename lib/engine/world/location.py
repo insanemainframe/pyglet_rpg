@@ -18,23 +18,12 @@ near_cords = [cord.get() for cord in (Point(-1,1),Point(0,1),Point(1,1),
 class LocationEvents:
     "функционал локации для работы с событиями"
     def __init__(self):
-        self.events = []
-        self.static_events = []
-        
         self.new_events = False
         self.new_static_events = False
-        
-        self.timeouted_events = []
-        self.timeouted_static_events = []
     
-    def add_event(self,event):
-        self.events.append(event)
+    def set_event(self):
         self.new_events = True
         
-    
-    def get_events(self):
-        events = sum([location.events for location in self.nears], self.events)
-        return events
     
     def check_events(self):
         if self.new_events:
@@ -46,18 +35,12 @@ class LocationEvents:
         return False
     
     def clear_events(self):
-        self.events = []
         self.new_events = False
         
     
-    def add_static_event(self, event):
-        self.static_events.append(event)
+    def set_static_event(self):
         self.new_static_events = True
         
-    
-    def get_static_events(self):
-        static_events = sum([location.static_events for location in self.nears], self.static_events)
-        return static_events
     
     def check_static_events(self):
         if self.new_static_events:
@@ -68,7 +51,6 @@ class LocationEvents:
         return False
     
     def clear_static_events(self):
-        self.static_events = []
         self.new_static_events = False
     
     def complete_round(self):

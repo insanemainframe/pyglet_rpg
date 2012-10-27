@@ -20,7 +20,7 @@ class PersistentWorld(object):
             try:
                 loaded = self.load_world()
             except BaseException as error:
-                print 'MetaWorld.__new__ error %s' %str(error)
+                print 'MetaWorld.__new__ error "%s"' % str(error)
             else:
                 self.loaded = loaded
 
@@ -40,12 +40,12 @@ class PersistentWorld(object):
         return exists(WORLD_PATH % cls.mapname + 'world.pickle')
     
     def load_world(cls):
-        with open(wWORLD_PATH % cls.mapname + 'world.pickle', 'rb') as w_file:
+        with open(WORLD_PATH % cls.mapname + 'world.pickle', 'rb') as w_file:
             world = load(w_file)
             return world
     
-    def save(self):
-        if WORLD_PERSISTENCE:
+    def save(self, force = False):
+        if SAVE_WORLD or force:
             world = WorldSave(self.players, self.static_objects)
             with open(WORLD_PATH % self.mapname + 'world.pickle', 'wb') as w_file:
                 dump(world, w_file)

@@ -142,6 +142,8 @@ class __GameSingleton(object):
         for related in player.related_objects:
             related.world = proxy(new_world)
             related.location = proxy(new_location)
+
+        player.handle_change_world()
     
     def get_active_locations(self):
         "список активных локаций"

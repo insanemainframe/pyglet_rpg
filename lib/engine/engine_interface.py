@@ -90,6 +90,7 @@ class GameEngine:
             for player in location.players.values():
                 DynamicObject.complete_round(player)
                 player.complete_round()
+                player.clear_events()
             location.complete_round()
         
         game.guided_changed = False

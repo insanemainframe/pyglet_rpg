@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from types import ClassType            
+from clientside.client_objects import all
 
 class ViewTools:
     "создает словарь из классов клиентских объектов"
-    def __init__(self, window, surface, module):
+    def __init__(self, window, surface):
         self.surface = surface
         self.window = window
         
-        self.module = module
+        self.module = all
         self.module.Meta.init_cls(surface)
         self.object_dict = {}
         self.objects = {}
@@ -25,17 +26,19 @@ class ViewTools:
                 if issubclass(Class, self.module.Meta):
                     self.object_dict[name] = Class
     
-    def insert_events(self, new_events=[]):
+    def insert_events(self, new_events={}):
         events = []
-        for gid, object_type, position, timeout, action, args in new_events:
+        for gid, eventlist in new_events.items():
+            for action, args, timeout in eventlist:
                 if gid in self.objects:
-                    events.append((gid, object_type, position, action, args))
+                    events.append((gid, action, args))
                     self.eventnames.append(gid)
                     if timeout>0:
-                        self.timeout_events.append((gid, object_type, position, timeout, action, args))
+                        self.timeout_events.append((gid, timeout, action, args))
+                    print action, args
+                    self.objects[gid].handle_action(action, args)
         
-        for gid, object_type, position, action, args in events:
-            self.objects[gid].handle_action(action, args)
+            
     
     def insert_objects(self, looked_objects):
         looked_keys = set( looked_objects.keys())
@@ -50,7 +53,7 @@ class ViewTools:
         
             
     def create_object(self, gid, name, object_type, position, args={}):
-        game_object = self.object_dict[object_type](name, position, **args)
+        game_object = self.object_dict[str(object_type)](name, position, **args)
         game_object.gid = gid
         
         self.objects[gid] = game_object

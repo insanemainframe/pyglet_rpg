@@ -40,11 +40,12 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     def accept_response(self):
         data = self.world.name, self.world.size, self.position, self.world.background
         yield protocol.NewWorld(*data)
-        yield protocol.LookEvents(self.look_events())
         
     def handle_response(self):
         #если попал в новый мир
         if self.world_changed or self.respawned:
+            self.observe()
+            new_trig = True
             if self.world_changed:
                 yield protocol.NewWorld(self.world.name, self.world.size, self.position, self.world.background)
                 self.world_changed = False
@@ -53,45 +54,33 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
                 yield protocol.Respawn(self.position)
                 self.respawned = False
 
-            yield protocol.MoveCamera(self.move_vector)
-            yield protocol.LookLand(*self.look_map())
-            yield protocol.LookPlayers(self.look_players(True))
-            yield protocol.LookEvents(self.look_events())
-            yield protocol.LookStaticObjects(self.look_static_objects(True))
-            
-            
         else:
-            if self.position_changed:
-                yield protocol.MoveCamera(self.move_vector)
-        
-            #если изменилась клетка - смотрим новые тайлы и список тайлов в радусе обзора
-            if self.cord_changed:
-                new_looked, observed = self.look_map()
-                yield protocol.LookLand(new_looked, observed)
+            new_trig = False
             
-            #если изменилась клетка или изменились объекты в локации
-            #смотрим список видимых объектов
-            if self.cord_changed or self.location.check_players():
-                players = self.look_players()
-                if players:
-                    yield protocol.LookPlayers(players)
-            
-            #если изменилась клетка или изменились статические объекты в локации
-            #смотрим список видимых статических объектов
-            if self.cord_changed or self.location.check_static_objects():
-                static_objects = self.look_static_objects()
-                if static_objects:
-                    yield  protocol.LookStaticObjects(static_objects)
-            
-            #если есть новые события в локации
-            if self.has_events or self.location.check_events():
-                events = self.look_events()
+        if self.position_changed:
+            yield protocol.MoveCamera(self.move_vector)
+    
+        #если изменилась клетка - смотрим новые тайлы и список тайлов в радусе обзора
+        objects_trig = self.location.check_players() or self.location.check_static_objects()
+        events_trig = self.location.check_events() or self.location.check_static_events()
+
+        if self.cord_changed:
+            self.observe()
+
+        if self.cord_changed or objects_trig or events_trig or new_trig:
+            look_result = self.look_map(for_objects = events_trig, for_events = events_trig)
+
+            (new_looked, observed), (players, events)  = look_result
+
+            yield protocol.LookLand(new_looked, observed)
+
+            if players:
+                yield protocol.LookObjects(players)
+            if events:
                 yield protocol.LookEvents(events)
-            
-            #если есть новй события статическиъ объекктов
-            if self.location.check_static_events():
-                yield protocol.LookStaticEvents(self.look_static_events(self))
-            
+
+
+
         #если изменились собственные статы
         if self.stats_changed:
             yield protocol.PlayerStats(*Stats.get_stats(self))

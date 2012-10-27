@@ -9,7 +9,6 @@ print 'Loading modules...'
 #вьюверы для карты, объектов, статики
 from clientside.view.view_objects import ObjectsView
 from clientside.view.view_land import LandView
-from clientside.view.view_static_objects import StaticObjectView
 
 #класс точки
 from share.mathlib import *
@@ -51,7 +50,6 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
 
         self.land = LandView(self, self.gamesurface)
         self.objects = ObjectsView(self, self.gamesurface)
-        self.static_objects = StaticObjectView(self, self.gamesurface)
 
         
         #текст загрузки
@@ -107,7 +105,6 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
         #обновляем карту и объекты
         self.land.update()
         self.objects.update(delta)
-        self.static_objects.update()
     
 
     def antilag_init(self, shift):
@@ -142,7 +139,6 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
         "обработка данных полученных с сервера"
         self.force_complete()
         self.objects.round_update()
-        self.static_objects.round_update()
   
         
         for action, message in self.client.get_messages():
@@ -163,7 +159,7 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
                     self.first_look = False
                 
             
-            elif action=='LookPlayers':
+            elif action=='LookObjects':
                 objects = message
                 self.objects.insert_objects(objects)
                 
@@ -173,14 +169,6 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
                 self.objects.insert_events(events)
                 self.objects.clear()
                 
-            
-            elif action=='LookStaticObjects':
-                static_objects = message
-                self.static_objects.insert_objects(static_objects)
-                
-            elif action=='LookStaticEvents':
-                static_objects_events = message
-                self.static_objects.insert_events(static_objects_events)
             
             elif action=='PlayerStats':
                 self.stats.update(*message)
@@ -214,7 +202,6 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
         self.objects.draw()
         
         
-        self.static_objects.draw()
 
         #отрисовка бара
         self.rightsurface.draw_background(0,0,'rightside')

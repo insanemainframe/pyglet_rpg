@@ -3,7 +3,7 @@
 from share.mathlib import *
 from engine.mathlib import *
 from engine.enginelib import wrappers
-
+from engine.events import Event
 
 from random import choice, random
 from time import time
@@ -33,6 +33,7 @@ class GameObject(object):
         self.name = name
         self.alive = True
         self.delayed = False
+        self.__events__ = set()
         
         self._position = position
         self.cord = position/TILESIZE
@@ -138,11 +139,30 @@ class GameObject(object):
                 data = (position, self.name, self.world.name, self.world.size)
                 self.world.handle_over_range(self, position)
                 self.flush()
+
+    def add_event(self, action, args, **kwargs):
+        if 'timeout' in kwargs:
+            timeout = kwargs['timeout']
+        else:
+            timeout = 0
+        self.__events__.add(Event(action, args, timeout))
+
+    def get_events(self):
+        return self.__events__
+
+    def clear_events(self):
+        self.__events__.clear()
     
     @staticmethod
     def choice_position(world_map, location, i ,j):
         return True
     
+    def handle_change_world(self):
+        pass
+
+    def handle_respawn(self):
+        pass
+
     def __hash__(self):
         return hash(self.name)
     
@@ -166,6 +186,16 @@ class GameObject(object):
 
     def to_remove(self, force=False):
         self.world.game.add_to_remove(self, force)
+
+    def get_tuple(self, name):
+        if name==self.name:
+            object_type = 'Self'
+        else:
+            object_type = self.__class__.__name__
+        return self.name, object_type, self.prev_position, self.get_args()
+
+    def get_args(self):
+        return {}
     
     
 
@@ -186,16 +216,9 @@ class DynamicObject(GameObject):
         raise Exception('@prev_position.setter')
     
     
-    def add_event(self, action, *args,**kwargs):
-        object_type = self.__class__.__name__
-        vector = self.position-self.prev_position
-        if 'timeout' in kwargs:
-            timeout = kwargs['timeout']
-        else:
-            timeout = 0
-        #print 'add_event', action, args
-        self.world.add_event(self.gid, object_type, self.position, vector, action, args, timeout)
-        self.has_events = True
+    def add_event(self, action, *args, **kwargs):
+        GameObject.add_event(self, action, args, **kwargs)
+        self.location.set_event()
     
     def complete_round(self):
         self.cord_changed = False
@@ -203,11 +226,8 @@ class DynamicObject(GameObject):
         self.has_events = False
         
     
-    def get_tuple(self):
-        return self.name, self.__class__.__name__, self.prev_position, self.get_args()
-        
-    def get_args(self):
-        return {}
+    
+
 
 class StaticObject(GameObject):
     name_counter =0 
@@ -220,20 +240,12 @@ class StaticObject(GameObject):
         GameObject.__init__(self, name, position)
         
     
-    def get_tuple(self):
-        return self.name, self.__class__.__name__, self.position, self.get_args()
     
-    def get_args(self):
-        return {}
+    
     
     def add_event(self, action, *args, **kwargs):
-        object_type = self.__class__.__name__
-        if 'timeout' in kwargs:
-            timeout = kwargs['timeout']
-        else:
-            timeout = 0
-        self.world.add_static_event(self.gid, object_type, self.position, action, args, timeout)
-
+        GameObject.add_event(self, action, args, **kwargs)
+        self.location.set_static_event()
     
     def complete_round(self):
         pass
@@ -410,6 +422,7 @@ class Respawnable:
         self.regid()
         self.respawned = True
         self.spawn()
+        self.handle_respawn()
 
 
 

@@ -6,75 +6,9 @@ from config import TILESIZE
 from clientside.gui.window import create_tile, create_label
 from share.mathlib import Point
 
-from clientside.client_objects.objects_lib import DynamicObject, Animated, Movable, MapAccess
+from clientside.client_objects.objects_lib import *
 
-Meta = DynamicObject
 
-class Fighter(Animated):
-    def __init__(self, frames):
-        Animated.__init__(self)
-        self.create_animation('attack', 'attack', frames,3)
-        self.attacking = False
-    
-    def attack(self):
-        self.attacking = True
-    
-    def draw(self):
-        tilename = self.tilename + self.get_animation('attack')
-        return [create_tile(self.position, tilename)]
-    
-    def round_update(self):
-        self.attacking = False
-            
-class Sweemer(MapAccess):
-    def update(self, delta):
-        i,j = (self.position/TILESIZE).get()
-        if MapAccess.map[i][j]=='water':
-            self.inwater= True
-            self.prefix = '_water'
-        else:
-            self.inwater = False
-            self.prefix = ''
-    
-
-class Deadly(Animated):
-    def __init__(self, hp_value, hp,frames):
-        Animated.__init__(self)
-        self.dead = False
-        self.defended = False
-        
-        self.hp = hp
-        self.hp_value = hp_value
-        
-        self.create_animation('death', 'die', frames, 3)
-        self.create_animation('defend', 'defend', 2, 3)
-    
-    def change_hp(self, hp_value, hp):
-        self.hp = hp
-        self.hp_value = hp_value
-    
-    def draw(self):
-        position = self.position
-        if self.dead:
-            tilename = self.tilename + self.get_animation('death')
-        else:
-            tilename = self.tilename + self.get_animation('defend')
-        
-        sprite = create_tile(position, tilename, -1 )
-        return [sprite]
-    
-    def draw_label(self):
-        label = create_label('%d/%d' % (self.hp, self.hp_value), self.position+Point(0, self.sprite.height))
-        return [label]
-    
-    def die(self):
-        self.dead = True
-    
-    def defend(self):
-        self.defended = True
-    
-    def round_update(self):
-        self.defended = False
 
     
 class Player(Sweemer, Movable, DynamicObject, Deadly):
@@ -224,38 +158,3 @@ class Cat(Movable, DynamicObject):
         self._rainbow = False
         Movable.round_update(self)
 
-class Ball(Movable, DynamicObject, Animated):
-    tilename = 'ball'
-    def __init__(self, name, position):
-        DynamicObject.__init__(self, name, position)
-        Movable.__init__(self)
-        self.create_animation('explosion', 'explode', 7,3, False)
-        self.explosion = False
-        
-    def update(self, dt):
-        if not self.explosion:
-            return Movable.update(self, dt)
-    
-    def draw(self):
-        if not self.explosion:
-            return Movable.draw(self)
-        else:
-            tilename = self.tilename + self.get_animation('explosion')
-            return [create_tile(self.position, tilename, 1)]
-    
-    def explode(self):
-        self.explosion = True
-        self.moving = False
-
-class DarkBall(Ball):
-    tilename = 'darkball'
-    explode_tile = 'darkball_explode'
-
-class AllyBall(Ball):
-    tilename = 'ally_ball'
-    explode_tile = 'ally_ball_explode'
-
-class SkillBall(Ball):
-    tilename = 'skillball'
-    explode_tile = 'skillball_explode'
-    

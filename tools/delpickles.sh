@@ -1,3 +1,3 @@
 #!/bin/sh
 
-rm worldmaps/*/*.pickle
+rm data/worldmaps/*/*.pickle
