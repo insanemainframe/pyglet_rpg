@@ -2,7 +2,7 @@
 from math import hypot
 
 
-from share.mathlib import *
+from share.point import *
 
 from config import *
 

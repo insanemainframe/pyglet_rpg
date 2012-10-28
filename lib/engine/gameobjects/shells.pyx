@@ -5,7 +5,7 @@ from engine.enginelib.meta import ActiveState, DiplomacySubject, Temporary, Soli
 from engine.enginelib.movable import Movable
 from engine.enginelib import wrappers
 
-from share.mathlib cimport Point
+from share.point cimport Point
 
 
 

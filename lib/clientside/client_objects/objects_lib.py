@@ -3,7 +3,7 @@
 from config import *
 from clientside.gui.window import create_tile, create_label
 
-from share.mathlib import Point
+from share.point import Point
 
 from inspect import getmro
 from collections import namedtuple

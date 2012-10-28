@@ -7,7 +7,7 @@ from clientside.gui.window import create_tile, GuiElement, LEFT_BUTTON, RIGHT_BU
 from clientside.gui.gui_lib import Drawable
 from clientside.view.view_lib import ViewTools
 
-from share.mathlib import *
+from share.point import *
 
 
 from collections import defaultdict
@@ -20,6 +20,13 @@ class ObjectsView(Drawable, ViewTools, GuiElement):
         GuiElement.__init__(self, surface)
         self.prev_hovered = False
         self.focus_object = False
+
+    def get_focus_position(self):
+        if self.focus_object:
+            obj = self.objects[self.focus_object]
+            return obj.position
+        else:
+            return False
 
         
         

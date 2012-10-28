@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from time import time
 
-from share.mathlib import Point
+from share.point import Point
 
 
 from config import TILESIZE, ROUND_TIMER

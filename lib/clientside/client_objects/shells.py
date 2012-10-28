@@ -1,7 +1,7 @@
 from config import TILESIZE
 
 from clientside.gui.window import create_tile, create_label
-from share.mathlib import Point
+from share.point import Point
 
 from clientside.client_objects.objects_lib import DynamicObject, Animated, Movable, MapAccess
 

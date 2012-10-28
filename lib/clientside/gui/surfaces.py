@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 from config import TILESIZE, ROUND_TIMER, HOSTNAME
 
-from share.mathlib import *
+from share.point import *
 from clientside.gui.window import Surface, LEFT_BUTTON, RIGHT_BUTTON
 
 from pyglet.window.key import *
+
 
 
 
@@ -18,7 +19,7 @@ class GameSurface(Surface):
         self.rad_w = self.width/2+1
         
         self.position = Point(0,0)
-        self.prev_position = False
+        self.prev_position = Point(0,0)
         
         self.window = window
         self.destination = False

@@ -3,7 +3,7 @@
 from config import *
 from client_config import *
 
-from share.mathlib import Point
+from share.point import Point
 from clientside.gui.window import Label, TextLabel, ClockDisplay, create_tile, create_label, GuiElement
 from clientside.gui.gui_lib import Drawable
 from clientside.client_objects import static_objects as item_types

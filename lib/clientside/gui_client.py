@@ -11,7 +11,7 @@ from clientside.view.view_objects import ObjectsView
 from clientside.view.view_land import LandView
 
 #класс точки
-from share.mathlib import *
+from share.point import *
 
 from clientside.gameclient import GameClient
 from clientside.input import InputHandle
@@ -103,8 +103,12 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
         self.world_display.update(self.gamesurface.position)
 
         #обновляем карту и объекты
-        self.land.update()
+        
         self.objects.update(delta)
+
+        new_position = self.objects.get_focus_position()
+
+        self.land.update()
     
 
     def antilag_init(self, shift):

@@ -4,7 +4,7 @@ from config import *
 
 from weakref import proxy
 
-from share.mathlib import Point
+from share.point import Point
 from engine.enginelib.meta import DynamicObject, StaticObject, ActiveState, Solid
 
 

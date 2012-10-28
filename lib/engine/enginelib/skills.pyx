@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from engine.gameobjects.shells import SkillBall
 
-from share.mathlib cimport Point
+from share.point cimport Point
 
 
 class Skill:

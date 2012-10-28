@@ -8,7 +8,7 @@ from weakref import proxy
 from random import  choice
 from collections import OrderedDict
 
-from share.mathlib cimport Point
+from share.point cimport Point
 
 from engine.enginelib import meta
 from engine.enginelib.meta import DynamicObject, StaticObject
@@ -16,7 +16,7 @@ from engine.world.meta import MetaWorld
 
 
         
-class __GameSingleton(object):
+class __GameSingleton:
     "синглтон игрового движка - хранит карты, все объекты, и предоставляет доступ к ним"
 
 
@@ -29,6 +29,8 @@ class __GameSingleton(object):
         self.guided_changed = False
 
         self.worlds = {}
+
+        self.mainworld = None
 
     
     def start(self):

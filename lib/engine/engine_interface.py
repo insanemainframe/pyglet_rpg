@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-from share.mathlib import *
+from share.point import *
 from share.game_protocol import NewWorld, ServerAccept
 
 from engine.singleton import game

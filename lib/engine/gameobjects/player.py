@@ -68,7 +68,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
             self.observe()
 
         if self.cord_changed or objects_trig or events_trig or new_trig:
-            look_result = self.look_map(for_objects = events_trig, for_events = events_trig)
+            look_result = self.look_map(for_objects = events_trig, for_events = events_trig, force = new_trig)
 
             (new_looked, observed), (players, events)  = look_result
 

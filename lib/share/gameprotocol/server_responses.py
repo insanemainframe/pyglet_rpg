@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from share.gameprotocol.meta import GameProtocol
-from share.mathlib import Point
+from share.point import Point
 
 class Events:
     #name, object_type, action, args=()

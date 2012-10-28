@@ -37,7 +37,7 @@ class MapObserver:
         self.fov = set()
     
     def observe(self):
-        #cdef int rad, I,J, i,j, i_start, i_end, j_start, j_end
+        cdef int rad, I,J, i,j, i_start, i_end, j_start, j_end
 
         self.prev_observed = self.fov.copy()
 
@@ -59,8 +59,9 @@ class MapObserver:
     
     def look_map(self, for_events = True, for_objects = True ,force = False):
         "возвращает список координат видимых клеток из позиции position, с координаами относительно начала карты"
-        #cdef set map_tiles, old_players, players_gids
-        #cdef dict new_players, events
+        cdef set map_tiles, old_players, players_gids
+        cdef dict new_players, events
+        
         map_tiles = set()
 
         new_players  = {}

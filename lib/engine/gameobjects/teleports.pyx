@@ -8,7 +8,7 @@ from engine.enginelib.meta import StaticObject, Solid,Guided
 from engine.gameobjects.player import Player
 from engine.enginelib import wrappers
 
-from share.mathlib cimport Point
+from share.point cimport Point
 
 class GetTeleport:
     "фабрика  телепортов"

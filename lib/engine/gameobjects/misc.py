@@ -4,7 +4,7 @@ from config import *
 
 from random import randrange
 
-from share.mathlib import Point
+from share.point import Point
 from engine.mathlib import chance
 
 from engine.enginelib.meta import *

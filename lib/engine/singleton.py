@@ -8,7 +8,7 @@ from weakref import proxy
 from random import  choice
 from collections import OrderedDict
 
-from share.mathlib import Point
+from share.point import Point
 
 from engine.enginelib import meta
 from engine.enginelib.meta import DynamicObject, StaticObject

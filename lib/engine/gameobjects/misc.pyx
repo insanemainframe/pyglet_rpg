@@ -4,7 +4,7 @@ from config import *
 
 from random import randrange
 
-from share.mathlib cimport Point
+from share.point cimport Point
 from engine.mathlib import chance
 
 from engine.enginelib.meta import StaticObject, Solid, Impassable

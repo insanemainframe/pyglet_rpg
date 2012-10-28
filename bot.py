@@ -5,7 +5,7 @@ from os import _exit as os_exit
 path.append('lib')
 
 from clientside.gameclient import GameClient
-from share.mathlib import *
+from share.point import *
 from share.ask_hostname import ask_hostname
 from config import *
 from time import sleep, time

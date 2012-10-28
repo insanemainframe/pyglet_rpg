@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from share.gameprotocol.meta import GameProtocol
-from share.mathlib import Point
+from share.point import Point
 
 
 

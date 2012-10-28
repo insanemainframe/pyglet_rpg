@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from share.mathlib import Point
+from share.point import Point
 
 from engine.world.world_persistence import PersistentWorld
 from engine.world.location import Location, near_cords

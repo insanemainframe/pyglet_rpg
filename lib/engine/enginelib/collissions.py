@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from sys import path; path.append('../../')
 
-from share.mathlib import *
+from share.point import *
 
 from math import hypot
 from collections import namedtuple

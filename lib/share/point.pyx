@@ -4,11 +4,11 @@
 from math import hypot, floor
 from config import *
 
+from cpython cimport bool
 
 cdef class Point:
     "класс точек и векторов"
     def __init__(self, int x, int y):
-
         self.x = x
         self.y = y
 
@@ -52,10 +52,10 @@ cdef class Point:
     def __truediv__(Point self, float number):
         return Point(floor(self.x/number), floor(self.y/number))
 
-    def get(Point self):
+    cpdef tuple get(Point self):
         return (self.x, self.y)
 
-    def in_radius(self, Point point, float radius):
+    cpdef bool in_radius(self, Point point, float radius):
         return ((self.x-point.x)**2 +(self.y-point.y)**2) <= radius**2
 
     def __repr__(Point self):

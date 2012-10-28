@@ -30,7 +30,7 @@ WORLD_PATH = 'data/worldmaps/%s/'
 WORLD_PERSISTENCE = True
 SAVE_WORLD = False
 
-WORLD_MUL = 1
+WORLD_MUL = 50
 
 LOOK_RADIUS = 6
 SQUARE_FOV = False

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 cdef dict cds
 
-from share.mathlib cimport Point
+from share.point cimport Point
 
 from math import hypot, ceil
 from collections import namedtuple

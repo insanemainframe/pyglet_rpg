@@ -6,7 +6,7 @@ from clientside.gui.gui_lib import Drawable
 from clientside.gui.window import create_tile
 
 from share.map import MapTools
-from share.mathlib import *
+from share.point import *
 
 from collections import defaultdict
 

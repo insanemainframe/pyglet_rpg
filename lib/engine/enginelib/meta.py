@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from share.mathlib import *
+from share.point import *
 from engine.mathlib import *
 from engine.enginelib import wrappers
 from engine.events import Event
@@ -91,6 +91,15 @@ class GameObject(object):
     @position.setter
     def position(self, position):
         raise Exception('Denied')
+
+
+    @property
+    def prev_position(self):
+        return self._prev_position
+    
+    @prev_position.setter
+    def prev_position(self):
+        raise Exception('@prev_position.setter')
     
     def set_position(self, position):
         "принудительная установка позиции"
@@ -207,13 +216,7 @@ class DynamicObject(GameObject):
         self.position_changed = True
         self.world_changed = False
     
-    @property
-    def prev_position(self):
-        return self._prev_position
     
-    @prev_position.setter
-    def prev_position(self):
-        raise Exception('@prev_position.setter')
     
     
     def add_event(self, action, *args, **kwargs):

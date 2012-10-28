@@ -4,7 +4,7 @@ from config import TILESIZE
 
 from share.packer import pack, unpack
 from share.gameprotocol.client_requestes import *
-from share.mathlib import *
+from share.point import *
 from clientside.socket_client import SocketClient
 
 class GameClient(SocketClient):
