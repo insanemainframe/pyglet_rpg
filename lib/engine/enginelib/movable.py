@@ -8,8 +8,6 @@ from engine.enginelib.collissions import *
 from engine.enginelib import wrappers
 
 
-from math import hypot
-
 
 
 class Movable(DynamicObject):

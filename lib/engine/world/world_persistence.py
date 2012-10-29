@@ -3,71 +3,67 @@
 from config import *
 
 from os.path import exists
-from cPickle import load, dump
-from copy import copy
+from zlib import compress, decompress
+from marshal import loads, dumps
 
 from engine.world.map_source import load_map
 from engine.enginelib import meta 
-
+from engine import game_objects
 
 class PersistentWorld(object):
-    loaded = False
-
     def __init__(self, mapname):
         self.mapname = mapname
+        print 'loading map...'
         self.map, self.size, self.background = load_map(mapname)
+        
+
+
+
+    def load_objects(self):
         if self.world_exists():
-            try:
-                loaded = self.load_world()
-            except BaseException as error:
-                print 'MetaWorld.__new__ error "%s"' % str(error)
-            else:
-                self.loaded = loaded
+            with open(WORLD_PATH % self.mapname + 'world.pickle', 'rb') as w_file:
+                data = w_file.read()
+            worlds_objects = loads(decompress(data))
 
-    def loading(self):
-        data = (self.mapname, self.size, self.size, self.background, len(self.locations), len(self.locations[0]))
-        if not self.loaded:
-            print('\t creating world "%s": %sx%s background %s locations %sx%s' % data)
+            for object_type, data in worlds_objects:
+                object_type = self.get_class(object_type)
+                data = object_type.__load__(*data)
+                player = object_type(*data)
+                self.new_object(player)
+            return True
         else:
-            for player in self.loaded.objects:
-                self.new_object(player)
-            for player in self.loaded.static_objects:
-                self.new_object(player)
-           
-            print('\t  world "%s" loaded from pickle: %sx%s background %s locations %sx%s' % data)
+            return False
 
-    def world_exists(cls):
-        return exists(WORLD_PATH % cls.mapname + 'world.pickle')
-    
-    def load_world(cls):
-        with open(WORLD_PATH % cls.mapname + 'world.pickle', 'rb') as w_file:
-            world = load(w_file)
-            return world
+
+
+
+    def get_class(self, object_type):
+        return getattr(game_objects, object_type)
+
+    def world_exists(self):
+        return exists(WORLD_PATH % self.mapname + 'world.pickle')
+            
     
     def save(self, force = False):
         if SAVE_WORLD or force:
-            world = WorldSave(self.players, self.static_objects)
+            worlds_objects = self.save_objects()
+            data = compress(dumps(worlds_objects))
             with open(WORLD_PATH % self.mapname + 'world.pickle', 'wb') as w_file:
-                dump(world, w_file)
+                w_file.write(data)
                 print 'world %s saved' % self.name
 
 
-class WorldSave:
-    def __init__(self, objects, static_objects, ready = False):
-        if not ready:
-            self.objects = []
-            self.static_objects = []
-            for player in objects.values():
-                if not isinstance(player, meta.Guided):
-                    player = copy(player)
-                    del player.world
-                    del player.location
-                    self.objects.append(player)
-            for player in static_objects.values():
-                player = copy(player)
-                del player.world
-                del player.location 
-                self.static_objects.append(player)
-        else:
-            self.objects = objects
-            self.static_objects = static_objects
+    def save_objects(self):
+        objects = []
+
+        for player in self.players.values():
+            if isinstance(player, meta.Savable):
+                object_type = player.__class__.__name__
+                data = player.__save__()
+
+                objects.append((object_type, data))
+
+
+        return objects
+
+

@@ -28,9 +28,9 @@ SOCKET_SERVER_PROFILE_FILE = '/tmp/socket_server.stat'
 
 WORLD_PATH = 'data/worldmaps/%s/'
 WORLD_PERSISTENCE = True
-SAVE_WORLD = False
+SAVE_WORLD = True
 
-WORLD_MUL = 50
+WORLD_MUL = 1
 
 LOOK_RADIUS = 6
 SQUARE_FOV = False

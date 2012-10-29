@@ -60,8 +60,6 @@ class GameEngine:
             for player in location.players.values():
                 player.update()
             
-            for static_object in location.static_objects.values():
-                static_object.update()
         
         #обновляем активнеы локации
         for location in self.active_locations:
@@ -88,7 +86,7 @@ class GameEngine:
         for location in self.active_locations:
             #завершаем раунд для объектов в локации
             for player in location.players.values():
-                DynamicObject.complete_round(player)
+                GameObject.complete_round(player)
                 player.complete_round()
                 player.clear_events()
             location.complete_round()

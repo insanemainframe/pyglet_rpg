@@ -12,7 +12,6 @@ from collections import defaultdict
 
 from engine.engine_interface import GameEngine
 from share.packer import pack, unpack
-from share.ask_hostname import ask_hostname
 from serverside.socket_server import SocketServer
 
 
@@ -20,8 +19,8 @@ from serverside.socket_server import SocketServer
 
 class GameServer(object):
     "игровой сервер"
-    def __init__(self, hostname, save_time = 600):
-        self.server = SocketServer(hostname)
+    def __init__(self, hostname, listen_num = 100, save_time = 600):
+        self.server = SocketServer(hostname, listen_num)
 
         self.client_list = set()    
         self.client_requestes = defaultdict(list)
@@ -136,17 +135,4 @@ class GameServer(object):
 
 
         
-
-def main():
-    hostname = ask_hostname(HOSTNAME)
-    server = GameServer(hostname)
-    server.start()
-
-if __name__ == '__main__':
-    if PROFILE_SERVER:
-        print('profile')
-        cProfile.run('main()', SERVER_PROFILE_FILE)
-        
-    else:
-        main()
 

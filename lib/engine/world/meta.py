@@ -35,20 +35,24 @@ class MetaWorld(PersistentWorld):
         self.tiles = defaultdict(lambda: set())
         
         self.players = {}
-        self.static_objects = {}
         
         self.locations = []
         self.active_locations = {}
         
         self.create_locations()
         self.create_links()
-        if WORLD_PERSISTENCE:
-            PersistentWorld.loading(self)
+
 
         init = imp.load_source('init', WORLD_PATH %name + 'init.py')
-        self._start =  init.main
-        self.start = lambda: self._start(self)
-            
+        self.generate_func = init.generate
+        self.init_func =  init.init
+    
+    def start(self):
+        result = self.load_objects()
+        if not result:
+            self.generate_func(self)
+        self.init_func(self)
+
         
 
     
@@ -67,19 +71,14 @@ class MetaWorld(PersistentWorld):
                 location.create_links()
 
     def add_object(self, player):
-        if isinstance(player, DynamicObject):
-            self.players[player.name] = proxy(player)
-        else:
-            self.static_objects[player.name] = proxy(player)
+        self.players[player.name] = proxy(player)
 
     def pop_object(self, player):
         name = player.name
         player.location.pop_object(player)
-        if name in self.players or name in self.static_objects:
-            if isinstance(player, DynamicObject):
-                del self.players[name]
-            else:
-                del self.static_objects[name]
+        if name in self.players:
+            del self.players[name]
+
     
     def new_object(self, player):
         player.world = self
@@ -101,13 +100,7 @@ class MetaWorld(PersistentWorld):
         self.pop_object(player)
         self.game.remove_object(player)
 
-    
-    def add_static_event(self, name, object_type, position, action, args=(), timeout=0):
-        "добавляет со9-бытие статического объекта"
-        event = Event(name, object_type, position, action, args, timeout)
-        
-        i,j = self.get_loc_cord(position).get()
-        self.locations[i][j].add_static_event(event)
+
     
     def add_event(self, name, object_type, position, vector, action, args=(), timeout=0, ):
         "добавляет событие"

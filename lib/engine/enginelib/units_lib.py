@@ -60,9 +60,10 @@ class Stalker:
             players = self.location.get_players_list()
             dists = []
             for player in players:
-                if player.fraction!=self.fraction and  player.fraction!='good':
-                    if not player.invisible:
-                        dists.append(player.position - self.position)
+                if isinstance(player, DiplomacySubject):
+                    if player.fraction!=self.fraction and  player.fraction!='good':
+                        if not player.invisible:
+                            dists.append(player.position - self.position)
             if dists:
                 victim = min(dists, key = abs)
                 return victim

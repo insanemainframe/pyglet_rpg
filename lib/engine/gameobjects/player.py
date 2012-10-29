@@ -43,8 +43,10 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         
     def handle_response(self):
         #если попал в новый мир
-        if self.world_changed or self.respawned:
+        if self.cord_changed or self.world_changed or self.respawned:
             self.observe()
+        
+        if self.world_changed or self.respawned:
             new_trig = True
             if self.world_changed:
                 yield protocol.NewWorld(self.world.name, self.world.size, self.position, self.world.background)
@@ -61,11 +63,10 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
             yield protocol.MoveCamera(self.move_vector)
     
         #если изменилась клетка - смотрим новые тайлы и список тайлов в радусе обзора
-        objects_trig = self.location.check_players() or self.location.check_static_objects()
-        events_trig = self.location.check_events() or self.location.check_static_events()
+        objects_trig = self.location.check_players()
+        events_trig = self.location.check_events()
 
-        if self.cord_changed:
-            self.observe()
+        
 
         if self.cord_changed or objects_trig or events_trig or new_trig:
             look_result = self.look_map(for_objects = events_trig, for_events = events_trig, force = new_trig)
@@ -127,20 +128,25 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     
     @classmethod
     def choice_position(cls, world, location, i ,j):
-        for player in location.get_players_list():
-            if player.fraction=='monsters':
-                dist = abs(Point(i,j)*TILESIZE - player.position)
-                if dist<=cls.min_dist*TILESIZE:
-                    return False
-                    
         for tile in world.get_near_tiles(i,j):
             if tile in cls.BLOCKTILES:
                 return False
-
 
         for ij in world.get_near_cords(i,j) + [(i,j)]:
                 for player in world.tiles[Point(*ij)]:
                     if isinstance(player, Solid):
                         return False
+
+        for player in location.get_players_list():
+            if isinstance(player, DiplomacySubject):
+                if player.fraction=='monsters':
+                    dist = abs(Point(i,j)*TILESIZE - player.position)
+                    if dist<=cls.min_dist*TILESIZE:
+                        return False
+                    
+        
+
+
+        
 
         return True

@@ -20,7 +20,7 @@ class GetTeleport:
         return self.ttype(position, self.dest)
         
 
-class Teleport(StaticObject, Solid):
+class Teleport(StaticObject, Solid, Savable):
     radius = TILESIZE
     BLOCKTILES = Player.BLOCKTILES + ['water']
     min_dist = 10
@@ -47,6 +47,13 @@ class Teleport(StaticObject, Solid):
     def remove(self):
         StaticObject.remove(self)
         return True
+
+    def __save__(self):
+        return [self.position.get(), self.dest]
+    
+    @staticmethod
+    def __load__((x,y), dest):
+        return [Point(x,y), dest]
 
 class Cave(Teleport):
     pass

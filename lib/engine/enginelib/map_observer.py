@@ -79,9 +79,8 @@ class MapObserver:
                     tile_type = self.world.map[i][j]
                     map_tiles.add((Point(i,j), tile_type))
 
-                tile = self.world.tiles[Point(i,j)]
-
                 if for_objects or for_events or force:
+                    tile = self.world.tiles[Point(i,j)]
                     for game_object in tile:
                         gid = game_object.gid
                         self.prev_players.add(gid)
@@ -95,7 +94,7 @@ class MapObserver:
 
 
 
-        return (map_tiles, self.fov), (new_players, events), 
+        return (map_tiles, self.fov), (new_players, events)
         
     
 

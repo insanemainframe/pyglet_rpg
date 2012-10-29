@@ -12,7 +12,7 @@ from engine.gameobjects.player import Player
 from engine.enginelib import wrappers
 
 
-class Misc(StaticObject):
+class Misc(StaticObject, Savable):
     BLOCKTILES = Player.BLOCKTILES
     def __init__(self, position):
         StaticObject.__init__(self, position)

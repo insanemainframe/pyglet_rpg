@@ -16,7 +16,7 @@ import cProfile
 
 def main():
     hostname = ask_hostname(HOSTNAME)
-    server = GameServer(hostname)
+    server = GameServer(hostname, listen_num = 100)
     server.start()
 
 if __name__ == '__main__':

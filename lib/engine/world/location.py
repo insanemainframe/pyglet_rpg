@@ -19,7 +19,6 @@ class LocationEvents:
     "функционал локации для работы с событиями"
     def __init__(self):
         self.new_events = False
-        self.new_static_events = False
     
     def set_event(self):
         self.new_events = True
@@ -38,24 +37,9 @@ class LocationEvents:
         self.new_events = False
         
     
-    def set_static_event(self):
-        self.new_static_events = True
-        
-    
-    def check_static_events(self):
-        if self.new_static_events:
-            return True
-        for location in self.nears:
-            if location.new_static_events:
-                return True
-        return False
-    
-    def clear_static_events(self):
-        self.new_static_events = False
     
     def complete_round(self):
         self.clear_events()
-        self.clear_static_events()
     
 
 
@@ -66,15 +50,12 @@ class LocationObjects:
     "функционал локации для работы с объектами"
     def __init__(self):
         self.players = {}
-        self.static_objects = {}
         
         self.solids = {}
         
         self.new_players = False
-        self.new_static_objects = False
         
         self.remove_list = {}
-        self.remove_static_list = {}
         
     
     def add_object(self, player):
@@ -85,27 +66,20 @@ class LocationObjects:
         if isinstance(player, Solid):
             self.add_solid(player)
 
-        if isinstance(player, DynamicObject):
-            self.new_players = True
-            self.players[player.name] = proxy(player)
-        else:
-            self.static_objects[player.name] = proxy(player)
-            self.new_static_objects = True
+        self.new_players = True
+        self.players[player.name] = proxy(player)
+
 
         
     
     def pop_object(self, player):
         "удаляет ссылку из списка игроков"
         name = player.name
-        if name in self.players or name in self.static_objects:
-            if isinstance(player, DynamicObject):
-                player = self.players[name]
-                del self.players[player.name]
-                self.new_players = True
-            else:
-                self.new_static_objects = True
-                player = self.static_objects[name]
-                del self.static_objects[player.name]
+        if name in self.players:
+            player = self.players[name]
+            del self.players[player.name]
+            self.new_players = True
+
 
             if isinstance(player, ActiveState):
                     self.unset_primary_activity()
@@ -120,10 +94,8 @@ class LocationObjects:
     def remove_object(self, player, force = False):
         "удаляет игрока, если его метод remove возвращает true"
         name = player.name
-        if isinstance(player, DynamicObject):
-            del self.players[name]
-        else:
-            del self.static_objects[name]
+        del self.players[name]
+
 
         result = player.remove()
         if result or force:
@@ -178,39 +150,10 @@ class LocationObjects:
     
 
     
-    def get_static_objects_list(self):
-        "возвращает список статических объекто в в локации и соседних локациях"
-        start = self.static_objects.values()
-        static_objects = sum([location.static_objects.values() for location in self.nears], start)
-        
-        return static_objects
-    
 
     
-    
-    def check_static_objects(self):
-        "проверяет изменился ли список сттических объектов в локации и соседних локациях"
-        if self.new_static_objects:
-            return True
-        for location in self.nears:
-            if location.new_static_objects:
-                return True
-        return False
-    
-    
-    
-    def clear_static_objects(self):
-        "удаляет статические оъекты добавленные для удаления"
-        if self.remove_static_list:
-            for name, force in self.remove_static_list.items():
-                if name in self.static_objects:
-                    player = self.static_objects[name]
-                    self.remove_object(player, force)
-                else:
-                    print('Warning: clear_static_objects, %s not in location list' % name)
-                    print('Warning: clear_static_objects, %s not in location list' % name)
 
-            self.remove_static_list.clear()
+
         
 
 
@@ -219,10 +162,7 @@ class LocationObjects:
     def add_to_remove(self, player, force):
         "добавляет статический объект в список для удаления"
         name = player.name
-        if isinstance(player, DynamicObject):
-            self.remove_list[name] = force
-        else:
-            self.remove_static_list[name] = force
+        self.remove_list[name] = force
     
     #
     def add_solid(self, solid):
@@ -241,15 +181,12 @@ class LocationObjects:
     def update(self):
         "очистка объекьтов"
         self.clear_players()
-        self.clear_static_objects()
     
     def complete_round(self):
         "вызывается при завершении раунда, удаляет списки для удаления и обнуляет триггеры новых объектов"
         self.remove_list.clear()
-        self.remove_static_list.clear()
         
         self.new_players = False
-        self.new_static_objects = False
 
 class LocationActivity:
     "функционал локации для работы с ее активностью"

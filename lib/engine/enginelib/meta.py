@@ -28,8 +28,14 @@ class ActionError(BaseException):
 
 class GameObject(object):
     BLOCKTILES = []
-    
-    def __init__(self, name, position):
+    __name_counter = 0
+    def __init__(self, position, name = None):
+        if not name:
+            object_type = self.__class__.__name__
+            n = GameObject.__name_counter
+            name = "%s_%s" % (object_type, n)
+            GameObject.__name_counter += 1 
+
         self.name = name
         self.alive = True
         self.delayed = False
@@ -47,6 +53,11 @@ class GameObject(object):
         self.related_objects = set()
         
         self.has_events = False
+
+
+        self.cord_changed = True
+        self.position_changed = True
+        self.world_changed = False
     
     def bind_slave(self, slave):
         self.slaves.add(slave)
@@ -149,12 +160,13 @@ class GameObject(object):
                 self.world.handle_over_range(self, position)
                 self.flush()
 
-    def add_event(self, action, args, **kwargs):
+    def add_event(self, action, *args, **kwargs):
         if 'timeout' in kwargs:
             timeout = kwargs['timeout']
         else:
             timeout = 0
         self.__events__.add(Event(action, args, timeout))
+        self.location.set_event()
 
     def get_events(self):
         return self.__events__
@@ -205,24 +217,7 @@ class GameObject(object):
 
     def get_args(self):
         return {}
-    
-    
 
-class DynamicObject(GameObject):
-    def __init__(self, name, position):
-        GameObject.__init__(self, name, position)
-        
-        self.cord_changed = True
-        self.position_changed = True
-        self.world_changed = False
-    
-    
-    
-    
-    def add_event(self, action, *args, **kwargs):
-        GameObject.add_event(self, action, args, **kwargs)
-        self.location.set_event()
-    
     def complete_round(self):
         self.cord_changed = False
         self.position_changed = False
@@ -231,27 +226,18 @@ class DynamicObject(GameObject):
     
     
 
+class DynamicObject(GameObject):
+    def __init__(self, name, position):
+        GameObject.__init__(self, position, name)
+        
 
 class StaticObject(GameObject):
-    name_counter =0 
     def __init__(self, position):
-        counter = StaticObject.name_counter
-        StaticObject.name_counter+=1
-    
-        name = '%s_%s' % (self.__class__.__name__, counter)
-        
-        GameObject.__init__(self, name, position)
+        GameObject.__init__(self, position)
         
     
-    
-    
-    
-    def add_event(self, action, *args, **kwargs):
-        GameObject.add_event(self, action, args, **kwargs)
-        self.location.set_static_event()
-    
-    def complete_round(self):
-        pass
+class Mutable:
+    pass
     
 
 
@@ -465,3 +451,12 @@ class Corpse(StaticObject, Temporary):
     def update(self):
         StaticObject.update(self)
         Temporary.update(self)
+
+
+class Savable:
+    def __save__(self):
+        return [self.position.get()]
+
+    @staticmethod
+    def __load__((x,y)):
+        return [Point(x,y)]
