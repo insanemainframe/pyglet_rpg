@@ -1,5 +1,5 @@
 Python multiplayer client-server hack-and-slash game, using pyglet(or pygame wrapper) and non-blocking sockets. Just for fun and self-education.
-Tiles grabbed from [wesnoth](http://www.wesnoth.org/)
+Tiles grabbed from [wesnoth](http://www.wesnoth.org/) and [other internets](http://images.google.com/)
 
 
 REQUIRMENTS:
@@ -37,7 +37,7 @@ python server.py -d
 python client.py -d
 ````
 
-building(optional)
+building c-extensions(optional)
 
 ````
 ./tools/compile.sh
