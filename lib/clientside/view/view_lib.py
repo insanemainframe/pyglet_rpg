@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from types import ClassType            
+from collections import defaultdict
 from clientside.client_objects import all
+
 
 class ViewTools:
     "создает словарь из классов клиентских объектов"
@@ -16,7 +18,7 @@ class ViewTools:
         self.deleted_objects = []
         
         self.eventnames = []
-        self.timeout_events = []
+        self.timeout_events = defaultdict(list)
 
         self.focus_object = False
         
@@ -27,15 +29,14 @@ class ViewTools:
                     self.object_dict[name] = Class
     
     def insert_events(self, new_events={}):
-        events = []
         for gid, eventlist in new_events.items():
             for action, args, timeout in eventlist:
-                if gid in self.objects:
-                    events.append((gid, action, args))
+                if timeout>0 or gid in self.objects:
                     self.eventnames.append(gid)
+                    timeout-=1
                     if timeout>0:
-                        self.timeout_events.append((gid, timeout, action, args))
-                    print action, args
+                        self.timeout_events[gid].append((action, args, timeout))
+                    
                     self.objects[gid].handle_action(action, args)
         
             

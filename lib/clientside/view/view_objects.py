@@ -87,11 +87,9 @@ class ObjectsView(Drawable, ViewTools, GuiElement):
     def round_update(self):
         [game_object.round_update() for game_object in self.objects.values()]
         
-        new_events = [(gid, timeout-1, action, args)
-        for gid, timeout, action, args in self.timeout_events]
-        self.timeout_events = []
-        if new_events:
-            self.insert_events(new_events)
+        if self.timeout_events:
+            self.insert_events(self.timeout_events)
+        self.timeout_events.clear()
         
     def force_complete(self):
         [game_object.force_complete() for game_object in self.objects.values()]

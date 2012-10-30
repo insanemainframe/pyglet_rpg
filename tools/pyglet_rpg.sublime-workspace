@@ -4,6 +4,62 @@
 		"selected_items":
 		[
 			[
+				"D",
+				"DiplomacySubject"
+			],
+			[
+				"obj",
+				"object	(builtin, class)"
+			],
+			[
+				"pla",
+				"player	(local, instance)"
+			],
+			[
+				"ob",
+				"object_type	(local, instance)"
+			],
+			[
+				"na",
+				"name_counter	(attribute, instance)"
+			],
+			[
+				"object",
+				"object_type"
+			],
+			[
+				"name",
+				"name_counter"
+			],
+			[
+				"map_",
+				"map_image"
+			],
+			[
+				"sav",
+				"save_objects()	(attribute, function)"
+			],
+			[
+				"pl",
+				"player	(local, instance)"
+			],
+			[
+				"class",
+				"classmethod	(builtin, class)"
+			],
+			[
+				"ti",
+				"tile_map	(attribute, instance)"
+			],
+			[
+				"til",
+				"tile_map	(attribute, instance)"
+			],
+			[
+				"get",
+				"get_near"
+			],
+			[
 				"ge",
 				"get_cross"
 			],
@@ -16,16 +72,8 @@
 				"move_vector"
 			],
 			[
-				"pl",
-				"players_gids"
-			],
-			[
 				"for",
 				"for_objects	(local, instance)"
-			],
-			[
-				"pla",
-				"players_gids"
 			],
 			[
 				"map",
@@ -56,14 +104,6 @@
 				"return	(keyword, instance)"
 			],
 			[
-				"obj",
-				"objects"
-			],
-			[
-				"ob",
-				"object_type	(local, instance)"
-			],
-			[
 				"look",
 				"look_result"
 			],
@@ -90,10 +130,6 @@
 			[
 				"stat",
 				"static_events	(local, instance)"
-			],
-			[
-				"get",
-				"get_tuple"
 			],
 			[
 				"player",
@@ -170,10 +206,6 @@
 			[
 				"rem",
 				"remove_list"
-			],
-			[
-				"ti",
-				"tiles"
 			],
 			[
 				"m",
@@ -448,29 +480,10 @@
 	"buffers":
 	[
 		{
-			"file": "/home/innuendo/games/pyglet_rpg/lib/share/point.pyx",
-			"settings":
-			{
-				"buffer_size": 1822,
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/map_observer.py",
 			"settings":
 			{
-				"buffer_size": 2754,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"contents": "#!/usr/bin/env python\n# -*- coding: utf-8 -*-\n#\nfrom share.game_protocol import NewWorld, ServerAccept\n\nfrom engine.singleton import game\nfrom engine.enginelib.meta import DynamicObject\nfrom engine.game_objects import Player\n\n\nfrom config import *\n\n#####################################################################\nclass GameEngine:\n    \"интерфейс к движку игры\"\n    monster_count = 0\n    def __init__(self, intsave_time):\n        game.start()\n        self.messages = {}\n            \n    def game_connect(self, str name):\n        \"создание нового игрока\"\n        #выбираем позицию для нового игрока\n        position = game.mainworld.choice_position(Player, ask_player = True)\n        #создаем игрока\n        new_player = Player(name, position)\n        game.mainworld.new_object(new_player)\n        \n        #оставляем сообщение о подключении\n        self.messages[name] = []\n        for message in new_player.accept_response():\n            self.messages[name].append(message)\n        \n        game.guided_changed = True\n        print('New player %s' % name)\n\n        return ServerAccept()\n    \n    \n    def game_requests(self, messages):\n        \"выполнение запросов игроков\"\n        cdef str name, action\n\n        for name, player in game.guided_players.items():     \n            if name in messages:\n                for action, message in messages[name]:\n                        try:\n                            player.handle_action(action, message)\n                        except ActionDenied:\n                            pass\n    \n    \n    def game_update(self):\n        \"отыгрывание раунда игры\"\n        #получаем список активных локаций\n        self.active_locations = game.get_active_locations()\n        \n        \n        #обновляем объекты в активных локациях\n        for location in self.active_locations:\n            for player in location.players.values():\n                player.update()\n            \n            for static_object in location.static_objects.values():\n                static_object.update()\n        \n        #обновляем активнеы локации\n        for location in self.active_locations:\n            location.update()\n\n                    \n        \n    def game_responses(self):\n        \"получение ответов управляемых игрокв\"\n        #получаем ответы игроков\n        cdef list messages\n        cdef str name\n\n        for name, player in game.guided_players.items():\n            messages = []\n            if self.messages[name]:\n                messages += self.messages[name]\n                self.messages[name] = []\n            for response in player.handle_response():\n                messages.append(response)\n            \n            yield name, messages\n\n\n    def end_round(self):\n        \"завершение игрового раунда\"\n        for location in self.active_locations:\n            #завершаем раунд для объектов в локации\n            for player in location.players.values():\n                DynamicObject.complete_round(player)\n                player.complete_round()\n            location.complete_round()\n        \n        game.guided_changed = False\n        \n       \n    def save(self):\n        game.save()\n    \n    def game_quit(self, name):\n        print('%s quit' % name)\n        del self.messages[name]\n        game.remove_guided(name)\n        game.guided_changed = True\n    \n    \n                ",
-			"file": "/home/innuendo/games/pyglet_rpg/lib/engine/engine_interface.pyx",
-			"file_size": 3682,
-			"file_write_time": 1351412600000000,
-			"settings":
-			{
-				"buffer_size": 3329,
+				"buffer_size": 2757,
 				"line_ending": "Unix"
 			}
 		}
@@ -515,6 +528,26 @@
 	},
 	"file_history":
 	[
+		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/units_lib.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/meta.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/world/world_persistence.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/world/location.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/world/meta.py",
+		"/home/innuendo/games/pyglet_rpg/data/worldmaps/underground2/init.py",
+		"/home/innuendo/games/pyglet_rpg/data/worldmaps/underground/init.py",
+		"/home/innuendo/games/pyglet_rpg/data/worldmaps/ground/init.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/engine_interface.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/player.py",
+		"/home/innuendo/games/pyglet_rpg/lib/share/point.pyx",
+		"/home/innuendo/games/pyglet_rpg/gen_map.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/world/map_source.py",
+		"/home/innuendo/games/pyglet_rpg/config.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/game_objects.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/teleports.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/misc.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/items.py",
+		"/home/innuendo/games/pyglet_rpg/data/worldmaps/ground/tiledict.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/engine_interface.pyx",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/collissions.pyx",
 		"/home/innuendo/games/pyglet_rpg/tools/pyglet_rpg.sublime-project",
 		"/home/innuendo/games/pyglet_rpg/lib/serverside/server.py",
@@ -523,7 +556,6 @@
 		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/map_observer.pyx",
 		"/home/innuendo/games/pyglet_rpg/server.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/singleton.pyx",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/world/meta.py",
 		"/home/innuendo/games/pyglet_rpg/lib/clientside/client_objects/objects_lib.py",
 		"/home/innuendo/games/pyglet_rpg/lib/clientside/client_objects/shells.py",
 		"/home/innuendo/games/pyglet_rpg/lib/clientside/client_objects/static_objects.py",
@@ -537,7 +569,6 @@
 		"/home/innuendo/games/pyglet_rpg/lib/clientside/gui/window.pyx",
 		"/home/innuendo/games/pyglet_rpg/lib/clientside/view/view_land.py",
 		"/home/innuendo/games/pyglet_rpg/lib/clientside/view/view_objects.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/engine_interface.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/events.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/mathlib.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/singleton.py",
@@ -545,14 +576,10 @@
 		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/map_observer.py",
 		"/home/innuendo/games/pyglet_rpg/lib/clientside/gui_client.py",
 		"/home/innuendo/games/pyglet_rpg/lib/clientside/input.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/player.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/meta.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/skills.pyx",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/misc.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/misc.pyx",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/shells.pyx",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/teleports.pyx",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/world/location.py",
 		"/home/innuendo/games/pyglet_rpg/lib/share/gameprotocol/client_requestes.py",
 		"/home/innuendo/games/pyglet_rpg/lib/share/gameprotocol/server_responses.py",
 		"/home/innuendo/games/pyglet_rpg/bot.py",
@@ -561,9 +588,7 @@
 		"/home/innuendo/games/pyglet_rpg/lib/share/mathlib.pxd",
 		"/home/innuendo/games/pyglet_rpg/lib/share/mathlib.py",
 		"/home/innuendo/games/pyglet_rpg/run_server.sh",
-		"/home/innuendo/games/pyglet_rpg/config.py",
 		"/tmp/foo.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/world/world_persistence.py",
 		"/home/innuendo/games/pyglet_rpg/lib/clientside/client_objects/all.py",
 		"/home/innuendo/games/pyglet_rpg/lib/clientside/view/view_static_objects.py",
 		"/home/innuendo/games/pyglet_rpg/lib/clientside/view/view_lib.py",
@@ -574,12 +599,7 @@
 		"/home/innuendo/games/pyglet_rpg/client_config.py",
 		"/home/innuendo/games/pyglet_rpg/tools/wcl.sh",
 		"/home/innuendo/games/pyglet_rpg/tools/setup.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/items.py",
-		"/home/innuendo/games/pyglet_rpg/data/worldmaps/underground2/init.py",
-		"/home/innuendo/games/pyglet_rpg/data/worldmaps/underground/init.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/player.pyx",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/units_lib.py",
-		"/home/innuendo/games/pyglet_rpg/data/worldmaps/ground/init.py",
 		"/home/innuendo/games/pyglet_rpg/lib/serverside/socket_server.py",
 		"/home/innuendo/games/pyglet_rpg/lib/share/packer.py",
 		"/home/innuendo/games/pyglet_rpg/lib/share/packer.pyx",
@@ -595,7 +615,6 @@
 		"/home/innuendo/games/pyglet_rpg/engine/world/meta.py",
 		"/home/innuendo/games/pyglet_rpg/engine/singleton.pyx",
 		"/home/innuendo/games/pyglet_rpg/engine/singleton.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/world/map_source.py",
 		"/home/innuendo/games/pyglet_rpg/share/mathlib.pyx",
 		"/home/innuendo/games/pyglet_rpg/engine/world/meta.pyx",
 		"/home/innuendo/games/pyglet_rpg/clientside/gui/surfaces.py",
@@ -636,13 +655,7 @@
 		"/home/innuendo/games/pyglet_rpg/clientside/gui/gui_lib.py",
 		"/home/innuendo/games/pyglet_rpg/clientside/client_objects/objects_lib.py",
 		"/home/innuendo/games/pyglet_rpg/clientside/help.txt",
-		"/home/innuendo/games/pyglet_rpg/clientside/gui/gui_elements.py",
-		"/home/innuendo/games/pyglet_rpg/clientside/gui/window.py",
-		"/home/innuendo/games/pyglet_rpg/clientside/gameclient.py",
-		"/home/innuendo/games/pyglet_rpg/clientside/socket_client.py",
-		"/home/innuendo/games/pyglet_rpg/engine/enginelib/equipment.py",
-		"/home/innuendo/games/pyglet_rpg/clientside/view/view_lib.py",
-		"/home/innuendo/games/pyglet_rpg/clientside/view/view_objects.py"
+		"/home/innuendo/games/pyglet_rpg/clientside/gui/gui_elements.py"
 	],
 	"find":
 	{
@@ -650,9 +663,10 @@
 	},
 	"find_in_files":
 	{
-		"height": 90.0,
+		"height": 0.0,
 		"where_history":
 		[
+			"/home/innuendo/games/pyglet_rpg/lib/engine/world",
 			"",
 			"*.py",
 			"",
@@ -665,6 +679,12 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"comple",
+			"static",
+			"static_object",
+			"static",
+			"cls",
+			"save",
 			"hypo",
 			"labs",
 			"mathlib",
@@ -764,46 +784,18 @@
 			[
 				{
 					"buffer": 0,
-					"file": "/home/innuendo/games/pyglet_rpg/lib/share/point.pyx",
-					"settings":
-					{
-						"buffer_size": 1822,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								211,
-								211
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
 					"file": "/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/map_observer.py",
 					"settings":
 					{
-						"buffer_size": 2754,
+						"buffer_size": 2757,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2725,
-								2725
+								1310,
+								1310
 							]
 						],
 						"settings":
@@ -813,35 +805,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 945.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "/home/innuendo/games/pyglet_rpg/lib/engine/engine_interface.pyx",
-					"settings":
-					{
-						"buffer_size": 3329,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								415,
-								415
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 720.0,
+						"translation.y": 495.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"

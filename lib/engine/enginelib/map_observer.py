@@ -90,6 +90,8 @@ class MapObserver:
 
                         if for_events or force:
                             events[gid] = game_object.get_events()
+                            if events[gid]:
+                                print events[gid]
                         players_gids.add(gid)
 
 

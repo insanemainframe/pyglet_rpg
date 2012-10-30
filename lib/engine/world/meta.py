@@ -45,13 +45,11 @@ class MetaWorld(PersistentWorld):
 
         init = imp.load_source('init', WORLD_PATH %name + 'init.py')
         self.generate_func = init.generate
-        self.init_func =  init.init
     
     def start(self):
         result = self.load_objects()
         if not result:
             self.generate_func(self)
-        self.init_func(self)
 
         
 

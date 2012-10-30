@@ -25,9 +25,9 @@ def load_map(mapname):
 
     
     if os.path.exists(map_file):
-        mapfile = open(map_file,'r')
-        tmap = loads(decompress(mapfile.read()))
-        mapfile.close()
+        with open(map_file,'rb') as mapfile:
+            tmap = loads(decompress(mapfile.read()))
+        
         print('\tmap loaded from pickle')
         tilemap, size, background =  tmap
         return tilemap, size, background
@@ -45,7 +45,7 @@ def load_map(mapname):
         
         s = compress(dumps((tilemap, size, background)))
 
-        with  open(map_file,'w') as mapfile:
+        with  open(map_file,'wb') as mapfile:
             mapfile.write(s)
         
         return tilemap, size, background

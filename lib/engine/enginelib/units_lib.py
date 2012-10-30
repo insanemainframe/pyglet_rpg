@@ -134,7 +134,7 @@ class Walker(Movable):
         self.move(direct)
 
 
-class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject):
+class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject, Savable):
     radius = TILESIZE
     look_size = 10
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
@@ -172,3 +172,13 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject):
     
     def complete_round(self):
         Movable.complete_round(self)
+
+    def __save__(self):
+        return self.name, self.position.get()
+
+    @staticmethod
+    def __load__(name, x_y):
+        x,y = x_y
+        position = Point(x,y)
+        return name, position
+
