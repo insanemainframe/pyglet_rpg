@@ -41,9 +41,9 @@ class EpollMultiplexer:
                         self._handle_error(Error, fileno, event)
                             
                 except socket_error as Error:
-                    print 'socket_error', Error
+                    print ('socket_error', Error)
                     self._handle_error(Error, fileno, event)
-        print 'polling end'
+        print ('polling end')
 
 
 class SelectMultiplexer:

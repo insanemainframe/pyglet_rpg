@@ -245,7 +245,8 @@ class Savable:
         return [self.position.get()]
 
     @staticmethod
-    def __load__((x,y)):
+    def __load__(x_y):
+        x,y = x_y
         return [Point(x,y)]
 
 class ActiveState:

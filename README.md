@@ -6,7 +6,7 @@ REQUIRMENTS:
     
 server: python2.7
 
-client: python 2.6>= [python-pyglet](http://pyglet.org/download.html) 
+client: python 2.6>= [python-pyglet](http://pyglet.org/download.html) [version for windows](http://celeron.55.lt/~celeron55/random/2011-08/pyglet-1.1.4-py27quickfix.msi)
 
 if you want build extensions with [cython](http://cython.org/): cython, python-dev, gcc
 

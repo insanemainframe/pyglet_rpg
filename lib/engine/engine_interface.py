@@ -105,7 +105,7 @@ class GameEngine:
         try:
             game.remove_guided(name)
         except Exception as error:
-            print error
+            print(error)
         game.guided_changed = True
     
     

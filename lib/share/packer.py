@@ -61,7 +61,7 @@ def unpack( data):
             else:
                 return str(method), message
         else:
-            print 'Unknown protocol'
+            print ('Unknown protocol')
             raise MethodError(method,data)
 
 
@@ -84,7 +84,7 @@ def dumps(data):
         raise MarshalError(excp.message, data)
     else:
         try:
-            return compress(data)
+            return bytes(compress(data))
         except BaseException as excp:
             raise ZlibError(excp.message, data)
 

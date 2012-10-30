@@ -52,7 +52,8 @@ class Teleport(StaticObject, Solid, Savable):
         return [self.position.get(), self.dest]
     
     @staticmethod
-    def __load__((x,y), dest):
+    def __load__(x_y, dest):
+        x,y = x_y
         return [Point(x,y), dest]
         
 
