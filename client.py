@@ -7,14 +7,17 @@ from config import *
 from client_config import *
 
 
-from clientside.gui_client import GuiClient
-from share.ask_hostname import ask_hostname
 
 
 def main():
-    hostname = ask_hostname(HOSTNAME)
-    game = GuiClient(hostname, (900, 700))
-    game.run()
+	from share.ask_hostname import ask_hostname
+
+	hostname = ask_hostname(HOSTNAME)
+
+	from clientside.gui_client import GuiClient
+
+	game = GuiClient(hostname, (900, 700))
+	game.run()
 
 if __name__=='__main__':
     if PROFILE_CLIENT:

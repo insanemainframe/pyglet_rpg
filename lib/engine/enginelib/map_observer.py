@@ -37,7 +37,7 @@ class MapObserver:
         
         for i in xrange(i_start, i_end):
             for j in xrange(j_start, j_end):
-                if (I-i)**2 + (J-j)**2 < rad**2:
+                if SQUARE_FOV or (I-i)**2 + (J-j)**2 < rad**2:
                     if (i,j) not in self.prev_observed:
                         tile_type = self.world.map[i][j]
                         looked.add((Point(i,j), tile_type))
