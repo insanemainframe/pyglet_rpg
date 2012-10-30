@@ -13,8 +13,7 @@ from random import choice
 items = [Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
 
 
-def main(self):
-    if not self.loaded:
+def generate(self):
         print('Generating world, this can take a while...')
         print('\t Creating teleports...')
         self.create_item(200, GetTeleport(Cave, 'underground'))
@@ -32,7 +31,7 @@ def main(self):
 
         self.create_item(100, choice(items))
         
-        
+def init(self):     
         print('\t Creating monsters...')
         self.create_object(100, Bat)
         self.create_object(500, Zombie)

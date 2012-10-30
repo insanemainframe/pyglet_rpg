@@ -240,6 +240,14 @@ class StaticObject(GameObject):
     
 
 
+class Savable:
+    def __save__(self):
+        return [self.position.get()]
+
+    @staticmethod
+    def __load__((x,y)):
+        return [Point(x,y)]
+
 class ActiveState:
     pass
 
@@ -281,7 +289,7 @@ class Impassable(Solid):
         
 class Deadly:
     "класс для живых объектов"
-    heal_time = 1200
+    heal_time = 2400
     def __init__(self, corpse, hp, death_time=20):
         self.hp_value = hp
         self.heal_speed = self.hp_value/float(self.heal_time)

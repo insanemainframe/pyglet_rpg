@@ -32,7 +32,7 @@ class Lootable(Deadly):
         Deadly.die(self)
 
 class Fighter:
-    def __init__(self, damage, attack_speed=10):
+    def __init__(self, damage, attack_speed=5):
         self.attack_speed = attack_speed
         self.attack_counter = 0
         self.damage = damage

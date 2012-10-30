@@ -17,7 +17,7 @@ from collections import Counter
 
 
 def load_map(mapname): 
-    map_file = WORLD_PATH % mapname + 'map.data'
+    map_file = WORLD_PATH % mapname + 'map.marshal.zlib'
     map_image = WORLD_PATH % mapname + 'map.png'
     dict_file = WORLD_PATH % mapname + 'tiledict.py'
 
@@ -26,12 +26,12 @@ def load_map(mapname):
         mapfile = open(map_file,'r')
         tmap = loads(decompress(mapfile.read()))
         mapfile.close()
-        print('\tmap loaded from pickle')
+        print('\t map loaded from data file')
         tilemap, size, background =  tmap
         return tilemap, size, background
 
     else:
-        print('/data/map.data doesnt exist')
+        print("\t map data file doesn't exist")
         from PIL import Image
         
 

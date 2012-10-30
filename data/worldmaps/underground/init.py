@@ -11,8 +11,7 @@ from random import choice
 items = [Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
 
     
-def main(self):
-    if not self.loaded:
+def generate(self):
         print('\t Creating teleports...')
         self.create_item(200, GetTeleport(Stair,'ground'))
         self.create_item(200, GetTeleport(DeepCave, 'underground2'))
@@ -24,7 +23,8 @@ def main(self):
         self.create_item(50, Rubble)
 
         self.create_item(200, choice(items))
-        
+
+def init(self):     
         print('\t Creating monsters...')
         self.create_object(200, Bat)
         self.create_object(200, Zombie)

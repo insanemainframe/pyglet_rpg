@@ -32,7 +32,7 @@ class __GameSingleton(object):
 
     
     def start(self):
-        print('Engine initialization...')
+        print('\n Engine initialization...')
         
         self.worlds['ground'] = MetaWorld(self, 'ground')
         self.worlds['underground'] = MetaWorld(self, 'underground')
@@ -41,11 +41,10 @@ class __GameSingleton(object):
         self.mainworld = self.worlds['ground']
         
         for world in self.worlds.values():
-            print('world %s initialization' % world.name)
             world.start()
-            world.save()
+            world.save(True)
         
-        print('Engine initialization complete. \n')
+        print('\n Engine initialization complete. \n')
     
         
     def new_object(self, player):

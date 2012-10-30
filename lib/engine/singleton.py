@@ -37,11 +37,11 @@ class __GameSingleton(object):
         self.mainworld = self.worlds['ground']
         
         for world in self.worlds.values():
-            print('world %s initialization' % world.name)
+            print('\n world %s initialization' % world.name)
             world.start()
-            world.save()
+            world.save(True)
         
-        print('Engine initialization complete. \n')
+        print('\n Engine initialization complete. \n')
     
         
     def new_object(self, player):

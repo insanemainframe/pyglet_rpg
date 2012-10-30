@@ -105,7 +105,10 @@ class GameEngine:
     def game_quit(self, name):
         print('%s quit' % name)
         del self.messages[name]
-        game.remove_guided(name)
+        try:
+            game.remove_guided(name)
+        except Exception as error:
+            print error
         game.guided_changed = True
     
     

@@ -216,50 +216,34 @@
 	"buffers":
 	[
 		{
-			"file": "/home/innuendo/games/pyglet_rpg/clientside/gameclient.py",
+			"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/world/meta.py",
 			"settings":
 			{
-				"buffer_size": 2045,
+				"buffer_size": 8954,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "/home/innuendo/games/pyglet_rpg/clientside/gui/surfaces.py",
+			"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/world/world_persistence.py",
 			"settings":
 			{
-				"buffer_size": 3448,
+				"buffer_size": 2036,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "/home/innuendo/games/pyglet_rpg/client.py",
+			"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/teleports.py",
 			"settings":
 			{
-				"buffer_size": 8359,
+				"buffer_size": 1665,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "/home/innuendo/games/pyglet_rpg/clientside/gui/window.py",
+			"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/singleton.py",
 			"settings":
 			{
-				"buffer_size": 5919,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/home/innuendo/games/pyglet_rpg/clientside/gui/gui_elements.py",
-			"settings":
-			{
-				"buffer_size": 7509,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/home/innuendo/games/pyglet_rpg/clientside/help.txt",
-			"settings":
-			{
-				"buffer_size": 207,
+				"buffer_size": 4535,
 				"line_ending": "Unix"
 			}
 		}
@@ -304,18 +288,28 @@
 	},
 	"file_history":
 	[
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/teleports.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/misc.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/game_objects.py",
+		"/home/innuendo/games/master/pyglet_rpg/config.py",
+		"/home/innuendo/games/master/pyglet_rpg/tools/pyglet_rpg.sublime-project",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/meta.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/misc.pyx",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/teleports.pyx",
+		"/home/innuendo/games/pyglet_rpg/clientside/gameclient.py",
+		"/home/innuendo/games/pyglet_rpg/clientside/gui/surfaces.py",
+		"/home/innuendo/games/pyglet_rpg/client.py",
+		"/home/innuendo/games/pyglet_rpg/clientside/gui/window.py",
+		"/home/innuendo/games/pyglet_rpg/clientside/gui/gui_elements.py",
+		"/home/innuendo/games/pyglet_rpg/clientside/help.txt",
 		"/home/innuendo/games/pyglet_rpg/engine/enginelib/meta.py",
 		"/home/innuendo/games/pyglet_rpg/engine/gameobjects/units.py",
 		"/home/innuendo/games/pyglet_rpg/bot.py",
 		"/home/innuendo/games/pyglet_rpg/engine/singleton.py",
 		"/home/innuendo/games/pyglet_rpg/clientside/gui/gui_lib.py",
-		"/home/innuendo/games/pyglet_rpg/client.py",
 		"/home/innuendo/games/pyglet_rpg/clientside/socket_client.py",
-		"/home/innuendo/games/pyglet_rpg/clientside/gui/gui_elements.py",
 		"/home/innuendo/games/pyglet_rpg/engine/gameobjects/player.py",
 		"/home/innuendo/games/pyglet_rpg/engine/enginelib/equipment.py",
-		"/home/innuendo/games/pyglet_rpg/clientside/help.txt",
-		"/home/innuendo/games/pyglet_rpg/clientside/gui/window.py",
 		"/home/innuendo/games/pyglet_rpg/clientside/view/view_lib.py",
 		"/home/innuendo/games/pyglet_rpg/clientside/view/view_objects.py",
 		"/home/innuendo/games/pyglet_rpg/engine/world/meta.py",
@@ -344,7 +338,6 @@
 		"/home/innuendo/games/pyglet_rpg/clientside/gui/pyglet_window.py",
 		"/home/innuendo/games/pyglet_rpg/clientside/network.py",
 		"/home/innuendo/games/pyglet_rpg/serverside/server_lib.py",
-		"/home/innuendo/games/pyglet_rpg/clientside/gui/surfaces.py",
 		"/home/innuendo/.config/sublime-text-2/Packages/User/Python.sublime-settings",
 		"/home/innuendo/games/pyglet_rpg/tools/profile_socket.py",
 		"/home/innuendo/games/pyglet_rpg/config.py",
@@ -368,7 +361,7 @@
 	},
 	"find_in_files":
 	{
-		"height": 90.0,
+		"height": 0.0,
 		"where_history":
 		[
 			"",
@@ -433,23 +426,23 @@
 	"groups":
 	[
 		{
-			"selected": 4,
+			"selected": 1,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "/home/innuendo/games/pyglet_rpg/clientside/gameclient.py",
+					"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/world/meta.py",
 					"settings":
 					{
-						"buffer_size": 2045,
+						"buffer_size": 8954,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1748,
-								1748
+								1285,
+								1285
 							]
 						],
 						"settings":
@@ -459,25 +452,25 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 45.0,
+						"translation.y": 360.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "/home/innuendo/games/pyglet_rpg/clientside/gui/surfaces.py",
+					"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/world/world_persistence.py",
 					"settings":
 					{
-						"buffer_size": 3448,
+						"buffer_size": 2036,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1467,
-								1467
+								848,
+								848
 							]
 						],
 						"settings":
@@ -487,25 +480,25 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 450.0,
+						"translation.y": 270.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "/home/innuendo/games/pyglet_rpg/client.py",
+					"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/teleports.py",
 					"settings":
 					{
-						"buffer_size": 8359,
+						"buffer_size": 1665,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								7597,
-								7597
+								1525,
+								1525
 							]
 						],
 						"settings":
@@ -515,25 +508,25 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2930.0,
+						"translation.y": 315.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 3,
-					"file": "/home/innuendo/games/pyglet_rpg/clientside/gui/window.py",
+					"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/singleton.py",
 					"settings":
 					{
-						"buffer_size": 5919,
+						"buffer_size": 4535,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								5874,
-								5874
+								1222,
+								1222
 							]
 						],
 						"settings":
@@ -543,61 +536,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2568.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "/home/innuendo/games/pyglet_rpg/clientside/gui/gui_elements.py",
-					"settings":
-					{
-						"buffer_size": 7509,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								7013,
-								7013
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 3060.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "/home/innuendo/games/pyglet_rpg/clientside/help.txt",
-					"settings":
-					{
-						"buffer_size": 207,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								207,
-								207
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 270.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"

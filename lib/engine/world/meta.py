@@ -42,12 +42,18 @@ class MetaWorld(PersistentWorld):
         
         self.create_locations()
         self.create_links()
-        if WORLD_PERSISTENCE:
-            PersistentWorld.loading(self)
 
         init = imp.load_source('init', WORLD_PATH %name + 'init.py')
-        self._start =  init.main
-        self.start = lambda: self._start(self)
+        self.generate_func = init.generate
+        self.init_func =  init.init
+    
+    def start(self):
+        print('Starting world "%s"' % self.name)
+        result = self.load_objects()
+        if not result:
+            print('Generating world "%s", this could take a while'% self.name)
+            self.generate_func(self)
+        self.init_func(self)
             
         
 
