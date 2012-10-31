@@ -37,8 +37,8 @@ def pack(protocol_object):
                 method = protocol_object.__class__.__name__
                 result = dumps((method, data))
                 return result
-            except MarshalError:
-                print('MarshalError', method, data)
+            except MarshalError as error:
+                print('MarshalError', error, method, data)
                 return ''
     else:
         raise TypeError('protocol_lib.pack: %s not GameProtocol instance' % protocol_object)

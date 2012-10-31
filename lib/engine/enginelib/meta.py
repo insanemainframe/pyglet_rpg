@@ -167,6 +167,7 @@ class GameObject(object):
             timeout = 0
         self.__events__.add(Event(action, args, timeout))
         self.location.set_event()
+        self.has_events = True
 
     def get_events(self):
         return self.__events__
@@ -213,10 +214,13 @@ class GameObject(object):
             object_type = 'Self'
         else:
             object_type = self.__class__.__name__
-        return self.name, object_type, self.prev_position, self.get_args()
+        return self.gid, self.name, object_type, self.prev_position, self.get_args(), self.delayed
 
     def get_args(self):
         return {}
+
+    def delay(self):
+        self.delayed = True
 
     def complete_round(self):
         self.cord_changed = False

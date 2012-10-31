@@ -92,19 +92,22 @@ class LookEvents(GameProtocol, Events):
         return events
 
 class LookObjects(GameProtocol):
-    def __init__(self, players):
-        self.players = players
+    def __init__(self, new_players, old_players):
+        self.new_players = new_players
+        self.old_players = old_players
     
+
+    #gid, name, object_type, position, args
     def pack(self):
-        players = dict([(gid, (name, o_type, position.get(), args))
-            for gid, (name, o_type, position, args) in self.players.items()])
-        return [players]
+        new_players = [(gid, name, object_type, position.get(), args, delayed)
+            for gid, name, object_type, position, args, delayed in self.new_players]
+        return new_players, tuple(self.old_players)
     
     @classmethod
-    def unpack(cls, players):
-        players = dict([(gid, (name, o_type, Point(x,y), args))
-            for gid, (name, o_type, (x,y), args) in players.items()])
-        return players
+    def unpack(cls, new_players, old_players):
+        new_players = [(gid, name, object_type, Point(x,y), args, delayed)
+            for gid, name, object_type, (x,y), args, delayed in new_players]
+        return new_players, old_players
 
 
 

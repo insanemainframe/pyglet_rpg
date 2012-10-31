@@ -43,9 +43,10 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         
     def handle_response(self):
         #если попал в новый мир
-        #cdef set new_looked, observed, old_players
-        #cdef dict events
-        #cdef list new_players
+        cdef set new_looked, observed, old_players
+        cdef dict events
+        cdef list new_players
+        
         if self.cord_changed or self.world_changed or self.respawned:
             self.observe()
         

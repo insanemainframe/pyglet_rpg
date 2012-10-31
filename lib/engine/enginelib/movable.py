@@ -115,7 +115,7 @@ class Movable(DynamicObject):
         return move_vector, resist
         
     def _detect_collisions(self, cord):
-        for player in self.world.tiles[cord].copy():
+        for player in self.world.tiles[cord]:
             if player.name != self.name:
                 player.collission(self)
                 self.collission(player)

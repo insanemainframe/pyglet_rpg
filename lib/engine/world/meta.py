@@ -32,7 +32,7 @@ class MetaWorld(PersistentWorld):
         
         self.location_size = self.size/LOCATIONSIZE +1
         
-        self.tiles = defaultdict(lambda: set())
+        self.tiles = defaultdict(list)
         
         self.players = {}
         
@@ -169,7 +169,7 @@ class MetaWorld(PersistentWorld):
         return cords
     
     def add_to_tile(self, player, cur_cord):
-        self.tiles[cur_cord].add(player)
+        self.tiles[cur_cord].append(player)
         
     def pop_from_tile(self, player, cur_cord):
         tile = self.tiles[cur_cord]
@@ -179,7 +179,8 @@ class MetaWorld(PersistentWorld):
     def update_tiles(self, player, prev_cord, cur_cord):
         if player in self.tiles[prev_cord]:
             self.tiles[prev_cord].remove(player)
-        self.tiles[cur_cord].add(player)
+
+        self.tiles[cur_cord].append(player)
     
         
     

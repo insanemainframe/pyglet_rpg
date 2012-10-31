@@ -36,26 +36,29 @@ class ViewTools:
                     timeout-=1
                     if timeout>0:
                         self.timeout_events[gid].append((action, args, timeout))
-                    
-                    self.objects[gid].handle_action(action, args)
+                    if gid in self.objects:
+                        self.objects[gid].handle_action(action, args)
+                    else:
+                        print '%s not in objects: action %s' % (gid, action)
         
             
     
-    def insert_objects(self, looked_objects):
-        looked_keys = set( looked_objects.keys())
-        client_keys = set(self.objects.keys())
-        
-        new_objects = looked_keys - client_keys
-        self.deleted_objects = client_keys - looked_keys
-        
-        for gid in new_objects:
-            name, object_type, position, args = looked_objects[gid]
-            self.create_object(gid, name, object_type, position, args)
+    def insert_objects(self, new_players, old_players):
+        for player_tuple in new_players:
+            gid, name, object_type, position, args, delayed = player_tuple
+            self.create_object(gid, name, object_type, position, args, delayed)
+            if delayed and gid in old_players:
+                old_players.remove(gid)
+
+        for gid in old_players:
+            self.deleted_objects.append(gid)
+            
         
             
-    def create_object(self, gid, name, object_type, position, args={}):
+    def create_object(self, gid, name, object_type, position, args={}, delayed =False):
         game_object = self.object_dict[str(object_type)](name, position, **args)
         game_object.gid = gid
+        game_object.delayed = delayed
         
         self.objects[gid] = game_object
         if object_type=='Self':

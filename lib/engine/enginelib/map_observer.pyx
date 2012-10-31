@@ -3,7 +3,7 @@
 from config import *
 
 from engine.enginelib.meta import DynamicObject, StaticObject
-from share.point import Point
+from share.point cimport Point
 
 
 class MapObserver:
@@ -40,8 +40,8 @@ class MapObserver:
         self.fov_objects = []
     
     def observe(self):
-        #cdef int rad, I,J, i,j, i_start, i_end, j_start, j_end
-        #cdef list tile
+        cdef int rad, I,J, i,j, i_start, i_end, j_start, j_end
+        cdef list tile
 
         self.prev_observed = self.fov.copy()
 
@@ -66,7 +66,7 @@ class MapObserver:
     
     def look_map(self):
         "возвращает список координат видимых клеток из позиции position, с координаами относительно начала карты"
-        #cdef set map_tiles
+        cdef set map_tiles
         map_tiles = set()
 
         for i,j in self.fov:
@@ -78,8 +78,8 @@ class MapObserver:
 
 
     def look_objects(self):
-        #cdef set observed_objects_gids, old_players
-        #cdef list observed_objects, new_players
+        cdef set observed_objects_gids, old_players
+        cdef list observed_objects, new_players
 
         observed_objects = sum(self.fov_objects, [])
         observed_objects_gids = set([game_object.gid for game_object in observed_objects])
@@ -96,7 +96,7 @@ class MapObserver:
         return new_players, old_players
 
     def look_events(self):
-        #cdef dict events
+        cdef dict events
         events = {player.gid:player.get_events() for player in self.observed_objects}
 
         return events

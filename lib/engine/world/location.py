@@ -100,9 +100,7 @@ class LocationObjects:
         result = player.remove()
         if result or force:
             position = player.position
-            if player.delayed:
-                player.add_event('delay', ())
-                
+
             
             
             if name in self.solids:
