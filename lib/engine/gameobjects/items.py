@@ -18,8 +18,8 @@ class Item(StaticObject, Solid, Temporary):
     
     @wrappers.player_filter(Equipment)
     def collission(self, player):
-        self.world.remove_object(self)
-        player.add_item(self)
+        if player.add_item(self):
+            self.world.remove_object(self)
         
     
     def update(self):

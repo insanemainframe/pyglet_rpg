@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 import tempfile
 from os.path import join
+
 TMP = tempfile.gettempdir()
+TMP = "/tmp"
 
 #имя хоста по-умолчанию
 HOSTNAME = '127.0.0.1'

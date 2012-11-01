@@ -134,8 +134,8 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
             if tile in cls.BLOCKTILES:
                 return False
 
-        for ij in world.get_near_cords(i,j) + [(i,j)]:
-                for player in world.tiles[Point(*ij)]:
+        for i,j in world.get_near_cords(i,j) + [(i,j)]:
+                for player in world.tiles[(i,j)]:
                     if isinstance(player, Solid):
                         return False
 

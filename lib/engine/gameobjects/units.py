@@ -180,11 +180,12 @@ class Lych(MetaMonster, Striker):
     def update(self):
         if self.alive:
             if chance(50):
-                direct = self.hunt(False)
-                if direct:
+                result = self.hunt(False)
+                if result:
+                    vector = result[1]
                     delta = random()*TILESIZE
-                    direct += Point(delta, -delta)
-                    self.strike_ball(direct)
+                    vector += Point(delta, -delta)
+                    self.strike_ball(vector)
                 else:
                     Walker.update(self)
             else:

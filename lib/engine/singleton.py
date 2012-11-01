@@ -77,9 +77,10 @@ class __GameSingleton(object):
         
         location = player.location
         
-        location.remove_object(player, True)
+        location.remove_object(name, True)
         
         del self.guided_players[name]
+        
         try:
             self.remove_object(player)
         except:

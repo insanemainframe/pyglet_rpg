@@ -5,7 +5,7 @@ from config import *
 from weakref import proxy
 
 from share.point import Point
-from engine.enginelib.meta import DynamicObject, StaticObject, ActiveState, Solid
+from engine.enginelib.meta import ActiveState, Solid, Updatable, Deadly
 
 
 #список инкременаторов к индексу на соседние локации
@@ -52,6 +52,8 @@ class LocationObjects:
         self.players = {}
         
         self.solids = {}
+        self.updatables = {}
+        self.deadlies = {}
         
         self.new_players = False
         
@@ -60,14 +62,35 @@ class LocationObjects:
     
     def add_object(self, player):
         "добавляет ссылку на игрока"
+        self.add_proxy(player)
+        self.new_players = True
+        self.players[player.name] = proxy(player)
+
+    def add_proxy(self, player):
         if isinstance(player, ActiveState):
             self.set_primary_activity()
 
         if isinstance(player, Solid):
             self.add_solid(player)
 
-        self.new_players = True
-        self.players[player.name] = proxy(player)
+        if isinstance(player, Updatable):
+            self.add_updatable(player)
+        if isinstance(player, Deadly):
+            self.add_deadly(player)
+
+    def remove_proxy(self, player):
+        name = player.name
+        if isinstance(player, ActiveState):
+            self.unset_primary_activity()
+
+        if name in self.solids:
+            self.remove_solid(name)
+
+        if name in self.updatables:
+            self.remove_updatable(name)
+
+        if name in self.deadlies:
+            self.remove_deadly(name)
 
 
         
@@ -80,44 +103,36 @@ class LocationObjects:
             del self.players[player.name]
             self.new_players = True
 
-
-            if isinstance(player, ActiveState):
-                    self.unset_primary_activity()
-                
-            if isinstance(player, Solid):
-                self.remove_solid(name)
+            self.remove_proxy(player)
 
             if name in self.remove_list:
                 del self.remove_list[name]
 
 
-    def remove_object(self, player, force = False):
+    def remove_object(self, name, force = False):
         "удаляет игрока, если его метод remove возвращает true"
-        name = player.name
-        del self.players[name]
+        if name in self.players:
+            player = self.players[name]
+
+            del self.players[name]
 
 
-        result = player.remove()
-        if result or force:
-            position = player.position
+            result = player.remove()
+            if result or force:
+                position = player.position
 
-            
-            
-            if name in self.solids:
-                self.remove_solid(name)
+                self.remove_proxy(player)
                 
-            if isinstance(player, ActiveState):
-                self.unset_primary_activity()
-            
-            self.new_players = True
-            
-            self.world.game.remove_object(player)
+                
+                self.new_players = True
+                
+                self.world.game.remove_object(player)
 
-            if name in self.remove_list:
-                del self.remove_list[name]
+                if name in self.remove_list:
+                    del self.remove_list[name]
 
-        else:
-            player.handle_remove()
+            else:
+                player.handle_remove()
         
         
     def check_players(self):
@@ -140,19 +155,11 @@ class LocationObjects:
         "удаляет игроков отмеченных для удаления в списке remove_list"
         if self.remove_list:
             for name, force in self.remove_list.items():
-                player = self.players[name]
-                self.remove_object(player, force)
+                self.remove_object(name, force)
 
             self.remove_list.clear()
     
-    
 
-    
-
-    
-
-
-        
 
 
   
@@ -168,12 +175,35 @@ class LocationObjects:
     
     def remove_solid(self, name):
         del self.solids[name]
+
+    def add_updatable(self, player):
+        self.updatables[player.name] = proxy(player)
+
+    def remove_updatable(self, name):
+        del self.updatables[name]
+
+
+    def add_deadly(self, player):
+        self.deadlies[player.name] = player
+
+    def remove_deadly(self, name):
+        del self.deadlies[name]
+
+
     
     def get_solids_list(self):
         "выдает ссылку на твердый объект в локации и соседних локациях"        
         solids = sum([location.solids.values() for location in self.nears], self.solids.values())
         return solids
-    
+
+    def get_updatable_list(self):
+        return self.updatables
+
+    def get_deadly_list(self):
+        deadlies = sum([location.deadlies.values() for location in self.nears], self.deadlies.values())
+        return deadlies
+
+
 
     
     def update(self):

@@ -40,9 +40,10 @@ class GameEngine:
     
     def game_requests(self, messages):
         "выполнение запросов игроков"
-        for name, player in game.guided_players.items():     
-            if name in messages:
-                for action, message in messages[name]:
+        for name, message_list in messages.items():
+            if name in game.guided_players:
+                player = game.guided_players[name]
+                for action, message in message_list:
                         try:
                             player.handle_action(action, message)
                         except ActionDenied:
@@ -57,7 +58,7 @@ class GameEngine:
         
         #обновляем объекты в активных локациях
         for location in self.active_locations:
-            for player in location.players.values():
+            for player in location.updatables.values():
                 player.update()
             
         
@@ -84,8 +85,7 @@ class GameEngine:
     def end_round(self):
         "завершение игрового раунда"
         for location in self.active_locations:
-            #завершаем раунд для объектов в локации
-            for player in location.players.values():
+            for player in location.updatables.values():
                 GameObject.complete_round(player)
                 player.complete_round()
                 player.clear_events()

@@ -20,7 +20,7 @@ class Misc(StaticObject, Savable):
     
     @classmethod
     def choice_position(cls, world, location, i ,j):
-        if len(world.tiles[Point(i,j)]):
+        if len(world.tiles[(i,j)]):
             return False
         else:
             return True
@@ -85,11 +85,11 @@ class AloneTree(Misc, Impassable):
 
     @classmethod
     def choice_position(cls, world, location, i ,j):
-        if len(world.tiles[Point(i,j)]):
+        if len(world.tiles[(i,j)]):
             return False
 
-        for ij in world.get_near_cords(i,j):
-                for player in world.tiles[Point(*ij)]:
+        for i,j in world.get_near_cords(i,j):
+                for player in world.tiles[(i,j)]:
                     if isinstance(player, AloneTree):
                         return True
         if chance(98):

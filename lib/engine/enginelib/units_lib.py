@@ -11,14 +11,15 @@ from engine.enginelib import wrappers
 
 
 from random import randrange, random      
+from math import hypot
 
-
-class Unit(Solid, Movable, Deadly, DiplomacySubject, GameObject):
+class Unit(Solid, Movable, Deadly, DiplomacySubject, Updatable, GameObject):
     def __init__(self, speed, hp, corpse, fraction):
         Movable.__init__(self, speed)
         Deadly.__init__(self, corpse, hp)
         DiplomacySubject.__init__(self, fraction)
         Solid.__init__(self, TILESIZE/2)
+
 
 class Lootable(Deadly):
     loot = [Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
@@ -31,25 +32,47 @@ class Lootable(Deadly):
             self.world.new_object(item)
         Deadly.die(self)
 
+
 class Fighter:
-    def __init__(self, damage, attack_speed=10):
+    atack_distance = int(hypot(1.5, 1.5))
+    def __init__(self, damage, attack_speed=30):
         self.attack_speed = attack_speed
         self.attack_counter = 0
         self.damage = damage
-    
-    @wrappers.alive_only()
-    @wrappers.player_filter(Deadly)
-    def collission(self, player):
-        if self.fraction!=player.fraction:
+
+    def fight_all(self):
+        if self.attack_counter==0:
+            for i,j in self.world.get_near_cords(*self.cord.get()):
+                tile = self.world.tiles[(i,j)]
+                for player in tile:
+                    if isinstance(player, DiplomacySubject) and isinstance(player, Deadly):
+                        
+                        enemy = self.fraction!=player.fraction
+
+                        in_distance = self.cord.in_radius(player.cord, self.atack_distance)
+
+                        if enemy and in_distance:
+                            print 'fight'
+                            player.hit(self.damage)
+                            self.add_event('attack')
+                            self.attack_counter = self.attack_speed
+                            break
+
+    def fight(self, player, vector):
+        if abs(vector)<=self.atack_distance:
             if self.attack_counter==0:
                 player.hit(self.damage)
                 self.add_event('attack')
+                self.attack_counter = self.attack_speed
+
+
     
     def complete_round(self):
-        if self.attack_counter < self.attack_speed:
-            self.attack_counter+=1
-        else:
-            self.attack_counter=0
+        if self.attack_counter > 0:
+            self.attack_counter-=1
+
+
+
 
 class Stalker:
     "объекты охотящиеся за игроками"
@@ -57,18 +80,24 @@ class Stalker:
         self.look_size = look_size
     
     def hunt(self, inradius = False):
-            players = self.location.get_players_list()
-            dists = []
-            for player in players:
-                if isinstance(player, DiplomacySubject):
-                    if player.fraction!=self.fraction and  player.fraction!='good':
-                        if not player.invisible:
-                            dists.append(player.position - self.position)
-            if dists:
-                victim = min(dists, key = abs)
-                return victim
-            else:
-                return Point(0,0)
+            players = self.location.get_deadly_list()
+            if players:
+                dists = []
+                for player in players:
+                    if isinstance(player, DiplomacySubject):
+                        fraction = player.fraction
+                        not_self = player.name!=self.name
+                        is_enemy = not (fraction is self.fraction or fraction is 'good')
+
+                        if not_self and is_enemy:
+                            if not player.invisible:
+                                dists.append((player, player.position - self.position))
+                if dists:
+                    victim, vector = min(dists, key = lambda (victim, vector): abs(vector))
+                    return victim, vector
+                else:
+                    return False
+            return False
             
 class Striker:
     def __init__(self, strike_speed, shell, damage):
@@ -149,6 +178,8 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject, S
         self.stopped = False
         
         self.spawn()
+        self.hunting = False
+        self.victim = None
     
     def hit(self, damage):
         self.stop(10)
@@ -156,14 +187,26 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject, S
     
     @wrappers.alive_only(Deadly)
     def update(self):
-        if chance(70):
-            direct = self.hunt()
-            if direct:
-                self.move(direct)
-            else:
-                Walker.update(self)
+        victim_trig = self.victim and self.victim.position_changed
+
+        if chance(50):
+            if victim_trig or not self.hunting:
+                result = self.hunt()
+                if result:
+                    self.victim, vector = result
+                    if vector<=TILESIZE*2:
+                        self.fight(self.victim, vector)
+                    else:
+                        self.hunting = True
+                        self.move(vector)
+                else:
+                    self.hunting = False
+                    Walker.update(self)
         else:
+            self.hunting = False
             Walker.update(self)
+
+
         Movable.update(self)
         Deadly.update(self)
     

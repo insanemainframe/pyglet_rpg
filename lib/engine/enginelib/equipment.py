@@ -5,7 +5,8 @@ from config import *
 from collections import defaultdict
 
 class Equipment:
-    def __init__(self):
+    def __init__(self, slots_num = 8):
+        self.slots_num = slots_num
         self.equipment = defaultdict(list)
         self.equipment_changed = False
     
@@ -17,6 +18,8 @@ class Equipment:
         self.bind(item)
         
         self.equipment[item_type].append(item)
+
+        return True
     
     def pop_item(self, item_type):
         if item_type in self.equipment:

@@ -11,7 +11,7 @@ from share.point cimport Point
 
 from config import *
 
-class Shell(ActiveState, Movable, DiplomacySubject, Temporary, Solid, Mortal, DynamicObject):
+class Shell(ActiveState, Movable, DiplomacySubject, Temporary, Solid, Mortal, Updatable, DynamicObject):
      counter = 0
      def __init__(self, Point position, Point direct, int speed, fraction, striker, damage, alive_after_collission):
         name = "%s_%s" % (self.__class__.__name__, Shell.counter)

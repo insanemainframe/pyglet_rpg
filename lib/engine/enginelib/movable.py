@@ -35,6 +35,8 @@ class Movable(DynamicObject):
     
     @wrappers.alive_only()
     def move(self, vector=Point(0,0), destination=False):
+        assert isinstance(vector, Point)
+        
         labs = abs
         if not self._moved:
             self._moved = True
@@ -84,7 +86,7 @@ class Movable(DynamicObject):
         for (i,j), cross_position in get_cross(self.position, move_vector):
             if 0<i<self.world.size and 0<j<self.world.size:
                 cross_tile =  self.world.map[i][j]
-                collission_result = self._detect_collisions(Point(i,j))
+                collission_result = self._detect_collisions(i,j)
 
                 if cross_tile in self.BLOCKTILES or collission_result:
                     move_vector = (cross_position - self.position)*0.90
@@ -104,8 +106,8 @@ class Movable(DynamicObject):
                 self._vector = move_vector
                 break
         else:
-            if destination and cross_tile:
-                for player in self.world.tiles[cross_tile]:
+            if destination:
+                for player in self.world.tiles[(i,j)]:
                     if player.name==destination:
                         player.collission(self)
                         self.collission(player)
@@ -114,8 +116,8 @@ class Movable(DynamicObject):
             
         return move_vector, resist
         
-    def _detect_collisions(self, cord):
-        for player in self.world.tiles[cord]:
+    def _detect_collisions(self, i,j):
+        for player in self.world.tiles[(i,j)]:
             if player.name != self.name:
                 player.collission(self)
                 self.collission(player)

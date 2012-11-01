@@ -243,7 +243,8 @@ class StaticObject(GameObject):
 class Mutable:
     pass
     
-
+class Updatable:
+    pass
 
 class ActiveState:
     pass
@@ -432,7 +433,7 @@ class DiplomacySubject:
             self.invisible-=1
 
 ####################################################################
-class Temporary:
+class Temporary(Updatable):
     "класс объекта с ограниченным сроком существования"
     def __init__(self, lifetime):
         self.lifetime = lifetime

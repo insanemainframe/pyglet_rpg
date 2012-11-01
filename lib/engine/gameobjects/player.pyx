@@ -130,13 +130,13 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         Movable.complete_round(self)
     
     @classmethod
-    def choice_position(cls, world, location, i ,j):
-        for tile in world.get_near_tiles(i,j):
+    def choice_position(cls, world, location, ci ,cj):
+        for tile in world.get_near_tiles(ci ,cj):
             if tile in cls.BLOCKTILES:
                 return False
 
-        for ij in world.get_near_cords(i,j) + [(i,j)]:
-                for player in world.tiles[Point(*ij)]:
+        for i,j in world.get_near_cords(i,j) + [(ci ,cj)]:
+                for player in world.tiles[(i,j)]:
                     if isinstance(player, Solid):
                         return False
 

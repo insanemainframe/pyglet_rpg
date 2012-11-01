@@ -60,7 +60,7 @@ class MapObserver:
             for j in xrange(j_start, j_end):
                 if SQUARE_FOV or (I-i)**2 + (J-j)**2 < rad**2:
                     self.fov.add((i, j))
-                    tile = self.world.tiles[Point(i,j)]
+                    tile = self.world.tiles[(i,j)]
                     self.fov_objects.append(tile)
 
     
