@@ -12,6 +12,7 @@ from share.point import Point
 
 from engine.enginelib import meta
 from engine.enginelib.meta import DynamicObject, StaticObject
+from engine.enginelib.movable import Movable
 from engine.world.meta import MetaWorld
 
 
@@ -31,6 +32,8 @@ class __GameSingleton(object):
         print('Engine initialization...')
         
         self.worlds = {}
+        self.active_worlds = {}
+        
         self.worlds['ground'] = MetaWorld(self, 'ground')
         self.worlds['underground'] = MetaWorld(self, 'underground')
         self.worlds['underground2'] = MetaWorld(self, 'underground2')
@@ -40,8 +43,18 @@ class __GameSingleton(object):
             print('world %s initialization' % world.name)
             world.start()
             world.save(True)
+
+        
         
         print('Engine initialization complete. \n')
+
+    def add_active_world(self, world):
+        self.active_worlds[world.name] = world
+
+    def remove_active_world(self,world):
+        key = world.name
+        if key in self.active_worlds:
+            del self.active_worlds[key]
     
         
     def new_object(self, player):
@@ -91,17 +104,18 @@ class __GameSingleton(object):
         chunk.add_to_remove(player, force)
 
 
-    def change_world(self, player, world, new_position = False):
+    def change_world(self, player, world_name, new_position = False):
         "переметить объект из одного мира в другой"
         prev_world = player.world
-        new_world = self.worlds[world]
+        new_world = self.worlds[world_name]
         
         prev_world.remove_object(player)
         player.chunk.pop_object(player)
         
-        teleport_point = choice(new_world.teleports)
+        teleport_chunk = new_world.get_chunk(choice(new_world.teleports))
+        
         if not new_position:
-            new_position = new_world.choice_position(player, 5, teleport_point)
+            new_position = new_world.choice_position(player, teleport_chunk)
         li, lj = (new_position/TILESIZE/CHUNK_SIZE).get()
         
         
@@ -121,13 +135,13 @@ class __GameSingleton(object):
         
         player.world_changed = True
         player.cord_changed = True
-        if isinstance(player, DynamicObject):
+        if isinstance(player, Movable):
             player.flush()
         #обновляем хэш объекта
         player.regid()
         
         for slave in player.slaves.copy():
-            position = new_world.choice_position(slave, 3, new_position)
+            position = new_world.choice_position(slave, new_chunk)
             self.change_world(slave, world, position)
         
         for related in player.related_objects:
@@ -136,8 +150,8 @@ class __GameSingleton(object):
     
     def get_active_chunks(self):
         "список активных локаций"
-        lsum = sum
-        return lsum([world.active_chunks.values() for world in self.worlds.values()], [])
+        for_sum = [world.get_active_chunks() for world in self.active_worlds.values() if world.has_active_chunks()]
+        return sum(for_sum, [])
     
     def get_guided_list(self, self_name):
         f = lambda cont:  ('(%s)'% player.name if player.name==self_name else player.name, player.kills)

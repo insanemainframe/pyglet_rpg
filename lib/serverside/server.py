@@ -36,8 +36,9 @@ class GameServer(object):
         "обращается к движку по расписанию"
         #смотрим новых клиентов
         for client_name in self.server.get_accepted():
-            accept_response = pack(self.game.game_connect(client_name))
-            self.server.put_response(client_name, accept_response)
+            for accept_response in self.game.game_connect(client_name):
+                response = pack(accept_response)
+                self.server.put_response(client_name, response)
 
             self.client_list.add(client_name)
         
@@ -83,7 +84,9 @@ class GameServer(object):
         if count:
             all_time = sum(self.r_times)
             m_time = all_time/count
+
             print('median time %s/%s = %s' % (all_time, count, m_time))
+            
         if isinstance(stop_reason, BaseException):
             raise stop_reason
         

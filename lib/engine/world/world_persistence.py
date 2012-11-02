@@ -21,7 +21,7 @@ class PersistentWorld(object):
 
     def load_objects(self):
         if self.world_exists():
-            with open(WORLD_PATH % self.mapname + 'world.pickle', 'rb') as w_file:
+            with open(WORLD_PATH % self.mapname + WORLD_FILE, 'rb') as w_file:
                 data = w_file.read()
             worlds_objects = loads(decompress(data))
 
@@ -41,14 +41,14 @@ class PersistentWorld(object):
         return getattr(game_objects, object_type)
 
     def world_exists(self):
-        return exists(WORLD_PATH % self.mapname + 'world.pickle')
+        return exists(WORLD_PATH % self.mapname + WORLD_FILE)
             
     
     def save(self, force = False):
         if SAVE_WORLD or force:
             worlds_objects = self.save_objects()
             data = compress(dumps(worlds_objects))
-            with open(WORLD_PATH % self.mapname + 'world.pickle', 'wb') as w_file:
+            with open(WORLD_PATH % self.mapname + WORLD_FILE, 'wb') as w_file:
                 w_file.write(data)
                 print 'world %s saved' % self.name
 

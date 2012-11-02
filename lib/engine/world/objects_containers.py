@@ -34,33 +34,18 @@ class ObjectContainer:
         self.new_players = True
 
 
-    def get_list_all(self, *type_filter):
-        "выдает список всех игроков в локации и соседних локациях"
-        if not type_filter:
-            players = sum([(chunk.players.values()) for chunk in self.nears], self.players.values())
-            return players
-        else:
-            type_filter = list(type_filter)
-            filter_type = type_filter.pop()
-
-            assert isinstance(filter_type, ClassType)
-            filter_type = filter_type.__name__
-
-            assert filter_type in self.proxy_dicts
-            
-            start = self.proxy_dicts[filter_type].values()
-            result = sum([chunk.proxy_dicts[filter_type].values() for chunk in self.nears], start)
-            
-            if not type_filter:
-                return result
-                
-            else:
-                return [player for player in result if isinstance(player, tuple(type_filter))]
-
-
     def get_list(self, *type_filter):
+        return self._get_list(False, *type_filter)
+
+    def get_list_all(self, *type_filter):
+        return self._get_list(True, *type_filter)
+
+    def _get_list(self, all, *type_filter):
         if not type_filter:
-            return self.players.values()
+            if all:
+                return sum([(chunk.players.values()) for chunk in self.nears], self.players.values())
+            else:
+                return self.players.values()
 
         else:
             type_filter = list(type_filter)
@@ -71,13 +56,20 @@ class ObjectContainer:
 
             assert filter_type in self.proxy_dicts
 
-            result = self.proxy_dicts[filter_type].values()
+            if all:
+                start = self.proxy_dicts[filter_type].values()
+                result = sum([chunk.proxy_dicts[filter_type].values() for chunk in self.nears], start)
+            else:
+                result = self.proxy_dicts[filter_type].values()
 
             if not type_filter:
                 return result
 
             else:
-                return [player for player in result if isinstance(player, tuple(type_filter))]
+                if all:
+                    return [player for player in result if isinstance(player, tuple(type_filter))]
+                else:
+                    return [player for player in result if isinstance(player, tuple(type_filter))]
 
     def check_players(self):
         "проверяет изменился ли список объекто в локации и соседних локациях"
@@ -139,11 +131,7 @@ class ActivityContainer:
     
     
     def set_activity(self):
-        self.world.active_chunks[self.cord.get()] = self
+        pass
     
     def unset_activity(self):
-        key = self.cord.get()
-        if key in self.world.active_chunks:
-            del self.world.active_chunks[key]
-        else:
-            print('key error', key)
+        pass

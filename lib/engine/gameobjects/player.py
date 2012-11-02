@@ -119,6 +119,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     
     @wrappers.alive_only(Deadly)
     def update(self):
+        print 'update player'
         Movable.update(self)
         Striker.update(self)
         Deadly.update(self)
@@ -126,8 +127,17 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         DiplomacySubject.update(self)
     
     def complete_round(self):
+        print 'complete_round player'
         Movable.complete_round(self)
     
+
+    @classmethod
+    def choice_chunk(cls, world, chunk):
+        for player in chunk.get_list_all(DiplomacySubject):
+            if player.fraction=='monsters':
+                return False
+        return True
+
     @classmethod
     def choice_position(cls, world, chunk, ci ,cj):
         for tile in world.get_near_tiles(ci ,cj):
@@ -138,14 +148,5 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
                 for player in world.tiles[(i,j)]:
                     if isinstance(player, Solid):
                         return False
-
-        for player in chunk.get_list_all(DiplomacySubject):
-            if player.fraction=='monsters':
-                return False
-                    
-        
-
-
-        
 
         return True

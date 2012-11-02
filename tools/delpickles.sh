@@ -1,3 +1,3 @@
 #!/bin/sh
 
-rm data/worldmaps/*/*.pickle
+rm data/worldmaps/*/world.marshal.zlib

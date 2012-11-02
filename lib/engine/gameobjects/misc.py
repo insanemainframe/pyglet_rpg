@@ -53,6 +53,11 @@ class BigWaterFlower(WaterFlower):
                     return False
         return True
 
+class Reef(Misc):
+    BLOCKTILES = ['grass', 'forest', 'bush', 'stone', 'underground', 'lava']
+    count = 3
+    pass
+
     
 class Rubble(Misc):
     count = 3

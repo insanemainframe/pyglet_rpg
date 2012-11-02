@@ -22,21 +22,24 @@ class GameEngine:
             
     def game_connect(self, name):
         "создание нового игрока"
+        print('New player %s' % name)
+
         #выбираем позицию для нового игрока
-        position = game.mainworld.choice_position(Player, ask_player = True)
+        position = game.mainworld.choice_position(Player, game.mainworld.main_chunk)
         #создаем игрока
         new_player = Player(name, position)
         game.mainworld.new_object(new_player)
-        
-        #оставляем сообщение о подключении
-        self.messages[name] = []
-        for message in new_player.accept_response():
-            self.messages[name].append(message)
-        
         game.guided_changed = True
-        print('New player %s' % name)
+        
+        yield ServerAccept()
 
-        return ServerAccept()
+        for message in new_player.accept_response():
+            yield message
+        
+        
+        
+
+        
     
     
     def game_requests(self, messages):
@@ -74,9 +77,6 @@ class GameEngine:
         #получаем ответы игроков
         for name, player in game.guided_players.items():
             messages = []
-            if self.messages[name]:
-                messages += self.messages[name]
-                self.messages[name] = []
             for response in player.handle_response():
                 messages.append(response)
             
@@ -85,8 +85,9 @@ class GameEngine:
 
     def end_round(self):
         "завершение игрового раунда"
-        for chunk in self.active_chunks:
+        for chunk in game.get_active_chunks():
             for player in chunk.get_list(Updatable):
+                print 'end_Rouns', player.name
                 GameObject.complete_round(player)
                 player.complete_round()
                 player.clear_events()

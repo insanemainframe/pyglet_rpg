@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from share.point import *
+from share.point import Point
 from engine.mathlib import *
 from engine.enginelib import wrappers
 from engine.events import Event
@@ -30,6 +30,8 @@ class GameObject(object):
     BLOCKTILES = []
     __name_counter = 0
     def __init__(self, position, name = None):
+        assert isinstance(position, Point)
+
         if not name:
             object_type = self.__class__.__name__
             n = GameObject.__name_counter
@@ -174,6 +176,10 @@ class GameObject(object):
 
     def clear_events(self):
         self.__events__.clear()
+    
+    @classmethod
+    def choice_chunk(cls, world, chunk):
+        return True
     
     @staticmethod
     def choice_position(world_map, chunk, i ,j):
@@ -407,7 +413,7 @@ class Respawnable:
     def handle_remove(self):
         cord = self.world.size*TILESIZE/2
         start = Point(cord, cord)
-        new_position = self.world.choice_position(self, 10 ,start, ask_player = True)
+        new_position = self.world.choice_position(self, self.world.main_chunk)
         
         self.set_position(new_position)
         

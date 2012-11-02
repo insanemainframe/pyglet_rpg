@@ -167,6 +167,7 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject, S
     look_size = 10
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     SLOWTILES = {'water':0.5, 'bush':0.3}
+
     def __init__(self, name, position, speed, hp):
         DynamicObject.__init__(self, name, position)
         Unit.__init__(self, speed, hp, Corpse, 'monsters')
@@ -179,6 +180,7 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject, S
         self.spawn()
         self.hunting = False
         self.victim = None
+        self.is_blocked = False
     
     def hit(self, damage):
         self.stop(10)
@@ -188,22 +190,25 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject, S
     def update(self):
         victim_trig = self.victim and self.victim.position_changed
 
-        if victim_trig or not self.hunting:
-            result = self.hunt()
-            if result:
-                self.victim, vector = result
-                if abs(vector)<=TILESIZE*2:
-                    self.fight(self.victim, vector)
+        if self.is_blocked or chance(10):
+            self.hunting = False
+            Walker.update(self)
+            self.is_blocked = False
+        else:
+            if victim_trig or not self.hunting:
+                result = self.hunt()
+                if result:
+                    self.victim, self.vector_to_victim = result
+                    self.hunting = True
+                    
+            if self.hunting:
+                if abs(self.vector_to_victim)<=TILESIZE*2:
+                    self.fight(self.victim, self.vector_to_victim)
                 else:
-                    if chance(70):
-                        self.hunting = True
-                        self.move(vector)
-                    else:
-                        self.hunting = False
-                        Walker.update(self)
+                    self.is_blocked = not self.move(self.vector_to_victim)
             else:
-                self.hunting = False
                 Walker.update(self)
+
 
         Movable.update(self)
         Deadly.update(self)

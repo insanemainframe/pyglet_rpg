@@ -35,14 +35,14 @@ class Teleport(StaticObject, Solid, Savable):
     def collission(self, player):
         self.world.game.change_world(player, self.dest)
     
+
     @classmethod
-    def choice_position(cls, world, chunk, i ,j):
-        for tpoint in world.teleports:
-            dist = abs(Point(i,j)*TILESIZE - tpoint)
-            if dist<=cls.min_dist*TILESIZE:
-                return False
+    def choice_chunk(cls, world, chunk):
+        if chunk.gt_list(Teleport):
+            return False
         return True
-        
+
+
     
     def remove(self):
         StaticObject.remove(self)

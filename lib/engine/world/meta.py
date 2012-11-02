@@ -8,9 +8,10 @@ from engine.world.world_persistence import PersistentWorld
 from engine.world.chunk import Chunk, near_cords
 from engine.events import Event
 from engine.enginelib.meta import DynamicObject, StaticObject
+from engine.world.objects_containers import ActivityContainer
 
 
-from random import randrange
+from random import randrange, choice
 from weakref import proxy
 from collections import defaultdict
 from time import time
@@ -18,25 +19,29 @@ import imp
 
 
 
-class MetaWorld(PersistentWorld):
+class MetaWorld(PersistentWorld, ActivityContainer):
     "базовый класс карты"
     monster_count = 0
+    nears = []
     
     def __init__(self, game, name):
         PersistentWorld.__init__(self, name)
+        ActivityContainer.__init__(self)
+
         self.game = game
         self.name = name
         
         
         self.teleports = [Point(self.size/2, self.size/2)]
         
-        self.chunk_size = self.size/CHUNK_SIZE +1
+        self.chunk_number = self.size/CHUNK_SIZE +1
         
         self.tiles = defaultdict(list)
         
         self.players = {}
         
         self.chunks = []
+        self.chunk_keys = []
         self.active_chunks = {}
         
         self.create_chunks()
@@ -52,15 +57,42 @@ class MetaWorld(PersistentWorld):
             self.generate_func(self)
 
         
+    def set_activity(self):
+        print 'set_activity'
+        self.game.add_active_world(self)
+    
+    def unset_activity(self):
+        print 'unset_activity'
+        self.game.remove_active_world(self)
 
     
     def create_chunks(self):
         "создает локации"
-        for i in xrange(self.chunk_size):
-            chunks = []
-            for j in xrange(self.chunk_size):
-                chunks.append(Chunk(self, i,j))
-            self.chunks.append(chunks)
+        n = self.chunk_number
+        
+        for i in xrange(n):
+            row = []
+            for j in xrange(n):
+                row.append(Chunk(self, i,j))
+                self.chunk_keys.append((i,j))
+            self.chunks.append(row)
+        mi = mj = int(self.chunk_number/2)
+        self.main_chunk = self.chunks[mi][mj]
+
+    def add_active_chunk(self, chunk):
+        self.active_chunks[chunk.cord.get()] = proxy(chunk)
+
+    def remove_active_chunk(self, chunk):
+        key = chunk.cord.get()
+        if key in self.active_chunks:
+            del self.active_chunks[key]
+
+    def get_active_chunks(self):
+        return self.active_chunks.values()
+
+    def has_active_chunks(self):
+        return bool(self.active_chunks)
+
     
     def create_links(self):
         "создает ссылки в локациях"
@@ -70,12 +102,14 @@ class MetaWorld(PersistentWorld):
 
     def add_object(self, player):
         self.players[player.name] = proxy(player)
+        self.add_activity(player)
 
     def pop_object(self, player):
         name = player.name
         player.chunk.pop_object(player)
         if name in self.players:
             del self.players[name]
+        self.remove_activity(player)
 
     
     def new_object(self, player):
@@ -100,32 +134,12 @@ class MetaWorld(PersistentWorld):
 
 
     
-    def add_event(self, name, object_type, position, vector, action, args=(), timeout=0, ):
-        "добавляет событие"
-        event = Event(name, object_type, position, action, args, timeout)
-        
-        
-        i,j = self.get_loc_cord(position).get()
-        try:
-            self.chunks[i][j].add_event(event)
-        except IndexError:
-            print('chunk IndexError', i,j)
-    
-        if vector:
-            alt_position = position+vector
-            event = Event(name, object_type, alt_position, action, args, timeout)
-            i,j = self.get_loc_cord(alt_position).get()
-            try:
-                self.chunks[i][j].add_event(event)
-            except IndexError:
-                print('chunk IndexError %s[%s:%s] %s' (self.name, i,j, name))
-    
     def change_chunk(self, player, prev_loc, cur_loc):
         "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
         pi, pj = prev_loc.get()
         prev_chunk = self.chunks[pi][pj]
         ci, cj = cur_loc.get()
-        if 0<ci<self.chunk_size and 0<cj<self.chunk_size :
+        if 0<ci<self.chunk_number and 0<cj<self.chunk_number :
             
             cur_chunk = self.chunks[ci][cj]
                             
@@ -185,41 +199,93 @@ class MetaWorld(PersistentWorld):
     
         
     
-    def choice_position(self, player, radius=7, start=False, ask_player = False):
+    def choice_position(self, player, start_chunk = False, radius = 0):
         "выбирает случайную позицию, доступную для объекта"
-        if not start:
-            start = Point(self.size/2,self.size/2)
-        else:
-            start = start/TILESIZE
-        lim = 1000
-        counter = 0
-        cords = set()
-        timeout = self.size**2
-        
-        while len(cords)<timeout:
+        print 'choice_position'
+        MAX_RADIUS = (self.chunk_number/2)
+
+        ignore_chunk = False
+        ignore_position = False
+
+        if not start_chunk:
+            chunk_keys = self.chunk_keys[:]
             
-            position = start +Point(randrange(-radius, radius), randrange(-radius, radius))
-            cord = position
-            if cord not in cords:
-                cords.add(cord)
-                i,j =  cord.get()
-                if 1<i<self.size-1 and 1<j<self.size-1:
-                    
-                    if not self.map[i][j] in player.BLOCKTILES:
-                        #проверяем, подходит ли клетка объекту
-                        position = position*TILESIZE
-                        chunk = self.get_chunk(position)
-                        exp = ask_player and player.choice_position(self, chunk, i ,j)
-                        if counter>1000 or exp:
-                            shift = Point(randrange(TILESIZE-1),randrange(TILESIZE-1))
-                            return position+shift
-            counter+=1
-            if counter>lim:
-                lim*=2
-                if radius<self.size/2:
-                    radius = int(radius*1.5)
-        raise BaseException('world[%s].choice_position: no place for %s' % (self.name, player))
+        else:
+            chunk_keys = self.chunk_in_radius(*start_chunk.cord.get(), radius = radius)
+            
+            if radius>=MAX_RADIUS:
+                radius = MAX_RADIUS-1
+
+        
+
+        while radius<MAX_RADIUS:
+            while chunk_keys:
+                chunk_i, chunk_j = choice(chunk_keys)
+                chunk_keys.remove((chunk_i, chunk_j))
+                chunk = self.chunks[chunk_i][chunk_j]
+
+                if hasattr(player, 'choice_chunk'):
+                    is_good_chunk = player.choice_chunk(self, chunk)
+                else:
+                    is_good_chunk = True
+
+                if ignore_chunk or is_good_chunk:
+                    tile_cords = chunk.tile_keys[:]
+                    while tile_cords:
+                        tile_i, tile_j = choice(tile_cords)
+                        tile_cords.remove((tile_i, tile_j))
+
+                        is_free = not bool(self.tiles[(tile_i, tile_j)])
+                        non_block = not self.map[tile_i][tile_j] in player.BLOCKTILES
+
+
+                        if ignore_position or (is_free and non_block):
+
+                            if hasattr(player, 'choice_position'):
+                                is_good_tile = player.choice_position(self, chunk, tile_i, tile_j)
+                            else:
+                                is_good_tile = True
+                            if is_good_tile:
+                                shift = Point(randrange(TILESIZE), randrange(TILESIZE))
+                                position = Point(tile_i, tile_j)*TILESIZE + shift
+                                return position
+            if start_chunk and not ignore_chunk:
+                if radius>=MAX_RADIUS:
+                    ignore_chunk = True
+                else:
+                    radius +=1
+                    chunk_keys = self.chunk_in_radius(*start_chunk.cord.get(), radius = radius)
+                    ignore_chunk = False
+                print 'radius+1'
+            elif not ignore_chunk:
+                print 'Generation %s: ignore_chunk' % player
+                ignore_chunk = True
+            elif not ignore_position:
+                print 'Generation %s: ignore_position' % player
+                ignore_position = True
+            else:
+                break
+
+        raise NoPlaceException('No place for %s: %s %s' % (player, start_chunk, radius))
+            
     
+    def chunk_in_radius(self, I, J, radius):
+        if not radius:
+            return [(I,J)]
+        else:
+            start_i = self.resize_chunk_cord(I - radius)
+            end_i = self.resize_chunk_cord(I + radius)
+            start_j = self.resize_chunk_cord(J - radius)
+            end_j = self.resize_chunk_cord(I + radius )
+
+            chunk_cords = []
+            for i in range(start_i, end_i):
+                for j in range(start_j, end_j):
+                    chunk_cords.append((i,j))
+            print 'chunk_in_radius', radius, len(chunk_cords)
+            return chunk_cords
+
+
     def handle_over_range(self, player, position):
         pass
     
@@ -228,7 +294,7 @@ class MetaWorld(PersistentWorld):
     def create_object(self, n, object_type):
         n = int(n/WORLD_MUL)
         for i in xrange(n):
-            position = self.choice_position(object_type, self.size/2, ask_player = True)
+            position = self.choice_position(object_type)
             name = object_type.__name__
             
             monster = object_type('%s_%s' % (name, self.game.monster_count) , position)
@@ -240,28 +306,33 @@ class MetaWorld(PersistentWorld):
     def create_item(self, n, object_type):
         n = int(n/WORLD_MUL)
         for i in xrange(n):
-            position = self.choice_position(object_type, self.size/2, ask_player = True)
-            
-            item = object_type(position)
-            
-            self.new_object(item)
+            try:
+                position = self.choice_position(object_type)
+            except :
+                print 'geebration error'
+            else:
+                item = object_type(position)
+                
+                self.new_object(item)
     
     def resize(self,cord):
-        if 0<=cord<=self.size:
-            return cord
+        if cord<0:
+            return 0
+        elif cord>self.size:
+            return self.size
         else:
-            if cord>self.size:
-                return self.size
-            else:
-                return 0
+            return cord
+
+    def resize_chunk_cord(self, cord):
+        if cord<0:
+            return 0
+        elif cord>self.chunk_number:
+            return self.chunk_number
+        else:
+            return cord
                 
     
     
-    
 
-
-        
-            
-                
-
-
+class NoPlaceException(BaseException):
+    pass

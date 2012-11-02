@@ -37,7 +37,8 @@ class Movable(DynamicObject):
     def move(self, vector=Point(0,0), destination=False):
         assert isinstance(vector, Point)
         
-        labs = abs
+        success = True
+
         if not self._moved:
             self._moved = True
             if self._stopped>0:
@@ -51,14 +52,16 @@ class Movable(DynamicObject):
                 if self._vector:
                     
                     #проверка столкновения
-                    part = self.speed / labs(self._vector) # доля пройденного пути в векторе
+                    part = self.speed / abs(self._vector) # доля пройденного пути в векторе
                     move_vector = self._vector * part if part<1 else self._vector
                     #определяем столкновения с тайлами
                     new_cord = (self.position+move_vector)/TILESIZE
 
                     resist = 1
                     if self.cord!= new_cord:
-                        move_vector, resist = self._tile_collission(move_vector, destination)
+                        move_vector, resist, blocked = self._tile_collission(move_vector, destination)
+                        success = not blocked
+             
                     
                     
                     self._vector = self._vector - move_vector
@@ -69,6 +72,7 @@ class Movable(DynamicObject):
                 if self.world_changed:
                         self._move_vector = Point(0,0)
                         self._vector = Point(0,0)
+                        success = False
 
                 if move_vector:
                     self.change_position(self.position+move_vector)
@@ -77,12 +81,14 @@ class Movable(DynamicObject):
                     #добавляем событие
                     if self._move_vector:
                         self.add_event('move',  self._move_vector.get())
+        return success
                     
                 
     
     def _tile_collission(self, move_vector, destination):
         "определения пересечяения вектора с непрохоодимыми и труднопроходимыми тайлами"
         resist = 1
+        blocked = False
         for (i,j), cross_position in get_cross(self.position, move_vector):
             if 0<i<self.world.size and 0<j<self.world.size:
                 cross_tile =  self.world.map[i][j]
@@ -92,6 +98,7 @@ class Movable(DynamicObject):
                     move_vector = (cross_position - self.position)*0.90
                     self._vector = move_vector
                     self.tile_collission(cross_tile)
+                    blocked = True
                     break
 
                 if cross_tile in self.SLOWTILES:
@@ -100,10 +107,12 @@ class Movable(DynamicObject):
                 #опеределяем колиззии с объектами в данной клетке
 
                 if self.world_changed:
+                    blocked = True
                     break
             else:
                 move_vector = Point(0,0)
                 self._vector = move_vector
+                blocked = True
                 break
         else:
             if destination:
@@ -114,7 +123,7 @@ class Movable(DynamicObject):
 
                 
             
-        return move_vector, resist
+        return move_vector, resist, blocked
         
     def _detect_collisions(self, i,j):
         for player in self.world.tiles[(i,j)]:

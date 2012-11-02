@@ -17,10 +17,11 @@ def generate(self):
         self.create_item(200, GetTeleport(DeepCave, 'underground2'))
         
         print('\t Creating decorartions...')
-        self.create_item(3000, Mushroom)
+        self.create_item(5000, Mushroom)
         self.create_item(100, WaterFlower) 
-        self.create_item(2000, Stone)
+        self.create_item(5000, Stone)
         self.create_item(50, Rubble)
+        self.create_item(200, Reef)
 
         self.create_item(200, choice(items))
 

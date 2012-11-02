@@ -85,6 +85,10 @@ class WaterFlower(Misc):
 class BigWaterFlower(Misc):
     tilename = 'big_water_flower'
 
+class Reef(Misc):
+    tilename = 'reef'
+
+
 class Flower(Misc):
     tilename = 'flower'
 

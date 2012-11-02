@@ -44,8 +44,7 @@ class ViewTools:
             
     
     def insert_objects(self, new_players, old_players):
-        for player_tuple in new_players:
-            gid, name, object_type, position, args, delayed = player_tuple
+        for gid, name, object_type, position, args, delayed in new_players:
             self.create_object(gid, name, object_type, position, args, delayed)
             if delayed and gid in old_players:
                 old_players.remove(gid)
