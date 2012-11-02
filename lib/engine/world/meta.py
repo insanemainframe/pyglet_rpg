@@ -5,7 +5,7 @@ from config import *
 from share.point import Point
 
 from engine.world.world_persistence import PersistentWorld
-from engine.world.location import Location, near_cords
+from engine.world.chunk import Chunk, near_cords
 from engine.events import Event
 from engine.enginelib.meta import DynamicObject, StaticObject
 
@@ -30,16 +30,16 @@ class MetaWorld(PersistentWorld):
         
         self.teleports = [Point(self.size/2, self.size/2)]
         
-        self.location_size = self.size/LOCATIONSIZE +1
+        self.chunk_size = self.size/CHUNK_SIZE +1
         
         self.tiles = defaultdict(list)
         
         self.players = {}
         
-        self.locations = []
-        self.active_locations = {}
+        self.chunks = []
+        self.active_chunks = {}
         
-        self.create_locations()
+        self.create_chunks()
         self.create_links()
 
 
@@ -54,26 +54,26 @@ class MetaWorld(PersistentWorld):
         
 
     
-    def create_locations(self):
+    def create_chunks(self):
         "создает локации"
-        for i in xrange(self.location_size):
-            locations = []
-            for j in xrange(self.location_size):
-                locations.append(Location(self, i,j))
-            self.locations.append(locations)
+        for i in xrange(self.chunk_size):
+            chunks = []
+            for j in xrange(self.chunk_size):
+                chunks.append(Chunk(self, i,j))
+            self.chunks.append(chunks)
     
     def create_links(self):
         "создает ссылки в локациях"
-        for row in self.locations:
-            for location in row:
-                location.create_links()
+        for row in self.chunks:
+            for chunk in row:
+                chunk.create_links()
 
     def add_object(self, player):
         self.players[player.name] = proxy(player)
 
     def pop_object(self, player):
         name = player.name
-        player.location.pop_object(player)
+        player.chunk.pop_object(player)
         if name in self.players:
             del self.players[name]
 
@@ -82,9 +82,9 @@ class MetaWorld(PersistentWorld):
         player.world = self
         player.handle_creating()
         
-        location = self.get_location(player.position)
-        location.add_object(player)
-        player.location = location
+        chunk = self.get_chunk(player.position)
+        chunk.add_object(player)
+        player.chunk = chunk
         
         cord = player.position/TILESIZE
         self.add_to_tile(player, cord)
@@ -93,7 +93,7 @@ class MetaWorld(PersistentWorld):
         self.add_object(player)
 
     def remove_object(self, player):
-        player.location.pop_object(player)
+        player.chunk.pop_object(player)
         self.pop_from_tile(player, player.cord)
         self.pop_object(player)
         self.game.remove_object(player)
@@ -107,52 +107,52 @@ class MetaWorld(PersistentWorld):
         
         i,j = self.get_loc_cord(position).get()
         try:
-            self.locations[i][j].add_event(event)
+            self.chunks[i][j].add_event(event)
         except IndexError:
-            print('location IndexError', i,j)
+            print('chunk IndexError', i,j)
     
         if vector:
             alt_position = position+vector
             event = Event(name, object_type, alt_position, action, args, timeout)
             i,j = self.get_loc_cord(alt_position).get()
             try:
-                self.locations[i][j].add_event(event)
+                self.chunks[i][j].add_event(event)
             except IndexError:
-                print('location IndexError %s[%s:%s] %s' (self.name, i,j, name))
+                print('chunk IndexError %s[%s:%s] %s' (self.name, i,j, name))
     
-    def change_location(self, player, prev_loc, cur_loc):
+    def change_chunk(self, player, prev_loc, cur_loc):
         "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
         pi, pj = prev_loc.get()
-        prev_location = self.locations[pi][pj]
+        prev_chunk = self.chunks[pi][pj]
         ci, cj = cur_loc.get()
-        if 0<ci<self.location_size and 0<cj<self.location_size :
+        if 0<ci<self.chunk_size and 0<cj<self.chunk_size :
             
-            cur_location = self.locations[ci][cj]
+            cur_chunk = self.chunks[ci][cj]
                             
-            prev_location.pop_object(player)
-            cur_location.add_object(player)
+            prev_chunk.pop_object(player)
+            cur_chunk.add_object(player)
             
             
-            player.location = cur_location
+            player.chunk = cur_chunk
             
             for related in player.related_objects:
-                related.location = cur_location
+                related.chunk = cur_chunk
         else:
-            return prev_location
+            return prev_chunk
     
     def get_loc_cord(self, position):
         "возвращает координаты локации для заданой позиции"
-        return position/TILESIZE/LOCATIONSIZE
+        return position/TILESIZE/CHUNK_SIZE
     
     
-    def get_location(self, position):
+    def get_chunk(self, position):
         "возвращает слокацию"
         
-        i,j = (position/TILESIZE/LOCATIONSIZE).get()
+        i,j = (position/TILESIZE/CHUNK_SIZE).get()
         try:
-            return self.locations[i][j]
+            return self.chunks[i][j]
         except IndexError as Error:
-            print('Warning: invalid location cord %s[%s:%s]' % (self.name,i,j))
+            print('Warning: invalid chunk cord %s[%s:%s]' % (self.name,i,j))
             raise Error
     
     def get_near_tiles(self, i,j):
@@ -208,8 +208,8 @@ class MetaWorld(PersistentWorld):
                     if not self.map[i][j] in player.BLOCKTILES:
                         #проверяем, подходит ли клетка объекту
                         position = position*TILESIZE
-                        location = self.get_location(position)
-                        exp = ask_player and player.choice_position(self, location, i ,j)
+                        chunk = self.get_chunk(position)
+                        exp = ask_player and player.choice_position(self, chunk, i ,j)
                         if counter>1000 or exp:
                             shift = Point(randrange(TILESIZE-1),randrange(TILESIZE-1))
                             return position+shift

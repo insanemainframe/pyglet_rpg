@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-from share.point import *
 from share.game_protocol import NewWorld, ServerAccept
 
 from engine.singleton import game
-from engine.enginelib.meta import *
+
+from engine.enginelib.meta import Updatable,GameObject, ActionDenied
+
 from engine.game_objects import Player
 
 
@@ -53,18 +54,18 @@ class GameEngine:
     def game_update(self):
         "отыгрывание раунда игры"
         #получаем список активных локаций
-        self.active_locations = game.get_active_locations()
+        self.active_chunks = game.get_active_chunks()
         
         
         #обновляем объекты в активных локациях
-        for location in self.active_locations:
-            for player in location.updatables.values():
+        for chunk in self.active_chunks:
+            for player in chunk.get_list(Updatable):
                 player.update()
             
         
         #обновляем активнеы локации
-        for location in self.active_locations:
-            location.update()
+        for chunk in self.active_chunks:
+            chunk.update()
 
                     
         
@@ -84,12 +85,12 @@ class GameEngine:
 
     def end_round(self):
         "завершение игрового раунда"
-        for location in self.active_locations:
-            for player in location.updatables.values():
+        for chunk in self.active_chunks:
+            for player in chunk.get_list(Updatable):
                 GameObject.complete_round(player)
                 player.complete_round()
                 player.clear_events()
-            location.complete_round()
+            chunk.complete_round()
         
         game.guided_changed = False
         

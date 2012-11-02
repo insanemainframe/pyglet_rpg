@@ -48,11 +48,12 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, DynamicObject):
             pos = self.position
             dist = abs(o_pos-pos)/TILESIZE
             if dist < self.leash_size:
-                direct = self.hunt(False)
-                if direct:
+                result = self.hunt()
+                if result:
+                    self.victim, vector = result
                     delta = random()*TILESIZE
-                    direct += Point(delta, -delta)
-                    self.strike_ball(direct)
+                    vector += Point(delta, -delta)
+                    self.strike_ball(vector)
                 else:
                     Walker.update(self)
             else:

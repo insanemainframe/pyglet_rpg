@@ -8,7 +8,7 @@ from engine.enginelib import wrappers
 
 from config import *
 
-class Shell(ActiveState, Movable, DiplomacySubject, Temporary, Solid, Mortal):
+class Shell(ActiveState, Movable, DiplomacySubject, Temporary, Solid, Mortal, Updatable):
      counter = 0
      def __init__(self,position, direct, speed, fraction, striker, damage, alive_after_collission):
         name = "%s_%s" % (self.__class__.__name__, Shell.counter)

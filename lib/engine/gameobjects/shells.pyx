@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-from engine.enginelib.meta import ActiveState, DiplomacySubject, Temporary, Solid, Mortal, Fragile, Deadly, DynamicObject
+from engine.enginelib.meta import ActiveState, DiplomacySubject, Temporary, Solid, Mortal, Fragile, Deadly, DynamicObject, Updatable
 from engine.enginelib.movable import Movable
 from engine.enginelib import wrappers
 

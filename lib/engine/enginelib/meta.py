@@ -79,7 +79,7 @@ class GameObject(object):
         self.related_objects.add(related)
         related.owner = self
         related.world = self.world
-        related.location = self.location
+        related.chunk = self.chunk
     
     def unbind(self, related):
         self.related_objects.remove(related)
@@ -145,10 +145,10 @@ class GameObject(object):
                 if position!=self._position:
                     self.position_changed = True
                     
-                prev_loc = self.location.cord
+                prev_loc = self.chunk.cord
                 cur_loc = self.world.get_loc_cord(position)
                 if prev_loc!=cur_loc:
-                    self.world.change_location(self, prev_loc, cur_loc)
+                    self.world.change_chunk(self, prev_loc, cur_loc)
                 
                 self._prev_position = self._position
                 self._position  = position
@@ -166,7 +166,7 @@ class GameObject(object):
         else:
             timeout = 0
         self.__events__.add(Event(action, args, timeout))
-        self.location.set_event()
+        self.chunk.set_event()
         self.has_events = True
 
     def get_events(self):
@@ -176,7 +176,7 @@ class GameObject(object):
         self.__events__.clear()
     
     @staticmethod
-    def choice_position(world_map, location, i ,j):
+    def choice_position(world_map, chunk, i ,j):
         return True
     
     def handle_change_world(self):

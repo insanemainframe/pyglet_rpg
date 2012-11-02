@@ -36,7 +36,7 @@ class Teleport(StaticObject, Solid, Savable):
         self.world.game.change_world(player, self.dest)
     
     @classmethod
-    def choice_position(cls, world, location, i ,j):
+    def choice_position(cls, world, chunk, i ,j):
         for tpoint in world.teleports:
             dist = abs(Point(i,j)*TILESIZE - tpoint)
             if dist<=cls.min_dist*TILESIZE:

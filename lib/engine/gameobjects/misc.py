@@ -19,7 +19,7 @@ class Misc(StaticObject, Savable):
         self.number = randrange(self.count)
     
     @classmethod
-    def choice_position(cls, world, location, i ,j):
+    def choice_position(cls, world, chunk, i ,j):
         if len(world.tiles[(i,j)]):
             return False
         else:
@@ -47,7 +47,7 @@ class WaterFlower(Misc):
 class BigWaterFlower(WaterFlower):
     count = 9
     @classmethod
-    def choice_position(cls, world, location, i ,j):
+    def choice_position(cls, world, chunk, i ,j):
         for tile in world.get_near_tiles(i,j):
                 if tile in cls.BLOCKTILES:
                     return False
@@ -84,7 +84,7 @@ class AloneTree(Misc, Impassable):
         Impassable.__init__(self, self.radius)
 
     @classmethod
-    def choice_position(cls, world, location, i ,j):
+    def choice_position(cls, world, chunk, i ,j):
         if len(world.tiles[(i,j)]):
             return False
 

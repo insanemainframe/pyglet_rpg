@@ -80,18 +80,17 @@ class Stalker:
         self.look_size = look_size
     
     def hunt(self, inradius = False):
-            players = self.location.get_deadly_list()
+            players = self.chunk.get_list_all(Deadly, DiplomacySubject)
             if players:
                 dists = []
                 for player in players:
-                    if isinstance(player, DiplomacySubject):
-                        fraction = player.fraction
-                        not_self = player.name!=self.name
-                        is_enemy = not (fraction is self.fraction or fraction is 'good')
+                    fraction = player.fraction
+                    not_self = player.name!=self.name
+                    is_enemy = not (fraction is self.fraction or fraction is 'good')
 
-                        if not_self and is_enemy:
-                            if not player.invisible:
-                                dists.append((player, player.position - self.position))
+                    if not_self and is_enemy:
+                        if not player.invisible:
+                            dists.append((player, player.position - self.position))
                 if dists:
                     victim, vector = min(dists, key = lambda (victim, vector): abs(vector))
                     return victim, vector
@@ -189,23 +188,22 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject, S
     def update(self):
         victim_trig = self.victim and self.victim.position_changed
 
-        if chance(50):
-            if victim_trig or not self.hunting:
-                result = self.hunt()
-                if result:
-                    self.victim, vector = result
-                    if vector<=TILESIZE*2:
-                        self.fight(self.victim, vector)
-                    else:
+        if victim_trig or not self.hunting:
+            result = self.hunt()
+            if result:
+                self.victim, vector = result
+                if abs(vector)<=TILESIZE*2:
+                    self.fight(self.victim, vector)
+                else:
+                    if chance(70):
                         self.hunting = True
                         self.move(vector)
-                else:
-                    self.hunting = False
-                    Walker.update(self)
-        else:
-            self.hunting = False
-            Walker.update(self)
-
+                    else:
+                        self.hunting = False
+                        Walker.update(self)
+            else:
+                self.hunting = False
+                Walker.update(self)
 
         Movable.update(self)
         Deadly.update(self)

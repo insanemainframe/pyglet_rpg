@@ -2,13 +2,16 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from engine.enginelib.meta import DynamicObject, StaticObject
 from share.point cimport Point
 
 
-class MapObserver:
+cdef class MapObserver:
     "класс объекта видящего карту"
-    def __init__(self, look_size):
+    cdef int look_size, look_radius
+    cdef set fov, prev_looked, prev_observed, observed_objects_gids
+    cdef list observed_objects, fov_objects
+
+    def __init__(MapObserver self, int look_size):
         self.look_size = look_size
         self.look_radius = self.look_size*TILESIZE
         
@@ -23,13 +26,13 @@ class MapObserver:
         self.fov = set()
         self.fov_objects = [] #список видимых контейнеров с объектами
 
-    def handle_change_world(self):
+    def handle_change_world(MapObserver self):
         self.clear_looked()
 
-    def handle_respawn(self):
+    def handle_respawn(MapObserver self):
         self.clear_looked()
 
-    def clear_looked(self):
+    def clear_looked(MapObserver self):
         self.prev_looked = set()
         self.prev_observed = set()
 
@@ -39,7 +42,7 @@ class MapObserver:
         self.fov.clear()
         self.fov_objects = []
     
-    def observe(self):
+    def observe(MapObserver self):
         cdef int rad, I,J, i,j, i_start, i_end, j_start, j_end
         cdef list tile
 
@@ -64,7 +67,7 @@ class MapObserver:
                     self.fov_objects.append(tile)
 
     
-    def look_map(self):
+    def look_map(MapObserver self):
         "возвращает список координат видимых клеток из позиции position, с координаами относительно начала карты"
         cdef set map_tiles
         map_tiles = set()
@@ -77,7 +80,7 @@ class MapObserver:
         return map_tiles, self.fov
 
 
-    def look_objects(self):
+    def look_objects(MapObserver self):
         cdef set observed_objects_gids, old_players
         cdef list observed_objects, new_players
 
@@ -95,7 +98,7 @@ class MapObserver:
 
         return new_players, old_players
 
-    def look_events(self):
+    def look_events(MapObserver self):
         cdef dict events
         events = {player.gid:player.get_events() for player in self.observed_objects}
 

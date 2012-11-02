@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from engine.enginelib.meta import DynamicObject, StaticObject
 from share.point import Point
 
 

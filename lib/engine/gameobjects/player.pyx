@@ -73,12 +73,12 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
             yield protocol.LookLand(new_looked, observed)
 
         
-        if self.location.check_players() or new_trig:
+        if self.chunk.check_players() or new_trig:
             new_players, old_players = self.look_objects()
             if new_players or old_players:
                 yield protocol.LookObjects(new_players, old_players)
 
-        if self.has_events or self.location.check_events() or new_trig:
+        if self.has_events or self.chunk.check_events() or new_trig:
             events = self.look_events()
             if events:
                 yield protocol.LookEvents(events)
@@ -130,17 +130,18 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         Movable.complete_round(self)
     
     @classmethod
-    def choice_position(cls, world, location, ci ,cj):
+    def choice_position(cls, world, chunk, int ci , int cj):
+        cdef int i,j
         for tile in world.get_near_tiles(ci ,cj):
             if tile in cls.BLOCKTILES:
                 return False
 
-        for i,j in world.get_near_cords(i,j) + [(ci ,cj)]:
+        for i,j in world.get_near_cords(ci ,cj) + [(ci ,cj)]:
                 for player in world.tiles[(i,j)]:
                     if isinstance(player, Solid):
                         return False
 
-        for player in location.get_players_list():
+        for player in chunk.get_list_all(DiplomacySubject):
             if isinstance(player, DiplomacySubject):
                 if player.fraction=='monsters':
                     dist = abs(Point(i,j)*TILESIZE - player.position)

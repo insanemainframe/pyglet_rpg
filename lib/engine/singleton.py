@@ -75,9 +75,9 @@ class __GameSingleton(object):
     def remove_guided(self, name):
         player = self.guided_players[name]
         
-        location = player.location
+        chunk = player.chunk
         
-        location.remove_object(name, True)
+        chunk.remove_object(name, True)
         
         del self.guided_players[name]
         
@@ -87,8 +87,8 @@ class __GameSingleton(object):
             pass
     
     def add_to_remove(self, player, force):
-        location = player.location
-        location.add_to_remove(player, force)
+        chunk = player.chunk
+        chunk.add_to_remove(player, force)
 
 
     def change_world(self, player, world, new_position = False):
@@ -97,24 +97,24 @@ class __GameSingleton(object):
         new_world = self.worlds[world]
         
         prev_world.remove_object(player)
-        player.location.pop_object(player)
+        player.chunk.pop_object(player)
         
         teleport_point = choice(new_world.teleports)
         if not new_position:
             new_position = new_world.choice_position(player, 5, teleport_point)
-        li, lj = (new_position/TILESIZE/LOCATIONSIZE).get()
+        li, lj = (new_position/TILESIZE/CHUNK_SIZE).get()
         
         
 
-        new_location = new_world.locations[li][lj]
-        new_location.add_object(player)
+        new_chunk = new_world.chunks[li][lj]
+        new_chunk.add_object(player)
         new_world.add_object(player)
 
         
         player.world = proxy(new_world)
         
         
-        player.location = proxy(new_location)
+        player.chunk = proxy(new_chunk)
         player.set_position(new_position)
         player.flush()
         
@@ -132,12 +132,12 @@ class __GameSingleton(object):
         
         for related in player.related_objects:
             related.world = proxy(new_world)
-            related.location = proxy(new_location)
+            related.chunk = proxy(new_chunk)
     
-    def get_active_locations(self):
+    def get_active_chunks(self):
         "список активных локаций"
         lsum = sum
-        return lsum([world.active_locations.values() for world in self.worlds.values()], [])
+        return lsum([world.active_chunks.values() for world in self.worlds.values()], [])
     
     def get_guided_list(self, self_name):
         f = lambda cont:  ('(%s)'% player.name if player.name==self_name else player.name, player.kills)
