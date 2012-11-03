@@ -71,10 +71,10 @@ class StatsDisplay(GuiElement):
 
 
 
-class WorldDisplay(GuiElement):
+class locationDisplay(GuiElement):
     x = 30
     template = """<font color=white>
-                <br>World: %s
+                <br>location: %s
                 <br>Size: %s 
                 <br>Position: %s
                 </font>"""

@@ -19,9 +19,9 @@ from random import randrange, choice
 
 
 def load_map(mapname): 
-    map_file = WORLD_PATH % mapname + MAP_FILE
-    map_image = WORLD_PATH % mapname + MAP_IMAGE
-    dict_file = WORLD_PATH % mapname + MAP_DICT
+    map_file = LOCATION_PATH % mapname + MAP_FILE
+    map_image = LOCATION_PATH % mapname + MAP_IMAGE
+    dict_file = LOCATION_PATH % mapname + MAP_DICT
 
     
     if os.path.exists(map_file):

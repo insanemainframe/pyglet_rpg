@@ -8,13 +8,10 @@ from engine.enginelib import wrappers
 
 from config import *
 
-class Shell(ActiveState, Movable, DiplomacySubject, Temporary, Solid, Mortal, Updatable):
+class Shell(Movable, DiplomacySubject, Temporary, Solid, Mortal, ActiveState):
      counter = 0
-     def __init__(self,position, direct, speed, fraction, striker, damage, alive_after_collission):
-        name = "%s_%s" % (self.__class__.__name__, Shell.counter)
-        Shell.counter+=1
-        
-        DynamicObject.__init__(self, name,position)
+     def __init__(self, position, direct, speed, fraction, striker, damage, alive_after_collission):
+        GameObject.__init__(self, position)
         Movable.__init__(self, self.speed)
         Mortal.__init__(self, damage, alive_after_collission)
         DiplomacySubject.__init__(self, fraction)
@@ -30,20 +27,9 @@ class Shell(ActiveState, Movable, DiplomacySubject, Temporary, Solid, Mortal, Up
 
 
 
-class Explodable:
-    "взрывающийся объект"
-    def __init__(self, explode_time):
-        self.explode_time = explode_time
-        
-    def update(self):
-        self.add_event('explode', timeout = self.explode_time)
-        self.delayed = True
-        self.to_remove()
-        
-    def remove(self):
-        return True
 
-class Ball(Explodable, Fragile,  Shell):
+
+class Ball(Fragile,  Shell):
     "снаряд игрока"
     radius = TILESIZE/2
     speed = 60
@@ -53,10 +39,8 @@ class Ball(Explodable, Fragile,  Shell):
     def __init__(self,position, direct, fraction, striker, damage = 2):
         Shell.__init__(self,position, direct, self.speed, fraction, striker, damage, self.alive_after_collission)
         Temporary.__init__(self, 1)
-        Explodable.__init__(self, self.explode_time)
         
     
-    @wrappers.alive_only(Explodable)
     def update(self):
         Movable.move(self, self.direct)
         Movable.update(self)
@@ -64,15 +48,16 @@ class Ball(Explodable, Fragile,  Shell):
             
     
     
-    
     @wrappers.alive_only()
     def collission(self, player):
         Mortal.collission(self, player)
                 
     
-    
     def tile_collission(self, tile):
-        self.alive = False
+        self.add_to_remove()
+
+    def handle_remove(self):
+        return ('explode', self.explode_time)
 
 
 class AllyBall(Ball):

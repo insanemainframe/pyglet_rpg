@@ -57,8 +57,8 @@ class Bot(GameClient, Process):
                         self.objects.add(new_players)
                         self.objects.remove(old_players)
 
-                    elif action=='NewWorld':
-                        wold_name, world_size, position, background = message
+                    elif action=='Newlocation':
+                        wold_name, location_size, position, background = message
                         self.objects.set_position(position)
 
                 self.in_messages = []
@@ -112,7 +112,7 @@ class BotObjects:
         self.position+=vector
 
     def add(self, players):
-        for gid, name, object_type, position, args, delayed in players:
+        for gid, name, object_type, position, args in players:
             self.players[gid] = name, object_type, position, args
 
     def update(self):
@@ -137,7 +137,7 @@ class BotObjects:
                 self.update_time = time()
 
     def remove(self, players):
-        for gid in players:
+        for gid, args in players:
             if gid in self.players:
                 del self.players[gid]
 

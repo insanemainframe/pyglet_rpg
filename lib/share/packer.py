@@ -26,23 +26,15 @@ for name in dir(game_protocol):
 
 def pack(protocol_object):
     "упаковщик данных"
-    if isinstance(protocol_object, game_protocol.GameProtocol):
-        try:
-            data = protocol_object.pack()
-        except BaseException as error:
-            print('pack error in %s' % protocol_object)
-            raise error
-        else:
-            try:
-                method = protocol_object.__class__.__name__
-                result = dumps((method, data))
-                return result
-            except MarshalError as error:
-                print('MarshalError', error, method, data)
-                return ''
-    else:
-        raise TypeError('protocol_lib.pack: %s not GameProtocol instance' % protocol_object)
+    assert isinstance(protocol_object, game_protocol.GameProtocol)
 
+    data = protocol_object.pack()
+
+    method = protocol_object.__class__.__name__
+    result = dumps((method, data))
+    return result
+
+    
 def unpack( data):
     "распаковщик"
     try:

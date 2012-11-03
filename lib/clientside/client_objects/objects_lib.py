@@ -22,13 +22,17 @@ class ClientObject:
         self.position = position
         self.name = name
         self.delayed = False
-        self.REMOVE = False
+        self._REMOVE = False
         sprite = self.surface.tiledict[self.tilename]
         self.sprite = sprite_size(sprite.width, sprite.height)
     
     def handle_action(self, action, args):
         if hasattr(self, action):
-            getattr(self, action)(*args)
+            try:
+                getattr(self, action)(*args)
+            except TypeError as error:
+                print self.name, action, args
+                raise error
         else:
             raise ActionError('no action %s.%s' % (self.__class__.__name__, action))
     
@@ -38,13 +42,10 @@ class ClientObject:
     def force_complete(self):
         pass
         
-        
     
-    def delay(self, *args):
-        self.delayed = True
     
     def remove(self):
-        self.REMOVE = True
+        self._REMOVE = True
 
     def round_update(self):
         pass

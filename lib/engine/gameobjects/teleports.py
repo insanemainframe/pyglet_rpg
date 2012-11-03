@@ -20,32 +20,32 @@ class GetTeleport:
         return self.ttype(position, self.dest)
         
 
-class Teleport(StaticObject, Solid, Savable):
+class Teleport(GameObject, Solid, Savable):
     radius = TILESIZE
     BLOCKTILES = Player.BLOCKTILES + ['water']
     min_dist = 10
     def __init__(self, position, dest):
-        StaticObject.__init__(self, position)
+        GameObject.__init__(self, position)
         self.dest = dest
     
     def handle_creating(self):
-        self.world.teleports.append(self.position)
+        self.location.teleports.append(self.position)
     
     @wrappers.player_filter(Guided)
     def collission(self, player):
-        self.world.game.change_world(player, self.dest)
+        self.location.game.change_location(player, self.dest)
     
 
     @classmethod
-    def choice_chunk(cls, world, chunk):
-        if chunk.gt_list(Teleport):
+    def choice_chunk(cls, location, chunk):
+        if len(chunk.gt_list(Teleport))>0:
             return False
         return True
 
 
     
     def remove(self):
-        StaticObject.remove(self)
+        GameObject.remove(self)
         return True
 
     def __save__(self):

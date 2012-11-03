@@ -10,7 +10,7 @@ from engine.enginelib import wrappers
 
 
 
-class Movable(DynamicObject):
+class Movable(GameObject):
     "класс движущихся объектов"
     BLOCKTILES = []
     SLOWTILES = {}
@@ -69,7 +69,7 @@ class Movable(DynamicObject):
                 else:
                     move_vector = self._vector
                 
-                if self.world_changed:
+                if self.location_changed:
                         self._move_vector = Point(0,0)
                         self._vector = Point(0,0)
                         success = False
@@ -90,8 +90,8 @@ class Movable(DynamicObject):
         resist = 1
         blocked = False
         for (i,j), cross_position in get_cross(self.position, move_vector):
-            if 0<i<self.world.size and 0<j<self.world.size:
-                cross_tile =  self.world.map[i][j]
+            if 0<i<self.location.size and 0<j<self.location.size:
+                cross_tile =  self.location.map[i][j]
                 collission_result = self._detect_collisions(i,j)
 
                 if cross_tile in self.BLOCKTILES or collission_result:
@@ -106,7 +106,7 @@ class Movable(DynamicObject):
                 
                 #опеределяем колиззии с объектами в данной клетке
 
-                if self.world_changed:
+                if self.location_changed:
                     blocked = True
                     break
             else:
@@ -116,7 +116,7 @@ class Movable(DynamicObject):
                 break
         else:
             if destination:
-                for player in self.world.tiles[(i,j)]:
+                for player in self.location.tiles[(i,j)]:
                     if player.name==destination:
                         player.collission(self)
                         self.collission(player)
@@ -126,7 +126,7 @@ class Movable(DynamicObject):
         return move_vector, resist, blocked
         
     def _detect_collisions(self, i,j):
-        for player in self.world.tiles[(i,j)]:
+        for player in self.location.tiles[(i,j)]:
             if player.name != self.name:
                 player.collission(self)
                 self.collission(player)

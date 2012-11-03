@@ -8,18 +8,18 @@ from engine.enginelib.equipment import Equipment
 from engine.enginelib import wrappers
 
 
-class Item(StaticObject, Solid, Temporary):
+class Item(GameObject, Solid, Temporary):
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     radius = TILESIZE
     lifetime = 300
     def __init__(self, position):
-        StaticObject.__init__(self, position)
+        GameObject.__init__(self, position)
         Temporary.__init__(self, 10*self.lifetime)
     
     @wrappers.player_filter(Equipment)
     def collission(self, player):
         if player.add_item(self):
-            self.world.remove_object(self)
+            self.location.remove_object(self)
         
     
     def update(self):
@@ -29,7 +29,7 @@ class Item(StaticObject, Solid, Temporary):
         pass
     
     def remove(self):
-        StaticObject.remove(self)
+        GameObject.remove(self)
         return True
 
 
@@ -73,8 +73,8 @@ class Cloak(Item):
 class Lamp(Item):
      def effect(self):
          from engine.gameobjects.units import Ally
-         position = self.world.choice_position(Ally, self.owner.chunk)
+         position = self.location.choice_position(Ally, self.owner.chunk)
          ally = Ally(position)
          ally.bind_master(self.owner)
-         self.world.new_object(ally)
+         self.location.new_object(ally)
         

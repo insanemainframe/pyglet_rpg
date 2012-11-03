@@ -47,40 +47,16 @@ class ObjectsView(Drawable, ViewTools, GuiElement):
         for object_name, game_object in self.objects.items():
             self.tiles.extend(game_object.draw())
     
-    def remove_timeouted(self):
-        remove_list = set()
-        for name, game_object in self.objects.items():
-            if game_object.delayed and (name not in self.events):
-                remove_list.add(name)
-        
-        [self.remove_object(name) for name in remove_list]
+
         
     
     def clear(self):
         #удаляем объекты с меткой
-        remove_list = []
-        for name, game_object in self.objects.items():
-            if game_object.REMOVE:
-                remove_list.append(name)
-        
-        for name in remove_list:
-            self.remove_object(name)
-    
-    def filter(self):
-        #удаляем объекты для которых больше нет на карте
-        for gid in self.deleted_objects:
-            if gid in self.objects:
-                if not self.objects[gid].delayed:
-                    self.remove_object(gid)
-                else:
-                    if gid not in self.eventnames:
-                        self.remove_object(gid)
-                    
-        for gid, gameobject in self.objects.items():
-            if gameobject.delayed:
-                if gid not in self.eventnames:
-                    self.remove_object(gid)
-        
+        delayed_objects = self.delayed_objects[:]
+        for gid in self.delayed_objects:
+            if self.objects[gid]._REMOVE:
+                self.remove_object(gid)
+
         self.eventnames = []
         self.deleted_objects = []
     

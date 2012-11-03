@@ -27,22 +27,22 @@ class ServerAccept(GameProtocol):
         return []
 
 #инициализация
-class NewWorld(GameProtocol):
+class Newlocation(GameProtocol):
     "ответ сервера - инициализация клиента"
-    def __init__(self, wold_name, world_size, position, background):
+    def __init__(self, wold_name, location_size, position, background):
         self.wold_name = wold_name
-        self.world_size = world_size
+        self.location_size = location_size
         self.position = position
         self.background = background
     
     def pack(self):
         x,y = self.position.get()
-        return self.wold_name, self.world_size, (x,y), self.background
+        return self.wold_name, self.location_size, (x,y), self.background
     
     @classmethod
-    def unpack(cls, wold_name, world_size, xy, background):
+    def unpack(cls, wold_name, location_size, xy, background):
         position = Point(*xy)
-        return wold_name, world_size, position, background
+        return wold_name, location_size, position, background
 
 #
 
@@ -99,14 +99,14 @@ class LookObjects(GameProtocol):
 
     #gid, name, object_type, position, args
     def pack(self):
-        new_players = [(gid, name, object_type, position.get(), args, delayed)
-            for gid, name, object_type, position, args, delayed in self.new_players]
+        new_players = [(gid, name, object_type, position.get(), args,)
+            for gid, name, object_type, position, args in self.new_players]
         return new_players, tuple(self.old_players)
     
     @classmethod
     def unpack(cls, new_players, old_players):
-        new_players = [(gid, name, object_type, Point(x,y), args, delayed)
-            for gid, name, object_type, (x,y), args, delayed in new_players]
+        new_players = [(gid, name, object_type, Point(x,y), args)
+            for gid, name, object_type, (x,y), args in new_players]
         return new_players, old_players
 
 

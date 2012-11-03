@@ -61,10 +61,14 @@ class SocketServer(Multiplexer, Process):
         self.r_times = []
 
     #интерфейс
-    def get_accepted(self):
-        while not self.accepted.empty():
-            yield self.accepted.get_nowait()
-        raise StopIteration
+    def get_accepted(self, num=0):
+        while not num is 0:
+            if not self.accepted.empty():
+                num-=1
+                yield self.accepted.get_nowait()
+            else:
+                raise StopIteration
+
 
     def get_closed(self):
         while not self.closed.empty():

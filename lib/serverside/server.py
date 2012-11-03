@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-from config import SERVER_TIMER, HOSTNAME, PROFILE_SERVER, SERVER_PROFILE_FILE
+from config import SERVER_TIMER, HOSTNAME, PROFILE_SERVER, SERVER_PROFILE_FILE, DEBUG
 
 from sys import exit as sys_exit, exc_info
 import traceback
@@ -35,7 +35,7 @@ class GameServer(object):
     def game_worker(self):
         "обращается к движку по расписанию"
         #смотрим новых клиентов
-        for client_name in self.server.get_accepted():
+        for client_name in self.server.get_accepted(1):
             for accept_response in self.game.game_connect(client_name):
                 response = pack(accept_response)
                 self.server.put_response(client_name, response)
@@ -74,12 +74,15 @@ class GameServer(object):
         
         #завершаем раунд игры
         self.game.end_round()
+        if DEBUG:
+            self.game.debug()
 
 
     def stop(self, stop_reason = ''):
         #считаем среднее время на раунд
         print('%s \n GameServer stopping...' % str(stop_reason))
         self.server.stop()
+        self.game.stop()
         count = len(self.r_times)
         if count:
             all_time = sum(self.r_times)

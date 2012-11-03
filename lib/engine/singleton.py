@@ -4,16 +4,20 @@
 from config import *
 
 
-from weakref import proxy
+from weakref import proxy, ProxyType
 from random import  choice
-from collections import OrderedDict
+from collections import OrderedDict, Sequence
+
+import gc
+gc.enable()
+
+from sys import getrefcount
 
 from share.point import Point
 
-from engine.enginelib import meta
-from engine.enginelib.meta import DynamicObject, StaticObject
+from engine.enginelib.meta import Guided, HierarchySubject, Container
 from engine.enginelib.movable import Movable
-from engine.world.meta import MetaWorld
+from engine.world.location import Metalocation
 
 
         
@@ -22,110 +26,109 @@ class __GameSingleton(object):
     def __init__(self):
         self.guided_players = {} #управляемые игроки
         self.players = {}
-        self.static_objects = {}
         
         self.monster_count = 0
         self.guided_changed = False
+        self.stopped = False
 
     
     def start(self):
         print('Engine initialization...')
+        self_proxy = proxy(self)
         
-        self.worlds = {}
-        self.active_worlds = {}
+        self.locations = {}
+        self.active_locations = {}
         
-        self.worlds['ground'] = MetaWorld(self, 'ground')
-        self.worlds['underground'] = MetaWorld(self, 'underground')
-        self.worlds['underground2'] = MetaWorld(self, 'underground2')
-        self.mainworld = self.worlds['ground']
+        self.locations['ground'] = Metalocation(self_proxy, 'ground')
+        self.locations['underground'] = Metalocation(self_proxy, 'underground')
+        self.locations['underground2'] = Metalocation(self_proxy, 'underground2')
+        self.mainlocation = self.locations['ground']
         
-        for world in self.worlds.values():
-            print('world %s initialization' % world.name)
-            world.start()
-            world.save(True)
+        for location in self.locations.values():
+            print('location %s initialization' % location.name)
+            location.start()
+            location.save(True)
 
         
         
         print('Engine initialization complete. \n')
 
-    def add_active_world(self, world):
-        self.active_worlds[world.name] = world
+    def add_active_location(self, location):
+        self.active_locations[location.name] = location
 
-    def remove_active_world(self,world):
-        key = world.name
-        if key in self.active_worlds:
-            del self.active_worlds[key]
+    def remove_active_location(self,location):
+        key = location.name
+        if key in self.active_locations:
+            del self.active_locations[key]
     
         
     def new_object(self, player):
         "создает динамический объект"
-        if isinstance(player, meta.DynamicObject):
-            self.players[player.name] = player
-             
-            if isinstance(player, meta.Guided):
-                self.guided_players[player.name] = proxy(player)
+        assert not isinstance(player, ProxyType)
+        self.players[player.name] = player
+         
+        if isinstance(player, Guided):
+            self.guided_players[player.name] = proxy(player)
                 
-        else:
-            self.static_objects[player.name] = player
+
         
     
     
-    def remove_object(self, player):
+    def remove_object(self, player, force = False):
         name = player.name
-        if name in self.players or name in self.static_objects:
-            if isinstance(player, DynamicObject):
-                player = self.players[name]
-                del self.players[name]
+        if name in self.players:
+            if not force:
+                result = player.handle_remove()
             else:
-                player = self.static_objects[name]
-                del self.static_objects[name]
+                result = 'disconnect', ()
+            if result:
+                assert result is True or isinstance(result, Sequence) and len(result)>1
+                if result is True:
+                    player.location.pop_object(player)
+                else:
+                    player.location.pop_object(player, result)
+                del self.players[name]
+
+
             
-            player.handle_remove()
-            player.world.remove_object(player)
+            
+            
+        #print 'remove_object', name, name in self.players
     
 
 
     def remove_guided(self, name):
         player = self.guided_players[name]
-        
-        chunk = player.chunk
-        
-        chunk.remove_object(name, True)
-        
-        del self.guided_players[name]
-        
-        try:
-            self.remove_object(player)
-        except:
-            pass
+
+        self.remove_object(player, True)
+
     
-    def add_to_remove(self, player, force):
-        chunk = player.chunk
-        chunk.add_to_remove(player, force)
 
 
-    def change_world(self, player, world_name, new_position = False):
+    def change_location(self, player, location_name, new_position = False):
         "переметить объект из одного мира в другой"
-        prev_world = player.world
-        new_world = self.worlds[world_name]
+        ref_player = proxy(player)
+
+        prev_location = player.location
+        new_location = self.locations[location_name]
         
-        prev_world.remove_object(player)
+        prev_location.remove_object(player)
         player.chunk.pop_object(player)
         
-        teleport_chunk = new_world.get_chunk(choice(new_world.teleports))
+        teleport_chunk = new_location.get_chunk(choice(new_location.teleports))
         
         if not new_position:
-            new_position = new_world.choice_position(player, teleport_chunk)
+            new_position = new_location.choice_position(player, teleport_chunk)
         li, lj = (new_position/TILESIZE/CHUNK_SIZE).get()
         
         
 
-        new_chunk = new_world.chunks[li][lj]
-        new_chunk.add_object(player)
-        new_world.add_object(player)
+        new_chunk = new_location.chunks[li][lj]
+        new_chunk.add_object(ref_player)
+        new_location.add_object(ref_player)
 
         
-        player.world = proxy(new_world)
+        player.location = proxy(new_location)
         
         
         player.chunk = proxy(new_chunk)
@@ -133,24 +136,26 @@ class __GameSingleton(object):
         player.flush()
         
         
-        player.world_changed = True
+        player.location_changed = True
         player.cord_changed = True
         if isinstance(player, Movable):
             player.flush()
         #обновляем хэш объекта
         player.regid()
         
-        for slave in player.slaves.copy():
-            position = new_world.choice_position(slave, new_chunk)
-            self.change_world(slave, world, position)
+        if isinstance(player, HierarchySubject):
+            for slave in player.get_slaves():
+                position = new_location.choice_position(slave, new_chunk)
+                self.change_location(slave, new_location, position)
         
-        for related in player.related_objects:
-            related.world = proxy(new_world)
-            related.chunk = proxy(new_chunk)
+        if isinstance(player, Container):
+            for related in player.related_objects:
+                related.location = proxy(new_location)
+                related.chunk = proxy(new_chunk)
     
     def get_active_chunks(self):
         "список активных локаций"
-        for_sum = [world.get_active_chunks() for world in self.active_worlds.values() if world.has_active_chunks()]
+        for_sum = [location.get_active_chunks() for location in self.active_locations.values() if location.has_active_chunks()]
         return sum(for_sum, [])
     
     def get_guided_list(self, self_name):
@@ -158,8 +163,30 @@ class __GameSingleton(object):
         return [f(player) for player in self.guided_players.values()]
     
     def save(self):
-        for world in self.worlds.values():
-            world.save()
+        for location in self.locations.values():
+            location.save()
+
+    def stop(self):
+        self.stopped = True
+
+    def debug(self):
+        for location in self.locations.values():
+            location.debug()
+
+        if DEBUG_REFS:
+            for player in self.players.values():
+                count = getrefcount(player)
+                if hasattr(player, '_max_count'):
+                    max_count = player._max_count
+                else:
+                    max_count = 4
+                if count>max_count:
+                    print '\n',player.name, count
+                    #print 'refs:', gc.get_referrers(player)
+                    raw_input('Debug:')
+                    player._max_count = count
+
+
 
 game = __GameSingleton()
 

@@ -12,15 +12,15 @@ from engine.gameobjects.player import Player
 from engine.enginelib import wrappers
 
 
-class Misc(StaticObject, Savable):
+class Misc(GameObject, Savable):
     BLOCKTILES = Player.BLOCKTILES
     def __init__(self, position):
-        StaticObject.__init__(self, position)
+        GameObject.__init__(self, position)
         self.number = randrange(self.count)
     
     @classmethod
-    def choice_position(cls, world, chunk, i ,j):
-        if len(world.tiles[(i,j)]):
+    def choice_position(cls, location, chunk, i ,j):
+        if len(location.tiles[(i,j)]):
             return False
         else:
             return True
@@ -47,8 +47,8 @@ class WaterFlower(Misc):
 class BigWaterFlower(WaterFlower):
     count = 9
     @classmethod
-    def choice_position(cls, world, chunk, i ,j):
-        for tile in world.get_near_tiles(i,j):
+    def choice_position(cls, location, chunk, i ,j):
+        for tile in location.get_near_tiles(i,j):
                 if tile in cls.BLOCKTILES:
                     return False
         return True
@@ -89,12 +89,12 @@ class AloneTree(Misc, Impassable):
         Impassable.__init__(self, self.radius)
 
     @classmethod
-    def choice_position(cls, world, chunk, i ,j):
-        if len(world.tiles[(i,j)]):
+    def choice_position(cls, location, chunk, i ,j):
+        if len(location.tiles[(i,j)]):
             return False
 
-        for i,j in world.get_near_cords(i,j):
-                for player in world.tiles[(i,j)]:
+        for i,j in location.get_near_cords(i,j):
+                for player in location.tiles[(i,j)]:
                     if isinstance(player, AloneTree):
                         return True
         if chance(98):

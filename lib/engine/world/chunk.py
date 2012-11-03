@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from weakref import proxy
+from weakref import proxy, ProxyType
 
 from share.point import Point
 from engine.world.objects_containers import ActivityContainer, ObjectContainer
 from engine.enginelib.meta import Solid, Updatable, Deadly, DiplomacySubject
+from engine.enginelib.units_lib import Unit
 from engine.gameobjects.teleports import Teleport
 
 
@@ -15,12 +16,11 @@ near_cords = [cord.get() for cord in (Point(-1,1),Point(0,1),Point(1,1),
                                     Point(-1,0),             Point(1,0),
                                     Point(-1,-1),Point(0,-1),Point(1,-1))]
 
-
 class Chunk(ObjectContainer, ActivityContainer):
     "функционал локации для работы с объектами"
-    proxy_list = (Solid, Updatable, Deadly, DiplomacySubject, Teleport)
-    def __init__(self, world, i,j):
-        self.world = world
+    proxy_list = (Solid, Updatable, Deadly, Unit, Teleport)
+    def __init__(self, location, i,j):
+        self.location = location
         self.i, self.j = i,j
         self.cord = Point(i,j)
         
@@ -29,21 +29,21 @@ class Chunk(ObjectContainer, ActivityContainer):
         
         self.nears = []
 
-        self.players = {}
-        self.remove_list = {}
+        self._players = {}
+        self.delay_args = {}
 
         self.new_events = False
         self.map_changed = False
 
         base_i, base_j = i*CHUNK_SIZE, j*CHUNK_SIZE
         self.tile_keys = [(base_i+I, base_j+J) for I in range(CHUNK_SIZE) for J in range(CHUNK_SIZE)
-                         if 0<base_i+I<self.world.size and 0<base_j+J < self.world.size] 
+                         if 0<base_i+I<self.location.size and 0<base_j+J < self.location.size] 
 
     def set_activity(self):
-        self.world.add_active_chunk(self)
+        self.location.add_active_chunk(self)
     
     def unset_activity(self):
-        self.world.remove_active_chunk(self)
+        self.location.remove_active_chunk(self)
 
     def set_map_changed(self):
         self.map_changed = True
@@ -51,37 +51,27 @@ class Chunk(ObjectContainer, ActivityContainer):
     
     def add_object(self, player):
         "добавляет ссылку на игрока"
+        assert isinstance(player, ProxyType)
+
         self.add_activity(player)
         self.add_proxy(player)
-        self.players[player.name] = proxy(player)
+        self._players[player.name] = player
 
     
-    def pop_object(self, player):
+    def pop_object(self, player, delay_args = False):
         "удаляет ссылку из списка игроков"
         name = player.name
 
-        if name in self.players:
+        if delay_args:
+            self.delay_args[player.gid] = delay_args
+
+        if name in self._players:
             self.remove_activity(player)
             self.remove_proxy(player)
-            del self.players[player.name]
-
-            if name in self.remove_list:
-                del self.remove_list[name]
+            del self._players[player.name]
 
 
-    def remove_object(self, name, force = False):
-        "удаляет игрока, если его метод remove возвращает true"
-        if name in self.players:
-            player = self.players[name]
 
-            result = player.remove()
-            
-            if result or force:
-                self.pop_object(player)
-                self.world.game.remove_object(player)
-
-            else:
-                player.handle_remove()
         
     
     def set_event(self):
@@ -102,28 +92,18 @@ class Chunk(ObjectContainer, ActivityContainer):
 
 
     def clear_players(self):
-        "удаляет игроков отмеченных для удаления в списке remove_list"
-        if self.remove_list:
-            for name, force in self.remove_list.items():
-                self.remove_object(name, force)
-
-            self.remove_list.clear()
+        "удаляет игроков отмеченных для удаления"
+        remove_list = [player for player in self._players.values() if player._REMOVE]
+            
+        for player in remove_list:
+            self.location.game.remove_object(player)
     
-
-  
-    def add_to_remove(self, player, force):
-        "добавляет статический объект в список для удаления"
-        name = player.name
-        self.remove_list[name] = force
-    
-    
-
         
     def create_links(self):
         "создает сслыки на соседние локации"
         for i,j in near_cords:
             try:
-                near_chunk = self.world.chunks[self.i+i][self.j+j]
+                near_chunk = self.location.chunks[self.i+i][self.j+j]
             except IndexError:
                 pass
             else:
@@ -133,12 +113,19 @@ class Chunk(ObjectContainer, ActivityContainer):
         "очистка объекьтов"
         self.clear_players()
     
-    def complete_round(self):
-        self.remove_list.clear()
-        
+    def complete_round(self):        
         ObjectContainer.complete_round(self)
         self.map_changed = False
         self.new_events = False
+        self.delay_args.clear()
 
 
+    def debug(self):
+        if DEBUG_WEAK_REFS:
+            for ref in self._players.values():
+                try:
+                    ref.__doc__
+                except ReferenceError as error:
+                    print('%s: chunk %s' % (error,self.cord))
+                    raw_input('Debug:')
 

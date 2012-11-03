@@ -23,14 +23,14 @@ PLAYER_LOOK_RADIUS = 9
 SQUARE_FOV = True
 
 ###
-WORLD_PATH = 'data/worldmaps/%s/'
-WORLD_PERSISTENCE = True
-SAVE_WORLD = True
-WORLD_FILE = 'world.marshal.zlib'
+LOCATION_PATH = 'data/locations/%s/'
+LOCATION_PERSISTENCE = True
+SAVE_LOCATION = True
+LOCATION_FILE = 'location.marshal.zlib'
 MAP_FILE = 'map.marshal.zlib'
 MAP_IMAGE = 'map.png'
 MAP_DICT = 'tiledict.py'
-WORLD_MUL = 1
+LOCATION_MUL = 1
 
 
 
@@ -40,3 +40,8 @@ SOCKET_SERVER_PROFILE = 1
 SERVER_PROFILE_FILE = join(TMP,'/tmp/game_server.stat')
 SOCKET_SERVER_PROFILE_FILE = join(TMP,'/tmp/socket_server.stat')
 
+TEST_MODE = True
+
+DEBUG = False
+DEBUG_WEAK_REFS = True
+DEBUG_REFS = False

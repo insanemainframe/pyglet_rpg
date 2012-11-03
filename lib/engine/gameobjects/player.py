@@ -13,7 +13,7 @@ from engine.enginelib import wrappers
 
 import  share.game_protocol as protocol
 
-class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equipment, DynamicObject):
+class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equipment, HierarchySubject):
     "класс игрока"
     min_dist = 10
     prev_looked = set()
@@ -23,9 +23,11 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     SLOWTILES = {'water':0.5, 'bush':0.3}
     damage = 5
     default_skills = 10
+    fraction='players'
 
-    def __init__(self, name, player_position, look_size=PLAYER_LOOK_RADIUS):
-        DynamicObject.__init__(self, name, player_position)
+    def __init__(self, position, name, look_size=PLAYER_LOOK_RADIUS):
+        GameObject.__init__(self, name, position)
+        HierarchySubject.__init__(self)
         Unit.__init__(self, self.speed, self.hp, Corpse, 'players')
         MapObserver.__init__(self, look_size)
         Striker.__init__(self,2, Ball, self.damage)
@@ -38,22 +40,22 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
                             'Strike' : self.Strike, 'Skill' : self.Skill}
     
     def accept_response(self):
-        data = self.world.name, self.world.size, self.position, self.world.background
-        yield protocol.NewWorld(*data)
+        data = self.location.name, self.location.size, self.position, self.location.background
+        yield protocol.Newlocation(*data)
         
     def handle_response(self):
         #если попал в новый мир
         #cdef set new_looked, observed, old_players
         #cdef dict events
         #cdef list new_players
-        if self.cord_changed or self.world_changed or self.respawned:
+        if self.cord_changed or self.location_changed or self.respawned:
             self.observe()
         
-        if self.world_changed or self.respawned:
+        if self.location_changed or self.respawned:
             new_trig = True
-            if self.world_changed:
-                yield protocol.NewWorld(self.world.name, self.world.size, self.position, self.world.background)
-                self.world_changed = False
+            if self.location_changed:
+                yield protocol.Newlocation(self.location.name, self.location.size, self.position, self.location.background)
+                self.location_changed = False
 
             elif self.respawned:
                 yield protocol.Respawn(self.position)
@@ -89,8 +91,8 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
             yield protocol.PlayerStats(*Stats.get_stats(self))
         
         #если изменился список игроков лнлайн
-        if self.world.game.guided_changed:
-            yield protocol.PlayersList(self.world.game.get_guided_list(self.name))
+        if self.location.game.guided_changed:
+            yield protocol.PlayersList(self.location.game.get_guided_list(self.name))
             
         #если изменилис предметы
         if self.equipment_changed:
@@ -119,7 +121,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     
     @wrappers.alive_only(Deadly)
     def update(self):
-        print 'update player'
+        #print 'update player'
         Movable.update(self)
         Striker.update(self)
         Deadly.update(self)
@@ -127,26 +129,6 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         DiplomacySubject.update(self)
     
     def complete_round(self):
-        print 'complete_round player'
+        #print 'complete_round player'
         Movable.complete_round(self)
     
-
-    @classmethod
-    def choice_chunk(cls, world, chunk):
-        for player in chunk.get_list_all(DiplomacySubject):
-            if player.fraction=='monsters':
-                return False
-        return True
-
-    @classmethod
-    def choice_position(cls, world, chunk, ci ,cj):
-        for tile in world.get_near_tiles(ci ,cj):
-            if tile in cls.BLOCKTILES:
-                return False
-
-        for i,j in world.get_near_cords(ci ,cj) + [(ci ,cj)]:
-                for player in world.tiles[(i,j)]:
-                    if isinstance(player, Solid):
-                        return False
-
-        return True

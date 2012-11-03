@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from config import TILESIZE
 
 from clientside.gui.window import create_tile, create_label
@@ -17,6 +20,12 @@ class Ball(Movable, DynamicObject, Animated):
     def update(self, dt):
         if not self.explosion:
             return Movable.update(self, dt)
+        else:
+            if self.explode_time>0:
+                self.explode_time-=1
+            else:
+                self._REMOVE = True
+
     
     def draw(self):
         if not self.explosion:
@@ -25,8 +34,9 @@ class Ball(Movable, DynamicObject, Animated):
             tilename = self.tilename + self.get_animation('explosion')
             return [create_tile(self.position, tilename, 1)]
     
-    def explode(self):
+    def explode(self, explode_time):
         self.explosion = True
+        self.explode_time = explode_time
         self.moving = False
 
 class DarkBall(Ball):

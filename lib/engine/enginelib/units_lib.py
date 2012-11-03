@@ -15,21 +15,44 @@ from math import hypot
 
 class Unit(Solid, Movable, Deadly, DiplomacySubject, Updatable, GameObject):
     def __init__(self, speed, hp, corpse, fraction):
+        Updatable.__init__(self)
         Movable.__init__(self, speed)
         Deadly.__init__(self, corpse, hp)
         DiplomacySubject.__init__(self, fraction)
         Solid.__init__(self, TILESIZE/2)
 
+    @classmethod
+    def choice_chunk(cls, location, chunk):
+        for player in chunk.get_list(Unit):
+            if player.fraction!=cls.fraction and player.fraction!='good':
+                return False
+        return True
+
+    @classmethod
+    def choice_position(cls, location, chunk, ci ,cj):
+        for tile in location.get_near_tiles(ci ,cj):
+            if tile in cls.BLOCKTILES:
+                return False
+
+        for i,j in location.get_near_cords(ci ,cj) + [(ci ,cj)]:
+                for player in location.tiles[(i,j)]:
+                    if isinstance(player, Solid):
+                        return False
+
+        return True
+
 
 class Lootable(Deadly):
     loot = [Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
     def __init__(self, cost):
+        if TEST_MODE:
+            cost = 100
         self.cost = cost if cost<= 100 else 50
     
     def die(self):
         if chance(self.cost):
             item = choice(self.loot)(self.position)
-            self.world.new_object(item)
+            self.location.new_object(item)
         Deadly.die(self)
 
 
@@ -42,10 +65,10 @@ class Fighter:
 
     def fight_all(self):
         if self.attack_counter==0:
-            for i,j in self.world.get_near_cords(*self.cord.get()):
-                tile = self.world.tiles[(i,j)]
+            for i,j in self.location.get_near_cords(*self.cord.get()):
+                tile = self.location.tiles[(i,j)]
                 for player in tile:
-                    if isinstance(player, DiplomacySubject) and isinstance(player, Deadly):
+                    if isinstance(player, Unit):
                         
                         enemy = self.fraction!=player.fraction
 
@@ -80,7 +103,7 @@ class Stalker:
         self.look_size = look_size
     
     def hunt(self, inradius = False):
-            players = self.chunk.get_list_all(Deadly, DiplomacySubject)
+            players = self.chunk.get_list_all(Unit)
             if players:
                 dists = []
                 for player in players:
@@ -109,7 +132,7 @@ class Striker:
     def strike_ball(self, vector):
         if self.strike_counter==0 and vector:
             ball = self.strike_shell(self.position, vector, self.fraction, self.name, self.damage)
-            self.world.new_object(ball)
+            self.location.new_object(ball)
             self.strike_counter+=self.strike_speed
     
     def plus_damage(self, damage):
@@ -134,7 +157,7 @@ class Stats:
     
     def plus_kills(self):
         self.kills+=1
-        self.world.game.guided_changed = True
+        self.location.game.guided_changed = True
     
     def update(self):
         stats = (self.hp, self.hp_value, self.speed, self.damage,
@@ -162,15 +185,16 @@ class Walker(Movable):
         self.move(direct)
 
 
-class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject, Savable):
+class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, GameObject, Savable):
     radius = TILESIZE
     look_size = 10
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     SLOWTILES = {'water':0.5, 'bush':0.3}
-
+    fraction = 'monsters'
+    
     def __init__(self, name, position, speed, hp):
-        DynamicObject.__init__(self, name, position)
-        Unit.__init__(self, speed, hp, Corpse, 'monsters')
+        GameObject.__init__(self, position, name)
+        Unit.__init__(self, speed, hp, Corpse, self.fraction)
         Stalker.__init__(self, self.look_size)
         Respawnable.__init__(self, 60, 100)
         Lootable.__init__(self, self.loot_cost)

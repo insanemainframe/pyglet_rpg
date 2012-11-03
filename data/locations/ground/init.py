@@ -14,7 +14,7 @@ items = [Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cl
 
 
 def generate(self):
-        print('Generating world, this can take a while...')
+        print('Generating location, this can take a while...')
         print('\t Creating teleports...')
         self.create_item(200, GetTeleport(Cave, 'underground'))
         

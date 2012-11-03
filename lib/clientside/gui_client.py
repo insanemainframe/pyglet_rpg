@@ -42,7 +42,7 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
         self.rightsurface = surfaces.StatsSurface(self, gs_size, 0, height, width-gs_size)
         self.surfaces = [self.gamesurface, self.rightsurface]
         
-        self.world_display = WorldDisplay(self.rightsurface)
+        self.location_display = locationDisplay(self.rightsurface)
         self.stats = StatsDisplay(self.rightsurface)
         self.plist = PlayersOnlineDisplay(self.rightsurface)
         self.equipment = EquipmentDisplay(self.rightsurface)
@@ -68,10 +68,10 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
         self.set_round_update(lambda delta: self.round_update(delta), self.timer_value)
         self.set_update(lambda delta: self.update(delta))
     
-    def new_world(self, name, world_size, position, background):
+    def new_location(self, name, location_size, position, background):
         "создание нового мира"
-        self.land.set_world(world_size, position, background)
-        self.world_display.change(name, world_size, position)
+        self.land.set_location(location_size, position, background)
+        self.location_display.change(name, location_size, position)
         
         from clientside.client_objects.objects_lib import MapAccess
         MapAccess.map = self.land.map
@@ -100,7 +100,7 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
 
         #двигаем камеру
         self.land.move_position(vector)
-        self.world_display.update(self.gamesurface.position)
+        self.location_display.update(self.gamesurface.position)
 
         #обновляем карту и объекты
         
@@ -183,15 +183,14 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
             elif action == 'EquipmentDict':
                 self.equipment.update(message)
             
-            elif action=='NewWorld':
-                wold_name, world_size, position, background = message
-                self.new_world(wold_name, world_size, position, background)
+            elif action=='Newlocation':
+                wold_name, location_size, position, background = message
+                self.new_location(wold_name, location_size, position, background)
             
             else:
                 print 'Unknown Action:%s' % action
         
         
-        self.objects.filter()
         self.set_timer()
 
         
@@ -210,7 +209,7 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
         #отрисовка бара
         self.rightsurface.draw_background(0,0,'rightside')
         self.stats.draw()
-        self.world_display.draw()
+        self.location_display.draw()
         self.plist.draw()
         self.equipment.draw()
         

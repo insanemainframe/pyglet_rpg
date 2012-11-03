@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-from share.game_protocol import NewWorld, ServerAccept
+from share.game_protocol import Newlocation, ServerAccept
 
 from engine.singleton import game
 
@@ -25,10 +25,11 @@ class GameEngine:
         print('New player %s' % name)
 
         #выбираем позицию для нового игрока
-        position = game.mainworld.choice_position(Player, game.mainworld.main_chunk)
+        position = game.mainlocation.choice_position(Player, game.mainlocation.main_chunk)
+
         #создаем игрока
         new_player = Player(name, position)
-        game.mainworld.new_object(new_player)
+        game.mainlocation.new_object(new_player)
         game.guided_changed = True
         
         yield ServerAccept()
@@ -37,10 +38,7 @@ class GameEngine:
             yield message
         
         
-        
 
-        
-    
     
     def game_requests(self, messages):
         "выполнение запросов игроков"
@@ -87,8 +85,7 @@ class GameEngine:
         "завершение игрового раунда"
         for chunk in game.get_active_chunks():
             for player in chunk.get_list(Updatable):
-                print 'end_Rouns', player.name
-                GameObject.complete_round(player)
+                Updatable.complete_round(player)
                 player.complete_round()
                 player.clear_events()
             chunk.complete_round()
@@ -98,6 +95,12 @@ class GameEngine:
        
     def save(self):
         game.save()
+
+    def stop(self):
+        game.stop()
+
+    def debug(self):
+        game.debug()
     
     def game_quit(self, name):
         print('%s quit' % name)

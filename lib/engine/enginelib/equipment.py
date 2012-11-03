@@ -2,10 +2,14 @@
 # -*- coding: utf-8 -*-
 from config import *
 
+from engine.enginelib.meta import Container
+
 from collections import defaultdict
 
-class Equipment:
+class Equipment(Container):
     def __init__(self, slots_num = 8):
+        Container.__init__(self)
+        
         self.slots_num = slots_num
         self.equipment = defaultdict(list)
         self.equipment_changed = False

@@ -3,6 +3,7 @@
 from config import *
 
 from share.point import Point
+from engine.enginelib.meta import Updatable
 
 
 class MapObserver:
@@ -18,11 +19,12 @@ class MapObserver:
 
         self.observed_objects = []
         self.observed_objects_gids = set()
+        self.observed_names = []
 
         self.fov = set()
         self.fov_objects = [] #список видимых контейнеров с объектами
 
-    def handle_change_world(self):
+    def handle_change_location(self):
         self.clear_looked()
 
     def handle_respawn(self):
@@ -34,6 +36,7 @@ class MapObserver:
 
         self.observed_objects_gids.clear()
         self.observed_objects = []
+        self.observed_names = []
 
         self.fov.clear()
         self.fov_objects = []
@@ -50,17 +53,18 @@ class MapObserver:
         rad = self.look_size
         I,J = self.cord.get()
 
-        i_start = self.world.resize(I-rad)
-        i_end = self.world.resize(I+rad)
-        j_start = self.world.resize(J-rad)
-        j_end = self.world.resize(J+rad)
+        i_start = self.location.resize(I-rad)
+        i_end = self.location.resize(I+rad)
+        j_start = self.location.resize(J-rad)
+        j_end = self.location.resize(J+rad)
 
         for i in xrange(i_start, i_end):
             for j in xrange(j_start, j_end):
                 if SQUARE_FOV or (I-i)**2 + (J-j)**2 < rad**2:
                     self.fov.add((i, j))
-                    tile = self.world.tiles[(i,j)]
+                    tile = self.location.tiles[(i,j)]
                     self.fov_objects.append(tile)
+
 
     
     def look_map(self):
@@ -70,7 +74,7 @@ class MapObserver:
 
         for i,j in self.fov:
                 if (i,j) not in self.prev_observed:
-                    tile_type = self.world.map[i][j]
+                    tile_type = self.location.map[i][j]
                     map_tiles.add((Point(i,j), tile_type))
 
         return map_tiles, self.fov
@@ -91,12 +95,31 @@ class MapObserver:
 
         self.observed_objects = observed_objects
         self.observed_objects_gids = observed_objects_gids
+        self.observed_names = [player.name for player in observed_objects]
 
-        return new_players, old_players
+        old_players_pairs = []
+        for name in old_players:
+            if name in self.chunk.delay_args:
+                delay_arg = self.chunk.delay_args[name]
+            else:
+                delay_arg = None
+
+            old_players_pairs.append((name, delay_arg))
+
+        return new_players, old_players_pairs
 
     def look_events(self):
         #cdef dict events
-        events = {player.gid:player.get_events() for player in self.observed_objects}
+        events = {}
+        for player, name in zip(self.observed_objects,self.observed_names):
+            try:
+                if isinstance(player, Updatable):
+                    events[player.gid] = player.get_events()
+                    print player.name, events[player.gid]
+            except ReferenceError:
+                print "ReferenceError: %s" % name
+                raw_input()
+        
 
         return events
 

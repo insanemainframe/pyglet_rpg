@@ -3,6 +3,7 @@
 from config import *
 
 from types import ClassType
+from weakref import proxy, ProxyType
 
 from engine.enginelib.meta import ActiveState
 
@@ -15,7 +16,12 @@ class ObjectContainer:
         self.proxy_dicts = {type_name : {} for type_name in self.__forproxy__.values()}
         self.new_players = False
 
+    def set_new_players(self):
+        self.new_players = True
+
     def add_proxy(self, player):
+        assert isinstance(player, ProxyType)
+        
         name = player.name
 
         for p_type, type_name in self.__forproxy__.items():
@@ -51,8 +57,10 @@ class ObjectContainer:
             type_filter = list(type_filter)
             filter_type = type_filter.pop()
 
-            assert isinstance(filter_type, ClassType)
+            assert isinstance(filter_type, (type, ClassType))
+
             filter_type = filter_type.__name__
+
 
             assert filter_type in self.proxy_dicts
 

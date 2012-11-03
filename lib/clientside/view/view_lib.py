@@ -16,6 +16,7 @@ class ViewTools:
         self.object_dict = {}
         self.objects = {}
         self.deleted_objects = []
+        self.delayed_objects = []
         
         self.eventnames = []
         self.timeout_events = defaultdict(list)
@@ -44,31 +45,35 @@ class ViewTools:
             
     
     def insert_objects(self, new_players, old_players):
-        for gid, name, object_type, position, args, delayed in new_players:
-            self.create_object(gid, name, object_type, position, args, delayed)
-            if delayed and gid in old_players:
-                old_players.remove(gid)
+        for gid, name, object_type, position, args in new_players:
+            self.create_object(gid, name, object_type, position, args)
 
-        for gid in old_players:
-            self.deleted_objects.append(gid)
+
+        for gid, delay_arg in old_players:
+            self.remove_object(gid, delay_arg)
             
         
             
-    def create_object(self, gid, name, object_type, position, args={}, delayed =False):
+    def create_object(self, gid, name, object_type, position, args={}):
         game_object = self.object_dict[str(object_type)](name, position, **args)
         game_object.gid = gid
-        game_object.delayed = delayed
         
         self.objects[gid] = game_object
         if object_type=='Self':
             self.focus_object = gid
         #print 'create_object', gid, name
     
-    def remove_object(self, gid):
+    def remove_object(self, gid, delay_arg = False):
         #print 'remove_object', gid, self.objects[gid].name
         if self.objects[gid].gid == self.focus_object :
                 self.focus_object = False
-        del self.objects[gid]
+        if delay_arg:
+            action = delay_arg[0]
+            args = delay_arg[1:]
+            self.objects[gid].handle_action(action, args)
+            self.delayed_objects.append(gid)
+        else:
+            del self.objects[gid]
     
     def clear(self):
         self.objects = {}

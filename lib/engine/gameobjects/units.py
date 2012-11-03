@@ -12,7 +12,7 @@ from engine.enginelib import wrappers
 
 
 
-class Ally(Unit, Stalker, Temporary, Walker, Striker, DynamicObject):
+class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubject):
     lifetime = 60
     hp = 60
     damage = 5
@@ -24,11 +24,9 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, DynamicObject):
     name_counter = 0
     leash_size = 4
     
-    def __init__(self, position):
-        name = 'ally_%s' % Ally.name_counter
-        Ally.name_counter+=1
-                
-        DynamicObject.__init__(self, name, position)
+    def __init__(self, position):     
+        HierarchySubject.__init__(self)
+        GameObject.__init__(self, position)
         Unit.__init__(self, self.speed, self.hp, Corpse, 'good')
         Stalker.__init__(self, self.look_size)
         Striker.__init__(self, 10, AllyBall, self.damage)
@@ -79,7 +77,7 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, DynamicObject):
             self.unbind_master()
 
 
-class Cat(Walker, Solid, Stalker, DiplomacySubject, DynamicObject):
+class Cat(Walker, Solid, Stalker, DiplomacySubject, GameObject):
     speed = 20
     radius = TILESIZE
     rainbow_time = 30
@@ -87,7 +85,7 @@ class Cat(Walker, Solid, Stalker, DiplomacySubject, DynamicObject):
     look_size = 300
     
     def __init__(self, name, position):
-        DynamicObject.__init__(self, name, position)
+        GameObject.__init__(self, name, position)
         Solid.__init__(self, self.radius)
         Movable.__init__(self, self.speed)
         DiplomacySubject.__init__(self, 'good')

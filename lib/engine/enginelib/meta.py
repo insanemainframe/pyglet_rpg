@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from config import *
+from engine.errors import *
+
 from share.point import Point
 from engine.mathlib import *
 from engine.enginelib import wrappers
@@ -7,94 +10,49 @@ from engine.events import Event
 
 from random import choice, random
 from time import time
-
-
-class UnknownAction(BaseException):
-    pass
-
-
-class ActionDenied(BaseException):
-    pass
-
-class ActionError(BaseException):
-    def __init__(self, message):
-        self.message = message
-    
-    def __str__(self):
-        return 'ActionError: %s' % self.message
-
-
+from weakref import proxy, ProxyType
 
 
 class GameObject(object):
     BLOCKTILES = []
+    SLOWTILES = {}
     __name_counter = 0
     def __init__(self, position, name = None):
         assert isinstance(position, Point)
 
         if not name:
+            GameObject.__name_counter += 1
             object_type = self.__class__.__name__
             n = GameObject.__name_counter
-            name = "%s_%s" % (object_type, n)
-            GameObject.__name_counter += 1 
+            self.name = "%s_%s" % (object_type, n)
+             
+        else:
+            assert isinstance(name, str)
+            self.name = name
 
-        self.name = name
         self.alive = True
-        self.delayed = False
-        self.__events__ = set()
+        
         
         self._position = position
         self.cord = position/TILESIZE
         self._prev_position = position
         
-        self.gid = str(hash((name, position)))
+        self.gid = str(hash((name, position, random())))
         
-        self.master = None
-        self.slaves = set()
-        self.owner = None
-        self.related_objects = set()
         
-        self.has_events = False
-
 
         self.cord_changed = True
         self.position_changed = True
-        self.world_changed = False
-    
-    def bind_slave(self, slave):
-        self.slaves.add(slave)
-    
-    def unbind_slave(self, slave):
-        self.slaves.remove(slave)
-
-    def bind_master(self, master):
-        self.master = master
-        self.master.bind_slave(self)
-        self.handle_bind_master()
-
-    def unbind_master(self):
-        self.master.unbind_slave(self)
-        self.master = None
-    
-    
-    def bind(self, related):
-        self.related_objects.add(related)
-        related.owner = self
-        related.world = self.world
-        related.chunk = self.chunk
-    
-    def unbind(self, related):
-        self.related_objects.remove(related)
-        related.owner = None
+        self.location_changed = False
+        self._REMOVE = False
     
     def handle_creating(self):
         pass
     
     def handle_remove(self):
-        pass
+        return True
     
     def regid(self):
-        
         self.gid = str(hash((self.name, self.position, random())))
         
     @property
@@ -113,22 +71,31 @@ class GameObject(object):
     @prev_position.setter
     def prev_position(self):
         raise Exception('@prev_position.setter')
+
+    @property
+    def owner(self):
+        return self._owner
+
+    @owner.setter
+    def owner(self, owner):
+        self._owner = proxy(owner)
     
     def set_position(self, position):
         "принудительная установка позиции"
-        size = self.world.size*TILESIZE
+        size = self.location.size*TILESIZE
         if 0<=position.x<=size and 0<=position.y<=size:
             prev_cord = self._position/TILESIZE
             self._position = position
             self._prev_position = position
             self.cord = position/TILESIZE
             
-            self.world.update_tiles(self, prev_cord, self.cord)
+            self.location.update_tiles(self, prev_cord, self.cord)
+            self.chunk.set_new_players()
             
         else:
-            data = (position, self.name, self.world.name, self.world.size)
-            self.world.handle_over_range(self, position)
-            raise Warning('Invalid position %s %s world %s size %s' % data)
+            data = (position, self.name, self.location.name, self.location.size)
+            self.location.handle_over_range(self, position)
+            raise Warning('Invalid position %s %s location %s size %s' % data)
             
     def change_position(self,position):
         "вызывается при смене позиции"
@@ -137,7 +104,7 @@ class GameObject(object):
             cur_cord = position/TILESIZE
             prev_cord = self._position/TILESIZE
             
-            if 0<=cur_cord.x<=self.world.size and 0<=cur_cord.y<=self.world.size:
+            if 0<=cur_cord.x<=self.location.size and 0<=cur_cord.y<=self.location.size:
                 prev_cord = self._position/TILESIZE
                 
                 if cur_cord!=prev_cord:
@@ -148,44 +115,32 @@ class GameObject(object):
                     self.position_changed = True
                     
                 prev_loc = self.chunk.cord
-                cur_loc = self.world.get_loc_cord(position)
+                cur_loc = self.location.get_loc_cord(position)
                 if prev_loc!=cur_loc:
-                    self.world.change_chunk(self, prev_loc, cur_loc)
+                    self.location.change_chunk(self, prev_loc, cur_loc)
                 
                 self._prev_position = self._position
                 self._position  = position
+                self.chunk.set_new_players()
                 #
-                self.world.update_tiles(self, prev_cord, cur_cord)
+                self.location.update_tiles(self, prev_cord, cur_cord)
                 
             else:
-                data = (position, self.name, self.world.name, self.world.size)
-                self.world.handle_over_range(self, position)
+                data = (position, self.name, self.location.name, self.location.size)
+                self.location.handle_over_range(self, position)
                 self.flush()
 
-    def add_event(self, action, *args, **kwargs):
-        if 'timeout' in kwargs:
-            timeout = kwargs['timeout']
-        else:
-            timeout = 0
-        self.__events__.add(Event(action, args, timeout))
-        self.chunk.set_event()
-        self.has_events = True
-
-    def get_events(self):
-        return self.__events__
-
-    def clear_events(self):
-        self.__events__.clear()
     
-    @classmethod
-    def choice_chunk(cls, world, chunk):
+    
+    
+    def choice_chunk(cls, location, chunk):
         return True
     
-    @staticmethod
-    def choice_position(world_map, chunk, i ,j):
+    
+    def choice_position(location_map, chunk, i ,j):
         return True
     
-    def handle_change_world(self):
+    def handle_change_location(self):
         pass
 
     def handle_respawn(self):
@@ -209,51 +164,118 @@ class GameObject(object):
     def tile_collission(self, tile):
         pass
     
-    def remove(self):
-        return True
 
-    def to_remove(self, force=False):
-        self.world.game.add_to_remove(self, force)
+
+    def add_to_remove(self):
+        self._REMOVE = True
 
     def get_tuple(self, name):
         if name==self.name:
             object_type = 'Self'
         else:
             object_type = self.__class__.__name__
-        return self.gid, self.name, object_type, self.prev_position, self.get_args(), self.delayed
+        return self.gid, self.name, object_type, self.prev_position, self.get_args()
 
     def get_args(self):
         return {}
 
-    def delay(self):
-        self.delayed = True
+    
+
+    def __del__(self):
+        try:
+            if not self.location.game.stopped:
+                print ('del %s' % self.name)
+        except:
+            pass
+
+    def __str__(self):
+        return self.name
+
+
+class ActiveState:
+    "метка"
+    pass  
+    
+class Updatable:
+    def __init__(self):
+        self.__events__ = set()
+        self.has_events = False
+
+    def add_event(self, action, *args, **kwargs):
+        if 'timeout' in kwargs:
+            timeout = kwargs['timeout']
+        else:
+            timeout = 0
+        self.__events__.add(Event(action, args, timeout))
+        self.chunk.set_event()
+        self.has_events = True
+
+    def get_events(self):
+        return self.__events__
+
+    def clear_events(self):
+        self.__events__.clear()
 
     def complete_round(self):
         self.cord_changed = False
         self.position_changed = False
         self.has_events = False
-        
+
+
+
+class HierarchySubject:
+    def __init__(self):
+        self._master = None
+        self.slaves = {}
+
+    @property
+    def master(self):
+        return self._master
+
+    @master.setter
+    def master(self, new_master):
+        assert isinstance(new_master, ProxyType)
+        self._master = new_master
+
+    def bind_slave(self, slave):
+        assert isinstance(slave, ProxyType)
+        self.slaves[slave.name] = slave
     
+    def unbind_slave(self, slave):
+        del self.slaves[slave.name]
+
+    def get_slaves(self):
+        return self.slaves.values()
+
+    def bind_master(self, master):
+        self.master = master
+        self.master.bind_slave(proxy(self))
+        self.handle_bind_master()
+
+    def unbind_master(self):
+        self.master.unbind_slave(self)
+        self.master = None
+
+
+class Container:
+    def __init__(self):
+        self._owner = None
+        self.related_objects = set()
+
+    def bind(self, related):
+        self.related_objects.add(related)
+        related.owner = self
+        related.location = self.location
+        related.chunk = self.chunk
+    
+    def unbind(self, related):
+        self.related_objects.remove(related)
+        related.owner = None
+
+
     
 
-class DynamicObject(GameObject):
-    def __init__(self, name, position):
-        GameObject.__init__(self, position, name)
-        
 
-class StaticObject(GameObject):
-    def __init__(self, position):
-        GameObject.__init__(self, position)
-        
-    
-class Mutable:
-    pass
-    
-class Updatable:
-    pass
-
-class ActiveState:
-    pass
 
 class Guided(ActiveState):
     "управляемый игроком объекта"
@@ -354,13 +376,13 @@ class Deadly:
                 self.add_event('die')
             else:
                 self.death_time = self.death_time_value
-                self.to_remove()
+                self.add_to_remove()
                 self.create_corpse()
     
     def create_corpse(self):
         name = 'corpse_%s_%s' % (self.name, self.death_counter)
         corpse = self.corpse(name, self.position)
-        self.world.new_object(corpse)
+        self.location.new_object(corpse)
     
     def die(self):
         self.alive = False
@@ -390,10 +412,11 @@ class Mortal:
             if player.fraction!=self.fraction:
                 prev_state = player.alive
                 player.hit(self.damage)
-                self.alive = self.alive_after_collission
+                if not self.alive_after_collission:
+                    self.add_to_remove()
                 #
-                if self.striker in self.world.game.players:
-                    striker = self.world.game.players[self.striker]
+                if self.striker in self.location.game.players:
+                    striker = self.location.game.players[self.striker]
                     if isinstance(striker, Guided):
                         if prev_state and not player.alive:
                             striker.plus_kills()
@@ -411,9 +434,9 @@ class Respawnable:
         return False
     
     def handle_remove(self):
-        cord = self.world.size*TILESIZE/2
+        cord = self.location.size*TILESIZE/2
         start = Point(cord, cord)
-        new_position = self.world.choice_position(self, self.world.main_chunk)
+        new_position = self.location.choice_position(self, self.location.main_chunk)
         
         self.set_position(new_position)
         
@@ -423,10 +446,12 @@ class Respawnable:
         self.respawned = True
         self.spawn()
         self.handle_respawn()
+        return False
 
 
 
 class DiplomacySubject:
+    fraction = 'neutral'
     def __init__(self, fraction):
         self.fraction = fraction
         self.invisible = 0
@@ -442,25 +467,26 @@ class DiplomacySubject:
 class Temporary(Updatable):
     "класс объекта с ограниченным сроком существования"
     def __init__(self, lifetime):
+        Updatable.__init__(self)
         self.lifetime = lifetime
         self.creation_time = time()
     
     def update(self):
         t = time()
         if t-self.creation_time >= self.lifetime:
-            self.to_remove(True)
+            self.add_to_remove()
 
 
 
 
-class Corpse(StaticObject, Temporary):
+class Corpse(GameObject, Temporary):
     "кости остающиеся после смерти живых игроков"
     def __init__(self, name, position):
-        StaticObject.__init__(self, position)
+        GameObject.__init__(self, position)
         Temporary.__init__(self, 5)
     
     def update(self):
-        StaticObject.update(self)
+        GameObject.update(self)
         Temporary.update(self)
 
 

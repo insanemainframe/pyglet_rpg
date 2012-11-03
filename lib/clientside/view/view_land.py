@@ -23,24 +23,24 @@ class LandView(Drawable, MapTools):
         self.observed = set()
         self.tiles = []
         self.map = defaultdict(lambda: defaultdict(lambda: 'fog'))
-        self.world_size = 0
+        self.location_size = 0
         self.background = 'fog'
         self.main_tile = 'fog'
         
         
-    def set_world(self, world_size, position, background):
-        MapTools.__init__(self, world_size, world_size)
+    def set_location(self, location_size, position, background):
+        MapTools.__init__(self, location_size, location_size)
         self.observed = set()
         self.background = background+'_full'
         
-        self.world_size = world_size
+        self.location_size = location_size
         self.map = defaultdict(lambda: defaultdict(lambda: 'fog'))
         self.tiles = []
         
         self.surface.set_camera_position(position)
         self.main_tile = background
         self.accepted = True
-        print 'New world with background', self.main_tile, background
+        print 'New location with background', self.main_tile, background
         
     def move_position(self, vector):
         "перемещаем камеру"
