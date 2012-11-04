@@ -3,7 +3,7 @@
 from config import *
 from engine.errors import *
 
-from share.point import Point
+from share.point cimport Point
 
 from engine.world.chunk import Chunk, near_cords
 from engine.world.map_source import load_map
@@ -20,8 +20,7 @@ from types import ClassType
 import imp
 
 
-
-
+from cpython cimport bool
 
 class PersistentLocation(object):
     def __init__(self, mapname):
@@ -104,8 +103,13 @@ class PersistentLocation(object):
 
 
 class ChoiserMixin:
-    def choice_position(self, player, chunk = None, radius = 0):
+    def choice_position(self, player, chunk = None, int radius = 0):
         "выбирает случайную позицию, доступную для объекта"
+        cdef set chunks_with_bad, bad_chunks, chunk_keys
+        cdef list chunk_keys_list
+        cdef int i,j, chunk_i, chunk_j
+        cdef bool ignore_chunk, ignore_position
+
         print '%s: choice_position %s' % (self.name, player)
         start_chunk = chunk
         assert start_chunk is None or isinstance(start_chunk, Point)
@@ -135,10 +139,10 @@ class ChoiserMixin:
             if not ignore_chunk:
                 chunk_keys-=bad_chunks
 
-            chunk_keys = list(chunk_keys)
+            chunk_keys_list = list(chunk_keys)
 
-            while chunk_keys:
-                chunk_i, chunk_j = chunk_keys.pop(randrange(0, len(chunk_keys)))
+            while chunk_keys_list:
+                chunk_i, chunk_j = chunk_keys_list.pop(randrange(0, len(chunk_keys_list)))
                 
                 chunk = self._chunks[chunk_i][chunk_j]
 
@@ -188,7 +192,11 @@ class ChoiserMixin:
         raise NoPlaceException(err_message)
 
 
-    def _choice_in_chunk(self, player, chunk, ignore_position = False):
+    def _choice_in_chunk(self, player, chunk, bool ignore_position = False):
+        cdef list tile_cords
+        cdef int tile_i, tile_j
+        cdef Point position, shift
+
         tile_cords = chunk.tile_keys[:]
         while tile_cords:
             tile_i, tile_j = choice(tile_cords)
@@ -213,7 +221,9 @@ class ChoiserMixin:
         raise NoPlaceException()
             
     
-    def chunk_in_radius(self, I, J, radius):
+    def chunk_in_radius(self, int I, int J, int radius):
+        cdef int start_i, start_j, end_i, end_j
+
         if not radius:
             return [(I,J)]
         else:

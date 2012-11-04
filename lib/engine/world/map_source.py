@@ -63,12 +63,12 @@ near_cords = [cord.get() for cord in (Point(-1,1),Point(0,1),Point(1,1),
 class Generator:
     def __init__(self, size=300):
         self.size = size
-        self.tiles = {k:int((v/100.0)*(self.size**2)) for k,v in tiles.items()}
+        self.voxels = {k:int((v/100.0)*(self.size**2)) for k,v in tiles.items()}
         self.tile_map = [[main_tile for j in range(self.size)] for i in range(self.size)]
         self.free = [(i,j) for j in range(self.size) for i in range(self.size)]
 
     def generate(self):
-        for tile, number in self.tiles.items():
+        for tile, number in self.voxels.items():
             self.apply_tile(tile, number)
 
         for i, row in enumerate(self.tile_map):

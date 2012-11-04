@@ -3,7 +3,7 @@
 #
 from share.game_protocol import Newlocation, ServerAccept
 
-from engine.singleton import game
+from engine.world.singleton import game
 
 from engine.enginelib.meta import Updatable,GameObject, ActionDenied
 
@@ -19,17 +19,21 @@ class GameEngine:
     def __init__(self, save_time):
         game.start()
         self.messages = {}
+
+    def is_active(self):
+        self.active_chunks = game.get_active_chunks()
+        return bool(self.active_chunks)
+
             
     def game_connect(self, name):
         "создание нового игрока"
         print('New player %s' % name)
 
         #выбираем позицию для нового игрока
-        position = game.mainlocation.choice_position(Player, game.mainlocation.main_chunk)
-
+        chunk_cord = game.mainlocation.main_chunk.cord
         #создаем игрока
-        new_player = Player(name, position)
-        game.mainlocation.new_object(new_player)
+        new_player = Player(name)
+        game.mainlocation.new_object(new_player, chunk_cord)
         game.guided_changed = True
         
         yield ServerAccept()
@@ -55,17 +59,16 @@ class GameEngine:
     def game_update(self):
         "отыгрывание раунда игры"
         #получаем список активных локаций
-        self.active_chunks = game.get_active_chunks()
-        
         
         #обновляем объекты в активных локациях
-        for chunk in self.active_chunks:
+        for chunk in game.get_active_chunks():
             for player in chunk.get_list(Updatable):
-                player.update()
+                if not player._REMOVE:
+                    player.update()
             
         
         #обновляем активнеы локации
-        for chunk in self.active_chunks:
+        for chunk in game.get_active_chunks():
             chunk.update()
 
                     
@@ -85,9 +88,8 @@ class GameEngine:
         "завершение игрового раунда"
         for chunk in game.get_active_chunks():
             for player in chunk.get_list(Updatable):
-                Updatable.complete_round(player)
+                Updatable._end_round(player)
                 player.complete_round()
-                player.clear_events()
             chunk.complete_round()
         
         game.guided_changed = False

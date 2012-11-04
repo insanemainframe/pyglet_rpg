@@ -63,7 +63,8 @@ class SocketServer(Multiplexer, Process):
     #интерфейс
     def get_accepted(self):
         while not self.accepted.empty():
-            yield self.accepted.get_nowait()
+                yield self.accepted.get_nowait()
+
         raise StopIteration
 
     def get_closed(self):

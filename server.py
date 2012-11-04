@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 from sys import path
+
 path.append('lib/')
 
 
@@ -11,7 +12,6 @@ from config import HOSTNAME, PROFILE_SERVER, SERVER_PROFILE_FILE
 from share.ask_hostname import ask_hostname
 from serverside.server import GameServer
 
-import cProfile
 
 
 def main():
@@ -21,6 +21,7 @@ def main():
 
 if __name__ == '__main__':
     if PROFILE_SERVER:
+    	import cProfile
         print('profile')
         cProfile.run('main()', SERVER_PROFILE_FILE)
         

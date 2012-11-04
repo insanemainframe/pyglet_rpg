@@ -3,28 +3,33 @@
 from config import *
 
 from share.point import Point
-from engine.enginelib.meta import GameObject
+from engine.enginelib.meta import GameObject, Guided
 
-from weakref import ProxyType
+from weakref import proxy, ProxyType
 
-Voxel = list
 
 class Voxel:
-	def __init__(self):
+	def __init__(self, cord):
+		self.cord = cord
 		self._players = {}
+
 
 	def append(self, player):
 		assert isinstance(player, ProxyType)
+		
+		if isinstance(player, Guided):  print 'voxel[%s].append %s' % (self.cord, player)
 
 		self._players[player.name] = player
+		player.voxel = proxy(self)
 
 	def remove(self, player):
-		name = player.name
-		if name in self._players:
-			del self._players[name]
+		if isinstance(player, Guided):  print 'voxel[%s].remove %s' % (self.cord, player)
+		
+		del self._players[player.name]
+		del player.voxel
 
 	def __contains__(self, player):
-		assert isinstance(player, GameObject)
+		assert isinstance(player, Guided)
 		return player.name in self._players
 
 	def __iter__(self):

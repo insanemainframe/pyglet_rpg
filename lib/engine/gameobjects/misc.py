@@ -14,16 +14,11 @@ from engine.enginelib import wrappers
 
 class Misc(GameObject, Savable):
     BLOCKTILES = Player.BLOCKTILES
-    def __init__(self, position):
-        GameObject.__init__(self, position)
+    def __init__(self):
+        GameObject.__init__(self)
         self.number = randrange(self.count)
     
-    @classmethod
-    def choice_position(cls, location, chunk, i ,j):
-        if len(location.tiles[(i,j)]):
-            return False
-        else:
-            return True
+
 
     def get_args(self):
         return {'number': self.number}
@@ -47,8 +42,10 @@ class WaterFlower(Misc):
 class BigWaterFlower(WaterFlower):
     count = 9
     @classmethod
-    def choice_position(cls, location, chunk, i ,j):
-        for tile in location.get_near_tiles(i,j):
+    def verify_position(cls, location, chunk, i ,j):
+        if GameObject.verify_position(location, chunk, i ,j):
+            return False
+        for tile in location.get_near_voxels(i,j):
                 if tile in cls.BLOCKTILES:
                     return False
         return True
@@ -76,25 +73,25 @@ class AloneBush(Misc, Solid):
     BLOCKTILES = Player.BLOCKTILES + ['water']
     count = 9
     radius = TILESIZE
-    def __init__(self, position):
-        Misc.__init__(self, position)
+    def __init__(self):
+        Misc.__init__(self)
         Solid.__init__(self, self.radius)
 
 class AloneTree(Misc, Impassable):
     BLOCKTILES = Player.BLOCKTILES + ['water']
     count = 5
     radius = TILESIZE
-    def __init__(self, position):
-        Misc.__init__(self, position)
+    def __init__(self):
+        Misc.__init__(self)
         Impassable.__init__(self, self.radius)
 
     @classmethod
-    def choice_position(cls, location, chunk, i ,j):
-        if len(location.tiles[(i,j)]):
+    def verify_position(cls, location, chunk, i ,j):
+        if len(location.get_voxel(i,j)):
             return False
 
         for i,j in location.get_near_cords(i,j):
-                for player in location.tiles[(i,j)]:
+                for player in location.get_voxel(i,j):
                     if isinstance(player, AloneTree):
                         return True
         if chance(98):

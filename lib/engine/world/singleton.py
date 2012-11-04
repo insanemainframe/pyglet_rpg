@@ -62,9 +62,12 @@ class __GameSingleton(object):
             del self.active_locations[key]
     
         
-    def new_object(self, player):
+    def _new_object(self, player):
         "создает динамический объект"
         assert not isinstance(player, ProxyType)
+
+        if isinstance(player, Guided):  print 'game._new_object', player
+        
         self.players[player.name] = player
          
         if isinstance(player, Guided):
@@ -74,20 +77,31 @@ class __GameSingleton(object):
         
     
     
-    def remove_object(self, player, force = False):
+    def _remove_object(self, player, force = False):
         name = player.name
-        if name in self.players:
-            if not force:
-                result = player.handle_remove()
+        if not force:
+            result = player.handle_remove()
+        else:
+            result = 'disconnect', ()
+
+        if result:
+            assert result is True or isinstance(result, Sequence) and len(result)>1
+
+            if isinstance(player, Guided):  print 'game._remove_object', player, force
+
+            if result is True:
+                player.location.pop_object(player)
             else:
-                result = 'disconnect', ()
-            if result:
-                assert result is True or isinstance(result, Sequence) and len(result)>1
-                if result is True:
-                    player.location.pop_object(player)
-                else:
-                    player.location.pop_object(player, result)
-                del self.players[name]
+                player.location.pop_object(player, result)
+
+            if isinstance(player, Guided):
+                print "%s refcount: %s" % (player, getrefcount(self.players[name]))
+
+            del self.players[name]
+            
+        else:
+            player._REMOVE = False
+            player.location.respawn(player)
 
 
             
@@ -98,46 +112,46 @@ class __GameSingleton(object):
 
 
     def remove_guided(self, name):
-        player = self.guided_players[name]
+        print '\n\n remove_guided', name
+        if name in self.guided_players:
+            player = self.guided_players[name]
 
-        self.remove_object(player, True)
+            self._remove_object(player, True)
+            del self.guided_players[name]
 
     
 
 
-    def change_location(self, player, location_name, new_position = False):
+    def change_location(self, player, location_name, new_position = None):
         "переметить объект из одного мира в другой"
-        ref_player = proxy(player)
+
+        assert isinstance(player, ProxyType)
+        assert new_position is None or isinstance(new_position, Point)
+
+        if isinstance(player, Guided):  print 'game.change_location', player, location_name
 
         prev_location = player.location
+
         new_location = self.locations[location_name]
-        
-        prev_location.remove_object(player)
-        player.chunk.pop_object(player)
-        
-        teleport_chunk = new_location.get_chunk(choice(new_location.teleports))
+    
+
+        #нходим новый чанк
+        dest_chunk_cord = choice(new_location.teleports)
+        print dest_chunk_cord
         
         if not new_position:
-            new_position = new_location.choice_position(player, teleport_chunk)
-        li, lj = (new_position/TILESIZE/CHUNK_SIZE).get()
+            (chunk_i, chunk_j),new_position = new_location.choice_position(player, chunk=dest_chunk_cord)
+            new_chunk_cord = Point(chunk_i, chunk_j)
+        else:
+            new_chunk_cord = new_location.get_chunk_cord(new_position)
+        
+        #меняем локацию
+        prev_location.pop_object(player)
+        new_location.add_object(player, new_chunk_cord, new_position)
+        new_chunk = player.chunk
+                
         
         
-
-        new_chunk = new_location.chunks[li][lj]
-        new_chunk.add_object(ref_player)
-        new_location.add_object(ref_player)
-
-        
-        player.location = proxy(new_location)
-        
-        
-        player.chunk = proxy(new_chunk)
-        player.set_position(new_position)
-        player.flush()
-        
-        
-        player.location_changed = True
-        player.cord_changed = True
         if isinstance(player, Movable):
             player.flush()
         #обновляем хэш объекта
@@ -145,13 +159,13 @@ class __GameSingleton(object):
         
         if isinstance(player, HierarchySubject):
             for slave in player.get_slaves():
-                position = new_location.choice_position(slave, new_chunk)
-                self.change_location(slave, new_location, position)
+                (chunk_i, chunk_j), position = new_location.choice_position(slave, dest_chunk_cord)
+                self.change_location(slave, new_location.name, new_position = position)
         
         if isinstance(player, Container):
             for related in player.related_objects:
                 related.location = proxy(new_location)
-                related.chunk = proxy(new_chunk)
+                related.chunk = new_chunk
     
     def get_active_chunks(self):
         "список активных локаций"

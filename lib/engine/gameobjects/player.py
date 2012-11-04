@@ -25,8 +25,8 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     default_skills = 10
     fraction='players'
 
-    def __init__(self, position, name, look_size=PLAYER_LOOK_RADIUS):
-        GameObject.__init__(self, name, position)
+    def __init__(self, name, look_size=PLAYER_LOOK_RADIUS):
+        GameObject.__init__(self, name)
         HierarchySubject.__init__(self)
         Unit.__init__(self, self.speed, self.hp, Corpse, 'players')
         MapObserver.__init__(self, look_size)
@@ -131,4 +131,8 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     def complete_round(self):
         #print 'complete_round player'
         Movable.complete_round(self)
+
+    def handle_remove(self):
+        Container.handle_remove(self)
+        Respawnable.handle_remove(self)
     

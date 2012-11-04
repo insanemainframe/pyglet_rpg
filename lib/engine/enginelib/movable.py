@@ -116,9 +116,9 @@ class Movable(GameObject):
                 break
         else:
             if destination:
-                for player in self.location.tiles[(i,j)]:
+                for player in self.location.get_voxel(i,j):
                     if player.name==destination:
-                        player.collission(self)
+                        player.collission(proxy(self))
                         self.collission(player)
 
                 
@@ -126,9 +126,9 @@ class Movable(GameObject):
         return move_vector, resist, blocked
         
     def _detect_collisions(self, i,j):
-        for player in self.location.tiles[(i,j)]:
+        for player in self.location.get_voxel(i,j):
             if player.name != self.name:
-                player.collission(self)
+                player.collission(proxy(self))
                 self.collission(player)
                 if isinstance(player, Impassable):
                     return True

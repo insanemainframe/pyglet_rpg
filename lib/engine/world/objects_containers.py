@@ -34,8 +34,11 @@ class ObjectContainer:
     def remove_proxy(self, player):
         name = player.name
 
-        for type_name in self.proxy_dicts:
-            if name in self.proxy_dicts[type_name]:
+        # for type_name in self.proxy_dicts:
+        #     if name in self.proxy_dicts[type_name]:
+        
+        for p_type, type_name in self.__forproxy__.items():
+            if isinstance(player, p_type):
                 del self.proxy_dicts[type_name][name]
         self.new_players = True
 
@@ -74,17 +77,15 @@ class ObjectContainer:
                 return result
 
             else:
-                if all:
-                    return [player for player in result if isinstance(player, tuple(type_filter))]
-                else:
-                    return [player for player in result if isinstance(player, tuple(type_filter))]
+                return [player for player in result if isinstance(player, tuple(type_filter))]
+
 
     def check_players(self):
         "проверяет изменился ли список объекто в локации и соседних локациях"
         if self.new_players:
             return True
-        for chunk in self.nears:
-            if chunk.new_players:
+        for container in self.nears:
+            if container.new_players:
                 return True
         return False
 

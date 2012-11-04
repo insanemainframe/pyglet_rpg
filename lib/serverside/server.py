@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-from config import SERVER_TIMER, HOSTNAME, PROFILE_SERVER, SERVER_PROFILE_FILE, DEBUG
+from config import SERVER_TIMER, HOSTNAME, PROFILE_SERVER, SERVER_PROFILE_FILE, DEBUG, ACCEPT_NUMBER
 
 from sys import exit as sys_exit, exc_info
 import traceback
@@ -35,7 +35,8 @@ class GameServer(object):
     def game_worker(self):
         "обращается к движку по расписанию"
         #смотрим новых клиентов
-        for client_name in self.server.get_accepted(1):
+
+        for client_name in self.server.get_accepted():
             for accept_response in self.game.game_connect(client_name):
                 response = pack(accept_response)
                 self.server.put_response(client_name, response)

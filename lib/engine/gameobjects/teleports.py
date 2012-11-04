@@ -3,6 +3,7 @@
 from config import *
 
 from random import randrange
+from weakref import ProxyType
 
 from engine.enginelib.meta import *
 from engine.gameobjects.player import Player
@@ -14,31 +15,32 @@ class GetTeleport:
         self.dest = dest
         self.ttype = ttype
         self.BLOCKTILES = ttype.BLOCKTILES
-        self.choice_position = ttype.choice_position
+        self.verify_position = ttype.verify_position
     
-    def __call__(self, position):
-        return self.ttype(position, self.dest)
+    def __call__(self):
+        return self.ttype(self.dest)
         
 
 class Teleport(GameObject, Solid, Savable):
     radius = TILESIZE
     BLOCKTILES = Player.BLOCKTILES + ['water']
     min_dist = 10
-    def __init__(self, position, dest):
-        GameObject.__init__(self, position)
+    def __init__(self, dest):
+        GameObject.__init__(self)
         self.dest = dest
     
-    def handle_creating(self):
-        self.location.teleports.append(self.position)
+    def handle_new_world(self):
+        self.location.teleports.append(self.chunk.cord)
     
     @wrappers.player_filter(Guided)
     def collission(self, player):
-        self.location.game.change_location(player, self.dest)
+        assert isinstance(player, ProxyType)
+        self.location.game.change_location(player, location_name = self.dest)
     
 
     @classmethod
-    def choice_chunk(cls, location, chunk):
-        if len(chunk.gt_list(Teleport))>0:
+    def verify_chunk(cls, location, chunk):
+        if len(chunk.get_list(Teleport))>0:
             return False
         return True
 
@@ -49,11 +51,11 @@ class Teleport(GameObject, Solid, Savable):
         return True
 
     def __save__(self):
-        return [self.position.get(), self.dest]
+        return [ self.dest]
     
     @staticmethod
-    def __load__((x,y), dest):
-        return [Point(x,y), dest]
+    def __load__(dest):
+        return [dest]
 
 class Cave(Teleport):
     pass

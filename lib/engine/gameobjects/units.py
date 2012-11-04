@@ -10,7 +10,7 @@ from engine.gameobjects.shells import *
 from engine.enginelib.movable import Movable
 from engine.enginelib import wrappers
 
-
+from weakref import ProxyType
 
 class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubject):
     lifetime = 60
@@ -24,9 +24,9 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
     name_counter = 0
     leash_size = 4
     
-    def __init__(self, position):     
+    def __init__(self):     
         HierarchySubject.__init__(self)
-        GameObject.__init__(self, position)
+        GameObject.__init__(self)
         Unit.__init__(self, self.speed, self.hp, Corpse, 'good')
         Stalker.__init__(self, self.look_size)
         Striker.__init__(self, 10, AllyBall, self.damage)
@@ -41,6 +41,8 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
         self.fraction = self.master.fraction
     
     def update(self):
+        assert isinstance(self.master, ProxyType)
+
         if self.master:
             o_pos = self.master.position
             pos = self.position
@@ -76,6 +78,20 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
         if self.master:
             self.unbind_master()
 
+    @classmethod
+    def verify_chunk(self, location, chunk):
+        return True
+
+    def verify_chunk(self, location, chunk):
+        print 'ally verify_chunk'
+        if chunk==self.master.chunk:
+            return True
+        for chunk in chunk.get_nears():
+            if chunk==self.master.chunk:
+                return True
+        return False
+
+
 
 class Cat(Walker, Solid, Stalker, DiplomacySubject, GameObject):
     speed = 20
@@ -84,8 +100,8 @@ class Cat(Walker, Solid, Stalker, DiplomacySubject, GameObject):
     alive = True
     look_size = 300
     
-    def __init__(self, name, position):
-        GameObject.__init__(self, name, position)
+    def __init__(self):
+        GameObject.__init__(self)
         Solid.__init__(self, self.radius)
         Movable.__init__(self, self.speed)
         DiplomacySubject.__init__(self, 'good')
@@ -126,8 +142,8 @@ class Bat(Fighter, MetaMonster):
     BLOCKTILES = ['stone', 'forest']
     SLOWTILES = {}
     
-    def __init__(self, name, position):
-        MetaMonster.__init__(self, name, position, self.speed, self.hp)
+    def __init__(self):
+        MetaMonster.__init__(self, self.speed, self.hp)
         Fighter.__init__(self, self.damage, self.attack_speed)
     
     def complete_round(self):
@@ -141,8 +157,8 @@ class Zombie(Fighter, MetaMonster):
     attack_speed = 10
     loot_cost = 30
     
-    def __init__(self, name, position):
-        MetaMonster.__init__(self, name, position, self.speed, self.hp)
+    def __init__(self):
+        MetaMonster.__init__(self,  self.speed, self.hp)
         Fighter.__init__(self, self.damage, self.attack_speed)
     
     def complete_round(self):
@@ -157,8 +173,8 @@ class Ghast(Fighter, MetaMonster):
     attack_speed = 30
     loot_cost = 90
     
-    def __init__(self, name, position):
-        MetaMonster.__init__(self, name, position, self.speed, self.hp)
+    def __init__(self):
+        MetaMonster.__init__(self, self.speed, self.hp)
         Fighter.__init__(self, self.damage, self.attack_speed)
     
     def complete_round(self):
@@ -172,8 +188,8 @@ class Lych(MetaMonster, Striker):
     damage = 5
     loot_cost = 60
     
-    def __init__(self, name, position):
-        MetaMonster.__init__(self, name, position, self.speed, self.hp)
+    def __init__(self):
+        MetaMonster.__init__(self, self.speed, self.hp)
         Striker.__init__(self, 10, DarkBall, self.damage)
     
     def update(self):

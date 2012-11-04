@@ -5,13 +5,16 @@ from engine.enginelib.meta import *
 from engine.enginelib.movable import Movable
 from engine.enginelib import wrappers
 
+from weakref import ProxyType
 
 from config import *
 
 class Shell(Movable, DiplomacySubject, Temporary, Solid, Mortal, ActiveState):
      counter = 0
-     def __init__(self, position, direct, speed, fraction, striker, damage, alive_after_collission):
-        GameObject.__init__(self, position)
+     def __init__(self, direct, speed, fraction, striker, damage, alive_after_collission):
+        assert isinstance(striker, ProxyType)
+
+        GameObject.__init__(self)
         Movable.__init__(self, self.speed)
         Mortal.__init__(self, damage, alive_after_collission)
         DiplomacySubject.__init__(self, fraction)
@@ -36,8 +39,8 @@ class Ball(Fragile,  Shell):
     BLOCKTILES = ['stone', 'forest']
     explode_time = 20
     alive_after_collission = False
-    def __init__(self,position, direct, fraction, striker, damage = 2):
-        Shell.__init__(self,position, direct, self.speed, fraction, striker, damage, self.alive_after_collission)
+    def __init__(self, direct, fraction, striker, damage = 2):
+        Shell.__init__(self,direct, self.speed, fraction, striker, damage, self.alive_after_collission)
         Temporary.__init__(self, 1)
         
     

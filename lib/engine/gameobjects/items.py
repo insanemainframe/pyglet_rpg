@@ -12,8 +12,8 @@ class Item(GameObject, Solid, Temporary):
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     radius = TILESIZE
     lifetime = 300
-    def __init__(self, position):
-        GameObject.__init__(self, position)
+    def __init__(self,):
+        GameObject.__init__(self)
         Temporary.__init__(self, 10*self.lifetime)
     
     @wrappers.player_filter(Equipment)
@@ -73,8 +73,8 @@ class Cloak(Item):
 class Lamp(Item):
      def effect(self):
          from engine.gameobjects.units import Ally
-         position = self.location.choice_position(Ally, self.owner.chunk)
-         ally = Ally(position)
+         ally = Ally()
          ally.bind_master(self.owner)
-         self.location.new_object(ally)
+         self.owner.location.new_object(ally, chunk = self.owner.chunk.cord)
+         
         

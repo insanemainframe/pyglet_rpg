@@ -12,6 +12,7 @@ from engine.enginelib import wrappers
 
 from random import randrange, random      
 from math import hypot
+from weakref import ProxyType
 
 class Unit(Solid, Movable, Deadly, DiplomacySubject, Updatable, GameObject):
     def __init__(self, speed, hp, corpse, fraction):
@@ -22,20 +23,19 @@ class Unit(Solid, Movable, Deadly, DiplomacySubject, Updatable, GameObject):
         Solid.__init__(self, TILESIZE/2)
 
     @classmethod
-    def choice_chunk(cls, location, chunk):
+    def verify_chunk(cls, location, chunk):
         for player in chunk.get_list(Unit):
             if player.fraction!=cls.fraction and player.fraction!='good':
                 return False
         return True
 
     @classmethod
-    def choice_position(cls, location, chunk, ci ,cj):
-        for tile in location.get_near_tiles(ci ,cj):
-            if tile in cls.BLOCKTILES:
-                return False
+    def verify_position(cls, location, chunk, ci ,cj):
+        if not GameObject.verify_position(location, chunk, ci ,cj):
+            return False
 
         for i,j in location.get_near_cords(ci ,cj) + [(ci ,cj)]:
-                for player in location.tiles[(i,j)]:
+                for player in location.get_voxel(i,j):
                     if isinstance(player, Solid):
                         return False
 
@@ -47,12 +47,14 @@ class Lootable(Deadly):
     def __init__(self, cost):
         if TEST_MODE:
             cost = 100
+            self.loot = [Lamp]
         self.cost = cost if cost<= 100 else 50
+
     
     def die(self):
         if chance(self.cost):
-            item = choice(self.loot)(self.position)
-            self.location.new_object(item)
+            item = choice(self.loot)()
+            self.location.new_object(item, position = self.position)
         Deadly.die(self)
 
 
@@ -66,7 +68,7 @@ class Fighter:
     def fight_all(self):
         if self.attack_counter==0:
             for i,j in self.location.get_near_cords(*self.cord.get()):
-                tile = self.location.tiles[(i,j)]
+                tile = self.location.get_voxel(i,j)
                 for player in tile:
                     if isinstance(player, Unit):
                         
@@ -116,6 +118,7 @@ class Stalker:
                             dists.append((player, player.position - self.position))
                 if dists:
                     victim, vector = min(dists, key = lambda (victim, vector): abs(vector))
+                    assert isinstance(victim, ProxyType)
                     return victim, vector
                 else:
                     return False
@@ -131,8 +134,8 @@ class Striker:
     @wrappers.alive_only()
     def strike_ball(self, vector):
         if self.strike_counter==0 and vector:
-            ball = self.strike_shell(self.position, vector, self.fraction, self.name, self.damage)
-            self.location.new_object(ball)
+            ball = self.strike_shell(vector, self.fraction, proxy(self), self.damage)
+            self.location.new_object(ball, position = self.position)
             self.strike_counter+=self.strike_speed
     
     def plus_damage(self, damage):
@@ -192,8 +195,8 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, GameObject, Sava
     SLOWTILES = {'water':0.5, 'bush':0.3}
     fraction = 'monsters'
     
-    def __init__(self, name, position, speed, hp):
-        GameObject.__init__(self, position, name)
+    def __init__(self, speed, hp):
+        GameObject.__init__(self)
         Unit.__init__(self, speed, hp, Corpse, self.fraction)
         Stalker.__init__(self, self.look_size)
         Respawnable.__init__(self, 60, 100)
@@ -244,11 +247,9 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, GameObject, Sava
         Movable.complete_round(self)
 
     def __save__(self):
-        return self.name, self.position.get()
+        return []
 
     @staticmethod
-    def __load__(name, x_y):
-        x,y = x_y
-        position = Point(x,y)
-        return name, position
+    def __load__():
+        return []
 
