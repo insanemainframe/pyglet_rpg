@@ -16,14 +16,15 @@ class Voxel:
 
 	def append(self, player):
 		assert isinstance(player, ProxyType)
+		assert not hasattr(player, 'voxel')
 		
-		if isinstance(player, Guided):  print 'voxel[%s].append %s' % (self.cord, player)
+		if isinstance(player, Guided):  print ('voxel[%s].append %s' % (self.cord, player))
 
 		self._players[player.name] = player
 		player.voxel = proxy(self)
 
 	def remove(self, player):
-		if isinstance(player, Guided):  print 'voxel[%s].remove %s' % (self.cord, player)
+		if isinstance(player, Guided):  print ('voxel[%s].remove %s' % (self.cord, player))
 		
 		del self._players[player.name]
 		del player.voxel
@@ -38,10 +39,10 @@ class Voxel:
 		raise StopIteration
 
 	def __add__(self, voxel):
-		return self._players.values()+voxel._players.values()
+		return self._players.values() + list(voxel._players.values())
 
 	def __radd__(self, players_list):
-		return players_list + self._players.values()
+		return players_list + list(self._players.values())
 
 	def __len__(self):
 		return len(self._players)

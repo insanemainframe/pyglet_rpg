@@ -25,25 +25,28 @@ class EpollMultiplexer:
             event_pairs = self._poller.poll()
             while event_pairs:
                 fileno, event = event_pairs.pop()
-                try:
-                    if fileno==self.in_fileno:
-                        self._handle_accept(IN)
-                        
-                    elif fileno==self.out_fileno:
-                        self._handle_accept(OUT)
-                        
-                    elif event==EPOLLIN: 
-                        if fileno in self.infilenos:
-                            client_name = self.infilenos[fileno]
-                            self._handle_read(client_name)
+                
+                if fileno==self.in_fileno:
+                    self._handle_accept(IN)
                     
-                    elif event==EPOLLHUP:
-                        self._handle_error(Error, fileno, event)
+                elif fileno==self.out_fileno:
+                    self._handle_accept(OUT)
+                    
+                elif event==EPOLLIN: 
+                    if fileno in self.infilenos:
+                        client_name = self.infilenos[fileno]
+                        self._handle_read(client_name)
+                
+                elif event==EPOLLHUP:
+                    if fileno in self.infilenos:
+                        client_name = self.infilenos[fileno]
+                    else:
+                        client_name = self.outfilenos[fileno]
+                    self._handle_close(fileno)
                             
-                except socket_error as Error:
-                    print 'socket_error', Error
-                    self._handle_error(Error, fileno, event)
-        print 'polling end'
+                # except socket_error as Error:
+                #     self._handle_error(Error, fileno, event)
+        print ('polling end')
 
 
 class SelectMultiplexer:

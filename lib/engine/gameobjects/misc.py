@@ -9,7 +9,6 @@ from engine.mathlib import chance
 
 from engine.enginelib.meta import *
 from engine.gameobjects.player import Player
-from engine.enginelib import wrappers
 
 
 class Misc(GameObject, Savable):
@@ -77,12 +76,14 @@ class AloneBush(Misc, Solid):
         Misc.__init__(self)
         Solid.__init__(self, self.radius)
 
-class AloneTree(Misc, Impassable):
+class AloneTree(Misc, Impassable, Breakable):
     BLOCKTILES = Player.BLOCKTILES + ['water']
     count = 5
     radius = TILESIZE
+    hp = 100
     def __init__(self):
         Misc.__init__(self)
+        Breakable.__init__(self, self.hp)
         Impassable.__init__(self, self.radius)
 
     @classmethod

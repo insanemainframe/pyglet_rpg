@@ -10,9 +10,11 @@ TMP = "/tmp"
 HOSTNAME = '127.0.0.1'
 IN_PORT = 8888
 OUT_PORT = 8889
-SERIALISATION = 'json'
-# SERIALISATION = 'marshal'
-ZLIB = False
+# SERIALIZATION_TYPE = 'json'
+SERIALIZATION_TYPE = 'marshal'
+
+SERIALIZATION_FILE_TYPE = 'marshal'
+USE_ZLIB = True
 
 
 ACCEPT_NUMBER = 0
@@ -27,11 +29,12 @@ SQUARE_FOV = True
 LOCATION_PATH = 'data/locations/%s/'
 LOCATION_PERSISTENCE = True
 SAVE_LOCATION = True
-LOCATION_FILE = 'location.marshal.zlib'
-MAP_FILE = 'map.marshal.zlib'
+LOCATION_FILE = 'location.%s.zlib' % SERIALIZATION_FILE_TYPE
+MAP_FILE = 'map.%s.zlib' % SERIALIZATION_FILE_TYPE
 MAP_IMAGE = 'map.png'
 MAP_DICT = 'tiledict.py'
 LOCATION_MUL = 1
+MAP_ZLIB = False
 
 
 

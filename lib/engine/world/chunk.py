@@ -6,7 +6,7 @@ from weakref import proxy, ProxyType
 
 from share.point import Point
 from engine.world.objects_containers import ActivityContainer, ObjectContainer
-from engine.enginelib.meta import Solid, Updatable, Deadly, DiplomacySubject, Guided
+from engine.enginelib.meta import Solid, Updatable, Breakable, DiplomacySubject, Guided
 from engine.enginelib.units_lib import Unit
 from engine.gameobjects.teleports import Teleport
 
@@ -18,7 +18,7 @@ near_cords = [cord.get() for cord in (Point(-1,1),Point(0,1),Point(1,1),
 
 class Chunk(ObjectContainer, ActivityContainer):
     "функционал локации для работы с объектами"
-    proxy_list = (Solid, Updatable, Deadly, Unit, Teleport)
+    proxy_list = (Solid, Updatable, Breakable, Unit, Teleport)
     def __init__(self, location, i,j):
         self.location = location
         self.i, self.j = i,j
@@ -40,20 +40,22 @@ class Chunk(ObjectContainer, ActivityContainer):
                          if 0<base_i+I<self.location.size and 0<base_j+J < self.location.size] 
 
     def change_position(self, player, new_position):
-        assert isinstance(player, ProxyType) and isinstance(new_position, Point)
+        assert isinstance(player, ProxyType)
+        assert isinstance(new_position, Point)
 
         prev_position = player._position
 
         new_cord = new_position/TILESIZE
 
-        if 0<=new_position.x<=self.location.position_size and 0<=new_position.y<=self.location.position_size:
+        if self.location.is_valid_position(new_position):
             new_chunk = self.location.get_chunk_cord(new_position)
 
             if new_chunk!=player.chunk.cord:
                 self.location.change_chunk(player, new_chunk)
 
             if player.cord!=new_cord:
-                if isinstance(player, Guided): print 'change cord'
+                if isinstance(player, Guided): print ('change cord')
+
                 self.location.change_cord(player, new_cord)
                     
             player._prev_position = player._position
@@ -76,10 +78,9 @@ class Chunk(ObjectContainer, ActivityContainer):
     def add_object(self, player):
         "добавляет ссылку на игрока"
         assert isinstance(player, ProxyType)
-
         assert not hasattr(player, 'chunk')
 
-        if isinstance(player, Guided):  print 'chunk.add_object', player
+        if isinstance(player, Guided):  print ('chunk.add_object', player)
 
         player.chunk = proxy(self)
         
@@ -90,10 +91,12 @@ class Chunk(ObjectContainer, ActivityContainer):
     
     def pop_object(self, player, delay_args = False):
         "удаляет ссылку из списка игроков"
-        if isinstance(player, Guided):  print 'chunk.pop_object', player
+        assert player.name in self._players
 
+        if isinstance(player, Guided):  print ('chunk.pop_object', player
+        )
         name = player.name
-        assert name in self._players
+        
 
         if delay_args:
             self.delay_args[player.gid] = delay_args
@@ -153,12 +156,5 @@ class Chunk(ObjectContainer, ActivityContainer):
         self.delay_args.clear()
 
 
-    def debug(self):
-        if DEBUG_WEAK_REFS:
-            for ref in self._players.values():
-                try:
-                    ref.__doc__
-                except ReferenceError as error:
-                    print('%s: chunk %s' % (error,self.cord))
-                    raw_input('Debug:')
+
 

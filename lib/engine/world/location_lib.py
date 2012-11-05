@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
-from engine.errors import *
+from share.errors import *
+xrange = range
 
 from share.point import Point
+from share.serialization import loads, dumps, load, dump
+
 
 from engine.world.chunk import Chunk, near_cords
 from engine.world.map_source import load_map
@@ -13,10 +16,8 @@ from engine import game_objects
 from random import randrange, choice
 from weakref import proxy,ProxyType
 from os.path import exists
-from zlib import compress, decompress
-from marshal import loads, dumps
 
-from types import ClassType
+
 import imp
 
 
@@ -26,7 +27,7 @@ import imp
 class PersistentLocation(object):
     def __init__(self, mapname):
         self.mapname = mapname
-        print 'loading map...'
+        print ('loading map...')
         self.map, self.size, self.background = load_map(mapname)
         self.position_size = self.size*TILESIZE
 
@@ -52,9 +53,9 @@ class PersistentLocation(object):
 
     def load_objects(self):
         if self.location_exists():
-            with open(LOCATION_PATH % self.mapname + LOCATION_FILE, 'rb') as w_file:
-                data = w_file.read()
-            locations_objects = loads(decompress(data))
+            filename = LOCATION_PATH % self.mapname + LOCATION_FILE
+            locations_objects = load(filename)
+
 
             for object_type, data, (x,y) in locations_objects:
                 object_type = self.get_class(object_type)
@@ -78,10 +79,9 @@ class PersistentLocation(object):
     def save(self, force = False):
         if SAVE_LOCATION or force:
             locations_objects = self.save_objects()
-            data = compress(dumps(locations_objects))
-            with open(LOCATION_PATH % self.mapname + LOCATION_FILE, 'wb') as w_file:
-                w_file.write(data)
-                print 'location %s saved' % self.name
+            filename = LOCATION_PATH % self.mapname + LOCATION_FILE
+            data = dump(locations_objects, filename)
+
 
 
     def save_objects(self):
@@ -106,7 +106,7 @@ class PersistentLocation(object):
 class ChoiserMixin:
     def choice_position(self, player, chunk = None, radius = 0):
         "выбирает случайную позицию, доступную для объекта"
-        print '%s: choice_position %s' % (self.name, player)
+        print( '%s: choice_position %s' % (self.name, player))
         start_chunk = chunk
         assert start_chunk is None or isinstance(start_chunk, Point)
 

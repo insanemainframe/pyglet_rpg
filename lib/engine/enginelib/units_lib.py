@@ -6,19 +6,18 @@ from engine.enginelib.meta import *
 from engine.mathlib import chance
 from engine.gameobjects.items import *
 from engine.enginelib.movable import Movable
-from engine.enginelib import wrappers
 
 
 
-from random import randrange, random      
+from random import randrange, random, choice    
 from math import hypot
 from weakref import ProxyType
 
-class Unit(Solid, Movable, Deadly, DiplomacySubject, Updatable, GameObject):
+class Unit(Solid, Movable, Breakable, DiplomacySubject, Updatable, GameObject):
     def __init__(self, speed, hp, corpse, fraction):
         Updatable.__init__(self)
         Movable.__init__(self, speed)
-        Deadly.__init__(self, corpse, hp)
+        Breakable.__init__(self, hp, corpse)
         DiplomacySubject.__init__(self, fraction)
         Solid.__init__(self, TILESIZE/2)
 
@@ -31,6 +30,7 @@ class Unit(Solid, Movable, Deadly, DiplomacySubject, Updatable, GameObject):
 
     @classmethod
     def verify_position(cls, location, chunk, ci ,cj):
+        print ('unit verify_position')
         if not GameObject.verify_position(location, chunk, ci ,cj):
             return False
 
@@ -42,7 +42,7 @@ class Unit(Solid, Movable, Deadly, DiplomacySubject, Updatable, GameObject):
         return True
 
 
-class Lootable(Deadly):
+class Lootable(Breakable):
     loot = [Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
     def __init__(self, cost):
         if TEST_MODE:
@@ -55,7 +55,7 @@ class Lootable(Deadly):
         if chance(self.cost):
             item = choice(self.loot)()
             self.location.new_object(item, position = self.position)
-        Deadly.die(self)
+        Breakable.die(self)
 
 
 class Fighter:
@@ -77,7 +77,7 @@ class Fighter:
                         in_distance = self.cord.in_radius(player.cord, self.atack_distance)
 
                         if enemy and in_distance:
-                            print 'fight'
+                            print ('fight')
                             player.hit(self.damage)
                             self.add_event('attack')
                             self.attack_counter = self.attack_speed
@@ -117,7 +117,7 @@ class Stalker:
                         if not player.invisible:
                             dists.append((player, player.position - self.position))
                 if dists:
-                    victim, vector = min(dists, key = lambda (victim, vector): abs(vector))
+                    victim, vector = min(dists, key = lambda pair: abs(pair[1]))
                     assert isinstance(victim, ProxyType)
                     return victim, vector
                 else:
@@ -131,7 +131,6 @@ class Striker:
         self.strike_speed = strike_speed
         self.damage = damage
     
-    @wrappers.alive_only()
     def strike_ball(self, vector):
         if self.strike_counter==0 and vector:
             ball = self.strike_shell(vector, self.fraction, proxy(self), self.damage)
@@ -211,9 +210,8 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, GameObject, Sava
     
     def hit(self, damage):
         self.stop(10)
-        Deadly.hit(self, damage)
+        Breakable.hit(self, damage)
     
-    @wrappers.alive_only(Deadly)
     def update(self):
         victim_trig = self.victim and self.victim.position_changed
 
@@ -238,10 +236,10 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, GameObject, Sava
 
 
         Movable.update(self)
-        Deadly.update(self)
+        Breakable.update(self)
     
     def get_args(self):
-        return Deadly.get_args(self)
+        return Breakable.get_args(self)
     
     def complete_round(self):
         Movable.complete_round(self)

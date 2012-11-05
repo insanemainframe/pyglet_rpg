@@ -8,7 +8,6 @@ from engine.enginelib.units_lib import *
 from engine.gameobjects.items import *
 from engine.gameobjects.shells import *
 from engine.enginelib.movable import Movable
-from engine.enginelib import wrappers
 
 from weakref import ProxyType
 
@@ -41,7 +40,7 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
         self.fraction = self.master.fraction
     
     def update(self):
-        assert isinstance(self.master, ProxyType)
+        assert self.master is None or isinstance(self.master, ProxyType)
 
         if self.master:
             o_pos = self.master.position
@@ -63,7 +62,7 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
         
         Movable.update(self)
         Striker.update(self)
-        Deadly.update(self)
+        Breakable.update(self)
         Temporary.update(self)
     
     
@@ -72,7 +71,7 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
         Striker.complete_round(self)
     
     def get_args(self):
-        return Deadly.get_args(self)
+        return Breakable.get_args(self)
     
     def handle_remove(self):
         if self.master:
@@ -83,7 +82,7 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
         return True
 
     def verify_chunk(self, location, chunk):
-        print 'ally verify_chunk'
+        print ('ally verify_chunk')
         if chunk==self.master.chunk:
             return True
         for chunk in chunk.get_nears():
@@ -208,7 +207,7 @@ class Lych(MetaMonster, Striker):
                 
             Movable.update(self)
             Striker.update(self)
-        Deadly.update(self)
+        Breakable.update(self)
     
     def complete_round(self):
         Movable.complete_round(self)

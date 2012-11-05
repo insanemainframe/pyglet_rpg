@@ -18,6 +18,9 @@ class Point:
     def __nonzero__(self):
         return bool(self.x) or bool(self.y)
 
+    def __bool__(self):
+        return bool(self.x) or bool(self.y)
+
     def __eq__(self, point):
         assert isinstance(point, Point)
         return self.x==point.x and self.y==point.y

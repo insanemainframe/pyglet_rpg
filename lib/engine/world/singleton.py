@@ -15,7 +15,7 @@ from sys import getrefcount
 
 from share.point import Point
 
-from engine.enginelib.meta import Guided, HierarchySubject, Container
+from engine.enginelib.meta import Guided, HierarchySubject, Container, Respawnable
 from engine.enginelib.movable import Movable
 from engine.world.location import Metalocation
 
@@ -66,7 +66,7 @@ class __GameSingleton(object):
         "создает динамический объект"
         assert not isinstance(player, ProxyType)
 
-        if isinstance(player, Guided):  print 'game._new_object', player
+        if isinstance(player, Guided):  print ('game._new_object', player)
         
         self.players[player.name] = player
          
@@ -78,16 +78,17 @@ class __GameSingleton(object):
     
     
     def _remove_object(self, player, force = False):
+        assert player.name in self.players
         name = player.name
-        if not force:
-            result = player.handle_remove()
-        else:
+
+        result = player.handle_remove()
+        if  force:
             result = 'disconnect', ()
 
-        if result:
+        if force or not isinstance(player, Respawnable):
             assert result is True or isinstance(result, Sequence) and len(result)>1
 
-            if isinstance(player, Guided):  print 'game._remove_object', player, force
+            if isinstance(player, Guided):  print ('game._remove_object', player, force)
 
             if result is True:
                 player.location.pop_object(player)
@@ -95,29 +96,40 @@ class __GameSingleton(object):
                 player.location.pop_object(player, result)
 
             if isinstance(player, Guided):
-                print "%s refcount: %s" % (player, getrefcount(self.players[name]))
+                print ("%s refcount: %s" % (player, getrefcount(self.players[name])))
 
             del self.players[name]
             
         else:
+            player.location.pop_object(player)
+
             player._REMOVE = False
-            player.location.respawn(player)
+            player.regid()
+            player.respawned = True
+            
+            if isinstance(player, Movable):
+                player.flush()
+
+            chunk_cord = game.mainlocation.main_chunk.cord
+            self.mainlocation.add_object(player, chunk_cord)
+
+            player.handle_respawn()
 
 
             
             
             
-        #print 'remove_object', name, name in self.players
     
 
 
     def remove_guided(self, name):
-        print '\n\n remove_guided', name
-        if name in self.guided_players:
-            player = self.guided_players[name]
+        print ('\n\n remove_guided', name)
+        assert name in self.guided_players
 
-            self._remove_object(player, True)
-            del self.guided_players[name]
+        player = self.guided_players[name]
+
+        self._remove_object(player, True)
+        del self.guided_players[name]
 
     
 
@@ -128,8 +140,8 @@ class __GameSingleton(object):
         assert isinstance(player, ProxyType)
         assert new_position is None or isinstance(new_position, Point)
 
-        if isinstance(player, Guided):  print 'game.change_location', player, location_name
-
+        if isinstance(player, Guided):  print ('game.change_location', player, location_name
+        )
         prev_location = player.location
 
         new_location = self.locations[location_name]
@@ -137,7 +149,7 @@ class __GameSingleton(object):
 
         #нходим новый чанк
         dest_chunk_cord = choice(new_location.teleports)
-        print dest_chunk_cord
+        print (dest_chunk_cord)
         
         if not new_position:
             (chunk_i, chunk_j),new_position = new_location.choice_position(player, chunk=dest_chunk_cord)
@@ -162,19 +174,14 @@ class __GameSingleton(object):
                 (chunk_i, chunk_j), position = new_location.choice_position(slave, dest_chunk_cord)
                 self.change_location(slave, new_location.name, new_position = position)
         
-        if isinstance(player, Container):
-            for related in player.related_objects:
-                related.location = proxy(new_location)
-                related.chunk = new_chunk
     
     def get_active_chunks(self):
         "список активных локаций"
-        for_sum = [location.get_active_chunks() for location in self.active_locations.values() if location.has_active_chunks()]
+        for_sum = [list(loc.get_active_chunks()) for loc in self.active_locations.values() if loc.has_active_chunks()]
         return sum(for_sum, [])
     
     def get_guided_list(self, self_name):
-        f = lambda cont:  ('(%s)'% player.name if player.name==self_name else player.name, player.kills)
-        return [f(player) for player in self.guided_players.values()]
+        return [player.get_online_tuple(self_name) for player in self.guided_players.values()]
     
     def save(self):
         for location in self.locations.values():
@@ -195,8 +202,7 @@ class __GameSingleton(object):
                 else:
                     max_count = 4
                 if count>max_count:
-                    print '\n',player.name, count
-                    #print 'refs:', gc.get_referrers(player)
+                    print ('\n',player.name, count)
                     raw_input('Debug:')
                     player._max_count = count
 

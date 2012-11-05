@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
-from engine.errors import *
+from share.errors import *
+xrange = range
+
 
 from share.point import Point
 
 from engine.world.location_lib import ChoiserMixin, PersistentLocation
 from engine.world.objects_containers import ActivityContainer
 
-from engine.enginelib.meta import Container, Guided
+from engine.enginelib.meta import Container, Guided, HierarchySubject
 
 from engine.world.chunk import Chunk, near_cords
 from engine.world.voxel import Voxel
@@ -34,7 +36,7 @@ class Metalocation(PersistentLocation, ActivityContainer, ChoiserMixin):
         
         self.teleports = [Point(self.size/2, self.size/2)]
         
-        self.chunk_number = self.size/CHUNK_SIZE +1
+        self.chunk_number = int(self.size/CHUNK_SIZE +1)
         
         
         self._players = {}
@@ -49,9 +51,10 @@ class Metalocation(PersistentLocation, ActivityContainer, ChoiserMixin):
         
 
     def new_object(self, player, chunk = None, position = None):
-        assert chunk is None or isinstance(chunk, Point)
+        assert chunk is None or isinstance(chunk, Point) and self.is_valid_chunk(chunk)
+        assert position is None or isinstance(position, Point) and self.is_valid_position(position)
         
-        if isinstance(player, Guided):  print '\n location.new_object', player
+        if isinstance(player, Guided):  print ('\n location.new_object', player)
         self.game._new_object(player)
         
         self.add_object(proxy(player), chunk, position)
@@ -60,8 +63,9 @@ class Metalocation(PersistentLocation, ActivityContainer, ChoiserMixin):
     def add_object(self, player, chunk = None, position = None):
         assert isinstance(player, ProxyType)
         assert chunk is None or isinstance(chunk, Point)
+        assert not hasattr(player, 'location')
 
-        if isinstance(player, Guided):  print 'location.add_object', player
+        if isinstance(player, Guided):  print ('location.add_object', player)
 
         if not position:
             (chunk_i, chunk_j), position = self.choice_position(player, chunk)
@@ -89,7 +93,8 @@ class Metalocation(PersistentLocation, ActivityContainer, ChoiserMixin):
 
 
     def pop_object(self, player, delay_args = False):
-        if isinstance(player, Guided):  print 'location.pop_object', player
+        if isinstance(player, Guided):  print ('location.pop_object', player)
+        assert player.name in self._players
        
         name = player.name
         prev_chunk = player.chunk
@@ -102,32 +107,17 @@ class Metalocation(PersistentLocation, ActivityContainer, ChoiserMixin):
         del player.location
         player.location_changed = True
 
-    def respawn(self, player):
-        assert isinstance(player, ProxyType)
-
-        (chunk_i, chunk_j), new_position = self.choice_position(player, self.main_chunk.cord)
-
-        player.flush()
-        player.regid()
-
-        new_chunk_cord = self.get_chunk_by_cord(chunk_i, chunk_j).cord
-        new_cord = new_position/TILESIZE
-
-        self.change_chunk(player, new_chunk_cord)
-        self.change_cord(player, new_cord)
-        player.set_position(new_position)
-
-        
-        player.respawned = True
-        player.handle_respawn()
-
-
-    
     
 
     def remove_object(self, player):
         "вызывает remove_object синглетона"
-        if isinstance(player, Guided):  print '\n location.remove_object', player
+        if isinstance(player, Guided):  print ('\n location.remove_object', player)
+
+        if isinstance(player, HierarchySubject):
+            player.unbind_all_slaves()
+
+        if isinstance(player, Container):
+            player.unbind_all()
 
         self.game._remove_object(player)
 
@@ -137,7 +127,7 @@ class Metalocation(PersistentLocation, ActivityContainer, ChoiserMixin):
         "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
         assert isinstance(player, ProxyType)
 
-        if isinstance(player, Guided):  print 'location.change_chunk', player
+        if isinstance(player, Guided):  print ('location.change_chunk', player)
 
         ci, cj = new_chunk_cord.get()
 
@@ -147,10 +137,6 @@ class Metalocation(PersistentLocation, ActivityContainer, ChoiserMixin):
             player.chunk.pop_object(player)
             cur_chunk.add_object(player)
 
-            
-            if isinstance(player, Container):
-                for related in player.related_objects:
-                    related.chunk = cur_chunk
 
     def change_cord(self, player, new_cord):
         assert isinstance(player, ProxyType)
@@ -164,9 +150,8 @@ class Metalocation(PersistentLocation, ActivityContainer, ChoiserMixin):
             player.cord = new_cord
             player.cord_changed = True
         else:
-            print "location: change_cord, key error", new_cord
+            print ("location: change_cord, key error", new_cord)
 
-    
     def get_chunk_cord(self, position):
         "возвращает координаты локации для заданой позиции"
         return position/TILESIZE/CHUNK_SIZE
@@ -185,9 +170,16 @@ class Metalocation(PersistentLocation, ActivityContainer, ChoiserMixin):
             print('Warning: invalid chunk cord %s[%s:%s]' % (self.name,chunk_i,chunk_j))
             raise Error
 
+    def is_valid_chunk(self, chunk_cord):
+            x,y = chunk_cord.get()
+            return 0<x<self.chunk_number and 0<y<self.chunk_number
 
-    def is_valid_cord(self, cord_i, cord_j):
-        return 0<cord_i<self.size and 0<cord_j<self.size
+    def is_valid_cord(self, i, j):
+        return 0<i<self.size and 0<j<self.size
+
+    def is_valid_position(self, position):
+        x,y = position.get()
+        return 0<x<self.position_size and 0<y<self.position_size
     
     def get_near_voxels(self, i,j):
         "возвращает список соседних тайлов"
@@ -220,11 +212,11 @@ class Metalocation(PersistentLocation, ActivityContainer, ChoiserMixin):
 
         
     def set_activity(self):
-        print 'set_activity'
+        print ('set_activity')
         self.game.add_active_location(self)
     
     def unset_activity(self):
-        print 'unset_activity'
+        print ('unset_activity')
         self.game.remove_active_location(self)
 
     
@@ -278,7 +270,7 @@ class Metalocation(PersistentLocation, ActivityContainer, ChoiserMixin):
     
     
     
-    def resize(self,cord):
+    def resize_cord(self,cord):
         if cord<0:
             return 0
         elif cord>self.size:
@@ -286,27 +278,24 @@ class Metalocation(PersistentLocation, ActivityContainer, ChoiserMixin):
         else:
             return cord
 
+    def resize_position(self, cord):
+        if cord<0:
+            return 0
+        elif cord>self.position_size:
+            return self.position_size
+        else:
+            return cord
+
+
     def start(self):
         result = self.load_objects()
         if not result:
             self.generate_func(self)
 
         number = len(self._players)
-        print 'Location "%s" with %s objects has been started' % (self.name, number)
-
-    def debug(self):
-        for row in self._chunks:
-            for chunk in row:
-                chunk.debug()
-
-        for player in self._players:
-            try:
-                player.__doc__
-            except ReferenceError as error:
-                print('%s %s' % (error, self.name))
+        print ('Location "%s" with %s objects has been started' % (self.name, number))
 
 
-   
                 
     
     

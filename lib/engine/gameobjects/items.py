@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 from config import *
 
+from weakref import proxy, ProxyType
+
 
 from engine.enginelib.meta import *
-from engine.enginelib.equipment import Equipment
-from engine.enginelib import wrappers
 
 
 class Item(GameObject, Solid, Temporary):
@@ -16,10 +16,10 @@ class Item(GameObject, Solid, Temporary):
         GameObject.__init__(self)
         Temporary.__init__(self, 10*self.lifetime)
     
-    @wrappers.player_filter(Equipment)
     def collission(self, player):
-        if player.add_item(self):
-            self.location.remove_object(self)
+        if isinstance(player, Container):
+            player.bind(self)
+            
         
     
     def update(self):
@@ -74,7 +74,7 @@ class Lamp(Item):
      def effect(self):
          from engine.gameobjects.units import Ally
          ally = Ally()
-         ally.bind_master(self.owner)
+         self.owner.bind_slave(proxy(ally))
          self.owner.location.new_object(ally, chunk = self.owner.chunk.cord)
          
         

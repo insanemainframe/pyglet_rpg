@@ -202,11 +202,13 @@ class SocketServer(Multiplexer, Process):
     def run(self):
         try:
             if SOCKET_SERVER_PROFILE:
+                print 'profile socket server'
                 cProfile.runctx('self._run()', globals(),locals(),SOCKET_SERVER_PROFILE_FILE)
             else:
                 self._run()
         finally:
             self.stop()
+
     def _run(self):
         self.running = True
 
@@ -231,13 +233,28 @@ class SocketServer(Multiplexer, Process):
             self._handle_exception(*exc_info())
 
         finally:
-            print 'polling exit'
+            print ('polling exit')
             self._handle_stop()
 
     
     def _handle_close(self, client_name, message):
         "закрытие подключения"
         print('Closing %s: %s' % (client_name, message))
+        self._close_connection(client_name)
+
+    def _handle_error(self, Error, fileno, event):
+        if fileno in self.infilenos:
+            client_name = self.infilenos[fileno]
+        if fileno in self.outfilenos:
+            client_name = self.outfilenos[fileno]
+        else:
+            raise Error
+
+        print '_handle_error',Error, client_name, event
+
+        self._close_connection(client_name)
+
+    def _close_connection(self, client_name):
         
         self.closed.put_nowait(client_name)
         
@@ -248,11 +265,12 @@ class SocketServer(Multiplexer, Process):
         self._unregister(infileno)
         
         
-        
         del self.infilenos[infileno]
         del self.outfilenos[outfileno]
         
         #закрываем подключения и удаляем
+        # self.clients[client_name].insock.shutdown(socket.SHUT_RDWR)
+        # self.clients[client_name].insock.shutdown(socket.SHUT_RDWR)
         
         self.clients[client_name].insock.close()
         self.clients[client_name].outsock.close()

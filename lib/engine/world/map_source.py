@@ -2,12 +2,10 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from zlib import compress, decompress
+from share.serialization import loads, dumps, load, dump
 
 import os, imp
 
-
-from marshal import loads, dumps
 
 from collections import Counter
 
@@ -25,28 +23,23 @@ def load_map(mapname):
 
     
     if os.path.exists(map_file):
-        with open(map_file,'rb') as mapfile:
-            tmap = loads(decompress(mapfile.read()))
+        map_data = load(map_file)
         
+        tilemap, size, background =  map_data
+
         print('\tmap loaded from pickle')
-        tilemap, size, background =  tmap
         return tilemap, size, background
 
     else:
         print('/data/map.data doesnt exist')
         #gen = Generator()
         gen = FromImage(map_image, dict_file)
+
         tilemap, size, background = gen.generate()
+        map_data = tilemap, size, background
 
-        
-        
+        source = dump(map_data, map_file)
 
-        
-        
-        s = compress(dumps((tilemap, size, background)))
-
-        with  open(map_file,'wb') as mapfile:
-            mapfile.write(s)
         
         return tilemap, size, background
 
@@ -81,7 +74,7 @@ class Generator:
 
 
     def apply_tile(self, tile, number):
-        print 'apply_tile', tile, number
+        print( 'apply_tile', tile, number)
         limit = number*(self.size**2)/5
         c = 0
         while number>0 :
@@ -133,7 +126,7 @@ class FromImage:
                 color = m[i,j][:3]
                 tile = tiledict[color]
                 counter[tile]+=1
-                row.append(tile)
+                row.append(unicode(tile))
             tilemap.append(row)
             
         print('\tmap loaded:',size)

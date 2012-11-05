@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from types import ClassType
 from weakref import proxy, ProxyType
 
 from engine.enginelib.meta import ActiveState
@@ -52,15 +51,15 @@ class ObjectContainer:
     def _get_list(self, all, *type_filter):
         if not type_filter:
             if all:
-                return sum([(chunk.players.values()) for chunk in self.nears], self.players.values())
+                return sum([list(chunk.players.values()) for chunk in self.nears], list(self.players.values()))
             else:
-                return self.players.values()
+                return list(self.players.values())
 
         else:
             type_filter = list(type_filter)
             filter_type = type_filter.pop()
 
-            assert isinstance(filter_type, (type, ClassType))
+            assert isinstance(filter_type, type)
 
             filter_type = filter_type.__name__
 
@@ -68,10 +67,10 @@ class ObjectContainer:
             assert filter_type in self.proxy_dicts
 
             if all:
-                start = self.proxy_dicts[filter_type].values()
-                result = sum([chunk.proxy_dicts[filter_type].values() for chunk in self.nears], start)
+                start = list(self.proxy_dicts[filter_type].values())
+                result = sum([list(chunk.proxy_dicts[filter_type].values()) for chunk in self.nears], start)
             else:
-                result = self.proxy_dicts[filter_type].values()
+                result = list(self.proxy_dicts[filter_type].values())
 
             if not type_filter:
                 return result

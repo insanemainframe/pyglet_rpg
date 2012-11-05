@@ -4,12 +4,12 @@ from config import *
 
 from engine.enginelib.meta import *
 from engine.mathlib import chance
-from engine.enginelib.units_lib import *
+from engine.enginelib.units_lib import Unit, Striker, Stats
 from engine.gameobjects.shells import Ball
 from engine.enginelib.movable import Movable
-from engine.enginelib.skills import *
+from engine.enginelib.skills import Skill
+from engine.enginelib.equipment import Equipment
 from engine.enginelib.map_observer import MapObserver
-from engine.enginelib import wrappers
 
 import  share.game_protocol as protocol
 
@@ -18,7 +18,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     min_dist = 10
     prev_looked = set()
     speed = TILESIZE*0.5
-    hp = 60
+    hp = 1 #60
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     SLOWTILES = {'water':0.5, 'bush':0.3}
     damage = 5
@@ -99,11 +99,9 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
             yield protocol.EquipmentDict(self.look_items())
             self.equipment_changed = False
             
-    @wrappers.alive_only()
     def Strike(self, vector):
         self.strike_ball(vector)
     
-    @wrappers.alive_only()
     def Move(self, vector, destination):
             Movable.move(self, vector, destination)
     
@@ -117,14 +115,17 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         self.apply_item(slot)
     
     def get_args(self):
-        return Deadly.get_args(self)
+        return Breakable.get_args(self)
+
+    def handle_respawn(self):
+        MapObserver.handle_respawn(self)
+        Breakable.handle_respawn(self)
     
-    @wrappers.alive_only(Deadly)
     def update(self):
         #print 'update player'
         Movable.update(self)
         Striker.update(self)
-        Deadly.update(self)
+        Breakable.update(self)
         Stats.update(self)
         DiplomacySubject.update(self)
     
@@ -132,7 +133,4 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         #print 'complete_round player'
         Movable.complete_round(self)
 
-    def handle_remove(self):
-        Container.handle_remove(self)
-        Respawnable.handle_remove(self)
     

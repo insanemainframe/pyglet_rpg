@@ -62,7 +62,7 @@ class GameEngine:
         
         #обновляем объекты в активных локациях
         for chunk in game.get_active_chunks():
-            for player in chunk.get_list(Updatable):
+            for player in chunk.get_list(Updatable)[:]:
                 if not player._REMOVE:
                     player.update()
             
@@ -87,7 +87,7 @@ class GameEngine:
     def end_round(self):
         "завершение игрового раунда"
         for chunk in game.get_active_chunks():
-            for player in chunk.get_list(Updatable):
+            for player in chunk.get_list(Updatable)[:]:
                 Updatable._end_round(player)
                 player.complete_round()
             chunk.complete_round()

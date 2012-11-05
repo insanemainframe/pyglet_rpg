@@ -3,7 +3,6 @@
 #
 from engine.enginelib.meta import *
 from engine.enginelib.movable import Movable
-from engine.enginelib import wrappers
 
 from weakref import ProxyType
 
@@ -23,10 +22,10 @@ class Shell(Movable, DiplomacySubject, Temporary, Solid, Mortal, ActiveState):
         self.alive = True
         self.striker = striker
     
-     @wrappers.player_filter(Deadly)
      def collission(self, player):
-         player.move(self.direct)
-         Mortal.collission(self, player)
+        if isinstance(player, Breakable):
+            player.move(self.direct)
+            Mortal.collission(self, player)
 
 
 
@@ -51,7 +50,6 @@ class Ball(Fragile,  Shell):
             
     
     
-    @wrappers.alive_only()
     def collission(self, player):
         Mortal.collission(self, player)
                 

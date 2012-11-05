@@ -16,7 +16,8 @@ class Move(GameProtocol):
         return self.vector.get(), self.destination
     
     @classmethod
-    def unpack(cls, (x,y), destination):
+    def unpack(cls, x_y, destination):
+        x, y = x_y
         return (Point(x,y), destination)
 
 #стрельба

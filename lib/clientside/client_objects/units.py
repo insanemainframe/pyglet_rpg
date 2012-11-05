@@ -40,6 +40,9 @@ class Player(Sweemer, Movable, DynamicObject, Deadly):
     def die(self):
         self.moving = False
         Deadly.die(self)
+
+    def disconnect(self):
+        pass
     
     def round_update(self):
         Deadly.round_update(self)

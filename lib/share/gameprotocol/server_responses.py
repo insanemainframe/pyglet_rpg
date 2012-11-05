@@ -3,16 +3,6 @@
 from share.gameprotocol.meta import GameProtocol
 from share.point import Point
 
-class Events:
-    #name, object_type, action, args=()
-    @classmethod
-    def pack_events(cls, events):
-        return {name:tuple(event) for name, event in events.items()}
-        
-    @classmethod
-    def unpack_events(cls, events):
-        return events
-
 
 
 class ServerAccept(GameProtocol):
@@ -78,17 +68,18 @@ class LookLand(GameProtocol):
 
         return land, observed
 
-class LookEvents(GameProtocol, Events):
+
+class LookEvents(GameProtocol):
     def __init__(self, events):
         self.events = events
         
     def pack(self):
-        events = self.pack_events(self.events)
+        events = {name:[tuple(event) for event in eventlist] for name, eventlist in self.events.items()}
+
         return [events]
     
     @classmethod
     def unpack(cls, events):
-        events = cls.unpack_events(events)
         return events
 
 class LookObjects(GameProtocol):
@@ -151,7 +142,7 @@ class PlayersList(GameProtocol):
         self.player_list = player_list
     
     def pack(self):
-        return (self.player_list,)
+        return ([tuple(online_tuple) for online_tuple in self.player_list],)
     
     @classmethod
     def unpack(cls, player_list):

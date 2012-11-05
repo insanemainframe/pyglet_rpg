@@ -7,7 +7,6 @@ from weakref import ProxyType
 
 from engine.enginelib.meta import *
 from engine.gameobjects.player import Player
-from engine.enginelib import wrappers
 
 class GetTeleport:
     "фабрика  телепортов"
@@ -32,10 +31,10 @@ class Teleport(GameObject, Solid, Savable):
     def handle_new_world(self):
         self.location.teleports.append(self.chunk.cord)
     
-    @wrappers.player_filter(Guided)
     def collission(self, player):
         assert isinstance(player, ProxyType)
-        self.location.game.change_location(player, location_name = self.dest)
+        if isinstance(player, Guided):
+            self.location.game.change_location(player, location_name = self.dest)
     
 
     @classmethod

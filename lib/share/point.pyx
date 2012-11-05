@@ -34,6 +34,9 @@ cdef class Point:
     def __nonzero__(Point self):
         return bool(self.x) or bool(self.y)
 
+    def __bool__(self):
+        return bool(self.x) or bool(self.y)
+
     def __abs__(Point self):
         return hypot(self.x,self.y)
     

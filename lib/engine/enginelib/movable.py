@@ -5,7 +5,6 @@ from config import *
 from share.point import *
 from engine.enginelib.meta import *
 from engine.enginelib.collissions import *
-from engine.enginelib import wrappers
 
 
 
@@ -33,7 +32,6 @@ class Movable(GameObject):
         self._move_vector = Point(0,0)
         self._vector = Point(0,0)
     
-    @wrappers.alive_only()
     def move(self, vector=Point(0,0), destination=False):
         assert isinstance(vector, Point)
         
@@ -147,8 +145,6 @@ class Movable(GameObject):
         self._move_vector = Point(0,0)
     
 
-    
-    @wrappers.alive_only()
     def update(self):
         if not self._moved and self._vector:
             Movable.move(self)

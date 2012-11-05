@@ -20,11 +20,11 @@ def main():
     server.start()
 
 if __name__ == '__main__':
-    if PROFILE_SERVER:
-    	import cProfile
-        print('profile')
-        cProfile.run('main()', SERVER_PROFILE_FILE)
+	if PROFILE_SERVER:
+		import cProfile
+		print('profile')
+		cProfile.run('main()', SERVER_PROFILE_FILE)
         
-    else:
-        main()
+	else:
+		main()
 

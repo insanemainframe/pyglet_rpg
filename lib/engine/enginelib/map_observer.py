@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
+xrange = range
 
 from share.point import Point
 from engine.enginelib.meta import Updatable
@@ -45,20 +46,20 @@ class MapObserver:
     def observe(self):
         #cdef int rad, I,J, i,j, i_start, i_end, j_start, j_end
         #cdef list tile
-        print 'observe'
+        print ('observe')
 
-        self.prev_observed = self.fov.copy()
+        self.prev_observed = self.fov
 
-        self.fov.clear()
+        self.fov = set()
         self.fov_voxels = []
 
         rad = self.look_size
         I,J = self.cord.get()
 
-        i_start = self.location.resize(I-rad)
-        i_end = self.location.resize(I+rad)
-        j_start = self.location.resize(J-rad)
-        j_end = self.location.resize(J+rad)
+        i_start = self.location.resize_cord(I-rad)
+        i_end = self.location.resize_cord(I+rad)
+        j_start = self.location.resize_cord(J-rad)
+        j_end = self.location.resize_cord(J+rad)
 
         for i in xrange(i_start, i_end):
             for j in xrange(j_start, j_end):
@@ -123,9 +124,8 @@ class MapObserver:
             try:
                 if isinstance(player, Updatable):
                     events[player.gid] = player.get_events()
-                    #print player.name, events[player.gid]
             except ReferenceError:
-                print "ReferenceError: %s" % name
+                print ("ReferenceError: %s" % name)
                 raw_input()
         
 

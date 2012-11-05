@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
-from engine.errors import *
+from share.errors import *
 
 from share.point import Point
-from engine.mathlib import *
-from engine.enginelib import wrappers
-from engine.events import Event
 
-from random import choice, random
+from engine.tuples import ObjectTuple, OnlineTuple, Event
+from engine.mathlib import *
+
+from random import random
 from time import time
 from weakref import proxy, ProxyType
+
+
 
 
 class GameObject(object):
@@ -36,12 +38,9 @@ class GameObject(object):
         self.position_changed = True
         self.location_changed = False
         self._REMOVE = False
+        self._owner = None
 
 
-        
-        
-
-        
     
     def handle_creating(self):
         pass
@@ -149,7 +148,8 @@ class GameObject(object):
             object_type = 'Self'
         else:
             object_type = self.__class__.__name__
-        return self.gid, self.name, object_type, self.prev_position, self.get_args()
+
+        return ObjectTuple(self.gid, self.name, object_type, self.prev_position, self.get_args())
 
     def get_args(self):
         return {}
@@ -172,7 +172,7 @@ class ActiveState:
     def is_active(self):
         return True
     
-class Updatable:
+class Updatable(object):
     def __init__(self):
         self.__events__ = set()
         self.has_events = False
@@ -204,7 +204,7 @@ class Updatable:
 class HierarchySubject:
     def __init__(self):
         self._master = None
-        self.slaves = {}
+        self._slaves = {}
 
     @property
     def master(self):
@@ -217,43 +217,65 @@ class HierarchySubject:
 
     def bind_slave(self, slave):
         assert isinstance(slave, ProxyType)
-        self.slaves[slave.name] = slave
+
+        self._slaves[slave.name] = slave
+        slave.master = proxy(self)
+        slave.handle_bind_master()
     
     def unbind_slave(self, slave):
-        del self.slaves[slave.name]
+        self._slaves[slave.name].master = None
+        del self._slaves[slave.name]
+        slave.handle_unbind_master()
+
+    def unbind_all_slaves(self):
+        slaves = self._slaves.values()
+        for slave in slaves:
+            self.unbind_slave(slave)
 
     def get_slaves(self):
-        return self.slaves.values()
+        return self._slaves.values()
 
-    def bind_master(self, master):
-        self.master = master
-        self.master.bind_slave(proxy(self))
-        self.handle_bind_master()
+    def handle_unbind_master(self):
+        pass
 
-    def unbind_master(self):
-        self.master.unbind_slave(self)
-        self.master = None
+    def handle_bind_master(self):
+        pass
+
+
+
+
 
 
 class Container:
     def __init__(self):
-        self._owner = None
-        self.related_objects = set()
+        self._related_objects = {}
 
     def bind(self, related):
-        self.related_objects.add(related)
+        location = related.location
+        location.pop_object(related)
+
+        self._related_objects[related.name] = related
         related.owner = proxy(self)
+
+        self.handle_bind(related)
+
+    def pop_related(self, name):
+        return self._related_objects.pop(name)
 
     
     def unbind(self, related):
-        self.related_objects.remove(related)
         related.owner = None
+        self.location.new_object(related, position = self.position)
+        del self._related_objects[related.name]
 
-    def handle_remove(self):
-        for player in self.related_objects:
-            chunk_cord = self.chunk.cord
-            player.owner = None
-            self.location.new_object(player, chunk= chunk_cord)
+    def unbind_all(self):
+        relateds = self._related_objects.values()
+        for related in relateds:
+            self.unbind(related)
+
+
+    def handle_bind(self, related):
+        pass
 
 
     
@@ -274,15 +296,17 @@ class Guided(ActiveState):
             raise ActionError('no action %s' % action_name)
     
 
-    
-    @staticmethod
-    def action(method):
-        method.wrappers_action = True
-        return method
+    def get_online_tuple(self, cname):
+        if self.name!=cname:
+            name = "(%s)" % self.name
+        else:
+            name = self.name
+
+        return OnlineTuple(name, self.kills)
     
 
 
-class Solid():
+class Solid(object):
     def __init__(self, radius):
         self.radius = radius
     
@@ -296,10 +320,10 @@ class Impassable(Solid):
 
 
         
-class Deadly:
+class Breakable(object):
     "класс для живых объектов"
     heal_time = 1200
-    def __init__(self, corpse_type, hp, death_time=20):
+    def __init__(self, hp, corpse_type = None):
         self.hp_value = hp
         self.heal_speed = self.hp_value/float(self.heal_time)
         self.death_time = death_time
@@ -363,8 +387,9 @@ class Deadly:
                 self.create_corpse()
     
     def create_corpse(self):
-        corpse = self.corpse_type()
-        self.location.new_object(corpse)
+        if self.corpse_type:
+            corpse = self.corpse_type()
+            self.location.new_object(corpse)
     
     def die(self):
         self.alive = False
@@ -373,6 +398,9 @@ class Deadly:
     
     def get_args(self):
         return {'hp': self.hp, 'hp_value':self.hp_value}
+
+    def handle_respawn(self):
+        self.spawn()
     
     
         
@@ -390,7 +418,7 @@ class Mortal:
         self.alive_after_collission = alive_after_collission
     
     def collission(self, player):
-        if isinstance(player, Deadly):
+        if isinstance(player, Breakable):
             if player.fraction!=self.fraction:
                 prev_state = player.alive
                 player.hit(self.damage)
@@ -406,7 +434,7 @@ class Mortal:
 
 ####################################################################
 
-class Respawnable:
+class Respawnable(object):
     "класс перерождающихся объектов"
     respawned = False
     def __init__(self, delay, distance):
@@ -419,14 +447,10 @@ class Respawnable:
     def handle_remove(self):
         return False
 
-    def handle_respawn(self):
-        self.alive = True
-        self.respawned = True
-        self.spawn()
 
 
 
-class DiplomacySubject:
+class DiplomacySubject(object):
     fraction = 'neutral'
     def __init__(self, fraction):
         self.fraction = fraction
@@ -466,7 +490,7 @@ class Corpse(GameObject, Temporary):
         Temporary.update(self)
 
 
-class Savable:
+class Savable(object):
     def __save__(self):
         return ()
 

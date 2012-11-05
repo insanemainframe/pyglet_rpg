@@ -4,6 +4,7 @@ from config import *
 
 from engine.enginelib.meta import Container
 
+from weakref import proxy, ProxyType
 from collections import defaultdict
 
 class Equipment(Container):
@@ -14,14 +15,12 @@ class Equipment(Container):
         self.equipment = defaultdict(list)
         self.equipment_changed = False
     
-    def add_item(self, item):
+    def handle_bind(self, item):
         item_type = item.__class__.__name__
         
         self.equipment_changed  = True
-        
-        self.bind(item)
-        
-        self.equipment[item_type].append(item)
+                
+        self.equipment[item_type].append(proxy(item))
 
         return True
     
@@ -33,8 +32,9 @@ class Equipment(Container):
     def apply_item(self, item_type):
         try:
             item = self.equipment[item_type].pop()
-            
             item.effect()
+
+            self.pop_related(item.name)
             
             self.equipment_changed  = True
         except IndexError:
