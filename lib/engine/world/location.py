@@ -21,7 +21,7 @@ from collections import defaultdict
 
 
 
-class Metalocation(PersistentLocation, ActivityContainer, ChoiserMixin):
+class Location(PersistentLocation, ActivityContainer, ChoiserMixin):
     "базовый класс карты"
     monster_count = 0
     nears = []
@@ -54,7 +54,7 @@ class Metalocation(PersistentLocation, ActivityContainer, ChoiserMixin):
         assert chunk is None or isinstance(chunk, Point) and self.is_valid_chunk(chunk)
         assert position is None or isinstance(position, Point) and self.is_valid_position(position)
         
-        if isinstance(player, Guided):  print ('\n location.new_object', player)
+        if isinstance(player, Guided):  print ('\n location.new_object %s' % player)
         self.game._new_object(player)
         
         self.add_object(proxy(player), chunk, position)
@@ -65,9 +65,11 @@ class Metalocation(PersistentLocation, ActivityContainer, ChoiserMixin):
         assert chunk is None or isinstance(chunk, Point)
         assert not hasattr(player, 'location')
 
-        if isinstance(player, Guided):  print ('location.add_object', player)
+        if isinstance(player, Guided):  print ('location.add_object %s ' % player)
 
         if not position:
+            if not chunk:
+                chunk = self.main_chunk.cord
             (chunk_i, chunk_j), position = self.choice_position(player, chunk)
         else:
             chunk_i, chunk_j = self.get_chunk_cord(position).get()
@@ -92,14 +94,14 @@ class Metalocation(PersistentLocation, ActivityContainer, ChoiserMixin):
 
 
 
-    def pop_object(self, player, delay_args = False):
-        if isinstance(player, Guided):  print ('location.pop_object', player)
+    def pop_object(self, player):
+        if isinstance(player, Guided):  print ('location.pop_object %s' % player)
         assert player.name in self._players
        
         name = player.name
         prev_chunk = player.chunk
 
-        prev_chunk.pop_object(player, delay_args)
+        prev_chunk.pop_object(player)
         self.pop_from_voxel(player)
 
         self.remove_activity(player)
@@ -127,7 +129,7 @@ class Metalocation(PersistentLocation, ActivityContainer, ChoiserMixin):
         "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
         assert isinstance(player, ProxyType)
 
-        if isinstance(player, Guided):  print ('location.change_chunk', player)
+        if isinstance(player, Guided):  print ('location.change_chunk %s' % player)
 
         ci, cj = new_chunk_cord.get()
 

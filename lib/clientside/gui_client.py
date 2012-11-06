@@ -164,14 +164,13 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
                 
             
             elif action=='LookObjects':
-                new_players, old_players = message
+                new_players, events, old_players = message
                 self.objects.insert_objects(new_players, old_players)
-                
-            
-            elif action=='LookEvents':
-                events = message
                 self.objects.insert_events(events)
                 self.objects.clear()
+                
+
+                
                 
             
             elif action=='PlayerStats':

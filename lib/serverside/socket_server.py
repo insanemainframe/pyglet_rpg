@@ -83,7 +83,9 @@ class SocketServer(Multiplexer, Process):
         self.responses.put_nowait((client_name, response))
 
 
-    def _handle_exception(self, except_type, except_class, tb):
+    def _handle_exception(self, excp):
+        
+        except_type, except_class, tb
         self.excp.put_nowait((except_type, except_class, traceback.extract_tb(tb)))
         self.stop()
             
@@ -109,6 +111,7 @@ class SocketServer(Multiplexer, Process):
             print('sender stop')
 
         except:
+            print 'Exception n sender'
             self._handle_exception(*exc_info())
         finally:
             self.stop()
@@ -118,61 +121,66 @@ class SocketServer(Multiplexer, Process):
     
     def _handle_read(self, client_name):
         "читает один пакет данных из сокета, если это возможно"
-        try:
-            request = self.clients[client_name].generator.next()
+        while 1:
+            try:
+                request = self.clients[client_name].generator.next()
 
-        except socket.error as Error:
-            #если возникла ошабка на сокете - закрываем"
-            errno = Error[0]
-            self._handle_close(client_name, 'Socket Error %s' % errno)
-            return False
-                            
-        except PackageError:
-            #если возникла ошабка в пакете - закрываем"
-            self._handle_close(client_name, 'PackageError')
-            return False
-            
-        except StopIteration:
-            #если клиент отключился"
-            self._handle_close(client_name, 'Disconnect')
-            return False
-        else:
-            if request:
-                self.requestes.put_nowait((client_name, request))
-            return True
+            except socket.error as Error:
+                #если возникла ошабка на сокете - закрываем"
+                errno = Error[0]
+                self._handle_error(client_name, 'Socket Error %s' % errno)
+                break
+                                
+            except PackageError:
+                #если возникла ошабка в пакете - закрываем"
+                self._handle_error(client_name, 'PackageError')
+                break
+                
+            except StopIteration:
+                #если клиент отключился"
+                self._handle_close(client_name)
+                break
+            else:
+                if request:
+                    self.requestes.put_nowait((client_name, request))
+                else:
+                    break
             
         
     def _handle_accept(self, stream):
         "прием одного из двух соединений"
-        if stream==IN:
-            conn, (address, fileno) = self.insock.accept()
-            conn.setblocking(0)
-            print('input Connection from %s (%s)' % (fileno, address))
-            
-        elif stream==OUT:
-            conn, (address, fileno) = self.outsock.accept()
-            conn.setblocking(0)
-            ('output Connection from %s (%s)' % (fileno, address))
-        else:
-            raise HandleAcceptError('unknnown stream %s' % stream)
-        
-        conn.setblocking(0)
-        
-        if address not in self.address_buf:
-            self.address_buf[address] = conn
-        else:
+        while 1:
             if stream==IN:
-                insock = conn
-                outsock = self.address_buf[address]
+                sock = self.insock
+                message = 'input'
+                
+            elif stream==OUT:
+                sock = self.outsock
+                message = 'output'
 
+            try:
+                conn, (address, fileno) = sock.accept()
+            except socket.error as error:
+                print 'accept', error
+                break
             else:
-                 outsock = conn
-                 insock = self.address_buf[address]
-                 
-            del self.address_buf[address]
-            
-            self._accept_client(insock, outsock)
-        return True
+                conn.setblocking(0)
+                
+                if address not in self.address_buf:
+                    self.address_buf[address] = conn
+                else:
+                    if stream==IN:
+                        insock = conn
+                        outsock = self.address_buf[address]
+
+                    else:
+                         outsock = conn
+                         insock = self.address_buf[address]
+                         
+                    del self.address_buf[address]
+                    
+                    self._accept_client(insock, outsock)
+        print('_handle_accept end')
                  
     def _accept_client(self, insock, outsock):
         "регистрация клиента, после того как он подключился к обоим сокетам"
@@ -206,6 +214,10 @@ class SocketServer(Multiplexer, Process):
                 cProfile.runctx('self._run()', globals(),locals(),SOCKET_SERVER_PROFILE_FILE)
             else:
                 self._run()
+        except Exception as excp:
+            print 'SocketServer error', excp
+            self._handle_exception(*exc_info(excp))
+
         finally:
             self.stop()
 
@@ -221,41 +233,30 @@ class SocketServer(Multiplexer, Process):
         
 
         
-       
-        print('\nServer running at %s:(%s,%s) multiplexer: %s \n' % (self.hostname, IN_PORT, OUT_PORT, self.poll_engine))
-        try:
-            #запускаем sender
-            self.sender_thread.start()
+        data = (self.hostname, IN_PORT, OUT_PORT, self.poll_engine)
+        print('\nServer running at %s:(%s,%s) multiplexer: %s \n' % data)
+        #запускаем sender
+        self.sender_thread.start()
+    
+        #запускаем мультиплексор
+        self._run_poll()
         
-            #запускаем мультиплексор
-            self._run_poll()
-        except:
-            self._handle_exception(*exc_info())
 
-        finally:
-            print ('polling exit')
-            self._handle_stop()
+            
 
     
-    def _handle_close(self, client_name, message):
+    def _handle_close(self, client_name):
         "закрытие подключения"
-        print('Closing %s: %s' % (client_name, message))
-        self._close_connection(client_name)
+        self._close_connection(client_name, 'Dicconnect')
 
-    def _handle_error(self, Error, fileno, event):
-        if fileno in self.infilenos:
-            client_name = self.infilenos[fileno]
-        if fileno in self.outfilenos:
-            client_name = self.outfilenos[fileno]
-        else:
-            raise Error
 
-        print '_handle_error',Error, client_name, event
+    def _handle_error(self, client_name, error, event = None):
+        message = str(error)
 
-        self._close_connection(client_name)
+        self._close_connection(client_name, message)
 
-    def _close_connection(self, client_name):
-        
+    def _close_connection(self, client_name, message = None):
+        print 'Closing connection with %s : %s' % (client_name, message)
         self.closed.put_nowait(client_name)
         
         #
@@ -283,8 +284,6 @@ class SocketServer(Multiplexer, Process):
         self.running = False
         self.stop_event.set() 
 
-    def _handle_stop(self):
-        "сотановка сервера"
         try:
             self.sender_thread._Thread__stop()
                         #

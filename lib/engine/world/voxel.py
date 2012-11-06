@@ -18,13 +18,13 @@ class Voxel:
 		assert isinstance(player, ProxyType)
 		assert not hasattr(player, 'voxel')
 		
-		if isinstance(player, Guided):  print ('voxel[%s].append %s' % (self.cord, player))
+		# if isinstance(player, Guided) :  print ('voxel[%s].append %s' % (self.cord, player))
 
 		self._players[player.name] = player
 		player.voxel = proxy(self)
 
 	def remove(self, player):
-		if isinstance(player, Guided):  print ('voxel[%s].remove %s' % (self.cord, player))
+		# if isinstance(player, Guided):  print ('voxel[%s].remove %s' % (self.cord, player))
 		
 		del self._players[player.name]
 		del player.voxel

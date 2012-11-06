@@ -13,13 +13,12 @@ from random import randrange, random, choice
 from math import hypot
 from weakref import ProxyType
 
-class Unit(Solid, Movable, Breakable, DiplomacySubject, Updatable, GameObject):
-    def __init__(self, speed, hp, corpse, fraction):
-        Updatable.__init__(self)
-        Movable.__init__(self, speed)
-        Breakable.__init__(self, hp, corpse)
-        DiplomacySubject.__init__(self, fraction)
-        Solid.__init__(self, TILESIZE/2)
+class Unit(Solid, Movable, Breakable, DiplomacySubject, GameObject):
+    def mixin(self, speed, hp, corpse, fraction):
+        Movable.mixin(self, speed)
+        Breakable.mixin(self, hp, corpse)
+        DiplomacySubject.mixin(self, fraction)
+        Solid.mixin(self, TILESIZE/2)
 
     @classmethod
     def verify_chunk(cls, location, chunk):
@@ -30,7 +29,7 @@ class Unit(Solid, Movable, Breakable, DiplomacySubject, Updatable, GameObject):
 
     @classmethod
     def verify_position(cls, location, chunk, ci ,cj):
-        print ('unit verify_position')
+        # print ('unit verify_position')
         if not GameObject.verify_position(location, chunk, ci ,cj):
             return False
 
@@ -42,25 +41,24 @@ class Unit(Solid, Movable, Breakable, DiplomacySubject, Updatable, GameObject):
         return True
 
 
-class Lootable(Breakable):
+class Lootable:
     loot = [Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
-    def __init__(self, cost):
+    def mixin(self, cost):
         if TEST_MODE:
             cost = 100
             self.loot = [Lamp]
         self.cost = cost if cost<= 100 else 50
 
     
-    def die(self):
+    def handle_remove(self):
         if chance(self.cost):
             item = choice(self.loot)()
             self.location.new_object(item, position = self.position)
-        Breakable.die(self)
 
 
 class Fighter:
     atack_distance = int(hypot(1.5, 1.5))
-    def __init__(self, damage, attack_speed=30):
+    def mixin(self, damage, attack_speed=30):
         self.attack_speed = attack_speed
         self.attack_counter = 0
         self.damage = damage
@@ -101,7 +99,7 @@ class Fighter:
 
 class Stalker:
     "объекты охотящиеся за игроками"
-    def __init__(self, look_size):
+    def mixin(self, look_size):
         self.look_size = look_size
     
     def hunt(self, inradius = False):
@@ -125,7 +123,7 @@ class Stalker:
             return False
             
 class Striker:
-    def __init__(self, strike_speed, shell, damage):
+    def mixin(self, strike_speed, shell, damage):
         self.strike_shell = shell
         self.strike_counter = 0
         self.strike_speed = strike_speed
@@ -148,7 +146,7 @@ class Striker:
         self.striked = False
 
 class Stats:
-    def __init__(self):
+    def mixin(self):
         self.gold = 0
         self.kills = 0
         self.stats_changed = False
@@ -187,7 +185,7 @@ class Walker(Movable):
         self.move(direct)
 
 
-class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, GameObject, Savable):
+class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, Savable):
     radius = TILESIZE
     look_size = 10
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
@@ -196,14 +194,13 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, GameObject, Sava
     
     def __init__(self, speed, hp):
         GameObject.__init__(self)
-        Unit.__init__(self, speed, hp, Corpse, self.fraction)
-        Stalker.__init__(self, self.look_size)
-        Respawnable.__init__(self, 60, 100)
-        Lootable.__init__(self, self.loot_cost)
+        Unit.mixin(self, speed, hp, Corpse, self.fraction)
+        Stalker.mixin(self, self.look_size)
+        Respawnable.mixin(self, 60, 100)
+        Lootable.mixin(self, self.loot_cost)
         
         self.stopped = False
         
-        self.spawn()
         self.hunting = False
         self.victim = None
         self.is_blocked = False

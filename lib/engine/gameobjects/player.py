@@ -18,7 +18,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     min_dist = 10
     prev_looked = set()
     speed = TILESIZE*0.5
-    hp = 1 #60
+    hp = 10 #60
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     SLOWTILES = {'water':0.5, 'bush':0.3}
     damage = 5
@@ -27,14 +27,16 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
 
     def __init__(self, name, look_size=PLAYER_LOOK_RADIUS):
         GameObject.__init__(self, name)
-        HierarchySubject.__init__(self)
-        Unit.__init__(self, self.speed, self.hp, Corpse, 'players')
-        MapObserver.__init__(self, look_size)
-        Striker.__init__(self,2, Ball, self.damage)
-        Respawnable.__init__(self, 10, 30)
-        Stats.__init__(self)
-        Skill.__init__(self,self.default_skills)
-        Equipment.__init__(self)
+        Unit.mixin(self, self.speed, self.hp, Corpse, 'players')
+        
+        HierarchySubject.mixin(self)
+        
+        MapObserver.mixin(self, look_size)
+        Striker.mixin(self,2, Ball, self.damage)
+        Respawnable.mixin(self, 10, 30)
+        Stats.mixin(self)
+        Skill.mixin(self,self.default_skills)
+        Equipment.mixin(self)
         self.change_objects = False
         self.__actions__ = {'ApplyItem': self.ApplyItem, 'Move' : self.Move,
                             'Strike' : self.Strike, 'Skill' : self.Skill}
@@ -75,14 +77,11 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
 
         
         if self.chunk.check_players() or new_trig:
-            new_players, old_players = self.look_objects()
-            if new_players or old_players:
-                yield protocol.LookObjects(new_players, old_players)
+            new_players, events, old_players = self.look_objects()
+            if new_players or events or old_players:
+                yield protocol.LookObjects(new_players, events, old_players)
 
-        if self.has_events or self.chunk.check_events() or new_trig:
-            events = self.look_events()
-            if events:
-                yield protocol.LookEvents(events)
+
 
 
 
@@ -132,5 +131,10 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     def complete_round(self):
         #print 'complete_round player'
         Movable.complete_round(self)
+
+    def __del__(self):
+        HierarchySubject.__del__(self)
+        Equipment.__del__(self)
+        Unit.__del__(self)
 
     

@@ -23,13 +23,14 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
     name_counter = 0
     leash_size = 4
     
-    def __init__(self):     
-        HierarchySubject.__init__(self)
+    def __init__(self):   
         GameObject.__init__(self)
-        Unit.__init__(self, self.speed, self.hp, Corpse, 'good')
-        Stalker.__init__(self, self.look_size)
-        Striker.__init__(self, 10, AllyBall, self.damage)
-        Temporary.__init__(self, self.lifetime)
+
+        HierarchySubject.mixin(self)
+        Unit.mixin(self, self.speed, self.hp, Corpse, 'good')
+        Stalker.mixin(self, self.look_size)
+        Striker.mixin(self, 10, AllyBall, self.damage)
+        Temporary.mixin(self, self.lifetime)
         
         self.stopped = False
         
@@ -101,9 +102,9 @@ class Cat(Walker, Solid, Stalker, DiplomacySubject, GameObject):
     
     def __init__(self):
         GameObject.__init__(self)
-        Solid.__init__(self, self.radius)
-        Movable.__init__(self, self.speed)
-        DiplomacySubject.__init__(self, 'good')
+        Solid.mixin(self, self.radius)
+        Movable.mixin(self, self.speed)
+        DiplomacySubject.mixin(self, 'good')
         self.heal_counter = 0
     
     def collission(self, player):
@@ -143,7 +144,7 @@ class Bat(Fighter, MetaMonster):
     
     def __init__(self):
         MetaMonster.__init__(self, self.speed, self.hp)
-        Fighter.__init__(self, self.damage, self.attack_speed)
+        Fighter.mixin(self, self.damage, self.attack_speed)
     
     def complete_round(self):
         MetaMonster.complete_round(self)
@@ -157,8 +158,8 @@ class Zombie(Fighter, MetaMonster):
     loot_cost = 30
     
     def __init__(self):
-        MetaMonster.__init__(self,  self.speed, self.hp)
-        Fighter.__init__(self, self.damage, self.attack_speed)
+        MetaMonster.__init__(self, self.speed, self.hp)
+        Fighter.mixin(self, self.damage, self.attack_speed)
     
     def complete_round(self):
         MetaMonster.complete_round(self)
@@ -174,7 +175,7 @@ class Ghast(Fighter, MetaMonster):
     
     def __init__(self):
         MetaMonster.__init__(self, self.speed, self.hp)
-        Fighter.__init__(self, self.damage, self.attack_speed)
+        Fighter.mixin(self, self.damage, self.attack_speed)
     
     def complete_round(self):
         MetaMonster.complete_round(self)
@@ -189,7 +190,7 @@ class Lych(MetaMonster, Striker):
     
     def __init__(self):
         MetaMonster.__init__(self, self.speed, self.hp)
-        Striker.__init__(self, 10, DarkBall, self.damage)
+        Striker.mixin(self, 10, DarkBall, self.damage)
     
     def update(self):
         if self.alive:

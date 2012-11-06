@@ -34,8 +34,11 @@ def send(channel, data):
             except socket_error as Error:
                 if Error[0]==11:
                     print('send: error 11')
-
-                if Error[0] in (9, 104, 32):
+                if Error[0]==9:
+                    pass
+                elif Error[0]==104:
+                    return 
+                elif Error[0]==32:
                     return 
                 else:
                     raise Error
@@ -66,8 +69,7 @@ def receivable(channel):
     while 1:
         #получаем размер из канала
         size_for_recv= struct.calcsize("!Q")
-        size = bytes()
-
+        size = ''
         while len(size)<size_for_recv:
             try:
                 new_size = channel.recv(size_for_recv-len(size))
@@ -98,13 +100,11 @@ def receivable(channel):
         except struct.error as Error:
             #в случае ошибки конвертации размера
             print('protocol_lib.receive struct error %s size %s' % (Error, len(size)))
-            yield None
-        except OverflowError:
-            print('OverflowError', size)
-            yield None
+            raise StopIteration
+
         else:
             #получаем пакет данных
-            data = bytes()
+            data = ''
             while len(data)<size:
                 try:
                     new_data = channel.recv(size - len(data))

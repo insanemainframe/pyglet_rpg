@@ -72,6 +72,7 @@ class GameClient(SocketClient):
     def read(self, package):
         if package:
             unpacked = unpack(package)
+            
             if unpacked:
                 action, message = unpacked
                 self.in_messages.append((action, message))

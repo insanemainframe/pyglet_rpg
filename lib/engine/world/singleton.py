@@ -17,7 +17,7 @@ from share.point import Point
 
 from engine.enginelib.meta import Guided, HierarchySubject, Container, Respawnable
 from engine.enginelib.movable import Movable
-from engine.world.location import Metalocation
+from engine.world.location import Location
 
 
         
@@ -39,9 +39,9 @@ class __GameSingleton(object):
         self.locations = {}
         self.active_locations = {}
         
-        self.locations['ground'] = Metalocation(self_proxy, 'ground')
-        self.locations['underground'] = Metalocation(self_proxy, 'underground')
-        self.locations['underground2'] = Metalocation(self_proxy, 'underground2')
+        self.locations['ground'] = Location(self_proxy, 'ground')
+        self.locations['underground'] = Location(self_proxy, 'underground')
+        self.locations['underground2'] = Location(self_proxy, 'underground2')
         self.mainlocation = self.locations['ground']
         
         for location in self.locations.values():
@@ -77,26 +77,18 @@ class __GameSingleton(object):
         
     
     
-    def _remove_object(self, player, force = False):
+    def _remove_object(self, player):
         assert player.name in self.players
         name = player.name
 
-        result = player.handle_remove()
-        if  force:
-            result = 'disconnect', ()
+        player.handle_remove()
 
-        if force or not isinstance(player, Respawnable):
-            assert result is True or isinstance(result, Sequence) and len(result)>1
-
-            if isinstance(player, Guided):  print ('game._remove_object', player, force)
-
-            if result is True:
-                player.location.pop_object(player)
-            else:
-                player.location.pop_object(player, result)
+        if not isinstance(player, Respawnable):
+            player.location.pop_object(player)
 
             if isinstance(player, Guided):
-                print ("%s refcount: %s" % (player, getrefcount(self.players[name])))
+                print ('game._remove_object', player, force)
+                
 
             del self.players[name]
             
@@ -116,10 +108,6 @@ class __GameSingleton(object):
             player.handle_respawn()
 
 
-            
-            
-            
-    
 
 
     def remove_guided(self, name):
@@ -127,9 +115,17 @@ class __GameSingleton(object):
         assert name in self.guided_players
 
         player = self.guided_players[name]
-
-        self._remove_object(player, True)
         del self.guided_players[name]
+
+        player.handle_quit()
+        player.location.pop_object(player)
+
+        del self.players[name]
+        print 'weak', player
+
+
+
+
 
     
 
@@ -190,21 +186,6 @@ class __GameSingleton(object):
     def stop(self):
         self.stopped = True
 
-    def debug(self):
-        for location in self.locations.values():
-            location.debug()
-
-        if DEBUG_REFS:
-            for player in self.players.values():
-                count = getrefcount(player)
-                if hasattr(player, '_max_count'):
-                    max_count = player._max_count
-                else:
-                    max_count = 4
-                if count>max_count:
-                    print ('\n',player.name, count)
-                    raw_input('Debug:')
-                    player._max_count = count
 
 
 

@@ -143,6 +143,9 @@ class GameObject(object):
     def add_to_remove(self):
         self._REMOVE = True
 
+    def add_delay(self, action, *args):
+        self.chunk.delay_args[self.gid] = (action, args)
+
     def get_tuple(self, name):
         if name==self.name:
             object_type = 'Self'
@@ -157,6 +160,14 @@ class GameObject(object):
     
 
     def __del__(self):
+        if hasattr(self,'_owner'):
+            del self._owner
+        if hasattr(self,'location'):
+            del self.location
+        if hasattr(self,'chunk'):
+            del self.chunk
+        if hasattr(self,'voxel'):
+            del self.voxel
         try:
             if not self.location.game.stopped:
                 print ('del %s' % self.name)
@@ -166,14 +177,18 @@ class GameObject(object):
     def __str__(self):
         return self.name
 
+    def add_event(self, *args):
+        pass
+
 
 class ActiveState:
     "метка"
     def is_active(self):
         return True
-    
+
+
 class Updatable(object):
-    def __init__(self):
+    def mixin(self):
         self.__events__ = set()
         self.has_events = False
 
@@ -202,7 +217,7 @@ class Updatable(object):
 
 
 class HierarchySubject:
-    def __init__(self):
+    def mixin(self):
         self._master = None
         self._slaves = {}
 
@@ -241,13 +256,17 @@ class HierarchySubject:
     def handle_bind_master(self):
         pass
 
+    def __del__(self):
+        del self._master
+        del self._slaves
+
 
 
 
 
 
 class Container:
-    def __init__(self):
+    def mixin(self):
         self._related_objects = {}
 
     def bind(self, related):
@@ -273,9 +292,11 @@ class Container:
         for related in relateds:
             self.unbind(related)
 
-
     def handle_bind(self, related):
         pass
+
+    def __del__(self):
+        del self._related_objects
 
 
     
@@ -303,11 +324,14 @@ class Guided(ActiveState):
             name = self.name
 
         return OnlineTuple(name, self.kills)
+
+    def handle_quit(self):
+        pass
     
 
 
 class Solid(object):
-    def __init__(self, radius):
+    def mixin(self, radius):
         self.radius = radius
     
     def collission(self, player):
@@ -320,22 +344,41 @@ class Impassable(Solid):
 
 
         
-class Breakable(object):
+class Breakable(Updatable):
     "класс для живых объектов"
     heal_time = 1200
-    def __init__(self, hp, corpse_type = None):
-        self.hp_value = hp
+    def mixin(self, hp_value, corpse_type = None):
+        Updatable.mixin(self)
+        self._hp_value = hp_value
+        self._hp = hp_value
+
         self.heal_speed = self.hp_value/float(self.heal_time)
-        self.death_time = death_time
-        self.death_time_value = death_time
         self.corpse_type = corpse_type
         self.death_counter = 0
-        self.spawn()
         self.hitted = 0
+
+    @property
+    def hp(self):
+        return self._hp
+    @hp.setter
+    def hp(self, new_hp):
+        if new_hp>self._hp_value:
+            new_hp = self._hp_value
+        elif new_hp<0:
+            new_hp = 0
+        self._hp = new_hp
+        self.add_event('change_hp', self._hp_value, self._hp)
+
+    @property
+    def hp_value(self):
+        return self._hp_value
+
+    @hp_value.setter
+    def hp_value(self, new_hp_value):
+        if new_hp_value>0:
+            self._hp_value = new_hp_value
+            self.add_event('change_hp', self._hp_value, self._hp)
     
-    def spawn(self):
-        self.alive = True
-        self.hp = self.hp_value
         
     
     def hit(self, hp):
@@ -343,9 +386,9 @@ class Breakable(object):
         if self.alive:
             self.hp-=hp
             
-            self.add_event('change_hp', self.hp_value, self.hp if self.hp>0 else 0)
+            
             if self.hp<=0:
-                self.die()
+                self.add_to_remove()
                 self.hp = self.hp_value
                 return True
             else:
@@ -362,45 +405,36 @@ class Breakable(object):
             new_hp = self.hp_value
         
         self.hp = new_hp
-        self.add_event('change_hp', self.hp_value, self.hp)
     
     def plus_hp(self, armor):
         self.hp_value+=armor
         self.heal_speed = self.hp_value/float(self.heal_time)
-        self.add_event('change_hp', self.hp_value, self.hp)
     
     def update(self):
-        if self.alive:
-            if self.hitted:
-                self.add_event('defend')
-                self.hitted-=1
-            else:
-                if self.hp<self.hp_value:
-                    self.heal()
+        if self.hitted:
+            self.add_event('defend')
+            self.hitted-=1
         else:
-            if self.death_time>0:
-                self.death_time-=1
-                self.add_event('die')
-            else:
-                self.death_time = self.death_time_value
-                self.add_to_remove()
-                self.create_corpse()
+            if self.hp<self.hp_value:
+                self.heal()
+    
     
     def create_corpse(self):
         if self.corpse_type:
             corpse = self.corpse_type()
             self.location.new_object(corpse)
     
-    def die(self):
-        self.alive = False
-        self.death_counter+=1
-        self.abort_moving()
     
     def get_args(self):
         return {'hp': self.hp, 'hp_value':self.hp_value}
 
+
+    def handle_remove(self):
+        self.add_delay('die')
+
     def handle_respawn(self):
-        self.spawn()
+        self.hp = self.hp_value
+
     
     
         
@@ -413,13 +447,13 @@ class Fragile:
     
 class Mortal:
     "класс для объектов убивающих живых при соприкосновении"
-    def __init__(self, damage=1, alive_after_collission = False):
+    def mixin(self, damage=1, alive_after_collission = False):
         self.damage = damage
         self.alive_after_collission = alive_after_collission
     
     def collission(self, player):
         if isinstance(player, Breakable):
-            if player.fraction!=self.fraction:
+            if player.name!=self.name:
                 prev_state = player.alive
                 player.hit(self.damage)
                 if not self.alive_after_collission:
@@ -437,7 +471,7 @@ class Mortal:
 class Respawnable(object):
     "класс перерождающихся объектов"
     respawned = False
-    def __init__(self, delay, distance):
+    def mixin(self, delay, distance):
         self.respawn_delay = delay
         self.respawn_distance = distance
         
@@ -452,7 +486,7 @@ class Respawnable(object):
 
 class DiplomacySubject(object):
     fraction = 'neutral'
-    def __init__(self, fraction):
+    def mixin(self, fraction):
         self.fraction = fraction
         self.invisible = 0
     
@@ -466,8 +500,8 @@ class DiplomacySubject(object):
 ####################################################################
 class Temporary(Updatable):
     "класс объекта с ограниченным сроком существования"
-    def __init__(self, lifetime):
-        Updatable.__init__(self)
+    def mixin(self, lifetime):
+        Updatable.mixin(self)
         self.lifetime = lifetime
         self.creation_time = time()
     
@@ -481,9 +515,9 @@ class Temporary(Updatable):
 
 class Corpse(GameObject, Temporary):
     "кости остающиеся после смерти живых игроков"
-    def __init__(self):
+    def mixin(self):
         GameObject.__init__(self)
-        Temporary.__init__(self, 5)
+        Temporary.mixin(self, 5)
     
     def update(self):
         GameObject.update(self)

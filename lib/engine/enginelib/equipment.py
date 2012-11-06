@@ -8,8 +8,8 @@ from weakref import proxy, ProxyType
 from collections import defaultdict
 
 class Equipment(Container):
-    def __init__(self, slots_num = 8):
-        Container.__init__(self)
+    def mixin(self, slots_num = 8):
+        Container.mixin(self)
         
         self.slots_num = slots_num
         self.equipment = defaultdict(list)

@@ -74,7 +74,7 @@ class AloneBush(Misc, Solid):
     radius = TILESIZE
     def __init__(self):
         Misc.__init__(self)
-        Solid.__init__(self, self.radius)
+        Solid.mixin(self, self.radius)
 
 class AloneTree(Misc, Impassable, Breakable):
     BLOCKTILES = Player.BLOCKTILES + ['water']
@@ -83,8 +83,8 @@ class AloneTree(Misc, Impassable, Breakable):
     hp = 100
     def __init__(self):
         Misc.__init__(self)
-        Breakable.__init__(self, self.hp)
-        Impassable.__init__(self, self.radius)
+        Breakable.mixin(self, self.hp)
+        Impassable.mixin(self, self.radius)
 
     @classmethod
     def verify_position(cls, location, chunk, i ,j):

@@ -8,15 +8,15 @@ from weakref import ProxyType
 
 from config import *
 
-class Shell(Movable, DiplomacySubject, Temporary, Solid, Mortal, ActiveState):
+class Shell(GameObject, Movable, DiplomacySubject, Temporary, Solid, Mortal, ActiveState):
      counter = 0
      def __init__(self, direct, speed, fraction, striker, damage, alive_after_collission):
         assert isinstance(striker, ProxyType)
-
         GameObject.__init__(self)
-        Movable.__init__(self, self.speed)
-        Mortal.__init__(self, damage, alive_after_collission)
-        DiplomacySubject.__init__(self, fraction)
+        Temporary.mixin(self, 1)
+        Movable.mixin(self, self.speed)
+        Mortal.mixin(self, damage, alive_after_collission)
+        DiplomacySubject.mixin(self, fraction)
         one_step = Point(self.speed, self.speed)
         self.direct = direct*(abs(one_step)/abs(direct))
         self.alive = True
@@ -40,7 +40,6 @@ class Ball(Fragile,  Shell):
     alive_after_collission = False
     def __init__(self, direct, fraction, striker, damage = 2):
         Shell.__init__(self,direct, self.speed, fraction, striker, damage, self.alive_after_collission)
-        Temporary.__init__(self, 1)
         
     
     def update(self):

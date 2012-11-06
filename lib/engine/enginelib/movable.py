@@ -9,11 +9,11 @@ from engine.enginelib.collissions import *
 
 
 
-class Movable(GameObject):
+class Movable():
     "класс движущихся объектов"
     BLOCKTILES = []
     SLOWTILES = {}
-    def __init__(self,  speed):
+    def mixin(self,  speed):
         self._vector  = Point(0,0)
         self.speed = speed
         self._move_vector = Point(0,0)

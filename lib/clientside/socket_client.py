@@ -5,7 +5,7 @@ from config import HOSTNAME, IN_PORT, OUT_PORT, ROUND_TIMER
 
 import socket, sys, os
 from select import select
-
+from socket import error as SocketError
 
 from share.protocol_lib import send, receivable
 

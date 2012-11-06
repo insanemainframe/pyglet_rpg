@@ -48,19 +48,19 @@ class Chunk(ObjectContainer, ActivityContainer):
         new_cord = new_position/TILESIZE
 
         if self.location.is_valid_position(new_position):
+            player._prev_position = player._position
+            player._position  = new_position
+            player.position_changed = True
+
             new_chunk = self.location.get_chunk_cord(new_position)
 
             if new_chunk!=player.chunk.cord:
                 self.location.change_chunk(player, new_chunk)
 
             if player.cord!=new_cord:
-                if isinstance(player, Guided): print ('change cord')
-
                 self.location.change_cord(player, new_cord)
                     
-            player._prev_position = player._position
-            player._position  = new_position
-            player.position_changed = True
+            
   
                 
 
@@ -80,7 +80,7 @@ class Chunk(ObjectContainer, ActivityContainer):
         assert isinstance(player, ProxyType)
         assert not hasattr(player, 'chunk')
 
-        if isinstance(player, Guided):  print ('chunk.add_object', player)
+        # if isinstance(player, Guided):  print ('chunk.add_object', player)
 
         player.chunk = proxy(self)
         
@@ -89,17 +89,15 @@ class Chunk(ObjectContainer, ActivityContainer):
         self._players[player.name] = player
 
     
-    def pop_object(self, player, delay_args = False):
+    def pop_object(self, player):
         "удаляет ссылку из списка игроков"
         assert player.name in self._players
 
-        if isinstance(player, Guided):  print ('chunk.pop_object', player
-        )
+        # if isinstance(player, Guided):  print ('chunk.pop_object', player)
+        
         name = player.name
         
-
-        if delay_args:
-            self.delay_args[player.gid] = delay_args
+            
 
         self.remove_activity(player)
         self.remove_proxy(player)

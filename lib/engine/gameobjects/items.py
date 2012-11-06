@@ -14,7 +14,7 @@ class Item(GameObject, Solid, Temporary):
     lifetime = 300
     def __init__(self,):
         GameObject.__init__(self)
-        Temporary.__init__(self, 10*self.lifetime)
+        Temporary.mixin(self, 10*self.lifetime)
     
     def collission(self, player):
         if isinstance(player, Container):

@@ -40,6 +40,7 @@ class GameEngine:
 
         for message in new_player.accept_response():
             yield message
+        raise StopIteration
         
         
 
@@ -101,9 +102,7 @@ class GameEngine:
     def stop(self):
         game.stop()
 
-    def debug(self):
-        game.debug()
-    
+
     def game_quit(self, name):
         print('%s quit' % name)
         if name in self.messages:

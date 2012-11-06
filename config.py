@@ -4,7 +4,6 @@ import tempfile
 from os.path import join
 
 TMP = tempfile.gettempdir()
-TMP = "/tmp"
 
 #имя хоста по-умолчанию
 HOSTNAME = '127.0.0.1'
@@ -14,7 +13,7 @@ OUT_PORT = 8889
 SERIALIZATION_TYPE = 'marshal'
 
 SERIALIZATION_FILE_TYPE = 'marshal'
-USE_ZLIB = True
+USE_ZLIB = False
 
 
 ACCEPT_NUMBER = 0

@@ -69,22 +69,11 @@ class LookLand(GameProtocol):
         return land, observed
 
 
-class LookEvents(GameProtocol):
-    def __init__(self, events):
-        self.events = events
-        
-    def pack(self):
-        events = {name:[tuple(event) for event in eventlist] for name, eventlist in self.events.items()}
-
-        return [events]
-    
-    @classmethod
-    def unpack(cls, events):
-        return events
 
 class LookObjects(GameProtocol):
-    def __init__(self, new_players, old_players):
+    def __init__(self, new_players, events, old_players):
         self.new_players = new_players
+        self.events = events
         self.old_players = old_players
     
 
@@ -92,13 +81,16 @@ class LookObjects(GameProtocol):
     def pack(self):
         new_players = [(gid, name, object_type, position.get(), args,)
             for gid, name, object_type, position, args in self.new_players]
-        return new_players, tuple(self.old_players)
+
+        events = {name:[tuple(event) for event in eventlist] for name, eventlist in self.events.items()}
+
+        return new_players, events, tuple(self.old_players)
     
     @classmethod
-    def unpack(cls, new_players, old_players):
+    def unpack(cls, new_players, events, old_players):
         new_players = [(gid, name, object_type, Point(x,y), args)
             for gid, name, object_type, (x,y), args in new_players]
-        return new_players, old_players
+        return new_players, events, old_players
 
 
 

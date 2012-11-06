@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from socket import error as socket_error
 
 from config import *
 
@@ -13,7 +12,7 @@ class EpollMultiplexer:
         self._poller = epoll()
     
     def _register_in(self, fileno):
-        self._poller.register(fileno, EPOLLIN)
+        self._poller.register(fileno, EPOLLIN | EPOLLET)
         
     
     def _unregister(self, fileno):
@@ -25,7 +24,6 @@ class EpollMultiplexer:
             event_pairs = self._poller.poll()
             while event_pairs:
                 fileno, event = event_pairs.pop()
-                
                 if fileno==self.in_fileno:
                     self._handle_accept(IN)
                     
@@ -38,14 +36,9 @@ class EpollMultiplexer:
                         self._handle_read(client_name)
                 
                 elif event==EPOLLHUP:
-                    if fileno in self.infilenos:
-                        client_name = self.infilenos[fileno]
-                    else:
-                        client_name = self.outfilenos[fileno]
-                    self._handle_close(fileno)
+                    self._handle_error(Error, fileno, event)
                             
-                # except socket_error as Error:
-                #     self._handle_error(Error, fileno, event)
+
         print ('polling end')
 
 
@@ -90,7 +83,7 @@ class SelectMultiplexer:
 
 
 try:
-    from select import epoll, EPOLLIN, EPOLLOUT, EPOLLHUP
+    from select import epoll, EPOLLIN, EPOLLOUT, EPOLLHUP, EPOLLET
 
 except ImportError:
     from select import select

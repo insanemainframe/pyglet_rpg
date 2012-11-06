@@ -9,8 +9,8 @@ from engine.enginelib.meta import Updatable
 from weakref import ProxyType
 
 class MapObserver:
-    "класс объекта видящего карту"
-    def __init__(self, look_size):
+    "mixn объекта видящего карту"
+    def mixin(self, look_size):
         self.look_size = look_size
         self.look_radius = self.look_size*TILESIZE
         
@@ -46,7 +46,7 @@ class MapObserver:
     def observe(self):
         #cdef int rad, I,J, i,j, i_start, i_end, j_start, j_end
         #cdef list tile
-        print ('observe')
+        # print ('observe')
 
         self.prev_observed = self.fov
 
@@ -87,6 +87,7 @@ class MapObserver:
     def look_objects(self):
         #cdef set observed_objects_gids, old_players
         #cdef list observed_objects, new_players
+        events = {}
 
         observed_objects = sum(self.fov_voxels, [])
         observed_objects_gids = set([game_object.gid for game_object in observed_objects])
@@ -114,22 +115,13 @@ class MapObserver:
         ###debug
         for player in self.observed_objects:
             assert isinstance(player, ProxyType)
+            if isinstance(player, Updatable):
+                events[player.gid] = player.get_events()
+            
 
-        return new_players, old_players_pairs
+        return new_players, events, old_players_pairs
 
-    def look_events(self):
-        #cdef dict events
-        events = {}
-        for player, name in zip(self.observed_objects,self.observed_names):
-            try:
-                if isinstance(player, Updatable):
-                    events[player.gid] = player.get_events()
-            except ReferenceError:
-                print ("ReferenceError: %s" % name)
-                raw_input()
-        
 
-        return events
 
         
     
