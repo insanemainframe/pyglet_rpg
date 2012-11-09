@@ -2,14 +2,18 @@
 # -*- coding: utf-8 -*-
 from config import IN_PORT, OUT_PORT, SOCKET_SERVER_PROFILE, SOCKET_SERVER_PROFILE_FILE
 
-import cProfile
 import socket
-from sys import exc_info, exit as sys_exit
-import traceback
+from socket import error as SocketError
 from threading import Thread
 from multiprocessing import Process, Queue, Event
-from collections import namedtuple
-from socket import error as socket_error
+from sys import exc_info, exit as sys_exit
+
+import traceback
+import cProfile
+
+from collections import namedtuple, deque
+
+
 
 
 from share.protocol_lib import send, receivable, PackageError
@@ -49,6 +53,8 @@ class SocketServer(Multiplexer, Process):
         self.requestes = Queue()
         self.responses = Queue()
         self.excp = Queue()
+
+        self.responses_for_send = deque()
 
         self.sender_thread  = Thread(target = self._sender)
 
@@ -106,13 +112,18 @@ class SocketServer(Multiplexer, Process):
                     sock = self.clients[client_name].outsock
                     try:
                         send(sock, response)
-                    except socket_error as error:
-                        print('sender error', str(error))
+                    except SocketError as (errno, strerror):
+                        if errno is 11:
+                            self.responses.put_nowait((client_name, response))
+                        else:
+                            raise SocketError(errno, strerror)
+
             print('sender stop')
 
-        except:
+        except Exception as error:
             print 'Exception n sender'
-            self._handle_exception(*exc_info())
+            raise error
+            #self._handle_exception(*exc_info())
         finally:
             self.stop()
 
@@ -125,10 +136,9 @@ class SocketServer(Multiplexer, Process):
             try:
                 request = self.clients[client_name].generator.next()
 
-            except socket.error as Error:
+            except SocketError as (errno, strerror):
                 #если возникла ошабка на сокете - закрываем"
-                errno = Error[0]
-                self._handle_error(client_name, 'Socket Error %s' % errno)
+                self._handle_error(client_name, 'Socket Error %s %s' % (errno, strerror))
                 break
                                 
             except PackageError:
@@ -149,38 +159,38 @@ class SocketServer(Multiplexer, Process):
         
     def _handle_accept(self, stream):
         "прием одного из двух соединений"
-        while 1:
-            if stream==IN:
-                sock = self.insock
-                message = 'input'
-                
-            elif stream==OUT:
-                sock = self.outsock
-                message = 'output'
+        if stream==IN:
+            sock = self.insock
+            message = 'input'
+            
+        elif stream==OUT:
+            sock = self.outsock
+            message = 'output'
 
-            try:
+        try:
+            while 1:
+        
                 conn, (address, fileno) = sock.accept()
-            except socket.error as error:
-                print 'accept', error
-                break
-            else:
+            
                 conn.setblocking(0)
                 
                 if address not in self.address_buf:
                     self.address_buf[address] = conn
-                else:
-                    if stream==IN:
-                        insock = conn
-                        outsock = self.address_buf[address]
 
-                    else:
-                         outsock = conn
-                         insock = self.address_buf[address]
-                         
-                    del self.address_buf[address]
-                    
-                    self._accept_client(insock, outsock)
-        print('_handle_accept end')
+                if stream==IN:
+                    insock = conn
+                    outsock = self.address_buf[address]
+
+                else:
+                     outsock = conn
+                     insock = self.address_buf[address]
+                     
+                del self.address_buf[address]
+                
+                self._accept_client(insock, outsock)
+
+        except SocketError as (errno, strerror):
+            raise SocketError(errno, strerror)
                  
     def _accept_client(self, insock, outsock):
         "регистрация клиента, после того как он подключился к обоим сокетам"

@@ -29,6 +29,7 @@ class Location(PersistentLocation, ActivityContainer, ChoiserMixin):
     def __init__(self, game, name):
         PersistentLocation.__init__(self, name)
         ActivityContainer.__init__(self)
+        ChoiserMixin.mixin(self)
 
         self.game = game
         self.name = name
@@ -156,6 +157,8 @@ class Location(PersistentLocation, ActivityContainer, ChoiserMixin):
 
     def get_chunk_cord(self, position):
         "возвращает координаты локации для заданой позиции"
+        assert isinstance(position, Point)
+        
         return position/TILESIZE/CHUNK_SIZE
     
     
@@ -293,6 +296,7 @@ class Location(PersistentLocation, ActivityContainer, ChoiserMixin):
         result = self.load_objects()
         if not result:
             self.generate_func(self)
+            sel.flush_genaration_data()
 
         number = len(self._players)
         print ('Location "%s" with %s objects has been started' % (self.name, number))

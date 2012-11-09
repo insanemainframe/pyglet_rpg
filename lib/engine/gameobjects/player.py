@@ -27,16 +27,20 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
 
     def __init__(self, name, look_size=PLAYER_LOOK_RADIUS):
         GameObject.__init__(self, name)
-        Unit.mixin(self, self.speed, self.hp, Corpse, 'players')
+        Unit.mixin(self, self.speed, self.hp, 'players')
         
         HierarchySubject.mixin(self)
         
         MapObserver.mixin(self, look_size)
-        Striker.mixin(self,2, Ball, self.damage)
+        Striker.mixin(self,2, self.damage)
         Respawnable.mixin(self, 10, 30)
         Stats.mixin(self)
         Skill.mixin(self,self.default_skills)
         Equipment.mixin(self)
+
+        self.set_shell(Ball)
+
+
         self.change_objects = False
         self.__actions__ = {'ApplyItem': self.ApplyItem, 'Move' : self.Move,
                             'Strike' : self.Strike, 'Skill' : self.Skill}

@@ -27,11 +27,14 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
         GameObject.__init__(self)
 
         HierarchySubject.mixin(self)
-        Unit.mixin(self, self.speed, self.hp, Corpse, 'good')
+        Unit.mixin(self, self.speed, self.hp, 'good')
         Stalker.mixin(self, self.look_size)
-        Striker.mixin(self, 10, AllyBall, self.damage)
+        Striker.mixin(self, 10, self.damage)
         Temporary.mixin(self, self.lifetime)
         
+
+        self.set_shell(AllyBall)
+
         self.stopped = False
         
         
@@ -190,7 +193,8 @@ class Lych(MetaMonster, Striker):
     
     def __init__(self):
         MetaMonster.__init__(self, self.speed, self.hp)
-        Striker.mixin(self, 10, DarkBall, self.damage)
+        Striker.mixin(self, 10, self.damage)
+        self.set_shell(DarkBall)
     
     def update(self):
         if self.alive:

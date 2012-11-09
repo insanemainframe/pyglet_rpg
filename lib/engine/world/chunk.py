@@ -6,7 +6,7 @@ from weakref import proxy, ProxyType
 
 from share.point import Point
 from engine.world.objects_containers import ActivityContainer, ObjectContainer
-from engine.enginelib.meta import Solid, Updatable, Breakable, DiplomacySubject, Guided
+from engine.enginelib.meta import Solid, Mutable, Updatable, DiplomacySubject, Guided
 from engine.enginelib.units_lib import Unit
 from engine.gameobjects.teleports import Teleport
 
@@ -18,7 +18,7 @@ near_cords = [cord.get() for cord in (Point(-1,1),Point(0,1),Point(1,1),
 
 class Chunk(ObjectContainer, ActivityContainer):
     "функционал локации для работы с объектами"
-    proxy_list = (Solid, Updatable, Breakable, Unit, Teleport)
+    proxy_list = (Mutable, Solid, Updatable, Unit, Teleport)
     def __init__(self, location, i,j):
         self.location = location
         self.i, self.j = i,j

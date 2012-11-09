@@ -110,9 +110,7 @@ class GameObject(object):
     
     @classmethod
     def verify_position(cls, location, chunk, i ,j):
-        is_free = not location.get_voxel(i, j)
-        non_block = not location.map[i][j] in cls.BLOCKTILES
-        return is_free and non_block
+        return not location.map[i][j] in cls.BLOCKTILES
     
     def handle_change_location(self):
         pass
@@ -181,16 +179,17 @@ class GameObject(object):
         pass
 
 
-class ActiveState:
+class ActiveState(object):
     "метка"
     def is_active(self):
         return True
 
 
-class Updatable(object):
+class Mutable(object):
     def mixin(self):
         self.__events__ = set()
         self.has_events = False
+
 
     def add_event(self, action, *args, **kwargs):
         if 'timeout' in kwargs:
@@ -201,22 +200,30 @@ class Updatable(object):
         self.chunk.set_event()
         self.has_events = True
 
+
     def get_events(self):
         return self.__events__
-        
 
-    def _end_round(self):
+
+    def clear(self):
         self.cord_changed = False
         self.position_changed = False
         self.has_events = False
         self.__events__.clear()
 
+
+class Updatable(Mutable):
+    def mixin(self):
+        Mutable.mixin(self)
+
+    def update(self):
+        pass
     def complete_round(self):
         pass
 
 
 
-class HierarchySubject:
+class HierarchySubject(object):
     def mixin(self):
         self._master = None
         self._slaves = {}
@@ -265,7 +272,7 @@ class HierarchySubject:
 
 
 
-class Container:
+class Container(object):
     def mixin(self):
         self._related_objects = {}
 
@@ -347,15 +354,18 @@ class Impassable(Solid):
 class Breakable(Updatable):
     "класс для живых объектов"
     heal_time = 1200
-    def mixin(self, hp_value, corpse_type = None):
+    def mixin(self, hp_value, ):
         Updatable.mixin(self)
         self._hp_value = hp_value
         self._hp = hp_value
 
         self.heal_speed = self.hp_value/float(self.heal_time)
-        self.corpse_type = corpse_type
+        self.corpse_type = None
         self.death_counter = 0
         self.hitted = 0
+
+    def set_cropse(self, corpse_type):
+        self.corpse_type = corpse_type
 
     @property
     def hp(self):
@@ -440,12 +450,12 @@ class Breakable(Updatable):
         
 
 
-class Fragile:
+class Fragile(object):
     "класс для объекто разбивающихся при столкновении с тайлами"
     def tile_collission(self, tile):
         self.alive = False
     
-class Mortal:
+class Mortal(object):
     "класс для объектов убивающих живых при соприкосновении"
     def mixin(self, damage=1, alive_after_collission = False):
         self.damage = damage
@@ -513,21 +523,13 @@ class Temporary(Updatable):
 
 
 
-class Corpse(GameObject, Temporary):
-    "кости остающиеся после смерти живых игроков"
-    def mixin(self):
-        GameObject.__init__(self)
-        Temporary.mixin(self, 5)
-    
-    def update(self):
-        GameObject.update(self)
-        Temporary.update(self)
+
 
 
 class Savable(object):
     def __save__(self):
         return ()
 
-    @staticmethod
-    def __load__():
-        return ()
+    @classmethod
+    def __load__(cls, world, position):
+        return cls(position)

@@ -99,3 +99,4 @@ class AloneTree(Misc, Impassable, Breakable):
             return False
         else:
             return True
+

@@ -36,7 +36,7 @@ class __GameSingleton(object):
         print('Engine initialization...')
         self_proxy = proxy(self)
         
-        self.locations = {}
+        self.locations = OrderedDict()
         self.active_locations = {}
         
         self.locations['ground'] = Location(self_proxy, 'ground')

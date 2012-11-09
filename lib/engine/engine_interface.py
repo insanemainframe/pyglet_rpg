@@ -5,7 +5,7 @@ from share.game_protocol import Newlocation, ServerAccept
 
 from engine.world.singleton import game
 
-from engine.enginelib.meta import Updatable,GameObject, ActionDenied
+from engine.enginelib.meta import Updatable, Mutable, ActionDenied
 
 from engine.game_objects import Player
 
@@ -88,9 +88,10 @@ class GameEngine:
     def end_round(self):
         "завершение игрового раунда"
         for chunk in game.get_active_chunks():
-            for player in chunk.get_list(Updatable)[:]:
-                Updatable._end_round(player)
-                player.complete_round()
+            for player in chunk.get_list(Mutable):
+                if isinstance(player, Updatable):
+                    player.complete_round()
+                Mutable.clear(player)
             chunk.complete_round()
         
         game.guided_changed = False

@@ -6,6 +6,7 @@ from engine.enginelib.meta import *
 from engine.mathlib import chance
 from engine.gameobjects.items import *
 from engine.enginelib.movable import Movable
+from engine.gameobjects.shells import Ball
 
 
 
@@ -13,12 +14,26 @@ from random import randrange, random, choice
 from math import hypot
 from weakref import ProxyType
 
+
+class Corpse(GameObject, Temporary):
+    "кости остающиеся после смерти живых игроков"
+    def mixin(self):
+        GameObject.__init__(self)
+        Temporary.mixin(self, 5)
+    
+    def update(self):
+        GameObject.update(self)
+        Temporary.update(self)
+
+
 class Unit(Solid, Movable, Breakable, DiplomacySubject, GameObject):
-    def mixin(self, speed, hp, corpse, fraction):
+    def mixin(self, speed, hp, fraction):
         Movable.mixin(self, speed)
         Breakable.mixin(self, hp, corpse)
         DiplomacySubject.mixin(self, fraction)
         Solid.mixin(self, TILESIZE/2)
+
+        Breakable.set_corpse(Corpse)
 
     @classmethod
     def verify_chunk(cls, location, chunk):
@@ -42,6 +57,7 @@ class Unit(Solid, Movable, Breakable, DiplomacySubject, GameObject):
 
 
 class Lootable:
+    "объект, послесмерти которого выпадает предмет"
     loot = [Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
     def mixin(self, cost):
         if TEST_MODE:
@@ -57,6 +73,7 @@ class Lootable:
 
 
 class Fighter:
+    "объект спобоный на ближнюю атаку"
     atack_distance = int(hypot(1.5, 1.5))
     def mixin(self, damage, attack_speed=30):
         self.attack_speed = attack_speed
@@ -123,15 +140,20 @@ class Stalker:
             return False
             
 class Striker:
+    "дает возможность игроку стрелять снарядами"
+    default_shell = Ball
     def mixin(self, strike_speed, shell, damage):
-        self.strike_shell = shell
-        self.strike_counter = 0
+        self.shell_type = shell
+        self.strike_counter = Striker.default_shell
         self.strike_speed = strike_speed
         self.damage = damage
+
+    def set_shell(self, shell_type):
+        self.shell_type = shell_type
     
     def strike_ball(self, vector):
         if self.strike_counter==0 and vector:
-            ball = self.strike_shell(vector, self.fraction, proxy(self), self.damage)
+            ball = self.shell_type(vector, self.fraction, proxy(self), self.damage)
             self.location.new_object(ball, position = self.position)
             self.strike_counter+=self.strike_speed
     
@@ -244,7 +266,8 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, Savable):
     def __save__(self):
         return []
 
-    @staticmethod
-    def __load__():
-        return []
+    @classmethod
+    def __load__(cls, world, position):
+        position = world.choice_position(cls)
+        return cls(position)
 
