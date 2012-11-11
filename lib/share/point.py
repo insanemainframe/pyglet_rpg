@@ -22,43 +22,43 @@ class Point:
         return bool(self.x) or bool(self.y)
 
     def __eq__(self, point):
-        assert isinstance(point, Point)
+        assert isinstance(point, Point), point
         return self.x==point.x and self.y==point.y
 
     def __ne__(self, point):
-        assert isinstance(point, Point)
+        assert isinstance(point, Point), point
         return self.x!=point.x or self.y!=point.y
 
     def __lt__(self, point):
         "<"
-        assert isinstance(point, Point)
+        assert isinstance(point, Point), point
         return abs(self)<abs(point)
 
     def __le__(self, point):
         "<="
-        assert isinstance(point, Point)
+        assert isinstance(point, Point), point
         return abs(self)<=abs(point)
 
     def __gt__(self, point):
         ">"
-        assert isinstance(point, Point)
+        assert isinstance(point, Point), point
         return abs(self)>abs(point)
 
     def __ge__(self, point):
         ">="
-        assert isinstance(point, Point)
+        assert isinstance(point, Point), point
         return abs(self)>=abs(point)
 
     def __abs__(self):
         return hypot(self.x,self.y)
 
     def __add__(self, point):
-        assert isinstance(point, Point)
+        assert isinstance(point, Point), point
         return Point(self.x + point.x, self.y + point.y)
 
     def __sub__(self, point):
         "-"
-        assert isinstance(point, Point)
+        assert isinstance(point, Point), point
         return Point(self.x - point.x, self.y - point.y)
 
     def __neg__(self):
@@ -78,13 +78,16 @@ class Point:
         return (self.x, self.y)
 
     def in_radius(self, point, radius):
-        assert isinstance(point, Point)
+        assert isinstance(point, Point), point
 
         return ((self.x-point.x)**2 +(self.y-point.y)**2) <= radius**2
 
+
     def __repr__(self):
-        return "%s:%s" % self.get()
+        return "[%s:%s]" % self.get()
     def __hash__(self):
         return hash((self.x, self.y))
+
+Point.selftype = Point
         
 

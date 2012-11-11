@@ -3,9 +3,9 @@
 from config import *
 
 from engine.enginelib.meta import *
-from engine.mathlib import chance
+from engine.mathlib import Cord, Position, ChunkCord,  chance
 from engine.gameobjects.items import *
-from engine.enginelib.movable import Movable
+from engine.enginelib.mutable import MutableObject
 from engine.gameobjects.shells import Ball
 
 
@@ -13,7 +13,7 @@ from engine.gameobjects.shells import Ball
 from random import randrange, random, choice    
 from math import hypot
 from weakref import ProxyType
-
+from time import time
 
 class Corpse(GameObject, Temporary):
     "кости остающиеся после смерти живых игроков"
@@ -26,32 +26,26 @@ class Corpse(GameObject, Temporary):
         Temporary.update(self)
 
 
-class Unit(Solid, Movable, Breakable, DiplomacySubject, GameObject):
-    def mixin(self, speed, hp, fraction):
-        Movable.mixin(self, speed)
-        Breakable.mixin(self, hp, corpse)
+class Unit(MutableObject, Solid, Breakable, DiplomacySubject):
+    def __init__(self, name, hp, speed, fraction):
+        MutableObject.__init__(self, name, speed)
+        Breakable.mixin(self, hp)
         DiplomacySubject.mixin(self, fraction)
         Solid.mixin(self, TILESIZE/2)
 
-        Breakable.set_corpse(Corpse)
+        self.set_corpse(Corpse)
 
-    @classmethod
-    def verify_chunk(cls, location, chunk):
+    def verify_chunk(self, location, chunk):
         for player in chunk.get_list(Unit):
-            if player.fraction!=cls.fraction and player.fraction!='good':
+            if player.fraction!=self.fraction and player.fraction!='good':
                 return False
         return True
 
-    @classmethod
-    def verify_position(cls, location, chunk, ci ,cj):
+    def verify_position(self, location, chunk, voxel, ci ,cj):
         # print ('unit verify_position')
-        if not GameObject.verify_position(location, chunk, ci ,cj):
-            return False
-
-        for i,j in location.get_near_cords(ci ,cj) + [(ci ,cj)]:
-                for player in location.get_voxel(i,j):
-                    if isinstance(player, Solid):
-                        return False
+        for player in sum(voxel.get_nears(), []):
+            if isinstance(player, Solid):
+                return False
 
         return True
 
@@ -77,11 +71,14 @@ class Fighter:
     atack_distance = int(hypot(1.5, 1.5))
     def mixin(self, damage, attack_speed=30):
         self.attack_speed = attack_speed
-        self.attack_counter = 0
         self.damage = damage
 
+        self.prev_attack_time = time()
+
     def fight_all(self):
-        if self.attack_counter==0:
+        cur_time = time()
+        if cur_time - self.prev_attack_time > self.attack_speed:
+            self.prev_attack_time = cur_time
             for i,j in self.location.get_near_cords(*self.cord.get()):
                 tile = self.location.get_voxel(i,j)
                 for player in tile:
@@ -95,21 +92,19 @@ class Fighter:
                             print ('fight')
                             player.hit(self.damage)
                             self.add_event('attack')
-                            self.attack_counter = self.attack_speed
                             break
 
     def fight(self, player, vector):
-        if abs(vector)<=self.atack_distance:
-            if self.attack_counter==0:
-                player.hit(self.damage)
-                self.add_event('attack')
-                self.attack_counter = self.attack_speed
+        cur_time = time()
+        if cur_time - self.prev_attack_time > self.attack_speed:
+            self.prev_attack_time = cur_time
+            if abs(vector)<=self.atack_distance:
+                    player.hit(self.damage)
+                    self.add_event('attack')
 
 
     
-    def complete_round(self):
-        if self.attack_counter > 0:
-            self.attack_counter-=1
+
 
 
 
@@ -142,36 +137,41 @@ class Stalker:
 class Striker:
     "дает возможность игроку стрелять снарядами"
     default_shell = Ball
-    def mixin(self, strike_speed, shell, damage):
-        self.shell_type = shell
-        self.strike_counter = Striker.default_shell
+    def mixin(self, strike_speed = 1, damage = 1):
+        self.shell_type = None
+        self.shell_type = Striker.default_shell
         self.strike_speed = strike_speed
         self.damage = damage
 
+        self.prev_strike_time = time()
+
     def set_shell(self, shell_type):
         self.shell_type = shell_type
+
+    def set_strike_speed(self, strike_speed):
+        self.strike_speed = strike_speed
     
     def strike_ball(self, vector):
-        if self.strike_counter==0 and vector:
+        assert isinstance(vector, Position)
+        cur_time = time()
+
+        if cur_time-self.prev_strike_time>1.0/self.strike_speed:
+            self.prev_strike_time = cur_time
+
             ball = self.shell_type(vector, self.fraction, proxy(self), self.damage)
             self.location.new_object(ball, position = self.position)
-            self.strike_counter+=self.strike_speed
     
     def plus_damage(self, damage):
         self.damage+=damage
             
-    def update(self):
-        if self.strike_counter>0:
-            self.strike_counter -=1
+
     
-    def complete_round(self):
-        self.striked = False
+
 
 class Stats:
     def mixin(self):
         self.gold = 0
         self.kills = 0
-        self.stats_changed = False
         self.prev_stats = None
     
     def plus_gold(self, gold=1):
@@ -181,12 +181,14 @@ class Stats:
         self.kills+=1
         self.location.game.guided_changed = True
     
-    def update(self):
+    def is_stats_changed(self):
         stats = (self.hp, self.hp_value, self.speed, self.damage,
             self.gold, self.kills, self.death_counter, self.skills, bool(self.invisible))
+        
         if self.prev_stats!=stats:
             self.prev_stats = stats
-            self.stats_changed = True
+            return True
+        return False
     
     def get_stats(self):
         data = (self.hp, self.hp_value, self.speed, self.damage,
@@ -195,7 +197,7 @@ class Stats:
         return data
 
 
-class Walker(Movable):
+class Walker(MutableObject):
     def update(self):
         positive_x = -1 if random()>0.5 else 1
         positive_y = -1 if random()>0.5 else 1
@@ -203,11 +205,11 @@ class Walker(Movable):
         party = random()*10
         x = positive_x*self.speed*partx
         y = positive_y*self.speed*party
-        direct = Point(x,y)
+        direct = Position(x,y)
         self.move(direct)
 
 
-class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, Savable):
+class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, SavableRandom):
     radius = TILESIZE
     look_size = 10
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
@@ -215,8 +217,8 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, Savable):
     fraction = 'monsters'
     
     def __init__(self, speed, hp):
-        GameObject.__init__(self)
-        Unit.mixin(self, speed, hp, Corpse, self.fraction)
+        Unit.__init__(self, None, hp, speed, self.fraction)
+
         Stalker.mixin(self, self.look_size)
         Respawnable.mixin(self, 60, 100)
         Lootable.mixin(self, self.loot_cost)
@@ -254,20 +256,16 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, Savable):
                 Walker.update(self)
 
 
-        Movable.update(self)
         Breakable.update(self)
     
     def get_args(self):
         return Breakable.get_args(self)
     
-    def complete_round(self):
-        Movable.complete_round(self)
+
 
     def __save__(self):
         return []
 
     @classmethod
-    def __load__(cls, world, position):
-        position = world.choice_position(cls)
-        return cls(position)
-
+    def __load__(cls, location):
+        return cls()

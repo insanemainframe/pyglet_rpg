@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-from share.game_protocol import Newlocation, ServerAccept
+from share.game_protocol import NewLocation, ServerAccept
 
 from engine.world.singleton import game
 
-from engine.enginelib.meta import Updatable, Mutable, ActionDenied
+from engine.enginelib.meta import Updatable, ActionDenied
+from engine.enginelib.mutable import MutableObject
 
 from engine.game_objects import Player
 
@@ -41,6 +42,7 @@ class GameEngine:
         for message in new_player.accept_response():
             yield message
         raise StopIteration
+
         
         
 
@@ -51,20 +53,22 @@ class GameEngine:
             if name in game.guided_players:
                 player = game.guided_players[name]
                 for action, message in message_list:
-                        try:
-                            player.handle_action(action, message)
-                        except ActionDenied:
-                            pass
+                    print 'action', action
+                    try:
+                        player.handle_action(action, message)
+                    except ActionDenied:
+                        pass
     
     
     def game_update(self):
         "отыгрывание раунда игры"
-        #получаем список активных локаций
+        #print 'update'
         
         #обновляем объекты в активных локациях
         for chunk in game.get_active_chunks():
-            for player in chunk.get_list(Updatable)[:]:
+            for player in chunk.get_list(MutableObject)[:]:
                 if not player._REMOVE:
+                    player._update()
                     player.update()
             
         
@@ -88,10 +92,8 @@ class GameEngine:
     def end_round(self):
         "завершение игрового раунда"
         for chunk in game.get_active_chunks():
-            for player in chunk.get_list(Mutable):
-                if isinstance(player, Updatable):
-                    player.complete_round()
-                Mutable.clear(player)
+            for player in chunk.get_list(MutableObject):
+                MutableObject._complete_round(player)
             chunk.complete_round()
         
         game.guided_changed = False

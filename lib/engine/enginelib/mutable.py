@@ -2,23 +2,53 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from share.point import *
+from engine.mathlib import Cord, Position, ChunkCord
 from engine.enginelib.meta import *
+
 from engine.enginelib.collissions import *
 
 
 
 
-class Movable():
+class MutableObject(GameObject, Updatable):
     "класс движущихся объектов"
     BLOCKTILES = []
     SLOWTILES = {}
-    def mixin(self,  speed):
-        self._vector  = Point(0,0)
+    def __init__(self, name = None, speed = TILESIZE):
+        GameObject.__init__(self, name)
+
+        Updatable.mixin(self)
+
+        self.__events__ = set()
+        self.has_events = False
+
+        self.cord_changed = True
+        self.position_changed = True
+        self.location_changed = False
+
+
+        self._vector  = Position(0,0)
         self.speed = speed
-        self._move_vector = Point(0,0)
+        self._move_vector = Position(0,0)
         self._moved = False
         self._stopped = 0
+
+
+
+    
+
+    def change_position(self, new_position):
+        "вызывается при смене позиции"
+        assert isinstance(new_position, Position)
+        
+        if not new_position==self._position:
+            self.chunk.change_position(proxy(self), new_position)
+
+    def set_speed(self, speed):
+        self.speed = speed
+
+    def update_speed(self, speed):
+        self.speed+=speed
 
     @property
     def move_vector(self):
@@ -29,11 +59,11 @@ class Movable():
         return self._vector 
 
     def flush(self):
-        self._move_vector = Point(0,0)
-        self._vector = Point(0,0)
+        self._move_vector = Position(0,0)
+        self._vector = Position(0,0)
     
-    def move(self, vector=Point(0,0), destination=False):
-        assert isinstance(vector, Point)
+    def move(self, vector=Position(0,0), destination=False):
+        assert isinstance(vector, Position), vector
         
         success = True
 
@@ -53,7 +83,7 @@ class Movable():
                     part = self.speed / abs(self._vector) # доля пройденного пути в векторе
                     move_vector = self._vector * part if part<1 else self._vector
                     #определяем столкновения с тайлами
-                    new_cord = (self.position+move_vector)/TILESIZE
+                    new_cord = (self.position+move_vector).to_cord()
 
                     resist = 1
                     if self.cord!= new_cord:
@@ -68,8 +98,8 @@ class Movable():
                     move_vector = self._vector
                 
                 if self.location_changed:
-                        self._move_vector = Point(0,0)
-                        self._vector = Point(0,0)
+                        self._move_vector = Position(0,0)
+                        self._vector = Position(0,0)
                         success = False
 
                 if move_vector:
@@ -90,7 +120,7 @@ class Movable():
         for (i,j), cross_position in get_cross(self.position, move_vector):
             if 0<i<self.location.size and 0<j<self.location.size:
                 cross_tile =  self.location.map[i][j]
-                collission_result = self._detect_collisions(i,j)
+                collission_result = self._detect_collisions(Cord(i,j))
 
                 if cross_tile in self.BLOCKTILES or collission_result:
                     move_vector = (cross_position - self.position)*0.90
@@ -108,13 +138,13 @@ class Movable():
                     blocked = True
                     break
             else:
-                move_vector = Point(0,0)
+                move_vector = Position(0,0)
                 self._vector = move_vector
                 blocked = True
                 break
         else:
             if destination:
-                for player in self.location.get_voxel(i,j):
+                for player in self.location.get_tile(Cord(i,j)):
                     if player.name==destination:
                         player.collission(proxy(self))
                         self.collission(player)
@@ -123,8 +153,8 @@ class Movable():
             
         return move_vector, resist, blocked
         
-    def _detect_collisions(self, i,j):
-        for player in self.location.get_voxel(i,j):
+    def _detect_collisions(self, cord):
+        for player in self.location.get_voxel(cord):
             if player.name != self.name:
                 player.collission(proxy(self))
                 self.collission(player)
@@ -133,23 +163,61 @@ class Movable():
         return False
         
     
-    def complete_round(self):
-        self._moved = False
+    
 
     def stop(self, time):
         "останавливает на опредленное времчя"
         self._stopped = time
     
     def abort_moving(self):
-        self._vector = Point(0,0)
-        self._move_vector = Point(0,0)
+        self._vector = Position(0,0)
+        self._move_vector = Position(0,0)
     
 
-    def update(self):
-        if not self._moved and self._vector:
-            Movable.move(self)
     
-    def plus_speed(self, speed):
-        self.speed+=speed
+    
+    
+
+    def add_event(self, action, *args, **kwargs):
+        if isinstance(self, Guided): print action, args
+
+        self.__events__.add(Event(action, args))
+
+        self.chunk.set_event()
+
+        self.has_events = True
+
+
+    def get_events(self):
+        if self.__events__ and isinstance(self, Guided): print self.__events__
+
+        return self.__events__
+
+    def _complete_round(self):
+        self._moved = False
+        self.cord_changed = False
+        self.position_changed = False
+        self.has_events = False
+        self.__events__.clear()
+
+    def _update(self):
+        if not self._moved and self._vector:
+            MutableObject.move(self)
+
+    def update(self):
+        pass
+
+
+
+    def handle_change_location(self):
+        pass
+
+    def handle_respawn(self):
+        pass
+
+    def update(self):
+        pass
+
+
     
 

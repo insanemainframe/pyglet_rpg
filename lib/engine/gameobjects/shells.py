@@ -2,30 +2,38 @@
 # -*- coding: utf-8 -*-
 #
 from engine.enginelib.meta import *
-from engine.enginelib.movable import Movable
+from engine.enginelib.mutable import MutableObject
 
 from weakref import ProxyType
 
 from config import *
 
-class Shell(GameObject, Movable, DiplomacySubject, Temporary, Solid, Mortal, ActiveState):
-     counter = 0
-     def __init__(self, direct, speed, fraction, striker, damage, alive_after_collission):
+class Shell(MutableObject, DiplomacySubject, Temporary, Solid, Mortal, ActiveState):
+    counter = 0
+    def __init__(self, direct, speed, fraction, striker, damage, alive_after_collission):
         assert isinstance(striker, ProxyType)
-        GameObject.__init__(self)
+        assert isinstance(direct, Position)
+
+        MutableObject.__init__(self, None, speed = self.speed)
+
         Temporary.mixin(self, 1)
-        Movable.mixin(self, self.speed)
         Mortal.mixin(self, damage, alive_after_collission)
         DiplomacySubject.mixin(self, fraction)
-        one_step = Point(self.speed, self.speed)
+
+        one_step = Position(self.speed, self.speed)
         self.direct = direct*(abs(one_step)/abs(direct))
+
+
         self.alive = True
         self.striker = striker
-    
-     def collission(self, player):
+
+    def collission(self, player):
         if isinstance(player, Breakable):
             player.move(self.direct)
             Mortal.collission(self, player)
+
+    def update(self):
+        self.move(self.direct)
 
 
 
@@ -43,8 +51,7 @@ class Ball(Fragile,  Shell):
         
     
     def update(self):
-        Movable.move(self, self.direct)
-        Movable.update(self)
+        Shell.update(self)
         Temporary.update(self)
             
     

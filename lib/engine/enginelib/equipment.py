@@ -13,12 +13,12 @@ class Equipment(Container):
         
         self.slots_num = slots_num
         self.equipment = defaultdict(list)
-        self.equipment_changed = False
+        self._equipment_changed = False
     
     def handle_bind(self, item):
         item_type = item.__class__.__name__
         
-        self.equipment_changed  = True
+        self._equipment_changed  = True
                 
         self.equipment[item_type].append(proxy(item))
 
@@ -36,7 +36,7 @@ class Equipment(Container):
 
             self.pop_related(item.name)
             
-            self.equipment_changed  = True
+            self._equipment_changed  = True
         except IndexError:
             pass
     
@@ -45,7 +45,11 @@ class Equipment(Container):
         for item_type, item_list in self.equipment.items():
             if item_list:
                 result[item_type] = len(item_list)
+        self._equipment_changed = False
         return result
+
+    def is_equipment_changed(self):
+        return self._equipment_changed
             
             
 

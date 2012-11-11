@@ -3,7 +3,7 @@
 from config import *
 from share.errors import *
 
-from share.point import Point
+from engine.mathlib import Cord, Position, ChunkCord
 
 from engine.tuples import ObjectTuple, OnlineTuple, Event
 from engine.mathlib import *
@@ -30,15 +30,15 @@ class GameObject(object):
             assert isinstance(name, str)
             self.name = name
 
-        self.alive = True
         
         self.gid = str(hash((name, random())))
 
-        self.cord_changed = True
-        self.position_changed = True
-        self.location_changed = False
+        
         self._REMOVE = False
         self._owner = None
+
+        self._position = None
+
 
 
     
@@ -50,7 +50,7 @@ class GameObject(object):
     def handle_remove(self):
         return True
 
-    def handle_new_world(self):
+    def handle_new_location(self):
         pass
     
     def regid(self):
@@ -60,18 +60,12 @@ class GameObject(object):
     def position(self):
         return self._position
     
-    @position.setter
-    def position(self, position):
-        raise AttributeError('@position.setter')
-
-
     @property
     def prev_position(self):
         return self._prev_position
-    
-    @prev_position.setter
-    def prev_position(self):
-        raise AttributeError('@prev_position.setter')
+
+
+
 
 
     @property
@@ -85,38 +79,34 @@ class GameObject(object):
     
     def set_position(self, position):
         "принудительная установка позиции"
-        assert isinstance(position, Point)
+        assert isinstance(position, Position)
 
+        if self._position:
+            self._prev_position = self._position
+        else:
+            self._prev_position = position
         self._position = position
-        self._prev_position = position
+        # self._prev_position = position
 
-        self.cord = position/TILESIZE
-        self.prev_cord = self.cord
+        self.cord = position.to_cord()
+        # self.prev_cord = self.cord
         
         #self.location.update_tiles(self, prev_cord, self.cord)
         self.chunk.set_new_players()
 
             
-    def change_position(self, new_position):
-        "вызывается при смене позиции"
-        if not new_position==self._position:
-            self.chunk.change_position(proxy(self), new_position)
+    
 
     
     
     
-    def verify_chunk(cls, location, chunk):
+    def verify_chunk(self, location, chunk):
         return True
     
-    @classmethod
-    def verify_position(cls, location, chunk, i ,j):
-        return not location.map[i][j] in cls.BLOCKTILES
+    def verify_position(self, location, chunk, voxel, i ,j):
+        return True
     
-    def handle_change_location(self):
-        pass
-
-    def handle_respawn(self):
-        pass
+    
 
     def __hash__(self):
         return hash(self.name)
@@ -127,8 +117,7 @@ class GameObject(object):
     def __ne__(self, player):
         return self.name!=player.name
     
-    def update(self):
-        pass
+    
     
     def collission(self, player):
         pass
@@ -155,28 +144,12 @@ class GameObject(object):
     def get_args(self):
         return {}
 
-    
 
-    def __del__(self):
-        if hasattr(self,'_owner'):
-            del self._owner
-        if hasattr(self,'location'):
-            del self.location
-        if hasattr(self,'chunk'):
-            del self.chunk
-        if hasattr(self,'voxel'):
-            del self.voxel
-        try:
-            if not self.location.game.stopped:
-                print ('del %s' % self.name)
-        except:
-            pass
 
     def __str__(self):
         return self.name
 
-    def add_event(self, *args):
-        pass
+
 
 
 class ActiveState(object):
@@ -184,41 +157,8 @@ class ActiveState(object):
     def is_active(self):
         return True
 
-
-class Mutable(object):
+class Updatable(object):
     def mixin(self):
-        self.__events__ = set()
-        self.has_events = False
-
-
-    def add_event(self, action, *args, **kwargs):
-        if 'timeout' in kwargs:
-            timeout = kwargs['timeout']
-        else:
-            timeout = 0
-        self.__events__.add(Event(action, args, timeout))
-        self.chunk.set_event()
-        self.has_events = True
-
-
-    def get_events(self):
-        return self.__events__
-
-
-    def clear(self):
-        self.cord_changed = False
-        self.position_changed = False
-        self.has_events = False
-        self.__events__.clear()
-
-
-class Updatable(Mutable):
-    def mixin(self):
-        Mutable.mixin(self)
-
-    def update(self):
-        pass
-    def complete_round(self):
         pass
 
 
@@ -334,6 +274,12 @@ class Guided(ActiveState):
 
     def handle_quit(self):
         pass
+
+    def is_guided_changed(self):
+        return self.location.game.guided_changed
+
+    def get_online_list(self):
+        return self.location.game.get_guided_list(self.name)
     
 
 
@@ -354,17 +300,20 @@ class Impassable(Solid):
 class Breakable(Updatable):
     "класс для живых объектов"
     heal_time = 1200
-    def mixin(self, hp_value, ):
-        Updatable.mixin(self)
-        self._hp_value = hp_value
-        self._hp = hp_value
+    def mixin(self, hp = 10):
+        self._hp_value = hp
+        self._hp = hp
 
         self.heal_speed = self.hp_value/float(self.heal_time)
         self.corpse_type = None
         self.death_counter = 0
         self.hitted = 0
 
-    def set_cropse(self, corpse_type):
+    def set_hp(self, hp_value):
+        self._hp_value = hp_value
+        self._hp = hp_value
+
+    def set_corpse(self, corpse_type):
         self.corpse_type = corpse_type
 
     @property
@@ -393,16 +342,13 @@ class Breakable(Updatable):
     
     def hit(self, hp):
         self.hitted = 10
-        if self.alive:
-            self.hp-=hp
-            
-            
-            if self.hp<=0:
-                self.add_to_remove()
-                self.hp = self.hp_value
-                return True
-            else:
-                return False
+        self.hp-=hp
+        
+        
+        if self.hp<=0:
+            self.add_to_remove()
+            self.hp = self.hp_value
+            return True
         else:
             return False
     
@@ -453,7 +399,8 @@ class Breakable(Updatable):
 class Fragile(object):
     "класс для объекто разбивающихся при столкновении с тайлами"
     def tile_collission(self, tile):
-        self.alive = False
+        self.add_to_remove()
+        
     
 class Mortal(object):
     "класс для объектов убивающих живых при соприкосновении"
@@ -464,14 +411,12 @@ class Mortal(object):
     def collission(self, player):
         if isinstance(player, Breakable):
             if player.name!=self.name:
-                prev_state = player.alive
-                player.hit(self.damage)
+                is_dead = player.hit(self.damage)
                 if not self.alive_after_collission:
                     self.add_to_remove()
                 #
                 try:
-                    if isinstance(self.striker, Guided):
-                        if prev_state and not player.alive:
+                    if isinstance(self.striker, Guided) and is_dead:
                             self.striker.plus_kills()
                 except:
                     pass
@@ -482,8 +427,7 @@ class Respawnable(object):
     "класс перерождающихся объектов"
     respawned = False
     def mixin(self, delay, distance):
-        self.respawn_delay = delay
-        self.respawn_distance = distance
+        pass
         
     def remove(self):
         return False
@@ -496,10 +440,13 @@ class Respawnable(object):
 
 class DiplomacySubject(object):
     fraction = 'neutral'
-    def mixin(self, fraction):
+    def mixin(self, fraction = 'neutral'):
         self.fraction = fraction
         self.invisible = 0
     
+    def set_fraction(self, fraction):
+        self.fraction = fraction
+
     def set_invisible(self, invisible_time):
         self.invisible = invisible_time
     
@@ -531,5 +478,8 @@ class Savable(object):
         return ()
 
     @classmethod
-    def __load__(cls, world, position):
-        return cls(position)
+    def __load__(cls, location):
+        return cls()
+
+class SavableRandom(Savable):
+    pass

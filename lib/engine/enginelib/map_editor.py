@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from share.point import Point
-
+from engine.mathlib import Cord, Position, ChunkCord
+from engine.mathlib import Cord, Position, ChunkCord
+from engine.mathlib import Cord, Position, ChunkCord
 class MapEditor:
 	def __init__(self):
 		pass

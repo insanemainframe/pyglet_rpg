@@ -12,14 +12,17 @@ class EpollMultiplexer:
     def __init__(self):
         self._poller = epoll()
     
-    def _register_in(self, fileno):
+    def _register_in(self, int fileno):
         self._poller.register(fileno, EPOLLIN)
         
     
-    def _unregister(self, fileno):
+    def _unregister(self, int fileno):
         self._poller.unregister(fileno)
     
     def _run_poll(self):
+        cdef int fileno, event
+        cdef list event_pairs
+
         print('Start polling')
         while not self.stop_event.is_set():
             event_pairs = self._poller.poll()
@@ -41,9 +44,9 @@ class EpollMultiplexer:
                         self._handle_error(Error, fileno, event)
                             
                 except socket_error as Error:
-                    print ('socket_error', Error)
+                    print 'socket_error', Error
                     self._handle_error(Error, fileno, event)
-        print ('polling end')
+        print 'polling end'
 
 
 class SelectMultiplexer:

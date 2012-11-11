@@ -3,8 +3,11 @@
 from config import *
 xrange = range
 
-from share.point import Point
+from engine.mathlib import Cord, Position, ChunkCord
 from engine.enginelib.meta import Updatable
+from engine.enginelib.mutable import MutableObject
+
+
 
 from weakref import ProxyType
 
@@ -64,9 +67,9 @@ class MapObserver:
         for i in xrange(i_start, i_end):
             for j in xrange(j_start, j_end):
                 if SQUARE_FOV or (I-i)**2 + (J-j)**2 < rad**2:
-                    self.fov.add((i, j))
+                    self.fov.add(Cord(i, j))
                     
-                    voxel = self.location.get_voxel(i,j)
+                    voxel = self.location.get_voxel(Cord(i,j))
                     self.fov_voxels.append(voxel)
 
 
@@ -76,10 +79,10 @@ class MapObserver:
         #cdef set map_tiles
         map_tiles = set()
 
-        for i,j in self.fov:
-                if (i,j) not in self.prev_observed:
-                    tile_type = self.location.map[i][j]
-                    map_tiles.add((Point(i,j), tile_type))
+        for cord in self.fov:
+            if cord not in self.prev_observed:
+                tile_type = self.location.get_tile(cord)
+                map_tiles.add((cord, tile_type))
 
         return map_tiles, self.fov
 
@@ -87,7 +90,7 @@ class MapObserver:
     def look_objects(self):
         #cdef set observed_objects_gids, old_players
         #cdef list observed_objects, new_players
-        events = {}
+        
 
         observed_objects = sum(self.fov_voxels, [])
         observed_objects_gids = set([game_object.gid for game_object in observed_objects])
@@ -103,6 +106,7 @@ class MapObserver:
         self.observed_names = [player.name for player in observed_objects]
 
         old_players_pairs = []
+
         for name in old_players:
             if name in self.chunk.delay_args:
                 delay_arg = self.chunk.delay_args[name]
@@ -112,10 +116,10 @@ class MapObserver:
             old_players_pairs.append((name, delay_arg))
 
 
-        ###debug
+        #
+        events = {}
         for player in self.observed_objects:
-            assert isinstance(player, ProxyType)
-            if isinstance(player, Updatable):
+            if isinstance(player, MutableObject):
                 events[player.gid] = player.get_events()
             
 

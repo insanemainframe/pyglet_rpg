@@ -4,8 +4,7 @@ from config import *
 
 from random import randrange
 
-from share.point import Point
-from engine.mathlib import chance
+from engine.mathlib import Cord, Position, ChunkCord, chance
 
 from engine.enginelib.meta import *
 from engine.gameobjects.player import Player
@@ -17,7 +16,6 @@ class Misc(GameObject, Savable):
         GameObject.__init__(self)
         self.number = randrange(self.count)
     
-
 
     def get_args(self):
         return {'number': self.number}
@@ -40,12 +38,9 @@ class WaterFlower(Misc):
 
 class BigWaterFlower(WaterFlower):
     count = 9
-    @classmethod
-    def verify_position(cls, location, chunk, i ,j):
-        if GameObject.verify_position(location, chunk, i ,j):
-            return False
-        for tile in location.get_near_voxels(i,j):
-                if tile in cls.BLOCKTILES:
+    def verify_position(self, location, chunk, voxel, i ,j):
+        for tile in location.get_near_tiles(i,j):
+                if tile in self.BLOCKTILES:
                     return False
         return True
 
@@ -76,27 +71,26 @@ class AloneBush(Misc, Solid):
         Misc.__init__(self)
         Solid.mixin(self, self.radius)
 
-class AloneTree(Misc, Impassable, Breakable):
+class AloneTree(Misc, Impassable, ):
     BLOCKTILES = Player.BLOCKTILES + ['water']
+    gen_counter = 0
     count = 5
     radius = TILESIZE
     hp = 100
     def __init__(self):
         Misc.__init__(self)
-        Breakable.mixin(self, self.hp)
         Impassable.mixin(self, self.radius)
 
-    @classmethod
-    def verify_position(cls, location, chunk, i ,j):
-        if len(location.get_voxel(i,j)):
-            return False
-
-        for i,j in location.get_near_cords(i,j):
-                for player in location.get_voxel(i,j):
-                    if isinstance(player, AloneTree):
-                        return True
-        if chance(98):
-            return False
-        else:
+    def verify_position(self, location, chunk, voxel, i,j):
+        if AloneTree.gen_counter<50:
+            AloneTree.gen_counter+=1
             return True
+        else:
+            for player in sum(voxel.get_nears(), []):
+                if isinstance(player, AloneTree):
+                    return True
+            if chance(98):
+                return False
+            else:
+                return True
 

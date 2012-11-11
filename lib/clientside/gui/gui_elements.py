@@ -40,7 +40,7 @@ class StatsDisplay(GuiElement):
         Stat.y = 670
         stat = partial(Stat, surface)
 
-        self.hp = stat('hp: %s/%s')
+        self.hp = stat('hp: %.2f/%s')
         self.kills = stat('kills: %s')
         self.speed = stat('speed: %s')
         self.deaths = stat('deaths: %s')

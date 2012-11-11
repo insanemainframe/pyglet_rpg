@@ -3,11 +3,13 @@
 from config import SERIALIZATION_TYPE, SERIALIZATION_FILE_TYPE, USE_ZLIB
 
 
-if SERIALIZATION_TYPE is 'json':
+if SERIALIZATION_TYPE == 'json':
 	from json import loads as mloads, dumps as mdumps
 
-if SERIALIZATION_TYPE is 'marshal':
+elif SERIALIZATION_TYPE == 'marshal':
 	from marshal import loads as mloads, dumps as mdumps
+else:
+	raise RuntimeError('Invalid SERIALIZATION_TYPE', SERIALIZATION_TYPE)
 
 
 if USE_ZLIB:

@@ -28,9 +28,7 @@ class Item(GameObject, Solid, Temporary):
     def effect(self):
         pass
     
-    def remove(self):
-        GameObject.remove(self)
-        return True
+
 
 
 
@@ -44,7 +42,7 @@ class SpeedPotion(Item):
     "увеличивает скорость"
     speed = 5
     def effect(self):
-        self.owner.plus_speed(self.speed)
+        self.owner.update_speed(self.speed)
     
 class Sword(Item):
     "увеличивает урон"

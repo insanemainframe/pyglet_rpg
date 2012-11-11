@@ -182,7 +182,7 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
             elif action == 'EquipmentDict':
                 self.equipment.update(message)
             
-            elif action=='Newlocation':
+            elif action=='NewLocation':
                 wold_name, location_size, position, background = message
                 self.new_location(wold_name, location_size, position, background)
             

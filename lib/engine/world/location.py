@@ -5,15 +5,15 @@ from share.errors import *
 xrange = range
 
 
-from share.point import Point
+from engine.mathlib import Cord, Position, ChunkCord
+
 
 from engine.world.location_lib import ChoiserMixin, PersistentLocation
-from engine.world.objects_containers import ActivityContainer
+from engine.world.objects_containers import ActivityContainer, near_cords
 
 from engine.enginelib.meta import Container, Guided, HierarchySubject
 
-from engine.world.chunk import Chunk, near_cords
-from engine.world.voxel import Voxel
+from engine.world.chunk import Chunk
 
 
 from weakref import proxy, ProxyType
@@ -35,25 +35,28 @@ class Location(PersistentLocation, ActivityContainer, ChoiserMixin):
         self.name = name
         
         
-        self.teleports = [Point(self.size/2, self.size/2)]
+        self.teleports = [Cord(self.size/2, self.size/2)]
         
         self.chunk_number = int(self.size/CHUNK_SIZE +1)
         
         
         self._players = {}
         
-        self._chunks = []
-        self.chunk_keys = []
+        self._chunks = {}
         self.active_chunks = {}
         
-        self.create_voxels()
         self.create_chunks()
         self.create_chunk_links()
+
+    def __getitem__(self, chunk_cord):
+        return self._chunks[chunk_cord]
         
 
     def new_object(self, player, chunk = None, position = None):
-        assert chunk is None or isinstance(chunk, Point) and self.is_valid_chunk(chunk)
-        assert position is None or isinstance(position, Point) and self.is_valid_position(position)
+        assert chunk is None or isinstance(chunk, ChunkCord) and self.is_valid_chunk(chunk), chunk
+        assert position is None or isinstance(position, Position), position
+
+        
         
         if isinstance(player, Guided):  print ('\n location.new_object %s' % player)
         self.game._new_object(player)
@@ -63,34 +66,39 @@ class Location(PersistentLocation, ActivityContainer, ChoiserMixin):
 
     def add_object(self, player, chunk = None, position = None):
         assert isinstance(player, ProxyType)
-        assert chunk is None or isinstance(chunk, Point)
+        assert chunk is None or isinstance(chunk, ChunkCord)
         assert not hasattr(player, 'location')
 
         if isinstance(player, Guided):  print ('location.add_object %s ' % player)
 
-        if not position:
-            if not chunk:
-                chunk = self.main_chunk.cord
-            (chunk_i, chunk_j), position = self.choice_position(player, chunk)
+        try:
+            if not position:
+                if chunk:
+                    chunk_cord, position = self.choice_position(player, chunk)
+                else:
+                    chunk_cord, position = self.choice_position(player)
+            else:
+                if position and not self.is_valid_position(position):
+                    position = Position(self.resize_position(position.x), self.resize_position(position.y))
+                chunk_cord = position.to_chunk()
+
+        except NoPlaceException as error:
+            print 'add_object %s' % error
+            raise error
+
         else:
-            chunk_i, chunk_j = self.get_chunk_cord(position).get()
 
-        new_chunk = self.get_chunk_by_cord(chunk_i, chunk_j)
+            new_chunk = self[chunk_cord]
 
-        player.location = proxy(self)
-        new_chunk.add_object(player)
+            player.location = proxy(self)
+            new_chunk.add_object(player, position)
 
-        player.set_position(position)
 
-        cord = position/TILESIZE
-        self.add_to_voxel(player, cord)
-        
+            self._players[player.name] = player
+            self.add_activity(player)
 
-        self._players[player.name] = player
-        self.add_activity(player)
-
-        player.location_changed = True
-        player.handle_new_world()
+            player.location_changed = True
+            player.handle_new_location()
 
 
 
@@ -103,7 +111,6 @@ class Location(PersistentLocation, ActivityContainer, ChoiserMixin):
         prev_chunk = player.chunk
 
         prev_chunk.pop_object(player)
-        self.pop_from_voxel(player)
 
         self.remove_activity(player)
         del self._players[name]
@@ -126,131 +133,68 @@ class Location(PersistentLocation, ActivityContainer, ChoiserMixin):
 
 
     
-    def change_chunk(self, player, new_chunk_cord):
+    def change_chunk(self, player, new_chunk_cord, position):
         "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
         assert isinstance(player, ProxyType)
 
         if isinstance(player, Guided):  print ('location.change_chunk %s' % player)
 
-        ci, cj = new_chunk_cord.get()
 
-        if 0<=ci<self.chunk_number and 0<cj<self.chunk_number :
-            cur_chunk = self._chunks[ci][cj]
+        if self.is_valid_chunk(new_chunk_cord):
+            prev_chunk = player.chunk
+            cur_chunk = self[new_chunk_cord]
                             
-            player.chunk.pop_object(player)
-            cur_chunk.add_object(player)
+            prev_chunk.pop_object(player)
+            cur_chunk.add_object(player, position)
 
 
-    def change_cord(self, player, new_cord):
-        assert isinstance(player, ProxyType)
-        assert isinstance(new_cord, Point)
-        assert player.cord!=new_cord
-
-        if 0<=new_cord.x<self.size and 0<new_cord.y<self.size:
-            self.pop_from_voxel(player)
-            self.add_to_voxel(player, new_cord)
-
-            player.cord = new_cord
-            player.cord_changed = True
-        else:
-            print ("location: change_cord, key error", new_cord)
-
-    def get_chunk_cord(self, position):
-        "возвращает координаты локации для заданой позиции"
-        assert isinstance(position, Point)
-        
-        return position/TILESIZE/CHUNK_SIZE
-    
-    
-    def get_chunk_by_cord(self, chunk_i,chunk_j):
-        return self._chunks[chunk_i][chunk_j] 
-
-    def get_chunk(self, position):
-        "возвращает слокацию"
-        
-        chunk_i,chunk_j = self.get_chunk_cord(position).get()
-        try:
-            return self._chunks[chunk_i][chunk_j]
-        except IndexError as Error:
-            print('Warning: invalid chunk cord %s[%s:%s]' % (self.name,chunk_i,chunk_j))
-            raise Error
 
     def is_valid_chunk(self, chunk_cord):
-            x,y = chunk_cord.get()
-            return 0<x<self.chunk_number and 0<y<self.chunk_number
+        assert isinstance(chunk_cord ,ChunkCord)
+        x,y = chunk_cord.get()
+        if 0<=x<self.chunk_number and 0<=y<self.chunk_number:
+            return True
+        else:
+            print chunk_cord, self.chunk_number
+            return False
 
-    def is_valid_cord(self, i, j):
-        return 0<i<self.size and 0<j<self.size
+    def is_valid_cord(self, cord):
+        assert isinstance(cord, Cord)
+
+        i,j = cord.get()
+        return 0<=i<self.size and 0<=j<self.size
 
     def is_valid_position(self, position):
         x,y = position.get()
-        return 0<x<self.position_size and 0<y<self.position_size
+         
+        if 0<=x<self.position_size and 0<=y<self.position_size:
+            return True
+        else:
+            print position, self.position_size, x,y
+            return False    
+
+
     
-    def get_near_voxels(self, i,j):
-        "возвращает список соседних тайлов"
-
-        cords = [(i+ni, j+nj) for ni,nj in near_cords if self.is_valid_cord(i+ni, j+nj)]
-        tiles = [self.map[i][j] for i,j in cords]
-        return tiles
-
-    def get_near_cords(self, i,j):
-        "возвращает список соседних тайлов"
-        cords = [(i+ni, j+nj) for ni,nj in near_cords if self.is_valid_cord(i+ni, j+nj)]
-        return cords
-
-    def get_voxel(self, i, j):
-        return self._voxels[i,j]
-    
-    def add_to_voxel(self, player, cur_cord):
-        assert isinstance(player, ProxyType)
-
-        voxel = self._voxels[cur_cord.get()]
-        voxel.append(player)
-        player.cord_changed = True
-        
-    def pop_from_voxel(self, player):
-        voxel = player.voxel
-        voxel.remove(player)
-        player.cord_changed = True
     
     
 
         
-    def set_activity(self):
-        print ('set_activity')
-        self.game.add_active_location(self)
-    
-    def unset_activity(self):
-        print ('unset_activity')
-        self.game.remove_active_location(self)
-
     
 
-    def create_voxels(self):
-        self._voxels = {}
-        for i in range(self.size):
-            for j in range(self.size):
-                self._voxels[i,j] = Voxel(Point(i,j))
 
     def create_chunks(self):
         "создает локации"
         n = self.chunk_number
-        
-        for i in xrange(n):
-            row = []
-            for j in xrange(n):
-                row.append(Chunk(self, i,j))
-                self.chunk_keys.append((i,j))
-            self._chunks.append(row)
+        cords = [ChunkCord(i,j) for i in xrange(n) for j in xrange(n)]
+        self._chunks = {cord: Chunk(self, cord) for cord in cords}
 
-        mi = mj = int(self.chunk_number/2)
-        self.main_chunk = self._chunks[mi][mj]
+        main_cord = ChunkCord(n/2, n/2)
+        self.main_chunk = self[main_cord]
 
     def create_chunk_links(self):
         "создает ссылки в локациях"
-        for row in self._chunks:
-            for chunk in row:
-                chunk.create_links(self._chunks)
+        for chunk in self._chunks.values():
+            chunk.create_links()
 
     def add_active_chunk(self, chunk):
         self.active_chunks[chunk.cord.get()] = proxy(chunk)
@@ -263,8 +207,25 @@ class Location(PersistentLocation, ActivityContainer, ChoiserMixin):
     def get_active_chunks(self):
         return self.active_chunks.values()
 
+    def get_chunk_cords(self):
+        return self._chunks.keys()
+
     def has_active_chunks(self):
         return bool(self.active_chunks)
+
+    def get_tile(self, cord):
+        assert isinstance(cord, Cord)
+
+        return self.map[cord.x][cord.y]
+
+    def get_voxel(self, cord):
+        assert isinstance(cord, Cord)
+        chunk = self[cord.to_chunk()]
+        return chunk[cord]
+
+    def get_near_tiles(self, i,j):
+        nears = [(cord.x+i, cord.y+j)  for cord in near_cords]
+        return [self.map[i][j] for i,j in nears]
 
     
     
@@ -292,11 +253,19 @@ class Location(PersistentLocation, ActivityContainer, ChoiserMixin):
             return cord
 
 
+    def set_activity(self):
+        print ('set_activity')
+        self.game.add_active_location(self)
+    
+    def unset_activity(self):
+        print ('unset_activity')
+        self.game.remove_active_location(self)
+
     def start(self):
         result = self.load_objects()
         if not result:
             self.generate_func(self)
-            sel.flush_genaration_data()
+            self.flush_genaration_data()
 
         number = len(self._players)
         print ('Location "%s" with %s objects has been started' % (self.name, number))

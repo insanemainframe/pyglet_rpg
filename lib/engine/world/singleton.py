@@ -8,15 +8,13 @@ from weakref import proxy, ProxyType
 from random import  choice
 from collections import OrderedDict, Sequence
 
-import gc
-gc.enable()
 
-from sys import getrefcount
 
-from share.point import Point
-
+from engine.mathlib import Cord, Position, ChunkCord
+from engine.mathlib import Cord, Position, ChunkCord
+from engine.mathlib import Cord, Position, ChunkCord
 from engine.enginelib.meta import Guided, HierarchySubject, Container, Respawnable
-from engine.enginelib.movable import Movable
+from engine.enginelib.mutable import MutableObject
 from engine.world.location import Location
 
 
@@ -99,7 +97,7 @@ class __GameSingleton(object):
             player.regid()
             player.respawned = True
             
-            if isinstance(player, Movable):
+            if isinstance(player, MutableObject):
                 player.flush()
 
             chunk_cord = game.mainlocation.main_chunk.cord
@@ -134,7 +132,7 @@ class __GameSingleton(object):
         "переметить объект из одного мира в другой"
 
         assert isinstance(player, ProxyType)
-        assert new_position is None or isinstance(new_position, Point)
+        assert new_position is None or isinstance(new_position, Position)
 
         if isinstance(player, Guided):  print ('game.change_location', player, location_name
         )
@@ -148,10 +146,9 @@ class __GameSingleton(object):
         print (dest_chunk_cord)
         
         if not new_position:
-            (chunk_i, chunk_j),new_position = new_location.choice_position(player, chunk=dest_chunk_cord)
-            new_chunk_cord = Point(chunk_i, chunk_j)
+            new_chunk_cord,new_position = new_location.choice_position(player, dest_chunk_cord)
         else:
-            new_chunk_cord = new_location.get_chunk_cord(new_position)
+            new_chunk_cord = new_position.to_chunk()
         
         #меняем локацию
         prev_location.pop_object(player)
@@ -160,7 +157,7 @@ class __GameSingleton(object):
                 
         
         
-        if isinstance(player, Movable):
+        if isinstance(player, MutableObject):
             player.flush()
         #обновляем хэш объекта
         player.regid()

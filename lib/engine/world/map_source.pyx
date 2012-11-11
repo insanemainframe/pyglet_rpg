@@ -9,15 +9,17 @@ import os, imp
 
 from collections import Counter
 
-from engine.mathlib import Cord, Position, ChunkCord, chance
+from engine.mathlib import  chance
 from engine.world.objects_containers import near_cords
 
 from random import randrange, choice
 
 
 
-def load_map(mapname): 
-    
+def load_map(str mapname): 
+    cdef str map_file, map_image, dict_file
+    cdef list tilemap
+    cdef tuple map_data
 
     map_file = LOCATION_PATH % mapname + MAP_FILE
     map_image = LOCATION_PATH % mapname + MAP_IMAGE
@@ -109,6 +111,10 @@ class FromImage:
         self.dict_file = dict_file
 
     def generate(self):
+        cdef int i,j
+        cdef tuple color
+        cdef str tile, background
+
         from PIL import Image
         
 

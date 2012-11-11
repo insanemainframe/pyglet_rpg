@@ -3,7 +3,7 @@
 #
 from config import *
 
-from clientside.client_objects import all as client_objects
+from clientside.client_objects import all as object_types
 from clientside.gui.window import create_tile, GuiElement, LEFT_BUTTON, RIGHT_BUTTON
 from clientside.gui.gui_lib import Drawable
 
@@ -20,22 +20,20 @@ class ObjectsView(Drawable, GuiElement):
         self.surface = surface
         self.window = window
         
-        self.module = client_objects
-        self.module.Meta.init_cls(surface)
-        self.object_dict = {}
+        object_types.Meta.init_cls(surface)
+        
         self.objects = {}
-        self.deleted_objects = []
         self.delayed_objects = []
         
-        self.eventnames = []
-        self.timeout_events = defaultdict(list)
 
         self.focus_object = False
-        
-        for name in dir(self.module):
-            Class = getattr(self.module, name)
+
+        self.object_dict = {}
+
+        for name in dir(object_types):
+            Class = getattr(object_types, name)
             if type(Class) is ClassType:
-                if issubclass(Class, self.module.Meta):
+                if issubclass(Class, object_types.Meta):
                     self.object_dict[name] = Class
 
         self.prev_hovered = False
@@ -43,16 +41,12 @@ class ObjectsView(Drawable, GuiElement):
 
     def insert_events(self, new_events={}):
         for gid, eventlist in new_events.items():
-            for action, args, timeout in eventlist:
-                if timeout>0 or gid in self.objects:
-                    self.eventnames.append(gid)
-                    timeout-=1
-                    if timeout>0:
-                        self.timeout_events[gid].append((action, args, timeout))
-                    if gid in self.objects:
-                        self.objects[gid].handle_action(action, args)
-                    else:
-                        print '%s not in objects: action %s' % (gid, action)
+            for action, args in eventlist:
+                if gid in self.objects:
+
+                    self.objects[gid].handle_action(action, args)
+                else:
+                    print '%s not in objects: action %s' % (gid, action)
         
             
     
@@ -133,9 +127,7 @@ class ObjectsView(Drawable, GuiElement):
     def round_update(self):
         [game_object.round_update() for game_object in self.objects.values()]
         
-        if self.timeout_events:
-            self.insert_events(self.timeout_events)
-        self.timeout_events.clear()
+
         
     def force_complete(self):
         [game_object.force_complete() for game_object in self.objects.values()]

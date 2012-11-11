@@ -13,7 +13,7 @@ OUT_PORT = 8889
 SERIALIZATION_TYPE = 'marshal'
 
 SERIALIZATION_FILE_TYPE = 'marshal'
-USE_ZLIB = False
+USE_ZLIB = True
 
 
 ACCEPT_NUMBER = 0
@@ -33,7 +33,7 @@ MAP_FILE = 'map.%s.zlib' % SERIALIZATION_FILE_TYPE
 MAP_IMAGE = 'map.png'
 MAP_DICT = 'tiledict.py'
 LOCATION_MUL = 1
-MAP_ZLIB = False
+MAP_ZLIB = True
 
 
 

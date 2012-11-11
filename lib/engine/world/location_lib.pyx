@@ -4,7 +4,8 @@ from config import *
 from share.errors import *
 xrange = range
 
-from engine.mathlib import Cord, Position, ChunkCord
+from engine.mathlib cimport Cord, Position, ChunkCord
+from cpython cimport bool
 
 from share.serialization import loads, dumps, load, dump
 
@@ -44,7 +45,10 @@ class PersistentLocation(object):
         print 'creating %s of %s' % (n, object_type.__name__)
         for i in xrange(n):
             monster = object_type()
-            self.new_object(monster, generation = True)
+            try:
+                self.new_object(monster)
+            except NoPlaceException:
+                print 'NoPlaceException', object_type.__name__
             
     
         
@@ -114,19 +118,19 @@ class ChoiserMixin:
     def mixin(self):
         self.bad_tiles = defaultdict(set)
         self.bad_chunks = defaultdict(set)
-        self.generation = True
 
     def flush_genaration_data(self):
-        self.generation = False
         self.bad_tiles.clear()
 
 
-    def choice_position(self, player, chunk = None, radius = 0, generation = False):
+    def choice_position(self, player,  ChunkCord start_chunk = ChunkCord(0,0), int radius = 0):
         "выбирает случайную позицию, доступную для объекта"
+        cdef set bad_chunks, bad_cords
+        cdef bool ignore_chunk, ignore_position
+        cdef int MAX_RADIUS
+        cdef list chunks_list
 
         print( '%s: choice_position %s' % (self.name, player))
-        start_chunk = chunk
-        assert start_chunk is None or isinstance(start_chunk, ChunkCord)
 
         MAX_RADIUS = (self.chunk_number/2)
         if radius>=MAX_RADIUS:
@@ -143,9 +147,11 @@ class ChoiserMixin:
 
         while radius<=MAX_RADIUS:
             if start_chunk:
+                print 'start_chunk', player, start_chunk
                 chunks = set(self.chunks_in_radius(*start_chunk.get(), radius = radius))
                 
             else:
+                
                 chunks = set(self.get_chunk_cords())
 
             if not ignore_chunk:
@@ -153,24 +159,31 @@ class ChoiserMixin:
 
 
 
-            chunks = list(chunks)
-            while chunks:
-                chunk_cord = chunks.pop()
+            chunks_list = list(chunks)
+
+            print 'chunks_list: ', len(chunks_list)
+
+            while len(chunks_list)>0:
+                print 'try chunk'
+                chunk_cord = chunks_list.pop(randrange(len(chunks_list)))
                 chunk = self[chunk_cord]
 
-                if ignore_chunk or player.verify_chunk(self, chunk):
+                if ignore_chunk or ignore_position or player.verify_chunk(self, chunk):
                     chunk = self[chunk_cord]
 
                     try:
                         position = self._choice_in_chunk(player, chunk_cord, bad_cords, ignore_position)
                     except NoPlaceException:
+                        print 'no position for %s' % player
                         bad_chunks.add(chunk_cord)
                     else:
                         return chunk_cord, position
                 else:
-                    bad_chunks.add(chunk_cord)
+                    print 'not player.verify_chunk ', player
+                    if start_chunk:
+                        bad_chunks.add(chunk_cord)
                     
-        
+            print 'end chunks loop'
             if start_chunk:
                 if radius<MAX_RADIUS:
                     radius+=1
@@ -183,7 +196,7 @@ class ChoiserMixin:
                             print('ignore_position')
                             ignore_position = True
                         else:
-                            raise NoPlaceException(err_message)
+                            raise NoPlaceException('1: No place for' % player)
             else:
                 if not ignore_chunk:
                     print('ignore_chunk')
@@ -193,34 +206,49 @@ class ChoiserMixin:
                         print('ignore_position')
                         ignore_position = True
                     else:
-                        raise NoPlaceException(err_message)
+                        raise NoPlaceException('2: No place for' % player)
 
-        raise NoPlaceException(err_message)
+        raise NoPlaceException('3: No place for' % player)
 
-    def _choice_in_chunk(self, player, chunk_cord, bad_cords, ignore_position):
+    def _choice_in_chunk(self, player,  chunk_cord, set bad_cords, bool ignore_position):
+        cdef list cords, BLOCKTILES
+        cdef Position position, shift
+        cdef Cord cord
+        cdef int i,j
+
         chunk = self[chunk_cord]
 
-        cords = list(chunk.get_free_cords())
+        cords = chunk.get_free_cords()
+        BLOCKTILES = player.BLOCKTILES
 
-        while cords:
-            cord = cords.pop()
+        if not cords:
+            print 'no free cords'
+            raise NoPlaceException('no free cords')
+
+        print 'cord', len(cords)
+
+        while len(cords)>0:
+            cord = cords.pop(randrange(len(cords)))
             voxel = chunk[cord]
             i,j = cord.get()
-            if ignore_position or player.verify_position(self, chunk, voxel, i,j):
-                shift = Position(randrange(TILESIZE), randrange(TILESIZE))
-                position = cord.to_position() + shift 
-                return position
-            else:
-                bad_cords.add(cord)
-        raise NoPlaceException
+            if not self.get_tile(cord) in BLOCKTILES:
+                if ignore_position or player.verify_position(self, chunk, voxel, i,j):
+                    shift = Position(randrange(TILESIZE), randrange(TILESIZE))
+                    position = cord.to_position() + shift 
+                    return position
+            # bad_cords.add(cord)
+        else:
+            print 'end of cord loop'
+
+        raise NoPlaceException('no good cords')
 
 
 
 
             
     
-    def chunks_in_radius(self, I, J, radius):
-        # cdef int start_i, start_j, end_i, end_j
+    def chunks_in_radius(self, int I, int J, int radius):
+        cdef int start_i, start_j, end_i, end_j, i, j,chunk_number
         # cdef list chunk_cords
 
 
@@ -232,10 +260,10 @@ class ChoiserMixin:
             start_j = self.resize_chunk_cord(J - radius)
             end_j = self.resize_chunk_cord(I + radius )
 
+
             for i in range(start_i, end_i):
                 for j in range(start_j, end_j):
-                    if 0<i<self.chunk_number and 0<j<self.chunk_number:
-                        yield ChunkCord(i,j)
+                    yield ChunkCord(i,j)
 
     def resize_chunk_cord(self, cord):
         if cord<0:

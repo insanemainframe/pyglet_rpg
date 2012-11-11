@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 from sys import path; path.append('../../')
 
-from share.point import *
-
+from engine.mathlib import Cord, Position, ChunkCord
 from math import hypot
 from collections import namedtuple
 
@@ -25,12 +24,12 @@ def intersec_point(A,B,C,D):
     if C.x==D.x:
         x = C.x - A.x
         y = x/div if divx else x*div
-        return A+ Point(x,y)
+        return A+ Position(x,y)
         
     elif C.y == D.y:
         y = C.y - A.y
         x = y*div if divx else y/div
-        return A + Point(x,y)
+        return A + Position(x,y)
 
 def interception(A,B,C,D):
     "пересекаются ли отрезки"
@@ -41,12 +40,15 @@ def interception(A,B,C,D):
 
 def cross_tile(A, B, tilecord):
     "выдает соседние тайлы с которыми пересекается вектор и координаты пересечения"
-    start = tilecord*TILESIZE
+    assert isinstance(tilecord, Cord)
+
+    start = tilecord.to_position()
+
     null, CELL = 0 , TILESIZE
-    cds = {tilecord + Point(0,1) : (start + Point(null ,CELL), start+Point(CELL,CELL)),
-                tilecord + Point(1,0) : (start + Point(CELL, CELL), start + Point(CELL, null)),
-                tilecord + Point(0,-1) : (start, start + Point(CELL, null)),
-                tilecord + Point(-1,0) : (start, start + Point(null, CELL))}
+    cds = {tilecord + Cord(0,1) : (start + Position(null ,CELL), start+Position(CELL,CELL)),
+                tilecord + Cord(1,0) : (start + Position(CELL, CELL), start + Position(CELL, null)),
+                tilecord + Cord(0,-1) : (start, start + Position(CELL, null)),
+                tilecord + Cord(-1,0) : (start, start + Position(null, CELL))}
     
     return ((ij, intersec_point(A,B,C, D)) for ij,(C, D) in cds.items() if interception(A,B,C,D))
 
@@ -55,11 +57,11 @@ def cross_tile(A, B, tilecord):
 
 def get_cross(position, vector):
     "возвращает i,j пересекаемых векторов тайлов и координаты этих пересечений"
-    end_cord = (position+vector)/TILESIZE #i,j конечнй точки
+    end_cord = (position+vector).to_cord() #i,j конечнй точки
     
-    for ij, cross in cross_tile(position, position+vector, position/TILESIZE):
-        yield (ij.get(), cross)
-        if ij == end_cord:
+    for cord, cross in cross_tile(position, position+vector, position.to_cord()):
+        yield (cord.get(), cross)
+        if cord == end_cord:
             break
     raise StopIteration
 
@@ -98,7 +100,7 @@ def get_interception_point(p1, p2, p3, p4):
         x = x_numerator/x_denumerator
         y = y_numerator/y_denumerator
 
-        return Point(x,y)
+        return Position(x,y)
     else:
         return False
 

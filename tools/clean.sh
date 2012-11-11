@@ -3,6 +3,7 @@ rm *.pyc
 rm */*.pyc
 rm */*/*.pyc
 rm */*/*/*.pyc
+rm */*/*/*/*.pyc
 
 
 rm *.c
@@ -22,6 +23,10 @@ rm */*.so
 rm */*/*.so
 rm */*/*/*.so
 
+rmdir */__pycache__
+rmdir */__pycache__
+rmdir */*/__pycache__
+rmdir */*/*/__pycache__
 
 
 

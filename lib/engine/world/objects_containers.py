@@ -5,12 +5,23 @@ from config import *
 from weakref import proxy, ProxyType
 
 from engine.enginelib.meta import ActiveState
+from engine.mathlib import Cord, Position, ChunkCord
+
+#список инкременаторов к индексу на соседние локации
+nears =    ((-1,1),(0,1),(1,1),
+            (-1,0),      (1,0),
+            (-1,-1),(0,-1),(1,-1))
+
+near_cords = [Cord(i,j) for i,j in nears]
+near_chunk_cords = [ChunkCord(i,j) for i,j in nears]
 
 
 class ObjectContainer:
     proxy_list = ()
 
     def __init__(self):
+        for p_type in self.proxy_list:
+            assert isinstance(p_type, type)
         self.__forproxy__ = {p_type:p_type.__name__ for p_type in self.proxy_list}
         self.proxy_dicts = {type_name : {} for type_name in self.__forproxy__.values()}
         self.new_players = False

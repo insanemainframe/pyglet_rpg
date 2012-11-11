@@ -17,7 +17,7 @@ class ServerAccept(GameProtocol):
         return []
 
 #инициализация
-class Newlocation(GameProtocol):
+class NewLocation(GameProtocol):
     "ответ сервера - инициализация клиента"
     def __init__(self, wold_name, location_size, position, background):
         self.wold_name = wold_name

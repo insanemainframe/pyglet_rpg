@@ -6,12 +6,12 @@ from engine.enginelib.meta import *
 from engine.mathlib import chance
 from engine.enginelib.units_lib import Unit, Striker, Stats
 from engine.gameobjects.shells import Ball
-from engine.enginelib.movable import Movable
+from engine.enginelib.mutable import MutableObject
 from engine.enginelib.skills import Skill
 from engine.enginelib.equipment import Equipment
 from engine.enginelib.map_observer import MapObserver
 
-import  share.game_protocol as protocol
+from  share.gameprotocol.server_responses import *
 
 class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equipment, HierarchySubject):
     "класс игрока"
@@ -26,8 +26,8 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     fraction='players'
 
     def __init__(self, name, look_size=PLAYER_LOOK_RADIUS):
-        GameObject.__init__(self, name)
-        Unit.mixin(self, self.speed, self.hp, 'players')
+        Unit.__init__(self, name, self.hp, self.speed, 'players')
+        
         
         HierarchySubject.mixin(self)
         
@@ -38,75 +38,77 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         Skill.mixin(self,self.default_skills)
         Equipment.mixin(self)
 
+        self.set_strike_speed(3)
         self.set_shell(Ball)
 
 
-        self.change_objects = False
         self.__actions__ = {'ApplyItem': self.ApplyItem, 'Move' : self.Move,
                             'Strike' : self.Strike, 'Skill' : self.Skill}
     
     def accept_response(self):
         data = self.location.name, self.location.size, self.position, self.location.background
-        yield protocol.Newlocation(*data)
+        yield NewLocation(*data)
         
     def handle_response(self):
         #если попал в новый мир
         #cdef set new_looked, observed, old_players
         #cdef dict events
         #cdef list new_players
-        if self.cord_changed or self.location_changed or self.respawned:
-            self.observe()
+        #if self.cord_changed or self.location_changed or self.respawned:
+        self.observe()
         
         if self.location_changed or self.respawned:
             new_trig = True
             if self.location_changed:
-                yield protocol.Newlocation(self.location.name, self.location.size, self.position, self.location.background)
+                yield NewLocation(self.location.name, self.location.size, self.position, self.location.background)
                 self.location_changed = False
 
             elif self.respawned:
-                yield protocol.Respawn(self.position)
+                yield Respawn(self.position)
                 self.respawned = False
 
         else:
             new_trig = False
             
         if self.position_changed:
-            yield protocol.MoveCamera(self.move_vector)
+            yield MoveCamera(self.move_vector)
     
         #если изменилась клетка - смотрим новые тайлы и список тайлов в радусе обзора
 
         if self.cord_changed or new_trig:
             new_looked, observed = self.look_map()
-            yield protocol.LookLand(new_looked, observed)
+            yield LookLand(new_looked, observed)
 
+        chunk = self.chunk
         
-        if self.chunk.check_players() or new_trig:
-            new_players, events, old_players = self.look_objects()
-            if new_players or events or old_players:
-                yield protocol.LookObjects(new_players, events, old_players)
+        #if new_trig or self.has_events or chunk.check_events() or chunk.check_players():
+        new_players, events, old_players = self.look_objects()
+        yield LookObjects(new_players, events, old_players)
 
 
 
 
 
         #если изменились собственные статы
-        if self.stats_changed:
-            yield protocol.PlayerStats(*Stats.get_stats(self))
+        if self.is_stats_changed():
+            yield PlayerStats(*Stats.get_stats(self))
         
         #если изменился список игроков лнлайн
-        if self.location.game.guided_changed:
-            yield protocol.PlayersList(self.location.game.get_guided_list(self.name))
+        if self.is_guided_changed():
+            yield PlayersList(self.get_online_list())
             
         #если изменилис предметы
-        if self.equipment_changed:
-            yield protocol.EquipmentDict(self.look_items())
-            self.equipment_changed = False
+        if self.is_equipment_changed():
+            yield EquipmentDict(self.look_items())
+            
             
     def Strike(self, vector):
+        vector = Position(*vector.get())
         self.strike_ball(vector)
     
     def Move(self, vector, destination):
-            Movable.move(self, vector, destination)
+        vector = Position(*vector.get())
+        MutableObject.move(self, vector, destination)
     
     def Look(self):
         return MapObserver.look(self)
@@ -125,16 +127,10 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         Breakable.handle_respawn(self)
     
     def update(self):
-        #print 'update player'
-        Movable.update(self)
-        Striker.update(self)
         Breakable.update(self)
-        Stats.update(self)
         DiplomacySubject.update(self)
     
-    def complete_round(self):
-        #print 'complete_round player'
-        Movable.complete_round(self)
+
 
     def __del__(self):
         HierarchySubject.__del__(self)

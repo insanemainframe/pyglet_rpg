@@ -13,17 +13,17 @@ items = [Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cl
     
 def generate(self):
         print('\t Creating teleports...')
-        self.create_item(200, GetTeleport(Stair,'ground'))
-        self.create_item(200, GetTeleport(DeepCave, 'underground2'))
+        self.create_object(200, GetTeleport(Stair,'ground'))
+        self.create_object(200, GetTeleport(DeepCave, 'underground2'))
         
         print('\t Creating decorartions...')
-        self.create_item(5000, Mushroom)
-        self.create_item(100, WaterFlower) 
-        self.create_item(5000, Stone)
-        self.create_item(50, Rubble)
-        self.create_item(200, Reef)
+        self.create_object(5000, Mushroom)
+        self.create_object(100, WaterFlower) 
+        self.create_object(5000, Stone)
+        self.create_object(50, Rubble)
+        self.create_object(200, Reef)
 
-        self.create_item(200, choice(items))
+        self.create_object(200, choice(items))
 
         print('\t Creating monsters...')
         self.create_object(200, Bat)

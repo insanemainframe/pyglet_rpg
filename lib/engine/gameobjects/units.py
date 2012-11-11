@@ -7,7 +7,7 @@ from engine.mathlib import chance
 from engine.enginelib.units_lib import *
 from engine.gameobjects.items import *
 from engine.gameobjects.shells import *
-from engine.enginelib.movable import Movable
+from engine.enginelib.mutable import MutableObject
 
 from weakref import ProxyType
 
@@ -24,20 +24,16 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
     leash_size = 4
     
     def __init__(self):   
-        GameObject.__init__(self)
+        Unit.__init__(self, None, self.hp, self.speed, 'good')
 
         HierarchySubject.mixin(self)
-        Unit.mixin(self, self.speed, self.hp, 'good')
         Stalker.mixin(self, self.look_size)
         Striker.mixin(self, 10, self.damage)
         Temporary.mixin(self, self.lifetime)
-        
+
 
         self.set_shell(AllyBall)
 
-        self.stopped = False
-        
-        
         self.spawn()
     
     def handle_bind_master(self):
@@ -55,7 +51,7 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
                 if result:
                     self.victim, vector = result
                     delta = random()*TILESIZE
-                    vector += Point(delta, -delta)
+                    vector += Position(delta, -delta)
                     self.strike_ball(vector)
                 else:
                     Walker.update(self)
@@ -64,15 +60,9 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
         else:
             Walker.update(self)
         
-        Movable.update(self)
-        Striker.update(self)
         Breakable.update(self)
         Temporary.update(self)
     
-    
-    def complete_round(self):
-        Movable.complete_round(self)
-        Striker.complete_round(self)
     
     def get_args(self):
         return Breakable.get_args(self)
@@ -81,9 +71,7 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
         if self.master:
             self.unbind_master()
 
-    @classmethod
-    def verify_chunk(self, location, chunk):
-        return True
+
 
     def verify_chunk(self, location, chunk):
         print ('ally verify_chunk')
@@ -100,38 +88,36 @@ class Cat(Walker, Solid, Stalker, DiplomacySubject, GameObject):
     speed = 20
     radius = TILESIZE
     rainbow_time = 30
-    alive = True
     look_size = 300
+    heal_speed = 3
     
     def __init__(self):
-        GameObject.__init__(self)
+        MutableObject.__init__(self, speed = self.speed)
         Solid.mixin(self, self.radius)
-        Movable.mixin(self, self.speed)
         DiplomacySubject.mixin(self, 'good')
-        self.heal_counter = 0
+        self.prev_heal_time = time()
     
     def collission(self, player):
         if isinstance( player, Guided):
-            if self.heal_counter==0:
+            cur_time = time()
+            if cur_time - self.prev_heal_time > self.heal_speed:
+                self.prev_heal_time = cur_time
                 self.rainbow(player)
-            self.heal_counter+=1
-            if self.heal_counter==10:
-                self.heal_counter = 0
+            
     
     def rainbow(self, player):
         player.heal(5)
-        self.add_event('rainbow', timeout = self.rainbow_time)
+        self.add_event('rainbow', self.rainbow_time)
     
     def update(self):
         if chance(10):
             direct = self.hunt(True)
-            Movable.move(self,direct)
+            MutableObject.move(self.direct)
         else:
             if not self.vector:
                 Walker.update(self)
     
-    def complete_round(self):
-        Movable.complete_round(self)
+
 
 
         
@@ -149,9 +135,7 @@ class Bat(Fighter, MetaMonster):
         MetaMonster.__init__(self, self.speed, self.hp)
         Fighter.mixin(self, self.damage, self.attack_speed)
     
-    def complete_round(self):
-        MetaMonster.complete_round(self)
-        Fighter.complete_round(self)
+
 
 class Zombie(Fighter, MetaMonster):
     hp = 20
@@ -164,9 +148,7 @@ class Zombie(Fighter, MetaMonster):
         MetaMonster.__init__(self, self.speed, self.hp)
         Fighter.mixin(self, self.damage, self.attack_speed)
     
-    def complete_round(self):
-        MetaMonster.complete_round(self)
-        Fighter.complete_round(self)
+
     
 
 class Ghast(Fighter, MetaMonster):
@@ -179,10 +161,7 @@ class Ghast(Fighter, MetaMonster):
     def __init__(self):
         MetaMonster.__init__(self, self.speed, self.hp)
         Fighter.mixin(self, self.damage, self.attack_speed)
-    
-    def complete_round(self):
-        MetaMonster.complete_round(self)
-        Fighter.complete_round(self)
+
 
 
 class Lych(MetaMonster, Striker):
@@ -197,23 +176,17 @@ class Lych(MetaMonster, Striker):
         self.set_shell(DarkBall)
     
     def update(self):
-        if self.alive:
-            if chance(50):
-                result = self.hunt(False)
-                if result:
-                    vector = result[1]
-                    delta = random()*TILESIZE
-                    vector += Point(delta, -delta)
-                    self.strike_ball(vector)
-                else:
-                    Walker.update(self)
+        if chance(50):
+            result = self.hunt(False)
+            if result:
+                vector = result[1]
+                delta = random()*TILESIZE
+                vector += Position(delta, -delta)
+                self.strike_ball(vector)
             else:
                 Walker.update(self)
-                
-            Movable.update(self)
-            Striker.update(self)
+        else:
+            Walker.update(self)
+            
         Breakable.update(self)
-    
-    def complete_round(self):
-        Movable.complete_round(self)
-        Striker.complete_round(self)
+        

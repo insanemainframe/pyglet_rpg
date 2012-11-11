@@ -10,6 +10,7 @@ from engine.gameobjects.player import Player
 
 class GetTeleport:
     "фабрика  телепортов"
+    __name__ = 'Teleport factory'
     def __init__(self, ttype, dest):
         self.dest = dest
         self.ttype = ttype
@@ -28,7 +29,7 @@ class Teleport(GameObject, Solid, Savable):
         GameObject.__init__(self)
         self.dest = dest
     
-    def handle_new_world(self):
+    def handle_new_location(self):
         self.location.teleports.append(self.chunk.cord)
     
     def collission(self, player):
@@ -37,24 +38,21 @@ class Teleport(GameObject, Solid, Savable):
             self.location.game.change_location(player, location_name = self.dest)
     
 
-    @classmethod
-    def verify_chunk(cls, location, chunk):
+
+    def verify_chunk(cls, location, chunk,):
         if len(chunk.get_list(Teleport))>0:
             return False
         return True
 
 
     
-    def remove(self):
-        GameObject.remove(self)
-        return True
 
     def __save__(self):
         return [ self.dest]
     
-    @staticmethod
-    def __load__(dest):
-        return [dest]
+    @classmethod
+    def __load__(cls, location, dest):
+        return cls(dest)
 
 class Cave(Teleport):
     pass
