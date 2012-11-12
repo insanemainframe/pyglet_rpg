@@ -71,12 +71,11 @@ def main():
     hostname = ask_hostname(HOSTNAME)
     running = Event()
 
-    for i in range(n):
-        bot = Bot(hostname, running = running)
-        bot.start()
+    bots = [Bot(hostname, running = running) for i in range(n)]
+    [bot.start() for bot in bots]
+    [bot.join() for bot in bots]
         
-    while not running.is_set():
-        pass
+
 
 if __name__=='__main__':
     main()

@@ -24,7 +24,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     damage = 5
     default_skills = 10
 
-    def __init__(self, name, player_position, look_size=LOOK_RADIUS):
+    def __init__(self, name, player_position, look_size=PLAYER_LOOK_RADIUS):
         DynamicObject.__init__(self, name, player_position)
         Unit.__init__(self, self.speed, self.hp, Corpse, 'players')
         MapObserver.__init__(self, look_size)
@@ -148,7 +148,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
             if tile in cls.BLOCKTILES:
                 return False
 
-        
+
         for ij in world.get_near_cords(i,j) + [(i,j)]:
                 for player in world.tiles[Point(*ij)]:
                     if isinstance(player, Solid):

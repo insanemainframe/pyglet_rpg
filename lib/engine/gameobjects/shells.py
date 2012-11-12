@@ -6,6 +6,7 @@ from engine.enginelib.movable import Movable
 from engine.enginelib import wrappers
 
 
+
 from config import *
 
 class Shell(ActiveState, Movable, DiplomacySubject, Temporary, Solid, Mortal):
