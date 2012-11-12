@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-cdef dict cds
+from share.mathlib cimport Point 
 
-from share.mathlib cimport Point
-
-from math import hypot, ceil
+from math import hypot
 from collections import namedtuple
 
 from config import *
@@ -13,16 +11,13 @@ from config import *
 
 def intersec_point(Point A,Point B,Point C,Point D):
     "ищет точку пересечения двух векторов"
-    cdef Point vector
-    cdef float div, divx, divy, x,y
-
     vector = (B-A)
     if vector.y:
-        div = vector.x.__truediv__(vector.y)
+        div = vector.x/float(vector.y)
         divx = True
         
     elif vector.x:
-        div = vector.y.__truediv__(vector.x)
+        div = vector.y/float(vector.x)
         divx = False
         
     if C.x==D.x:
@@ -35,23 +30,23 @@ def intersec_point(Point A,Point B,Point C,Point D):
         x = y*div if divx else y/div
         return A + Point(x,y)
 
+def ccw(Point A,Point B,Point C):
+        return (C.y-A.y)*(B.x-A.x) > (B.y-A.y)*(C.x-A.x)
+
 def interception(Point A,Point B,Point C,Point D):
     "пересекаются ли отрезки"
-    def ccw(Point A,Point B,Point C):
-        return (C.y-A.y)*(B.x-A.x) > (B.y-A.y)*(C.x-A.x)
+    
     return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
-
-
 
 
 def cross_tile(Point A, Point B, Point tilecord):
     "выдает соседние тайлы с которыми пересекается вектор и координаты пересечения"
-    cdef Point  start, ij
+    cdef Point  start
     cdef int null, CELL
+    cdef dict cds
 
     start = tilecord*TILESIZE
     null, CELL = 0 , TILESIZE
-    
     cds = {tilecord + Point(0,1) : (start + Point(null ,CELL), start+Point(CELL,CELL)),
                 tilecord + Point(1,0) : (start + Point(CELL, CELL), start + Point(CELL, null)),
                 tilecord + Point(0,-1) : (start, start + Point(CELL, null)),
@@ -64,7 +59,7 @@ def cross_tile(Point A, Point B, Point tilecord):
 
 def get_cross(Point position, Point vector):
     "возвращает i,j пересекаемых векторов тайлов и координаты этих пересечений"
-    cdef Point end_cord, ij, cross
+    cdef Point  end_cord
 
     end_cord = (position+vector)/TILESIZE #i,j конечнй точки
     
@@ -84,8 +79,7 @@ cross_tuple = namedtuple('cross_tuple', ['point', 'cord', 'dist'])
 def round_cord(cord, Ceil = False):
     cord = cord/TILESIZE
     if Ceil:
-        cord = ceil(float(cord))
-        cord = int(cord)
+        cord = int(ceil(float(cord)))
 
     else:
         cord = int(float(cord))
