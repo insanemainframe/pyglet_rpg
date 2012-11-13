@@ -5,7 +5,7 @@ from config import *
 from collections import defaultdict
 
 class Equipment:
-    def __init__(self):
+    def mixin(self):
         self.equipment = defaultdict(list)
         self.equipment_changed = False
     

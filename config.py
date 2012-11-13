@@ -12,7 +12,7 @@ IN_PORT = 8888
 OUT_PORT = 8889
 
 SERIALISATION = 'json'
-#SERIALISATION = 'marshal
+# SERIALISATION = 'marshal'
 
 ZLIB = False
 #
@@ -26,8 +26,8 @@ SERVER_TIMER = 0.1
 PROFILE_SERVER = 0
 SOCKET_SERVER_PROFILE = 0
 
-SERVER_PROFILE_FILE = join(TMP,'/tmp/game_server.stat')
-SOCKET_SERVER_PROFILE_FILE = join(TMP,'/tmp/socket_server.stat')
+SERVER_PROFILE_FILE = join(TMP,'game_server.stat')
+SOCKET_SERVER_PROFILE_FILE = join(TMP,'socket_server.stat')
 
 WORLD_PATH = 'data/worldmaps/%s/'
 WORLD_PERSISTENCE = True

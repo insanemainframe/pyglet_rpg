@@ -37,10 +37,12 @@ class GameServer(object):
         "обращается к движку по расписанию"
         #смотрим новых клиентов
         for client_name in self.server.get_accepted():
-            accept_response = pack(self.game.game_connect(client_name))
-            self.server.put_response(client_name, accept_response)
-
             self.client_list.add(client_name)
+            for response in self.game.game_connect(client_name):
+                accept_response = pack(response) 
+                self.server.put_response(client_name, accept_response)
+
+            
         
         #смотрим отключившихся клиентов
         for client_name in self.server.get_closed():
@@ -79,14 +81,16 @@ class GameServer(object):
     def stop(self, stop_reason = ''):
         #считаем среднее время на раунд
         print('%s \n GameServer stopping...' % str(stop_reason))
-        self.server.stop()
-        count = len(self.r_times)
-        if count:
-            all_time = sum(self.r_times)
-            m_time = all_time/count
-            print('median time %s/%s = %s' % (all_time, count, m_time))
-        if isinstance(stop_reason, BaseException):
-            raise stop_reason
+        try:
+            self.server.stop()
+        finally:
+            count = len(self.r_times)
+            if count:
+                all_time = sum(self.r_times)
+                m_time = all_time/count
+                print('median time %s/%s = %s' % (all_time, count, m_time))
+            if isinstance(stop_reason, BaseException):
+                raise stop_reason
         
 
     def start(self):

@@ -28,8 +28,12 @@ class ActionError(BaseException):
 
 class GameObject(object):
     BLOCKTILES = []
+    SLOWTILES = {}
     
     def __init__(self, name, position):
+        assert isinstance(name, str)
+        assert isinstance(position, Point)
+
         self.name = name
         self.alive = True
         self.delayed = False
@@ -197,7 +201,7 @@ class DynamicObject(GameObject):
         self.world.add_event(self.gid, object_type, self.position, vector, action, args, timeout)
         self.has_events = True
     
-    def complete_round(self):
+    def _complete_round(self):
         self.cord_changed = False
         self.position_changed = False
         self.has_events = False
@@ -235,8 +239,7 @@ class StaticObject(GameObject):
         self.world.add_static_event(self.gid, object_type, self.position, action, args, timeout)
 
     
-    def complete_round(self):
-        pass
+
     
 
 
@@ -275,7 +278,7 @@ class Guided(ActiveState):
 
 
 class Solid():
-    def __init__(self, radius):
+    def mixin(self, radius):
         self.radius = radius
     
     def collission(self, player):
@@ -292,6 +295,10 @@ class Deadly:
     "класс для живых объектов"
     heal_time = 2400
     def __init__(self, corpse, hp, death_time=20):
+        assert isinstance(hp, int), hp
+        assert isinstance(death_time, int), death_time
+        assert issubclass(corpse, GameObject), corpse
+
         self.hp_value = hp
         self.heal_speed = self.hp_value/float(self.heal_time)
         self.death_time = death_time
@@ -307,7 +314,8 @@ class Deadly:
         
     
     def hit(self, hp):
-        self.hitted = 10
+        assert isinstance(hp, int)
+
         if self.alive:
             self.hp-=hp
             
@@ -378,7 +386,10 @@ class Fragile:
     
 class Mortal:
     "класс для объектов убивающих живых при соприкосновении"
-    def __init__(self, damage=1, alive_after_collission = False):
+    def mixin(self, damage=1, alive_after_collission = False):
+        assert isinstance(damage, int)
+        assert isinstance(alive_after_collission, bool)
+
         self.damage = damage
         self.alive_after_collission = alive_after_collission
     
@@ -400,7 +411,10 @@ class Mortal:
 class Respawnable:
     "класс перерождающихся объектов"
     respawned = False
-    def __init__(self, delay, distance):
+    def mixin(self, delay, distance):
+        assert isinstance(delay, int)
+        assert isinstance(distance, int)
+
         self.respawn_delay = delay
         self.respawn_distance = distance
         
@@ -423,7 +437,9 @@ class Respawnable:
 
 
 class DiplomacySubject:
-    def __init__(self, fraction):
+    def mixin(self, fraction):
+        assert isinstance(fraction, str)
+
         self.fraction = fraction
         self.invisible = 0
     
@@ -437,7 +453,9 @@ class DiplomacySubject:
 ####################################################################
 class Temporary:
     "класс объекта с ограниченным сроком существования"
-    def __init__(self, lifetime):
+    def mixin(self, lifetime):
+        assert isinstance(lifetime, int)
+
         self.lifetime = lifetime
         self.creation_time = time()
     
@@ -453,7 +471,7 @@ class Corpse(StaticObject, Temporary):
     "кости остающиеся после смерти живых игроков"
     def __init__(self, name, position):
         StaticObject.__init__(self, position)
-        Temporary.__init__(self, 5)
+        Temporary.mixin(self, 5)
     
     def update(self):
         StaticObject.update(self)

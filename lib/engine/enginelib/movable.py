@@ -12,11 +12,11 @@ from math import hypot
 
 
 
-class Movable(DynamicObject):
+class Movable(object):
     "класс движущихся объектов"
     BLOCKTILES = []
     SLOWTILES = {}
-    def __init__(self,  speed):
+    def mixin(self,  speed):
         self._vector  = Point(0,0)
         self.speed = speed
         self._move_vector = Point(0,0)
@@ -126,7 +126,7 @@ class Movable(DynamicObject):
         return False
         
     
-    def complete_round(self):
+    def _complete_move(self):
         self._moved = False
 
     def stop(self, time):
@@ -140,8 +140,8 @@ class Movable(DynamicObject):
 
     
     @wrappers.alive_only()
-    def update(self):
-        if not self._moved and self._vector:
+    def _update_move(self):
+        if self._vector:
             Movable.move(self)
     
     def plus_speed(self, speed):

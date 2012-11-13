@@ -4,6 +4,14 @@
 		"selected_items":
 		[
 			[
+				"C",
+				"CELL"
+			],
+			[
+				"en",
+				"end_cord"
+			],
+			[
 				"map",
 				"mapname	(local, instance)"
 			],
@@ -238,6 +246,54 @@
 				"buffer_size": 2432,
 				"line_ending": "Unix"
 			}
+		},
+		{
+			"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/player.pyx",
+			"settings":
+			{
+				"buffer_size": 6298,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/innuendo/games/master/pyglet_rpg/lib/share/mathlib.pyx",
+			"settings":
+			{
+				"buffer_size": 1959,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/innuendo/games/pyglet_rpg/lib/share/point.pxd",
+			"settings":
+			{
+				"buffer_size": 248,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/innuendo/games/master/pyglet_rpg/lib/share/mathlib.pxd",
+			"settings":
+			{
+				"buffer_size": 226,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/collissions.pyx",
+			"settings":
+			{
+				"buffer_size": 4367,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/innuendo/games/master/pyglet_rpg/README.md",
+			"settings":
+			{
+				"buffer_size": 1046,
+				"line_ending": "Unix"
+			}
 		}
 	],
 	"build_system": "Packages/User/pyglet_rpg.sublime-build",
@@ -284,6 +340,9 @@
 	},
 	"file_history":
 	[
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/singleton.py",
+		"/home/innuendo/games/pyglet_rpg/lib/share/point.pyx",
+		"/home/innuendo/games/master/pyglet_rpg/README.md",
 		"/tmp/foo.py",
 		"/home/innuendo/games/master/pyglet_rpg/config.py",
 		"/home/innuendo/games/master/pyglet_rpg/lib/engine/engine_interface.py",
@@ -296,7 +355,6 @@
 		"/home/innuendo/games/master/pyglet_rpg/lib/share/gameprotocol/client_requestes.py",
 		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/meta.py",
 		"/home/innuendo/games/master/pyglet_rpg/client.py",
-		"/home/innuendo/games/master/pyglet_rpg/README.md",
 		"/home/innuendo/games/master/pyglet_rpg/lib/clientside/gui/gui_elements.pyx",
 		"/home/innuendo/games/master/pyglet_rpg/lib/clientside/gui/gui_elements.py",
 		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/map_observer.pyx",
@@ -304,7 +362,6 @@
 		"/home/innuendo/.config/sublime-text-2/Packages/Package Control/Package Control.sublime-settings",
 		"/home/innuendo/games/master/pyglet_rpg/tools/pyglet_rpg.sublime-project",
 		"/home/innuendo/games/master/pyglet_rpg/lib/engine/world/meta.py",
-		"/home/innuendo/games/master/pyglet_rpg/lib/engine/singleton.py",
 		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/units_lib.py",
 		"/home/innuendo/games/master/pyglet_rpg/lib/engine/singleton.pyx",
 		"/home/innuendo/games/master/pyglet_rpg/lib/engine/engine_interface.pyx",
@@ -446,6 +503,7 @@
 	"groups":
 	[
 		{
+			"selected": 7,
 			"sheets":
 			[
 				{
@@ -497,6 +555,168 @@
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/player.pyx",
+					"settings":
+					{
+						"buffer_size": 6298,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1078,
+								1078
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 135.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "/home/innuendo/games/master/pyglet_rpg/lib/share/mathlib.pyx",
+					"settings":
+					{
+						"buffer_size": 1959,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								775,
+								775
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 90.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "/home/innuendo/games/pyglet_rpg/lib/share/point.pxd",
+					"settings":
+					{
+						"buffer_size": 248,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								48,
+								48
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "/home/innuendo/games/master/pyglet_rpg/lib/share/mathlib.pxd",
+					"settings":
+					{
+						"buffer_size": 226,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								226,
+								226
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/collissions.pyx",
+					"settings":
+					{
+						"buffer_size": 4367,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1119,
+								1119
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 225.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "/home/innuendo/games/master/pyglet_rpg/README.md",
+					"settings":
+					{
+						"buffer_size": 1046,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								474,
+								474
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Markdown/Markdown.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,

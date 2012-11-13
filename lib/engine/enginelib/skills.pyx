@@ -11,7 +11,7 @@ class Skill:
                         Point(2,1), Point(2,-1), Point(-2,1), Point(-2,-1),
                         Point(1,2), Point(1,-2), Point(-1,2), Point(-1,-2))
 
-    def __init__(self, int number=5):
+    def mixin(self, int number=5):
         self.skills = number
     
     def skill(self):

@@ -14,7 +14,7 @@ class Item(StaticObject, Solid, Temporary):
     lifetime = 300
     def __init__(self, position):
         StaticObject.__init__(self, position)
-        Temporary.__init__(self, 10*self.lifetime)
+        Temporary.mixin(self, 10*self.lifetime)
     
     @wrappers.player_filter(Equipment)
     def collission(self, player):

@@ -3,6 +3,7 @@
 from config import *
 
 from share.mathlib cimport Point
+from cpython cimport bool
 
 from engine.enginelib.meta import DynamicObject, Impassable
 
@@ -14,31 +15,34 @@ from math import hypot
 
 
 
-class Movable(DynamicObject):
+cdef class Movable:
     "класс движущихся объектов"
-    BLOCKTILES = []
-    SLOWTILES = {}
-    def __init__(self,  int speed):
+    cdef Point _vector
+    cdef int speed
+    cdef Point _move_vector
+    cdef bool _moved
+    cdef int _stopped
+
+    cpdef mixin(Movable self,  int speed):
         self._vector  = Point(0,0)
         self.speed = speed
         self._move_vector = Point(0,0)
         self._moved = False
         self._stopped = 0
 
-    @property
-    def move_vector(self):
-        return self._move_vector 
+    property move_vector:
+        def __get__(Movable self):
+            return self._move_vector 
 
-    @property
-    def vector(self):
-        return self._vector 
+    property vector:
+        def __get__(Movable self):
+            return self._vector 
 
-    def flush(self):
+    cpdef  flush(Movable self):
         self._move_vector = Point(0,0)
         self._vector = Point(0,0)
     
-    @wrappers.alive_only()
-    def move(self, Point vector, destination=False):
+    cpdef move(Movable self, Point vector, destination=False):
         cdef Point move_vector, new_cord
 
         labs = abs
@@ -84,7 +88,7 @@ class Movable(DynamicObject):
                     
                 
     
-    def _tile_collission(self, Point move_vector, destination):
+    cdef tuple _tile_collission(Movable self, Point move_vector, destination):
         "определения пересечяения вектора с непрохоодимыми и труднопроходимыми тайлами"
         cdef int resist, i,j
         cdef Point cross_position
@@ -123,7 +127,7 @@ class Movable(DynamicObject):
             
         return move_vector, resist
         
-    def _detect_collisions(self, Point cord):
+    cdef bool _detect_collisions(Movable self, Point cord):
         for player in self.world.tiles[cord].copy():
             if player.name != self.name:
                 player.collission(self)
@@ -133,25 +137,24 @@ class Movable(DynamicObject):
         return False
         
     
-    def complete_round(self):
+    cpdef _complete_move(Movable self):
         self._moved = False
 
-    def stop(self, time):
+    cpdef stop(Movable self, time):
         "останавливает на опредленное времчя"
         self._stopped = time
     
-    def abort_moving(self):
+    cpdef  abort_moving(Movable self):
         self._vector = Point(0,0)
         self._move_vector = Point(0,0)
     
 
     
-    @wrappers.alive_only()
-    def update(self):
-        if not self._moved and self._vector:
+    cpdef  _update_move(Movable self):
+        if self._vector:
             Movable.move(self, Point(0,0))
     
-    def plus_speed(self, speed):
+    cpdef  plus_speed(Movable self, speed):
         self.speed+=speed
     
 

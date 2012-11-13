@@ -23,6 +23,7 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, DynamicObject):
     SLOWTILES = {'water':0.5, 'bush':0.3}
     name_counter = 0
     leash_size = 4
+    strike_speed = 2
     
     def __init__(self, position):
         name = 'ally_%s' % Ally.name_counter
@@ -30,9 +31,9 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, DynamicObject):
                 
         DynamicObject.__init__(self, name, position)
         Unit.__init__(self, self.speed, self.hp, Corpse, 'good')
-        Stalker.__init__(self, self.look_size)
-        Striker.__init__(self, 10, AllyBall, self.damage)
-        Temporary.__init__(self, self.lifetime)
+        Stalker.mixin(self, self.look_size)
+        Striker.mixin(self, self.strike_speed, AllyBall, self.damage)
+        Temporary.mixin(self, self.lifetime)
         
         self.stopped = False
         
@@ -60,15 +61,11 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, DynamicObject):
         else:
             Walker.update(self)
         
-        Movable.update(self)
-        Striker.update(self)
         Deadly.update(self)
         Temporary.update(self)
     
     
-    def complete_round(self):
-        Movable.complete_round(self)
-        Striker.complete_round(self)
+
     
     def get_args(self):
         return Deadly.get_args(self)
@@ -87,9 +84,9 @@ class Cat(Walker, Solid, Stalker, DiplomacySubject, DynamicObject):
     
     def __init__(self, name, position):
         DynamicObject.__init__(self, name, position)
-        Solid.__init__(self, self.radius)
-        Movable.__init__(self, self.speed)
-        DiplomacySubject.__init__(self, 'good')
+        Solid.mixin(self, self.radius)
+        Movable.mixin(self, self.speed)
+        DiplomacySubject.mixin(self, 'good')
         self.heal_counter = 0
     
     def collission(self, player):
@@ -112,8 +109,7 @@ class Cat(Walker, Solid, Stalker, DiplomacySubject, DynamicObject):
             if not self.vector:
                 Walker.update(self)
     
-    def complete_round(self):
-        Movable.complete_round(self)
+
 
 
         
@@ -122,49 +118,42 @@ class Bat(Fighter, MetaMonster):
     hp = 3
     speed = 30
     damage = 1
-    attack_speed = 10
+    attack_speed = 1
     loot_cost = 10
     BLOCKTILES = ['stone', 'forest']
     SLOWTILES = {}
     
     def __init__(self, name, position):
         MetaMonster.__init__(self, name, position, self.speed, self.hp)
-        Fighter.__init__(self, self.damage, self.attack_speed)
+        Fighter.mixin(self)
     
-    def complete_round(self):
-        MetaMonster.complete_round(self)
-        Fighter.complete_round(self)
+
 
 class Zombie(Fighter, MetaMonster):
     hp = 20
     speed = 15
     damage = 2
-    attack_speed = 10
+    attack_speed = 0.5
     loot_cost = 30
     
     def __init__(self, name, position):
         MetaMonster.__init__(self, name, position, self.speed, self.hp)
-        Fighter.__init__(self, self.damage, self.attack_speed)
+        Fighter.mixin(self)
     
-    def complete_round(self):
-        MetaMonster.complete_round(self)
-        Fighter.complete_round(self)
+
     
 
 class Ghast(Fighter, MetaMonster):
     hp = 50
     speed = 10
     damage = 10
-    attack_speed = 30
+    attack_speed = 0.3
     loot_cost = 90
     
     def __init__(self, name, position):
         MetaMonster.__init__(self, name, position, self.speed, self.hp)
-        Fighter.__init__(self, self.damage, self.attack_speed)
-    
-    def complete_round(self):
-        MetaMonster.complete_round(self)
-        Fighter.complete_round(self)
+        Fighter.mixin(self)
+
 
 
 class Lych(MetaMonster, Striker):
@@ -172,10 +161,11 @@ class Lych(MetaMonster, Striker):
     speed = 10
     damage = 5
     loot_cost = 60
+    strike_speed = 1
     
     def __init__(self, name, position):
         MetaMonster.__init__(self, name, position, self.speed, self.hp)
-        Striker.__init__(self, 10, DarkBall, self.damage)
+        Striker.mixin(self, self.strike_speed, DarkBall, self.damage)
     
     def update(self):
         if self.alive:
@@ -190,10 +180,6 @@ class Lych(MetaMonster, Striker):
             else:
                 Walker.update(self)
                 
-            Movable.update(self)
-            Striker.update(self)
         Deadly.update(self)
     
-    def complete_round(self):
-        Movable.complete_round(self)
-        Striker.complete_round(self)
+

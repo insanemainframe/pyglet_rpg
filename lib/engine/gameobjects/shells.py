@@ -9,16 +9,16 @@ from engine.enginelib import wrappers
 
 from config import *
 
-class Shell(ActiveState, Movable, DiplomacySubject, Temporary, Solid, Mortal):
+class Shell(ActiveState, Movable, DiplomacySubject, Temporary, Solid, Mortal, DynamicObject):
      counter = 0
      def __init__(self,position, direct, speed, fraction, striker, damage, alive_after_collission):
         name = "%s_%s" % (self.__class__.__name__, Shell.counter)
         Shell.counter+=1
         
         DynamicObject.__init__(self, name,position)
-        Movable.__init__(self, self.speed)
-        Mortal.__init__(self, damage, alive_after_collission)
-        DiplomacySubject.__init__(self, fraction)
+        Movable.mixin(self, self.speed)
+        Mortal.mixin(self, damage, alive_after_collission)
+        DiplomacySubject.mixin(self, fraction)
         one_step = Point(self.speed, self.speed)
         self.direct = direct*(abs(one_step)/abs(direct))
         self.alive = True
@@ -53,14 +53,13 @@ class Ball(Explodable, Fragile,  Shell):
     alive_after_collission = False
     def __init__(self,position, direct, fraction, striker, damage = 2):
         Shell.__init__(self,position, direct, self.speed, fraction, striker, damage, self.alive_after_collission)
-        Temporary.__init__(self, 1)
+        Temporary.mixin(self, 1)
         Explodable.__init__(self, self.explode_time)
         
     
     @wrappers.alive_only(Explodable)
     def update(self):
         Movable.move(self, self.direct)
-        Movable.update(self)
         Temporary.update(self)
             
     

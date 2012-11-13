@@ -4,7 +4,7 @@ from engine.enginelib.meta import *
 from engine.gameobjects.shells import SkillBall
 
 class Skill:
-    def __init__(self, number=5):
+    def mixin(self, number=5):
         self.skills = number
         self.directs = (Point(1,0), Point(-1,0), Point(0,-1), Point(0,1),
                         Point(1,1), Point(1,-1), Point(-1,1), Point(-1,-1),

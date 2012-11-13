@@ -73,7 +73,7 @@ class AloneBush(Misc, Solid):
     radius = TILESIZE
     def __init__(self, position):
         Misc.__init__(self, position)
-        Solid.__init__(self, self.radius)
+        Solid.mixin(self, self.radius)
 
 class AloneTree(Misc, Impassable):
     BLOCKTILES = Player.BLOCKTILES + ['water']
@@ -81,7 +81,7 @@ class AloneTree(Misc, Impassable):
     radius = TILESIZE
     def __init__(self, position):
         Misc.__init__(self, position)
-        Impassable.__init__(self, self.radius)
+        Impassable.mixin(self, self.radius)
 
     @classmethod
     def choice_position(cls, world, location, i ,j):

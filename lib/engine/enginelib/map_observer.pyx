@@ -10,7 +10,7 @@ lhypot = hypot
 
 class MapObserver:
     "класс объекта видящего карту"
-    def __init__(self, int look_size):
+    def mixin(self, int look_size):
         self.look_size = look_size
         self.look_radius = self.look_size*TILESIZE
         

@@ -24,7 +24,7 @@ class EpollMultiplexer:
         cdef list event_pairs
 
         print('Start polling')
-        while not self.stop_event.is_set():
+        while not self._stop_event.is_set():
             event_pairs = self._poller.poll()
             while event_pairs:
                 fileno, event = event_pairs.pop()

@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
 from math import hypot, floor
 from config import *
-
 
 from cpython cimport bool
 
@@ -71,4 +73,5 @@ cdef class Point:
 
     def __hash__(Point self):
         return hash((self.x, self.y))
+        
         

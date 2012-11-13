@@ -42,48 +42,55 @@ class SocketServer(Multiplexer, Process):
         self.insocks = {}
         self.outfilenos = {}
 
-        self.address_buf = {}
+        self._address_buf = {}
 
-        self.accepted = Queue()
-        self.closed = Queue()
-        self.requestes = Queue()
-        self.responses = Queue()
+        self._accepted = Queue()
+        self._closed = Queue()
+        self._requestes = Queue()
+        self._responses = Queue()
         self.excp = Queue()
 
-        self.sender_thread  = Thread(target = self._sender)
+        self._sender_thread  = Thread(target = self._sender)
 
         self.clients = {}
         self.client_counter = 0
 
-        self.stop_event = Event()
+        self._stop_event = Event()
                 
         
         self.r_times = []
+        self.running = False
 
-    #интерфейс
+
+    #публичные методы
     def get_accepted(self):
-        while not self.accepted.empty():
-            yield self.accepted.get_nowait()
+        while not self._accepted.empty():
+            yield self._accepted.get_nowait()
         raise StopIteration
 
     def get_closed(self):
-        while not self.closed.empty():
-            yield self.closed.get_nowait()
+        while not self._closed.empty():
+            yield self._closed.get_nowait()
         raise StopIteration
 
     def get_requestes(self):
-        while not self.requestes.empty():
-            client, request = self.requestes.get_nowait()
-            yield client, request
+        cdef str client_name, response
+         
+        while not self._requestes.empty():
+            client_name, request = self._requestes.get_nowait()
+            yield client_name, request
         raise StopIteration
 
-    def put_response(self, str client_name, str response):
-        self.responses.put_nowait((client_name, response))
+    def put_response(self, client_name, response):
+        self._responses.put_nowait((client_name, response))
+
 
 
     def _handle_exception(self, except_type, except_class, tb):
-        self.excp.put_nowait((except_type, except_class, traceback.extract_tb(tb)))
-        self.stop()
+        try:
+            self.excp.put_nowait((except_type, except_class, traceback.extract_tb(tb)))
+        finally:
+            self.stop()
             
     def _create_socket(self, stream):
         "создает неблокирубщий сокет на заданном порте"
@@ -98,8 +105,8 @@ class SocketServer(Multiplexer, Process):
         cdef str client_name, response
 
         try:
-            while not self.stop_event.is_set():
-                client_name, response = self.responses.get()
+            while not self._stop_event.is_set():
+                client_name, response = self._responses.get()
                 if client_name in self.clients:
                     sock = self.clients[client_name].outsock
                     try:
@@ -108,16 +115,16 @@ class SocketServer(Multiplexer, Process):
                         print('sender error', str(error))
             print('sender stop')
 
-        except:
+        except Exception as error:
+            print 'snder', error
             self._handle_exception(*exc_info())
-        finally:
-            self.stop()
 
             
 
     
     def _handle_read(self, str client_name):
         "читает один пакет данных из сокета, если это возможно"
+        cdef str request
         try:
             request = self.clients[client_name].generator.next()
 
@@ -138,42 +145,43 @@ class SocketServer(Multiplexer, Process):
             return False
         else:
             if request:
-                self.requestes.put_nowait((client_name, request))
+                self._requestes.put_nowait((client_name, request))
             return True
             
         
     def _handle_accept(self, stream):
         "прием одного из двух соединений"
-        if stream==IN:
-            conn, (address, fileno) = self.insock.accept()
-            conn.setblocking(0)
-            print('input Connection from %s (%s)' % (fileno, address))
-            
-        elif stream==OUT:
-            conn, (address, fileno) = self.outsock.accept()
-            conn.setblocking(0)
-            ('output Connection from %s (%s)' % (fileno, address))
+        assert stream in (IN, OUT)
+
+        if stream is IN:
+            sock = self.insock
+            s_name = 'input'
+
         else:
-            raise HandleAcceptError('unknnown stream %s' % stream)
-        
+            sock = self.outsock
+            s_name = 'output'
+
+        conn, (address, fileno) = sock.accept()
         conn.setblocking(0)
+
+        print ('%s Connection from %s (%s)' % (s_name, fileno, address))
         
-        if address not in self.address_buf:
-            self.address_buf[address] = conn
+        
+        
+        if address not in self._address_buf:
+            self._address_buf[address] = conn
         else:
+            buf_address = self._address_buf.pop(address)
+
             if stream==IN:
-                insock = conn
-                outsock = self.address_buf[address]
+                self._accept_client(conn, buf_address)
 
             else:
                  outsock = conn
-                 insock = self.address_buf[address]
+                 self._accept_client(buf_address, conn)
                  
-            del self.address_buf[address]
             
-            self._accept_client(insock, outsock)
-        return True
-                 
+                             
     def _accept_client(self, insock, outsock):
         "регистрация клиента, после того как он подключился к обоим сокетам"
         client_name = 'player_%s' % self.client_counter
@@ -194,7 +202,7 @@ class SocketServer(Multiplexer, Process):
         print('accepting_client %s' % client_name)
 
         #реагируем на появление нового клиента
-        self.accepted.put_nowait(client_name)
+        self._accepted.put_nowait(client_name)
         
     
 
@@ -207,6 +215,7 @@ class SocketServer(Multiplexer, Process):
                 self._run()
         finally:
             self.stop()
+
     def _run(self):
         self.running = True
 
@@ -223,7 +232,7 @@ class SocketServer(Multiplexer, Process):
         print('\nServer running at %s:(%s,%s) multiplexer: %s \n' % (self.hostname, IN_PORT, OUT_PORT, self.poll_engine))
         try:
             #запускаем sender
-            self.sender_thread.start()
+            self._sender_thread.start()
         
             #запускаем мультиплексор
             self._run_poll()
@@ -231,15 +240,15 @@ class SocketServer(Multiplexer, Process):
             self._handle_exception(*exc_info())
 
         finally:
-            print 'polling exit'
-            self._handle_stop()
+            self.stop()
+
 
     
     def _handle_close(self, client_name, message):
         "закрытие подключения"
         print('Closing %s: %s' % (client_name, message))
         
-        self.closed.put_nowait(client_name)
+        self._closed.put_nowait(client_name)
         
         #
         infileno = self.clients[client_name].insock.fileno()
@@ -261,22 +270,34 @@ class SocketServer(Multiplexer, Process):
         
     
     def stop(self, reason=None):
-        print('SocketServer stopping..')
-        self.running = False
-        self.stop_event.set() 
+        if self.running:
+            print('SocketServer stopping..')
 
-    def _handle_stop(self):
-        "сотановка сервера"
-        try:
-            self.sender_thread._Thread__stop()
-                        #
             self._unregister(self.in_fileno)
-            
+            self._unregister(self.out_fileno)
+                
             self.insock.close()
             self.outsock.close()
-        finally:    
-            print('SocketServer stopped')
-            sys_exit
+
+
+            self._stop_event.set() 
+
+
+            #closing queues
+            self._accepted.close()
+            self._closed.close()
+            self._requestes.close()
+            self._responses.close()
+
+
+
+            print 'Waiting for sender thread'
+            self._sender_thread._Thread__stop()
+            self._sender_thread.join()
+
+            self.running = False
+
+
             
         
     

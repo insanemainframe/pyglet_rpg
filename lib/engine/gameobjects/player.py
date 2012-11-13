@@ -27,12 +27,14 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     def __init__(self, name, player_position, look_size=PLAYER_LOOK_RADIUS):
         DynamicObject.__init__(self, name, player_position)
         Unit.__init__(self, self.speed, self.hp, Corpse, 'players')
-        MapObserver.__init__(self, look_size)
-        Striker.__init__(self,2, Ball, self.damage)
-        Respawnable.__init__(self, 10, 30)
-        Stats.__init__(self)
-        Skill.__init__(self,self.default_skills)
-        Equipment.__init__(self)
+        
+        MapObserver.mixin(self, look_size)
+        Striker.mixin(self,3, Ball, self.damage)
+        Respawnable.mixin(self, 10, 30)
+        Stats.mixin(self)
+        Skill.mixin(self,self.default_skills)
+        Equipment.mixin(self)
+
         self.change_objects = False
         self.__actions__ = {'ApplyItem': self.ApplyItem, 'Move' : self.Move,
                             'Strike' : self.Strike, 'Skill' : self.Skill}
@@ -127,14 +129,12 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     
     @wrappers.alive_only(Deadly)
     def update(self):
-        Movable.update(self)
-        Striker.update(self)
+        
         Deadly.update(self)
         Stats.update(self)
         DiplomacySubject.update(self)
     
-    def complete_round(self):
-        Movable.complete_round(self)
+
     
     @classmethod
     def choice_position(cls, world, location, i ,j):

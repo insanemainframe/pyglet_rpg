@@ -79,10 +79,10 @@ def receivable(channel):
                 errno = Error[0]
                 if errno==11:
                     #сокет недоступен для чтения
-                    yield None
+                    yield ''
                 elif errno==35:
                     print('socket error 35')
-                    yield None
+                    yield ''
                 else:
                     print('receivable socket error#', str(errno))
                     raise Error
@@ -101,10 +101,10 @@ def receivable(channel):
         except struct.error as Error:
             #в случае ошибки конвертации размера
             print('protocol_lib.receive struct error %s size %s' % (Error, len(size)))
-            yield None
+            yield ''
         except OverflowError:
             print('OverflowError', size)
-            yield None
+            yield ''
         else:
             #получаем пакет данных
             data = ''
@@ -115,10 +115,10 @@ def receivable(channel):
                     errno = Error[0]
                     if errno==11:
                         #сокет недоступен для чтения
-                        yield None
+                        yield ''
                     elif errno==35:
                         print('socket error 35')
-                        yield None
+                        yield ''
                     else:
                         print('socket error while receiving apckage: %s' % str(Error))
                         raise Error

@@ -11,18 +11,18 @@ from engine.enginelib import wrappers
 
 
 from random import randrange, random      
-
+from time import time
 
 class Unit(Solid, Movable, Deadly, DiplomacySubject, GameObject):
     def __init__(self, speed, hp, corpse, fraction):
-        Movable.__init__(self, speed)
+        Movable.mixin(self, speed)
         Deadly.__init__(self, corpse, hp)
-        DiplomacySubject.__init__(self, fraction)
-        Solid.__init__(self, TILESIZE/2)
+        DiplomacySubject.mixin(self, fraction)
+        Solid.mixin(self, TILESIZE/2)
 
 class Lootable(Deadly):
     loot = [Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
-    def __init__(self, cost):
+    def mixin(self, cost):
         self.cost = cost if cost<= 100 else 50
     
     def die(self):
@@ -31,29 +31,30 @@ class Lootable(Deadly):
             self.world.new_object(item)
         Deadly.die(self)
 
+
 class Fighter:
-    def __init__(self, damage, attack_speed=5):
-        self.attack_speed = attack_speed
-        self.attack_counter = 0
-        self.damage = damage
+    def mixin(self):
+        assert hasattr(self, 'damage') and hasattr(self, 'attack_speed')
+        
+        self.attack_speed = 1.0/self.attack_speed
+        self.prev_attack = time()
     
     @wrappers.alive_only()
     @wrappers.player_filter(Deadly)
     def collission(self, player):
         if self.fraction!=player.fraction:
-            if self.attack_counter==0:
+            cur_time = time()
+            if cur_time - self.prev_attack > self.attack_speed:
+                self.prev_attack = cur_time
+
                 player.hit(self.damage)
                 self.add_event('attack')
     
-    def complete_round(self):
-        if self.attack_counter < self.attack_speed:
-            self.attack_counter+=1
-        else:
-            self.attack_counter=0
+
 
 class Stalker:
     "объекты охотящиеся за игроками"
-    def __init__(self, look_size):
+    def mixin(self, look_size):
         self.look_size = look_size
     
     def hunt(self, inradius = False):
@@ -70,31 +71,31 @@ class Stalker:
                 return Point(0,0)
             
 class Striker:
-    def __init__(self, strike_speed, shell, damage):
+    def mixin(self, strike_speed, shell, damage):
         self.strike_shell = shell
-        self.strike_counter = 0
-        self.strike_speed = strike_speed
+        self.strike_speed = 1.0/strike_speed
         self.damage = damage
+
+        self.prev_strike = time()
     
     @wrappers.alive_only()
     def strike_ball(self, vector):
-        if self.strike_counter==0 and vector:
-            ball = self.strike_shell(self.position, vector, self.fraction, self.name, self.damage)
-            self.world.new_object(ball)
-            self.strike_counter+=self.strike_speed
+        if vector:
+            cur_time = time()
+
+            if cur_time-self.prev_strike> self.strike_speed:
+                self.prev_strike = cur_time
+
+                ball = self.strike_shell(self.position, vector, self.fraction, self.name, self.damage)
+                self.world.new_object(ball)
     
     def plus_damage(self, damage):
         self.damage+=damage
             
-    def update(self):
-        if self.strike_counter>0:
-            self.strike_counter -=1
-    
-    def complete_round(self):
-        self.striked = False
+
 
 class Stats:
-    def __init__(self):
+    def mixin(self):
         self.gold = 0
         self.kills = 0
         self.stats_changed = False
@@ -141,9 +142,9 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject):
     def __init__(self, name, position, speed, hp):
         DynamicObject.__init__(self, name, position)
         Unit.__init__(self, speed, hp, Corpse, 'monsters')
-        Stalker.__init__(self, self.look_size)
-        Respawnable.__init__(self, 60, 100)
-        Lootable.__init__(self, self.loot_cost)
+        Stalker.mixin(self, self.look_size)
+        Respawnable.mixin(self, 60, 100)
+        Lootable.mixin(self, self.loot_cost)
         
         self.stopped = False
         
@@ -163,11 +164,9 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject):
                 Walker.update(self)
         else:
             Walker.update(self)
-        Movable.update(self)
         Deadly.update(self)
     
     def get_args(self):
         return Deadly.get_args(self)
     
-    def complete_round(self):
-        Movable.complete_round(self)
+
