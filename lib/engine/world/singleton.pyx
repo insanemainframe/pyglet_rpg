@@ -6,7 +6,6 @@ from config import *
 
 from weakref import proxy, ProxyType
 from random import  choice
-from collections import OrderedDict
 
 from share.mathlib cimport Point
 
