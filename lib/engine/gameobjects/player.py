@@ -36,8 +36,9 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         Equipment.mixin(self)
 
         self.change_objects = False
-        self.__actions__ = {'ApplyItem': self.ApplyItem, 'Move' : self.Move,
-                            'Strike' : self.Strike, 'Skill' : self.Skill}
+
+        self.set_actions(ApplyItem=self.ApplyItem, Move=self.Move,
+                            Strike=self.Strike, Skill=self.Skill)
     
     def accept_response(self):
         data = self.world.name, self.world.size, self.position, self.world.background
@@ -125,12 +126,12 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         self.apply_item(slot)
     
     def get_args(self):
-        return Deadly.get_args(self)
+        return Breakable.get_args(self)
     
-    @wrappers.alive_only(Deadly)
+    @wrappers.alive_only(Breakable)
     def update(self):
         
-        Deadly.update(self)
+        Breakable.update(self)
         Stats.update(self)
         DiplomacySubject.update(self)
     

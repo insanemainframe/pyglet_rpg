@@ -268,13 +268,3 @@ class MetaWorld(PersistentWorld):
             else:
                 return 0
                 
-    
-    
-    
-
-
-        
-            
-                
-
-

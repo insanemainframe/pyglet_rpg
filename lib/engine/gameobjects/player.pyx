@@ -7,7 +7,7 @@ from share.mathlib cimport Point
 import  share.game_protocol as protocol
 
 
-from engine.enginelib.meta import Respawnable, Guided,  DynamicObject, Solid, Deadly, DiplomacySubject
+from engine.enginelib.meta import Respawnable, Guided,  DynamicObject, Solid, Breakable, DiplomacySubject
 from engine.mathlib import chance
 from engine.enginelib.units_lib import Unit, Stats, Striker
 from engine.enginelib.movable import Movable 
@@ -43,8 +43,8 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         Skill.mixin(self,self.default_skills)
         Equipment.mixin(self)
         self.change_objects = False
-        self.__actions__ = {'ApplyItem': self.ApplyItem, 'Move' : self.Move,
-                            'Strike' : self.Strike, 'Skill' : self.Skill}
+        self.set_actions(ApplyItem=self.ApplyItem, Move=self.Move,
+                            Strike=self.Strike, Skill=self.Skill)
     
     def accept_response(self):
         data = self.world.name, self.world.size, self.position, self.world.background
@@ -134,10 +134,10 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
             self.apply_item(slot)
     
     def get_args(self):
-        return Deadly.get_args(self)
+        return Breakable.get_args(self)
     
     def update(self):
-        Deadly.update(self)
+        Breakable.update(self)
         
         if self.alive:
             Stats.update(self)

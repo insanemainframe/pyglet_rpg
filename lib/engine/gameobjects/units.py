@@ -61,14 +61,14 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, DynamicObject):
         else:
             Walker.update(self)
         
-        Deadly.update(self)
+        Breakable.update(self)
         Temporary.update(self)
     
     
 
     
     def get_args(self):
-        return Deadly.get_args(self)
+        return Breakable.get_args(self)
     
     def handle_remove(self):
         if self.master:
@@ -180,6 +180,6 @@ class Lych(MetaMonster, Striker):
             else:
                 Walker.update(self)
                 
-        Deadly.update(self)
+        Breakable.update(self)
     
 

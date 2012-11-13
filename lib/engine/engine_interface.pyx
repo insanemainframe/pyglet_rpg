@@ -4,7 +4,7 @@
 from share.mathlib cimport Point
 from share.game_protocol import NewWorld, ServerAccept
 
-from engine.singleton import game
+from engine.world.singleton import game
 from engine.enginelib.meta import DynamicObject
 from engine.enginelib.movable import Movable
 

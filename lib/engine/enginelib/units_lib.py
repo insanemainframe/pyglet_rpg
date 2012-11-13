@@ -13,14 +13,14 @@ from engine.enginelib import wrappers
 from random import randrange, random      
 from time import time
 
-class Unit(Solid, Movable, Deadly, DiplomacySubject, GameObject):
+class Unit(Solid, Movable, Breakable, DiplomacySubject, GameObject):
     def __init__(self, speed, hp, corpse, fraction):
         Movable.mixin(self, speed)
-        Deadly.__init__(self, corpse, hp)
+        Breakable.__init__(self, corpse, hp)
         DiplomacySubject.mixin(self, fraction)
         Solid.mixin(self, TILESIZE/2)
 
-class Lootable(Deadly):
+class Lootable(Breakable):
     loot = [Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak]
     def mixin(self, cost):
         self.cost = cost if cost<= 100 else 50
@@ -29,7 +29,7 @@ class Lootable(Deadly):
         if chance(self.cost):
             item = choice(self.loot)(self.position)
             self.world.new_object(item)
-        Deadly.die(self)
+        Breakable.die(self)
 
 
 class Fighter:
@@ -40,7 +40,7 @@ class Fighter:
         self.prev_attack = time()
     
     @wrappers.alive_only()
-    @wrappers.player_filter(Deadly)
+    @wrappers.player_filter(Breakable)
     def collission(self, player):
         if self.fraction!=player.fraction:
             cur_time = time()
@@ -152,9 +152,9 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject):
     
     def hit(self, damage):
         self.stop(10)
-        Deadly.hit(self, damage)
+        Breakable.hit(self, damage)
     
-    @wrappers.alive_only(Deadly)
+    @wrappers.alive_only(Breakable)
     def update(self):
         if chance(70):
             direct = self.hunt()
@@ -164,9 +164,9 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, DynamicObject):
                 Walker.update(self)
         else:
             Walker.update(self)
-        Deadly.update(self)
+        Breakable.update(self)
     
     def get_args(self):
-        return Deadly.get_args(self)
+        return Breakable.get_args(self)
     
 

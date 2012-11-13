@@ -27,6 +27,7 @@ class ActionError(BaseException):
 
 
 class GameObject(object):
+    "метаобъект"
     BLOCKTILES = []
     SLOWTILES = {}
     
@@ -52,9 +53,11 @@ class GameObject(object):
         self.has_events = False
     
     def bind_slave(self, slave):
+        "добавить слугу"
         self.slaves.add(slave)
     
     def unbind_slave(self, slave):
+        "удалить слугу"
         self.slaves.remove(slave)
 
     def bind_master(self, master):
@@ -174,6 +177,7 @@ class GameObject(object):
     
 
 class DynamicObject(GameObject):
+    "объекты меняющие положение и сообщающие о своих изменениях"
     def __init__(self, name, position):
         GameObject.__init__(self, name, position)
         
@@ -214,6 +218,7 @@ class DynamicObject(GameObject):
         return {}
 
 class StaticObject(GameObject):
+    "статические объекты"
     name_counter =0 
     def __init__(self, position):
         counter = StaticObject.name_counter
@@ -244,6 +249,7 @@ class StaticObject(GameObject):
 
 
 class Savable:
+    "сохраняемый объект"
     def __save__(self):
         return [self.position.get()]
 
@@ -253,19 +259,29 @@ class Savable:
         return [Point(x,y)]
 
 class ActiveState:
+    "объект делающих локацию активной"
     pass
 
 class Guided(ActiveState):
     "управляемый игроком объекта"
     __actions__ = {}
+
+    def set_actions(self, **action_dict):
+        for action, handler in action_dict.items():
+            assert isinstance(action, str), action
+            assert callable(handler), handler
+
+            self.__actions__[action] = handler
+
     
     def handle_action(self, action_name, args):
+        assert isinstance(action_name, str)
+
         if action_name in self.__actions__:
             method = self.__actions__[action_name]
             return method(*args)
 
         else:
-            print('no action %s' % action_name)
             raise ActionError('no action %s' % action_name)
     
 
@@ -278,6 +294,7 @@ class Guided(ActiveState):
 
 
 class Solid():
+    "твердый объект частвующий в проверке столкновений"
     def mixin(self, radius):
         self.radius = radius
     
@@ -285,14 +302,15 @@ class Solid():
         pass
 
 class Impassable(Solid):
+    "непроходимый объект"
     pass
 
 
 
 
         
-class Deadly:
-    "класс для живых объектов"
+class Breakable:
+    "класс для разрушаемх объектов"
     heal_time = 2400
     def __init__(self, corpse, hp, death_time=20):
         assert isinstance(hp, int), hp
@@ -394,7 +412,7 @@ class Mortal:
         self.alive_after_collission = alive_after_collission
     
     def collission(self, player):
-        if isinstance(player, Deadly):
+        if isinstance(player, Breakable):
             if player.fraction!=self.fraction:
                 prev_state = player.alive
                 player.hit(self.damage)
@@ -437,6 +455,7 @@ class Respawnable:
 
 
 class DiplomacySubject:
+    "объект принадлежащий какой-то фракции"
     def mixin(self, fraction):
         assert isinstance(fraction, str)
 

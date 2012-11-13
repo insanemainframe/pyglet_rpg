@@ -4,7 +4,7 @@
 from share.mathlib import *
 from share.game_protocol import NewWorld, ServerAccept
 
-from engine.singleton import game
+from engine.world.singleton import game
 from engine.enginelib.meta import *
 from engine.enginelib.movable import Movable
 
@@ -36,11 +36,7 @@ class GameEngine:
         for message in new_player.accept_response():
             yield message
         
-        
 
-        
-    
-    
     def game_requests(self, messages):
         "выполнение запросов игроков"
         for name, player in game.guided_players.items():     
@@ -103,6 +99,7 @@ class GameEngine:
         game.save()
     
     def game_quit(self, name):
+        "выход игрока из игры"
         print('%s quit' % name)
         game.remove_guided(name)
 

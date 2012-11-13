@@ -24,7 +24,7 @@ class Shell(ActiveState, Movable, DiplomacySubject, Temporary, Solid, Mortal, Dy
         self.alive = True
         self.striker = striker
     
-     @wrappers.player_filter(Deadly)
+     @wrappers.player_filter(Breakable)
      def collission(self, player):
          player.move(self.direct)
          Mortal.collission(self, player)

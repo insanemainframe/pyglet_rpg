@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-from engine.enginelib.meta import ActiveState, DiplomacySubject, Temporary, Solid, Mortal, Fragile, Deadly, DynamicObject
+from engine.enginelib.meta import ActiveState, DiplomacySubject, Temporary, Solid, Mortal, Fragile, Breakable, DynamicObject
 from engine.enginelib.movable import Movable
 from engine.enginelib import wrappers
 
@@ -26,7 +26,7 @@ class Shell(ActiveState, Movable, DiplomacySubject, Temporary, Solid, Mortal, Dy
         self.alive = True
         self.striker = striker
     
-     @wrappers.player_filter(Deadly)
+     @wrappers.player_filter(Breakable)
      def collission(self, player):
          player.move(self.direct)
          Mortal.collission(self, player)
