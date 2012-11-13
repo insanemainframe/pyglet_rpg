@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 from config import *
 
-from weakref import proxy
+from weakref import proxy, ProxyType, ProxyType
 
 from share.mathlib cimport Point
 
 from engine.enginelib.meta import DynamicObject, StaticObject, ActiveState, Solid
+from share.logger import print_log
+
 
 
 #список инкременаторов к индексу на соседние локации
@@ -98,6 +100,7 @@ class LocationObjects:
     
     def add_object(self, player):
         "добавляет ссылку на игрока"
+
         if isinstance(player, ActiveState):
             self.set_primary_activity()
 
@@ -191,8 +194,9 @@ class LocationObjects:
         "удаляет игроков отмеченных для удаления в списке remove_list"
         if self.remove_list:
             for name, force in self.remove_list.items():
-                player = self.players[name]
-                self.remove_object(player, force)
+                if name in self.players:
+                    player = self.players[name]
+                    self.remove_object(player, force)
 
             self.remove_list.clear()
     
@@ -230,8 +234,8 @@ class LocationObjects:
                     player = self.static_objects[name]
                     self.remove_object(player, force)
                 else:
-                    print('Warning: clear_static_objects, %s not in location list' % name)
-                    print('Warning: clear_static_objects, %s not in location list' % name)
+                    print_log('Warning: clear_static_objects, %s not in location list' % name)
+                    print_log('Warning: clear_static_objects, %s not in location list' % name)
 
             self.remove_static_list.clear()
         
@@ -318,7 +322,7 @@ class LocationActivity:
         if key in self.world.active_locations:
             del self.world.active_locations[key]
         else:
-            print('key error', key)
+            print_log('key error', key)
 
 
 

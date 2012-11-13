@@ -14,6 +14,8 @@ from socket import error as socket_error
 
 from share.protocol_lib import send, receivable, PackageError
 from serverside.multiplexer import Multiplexer
+from share.logger import print_log
+
 
 
 IN, OUT = 0, 1
@@ -108,11 +110,11 @@ class SocketServer(Multiplexer, Process):
                     try:
                         send(sock, response)
                     except socket_error as error:
-                        print('sender error', str(error))
-            print('sender stop')
+                        print_log('sender error', str(error))
+            print_log('sender stop')
 
         except Exception as error:
-            print 'snder', error
+            print_log ('snder', error)
             self._handle_exception(*exc_info())
 
             
@@ -159,7 +161,7 @@ class SocketServer(Multiplexer, Process):
         conn, (address, fileno) = sock.accept()
         conn.setblocking(0)
 
-        print ('%s Connection from %s (%s)' % (s_name, fileno, address))
+        print_log ('%s Connection from %s (%s)' % (s_name, fileno, address))
         
         
         
@@ -194,7 +196,7 @@ class SocketServer(Multiplexer, Process):
         self._register_in(insock_fileno)
 
         
-        print('accepting_client %s' % client_name)
+        print_log('accepting_client %s' % client_name)
 
         #реагируем на появление нового клиента
         self._accepted.put_nowait(client_name)
@@ -224,7 +226,7 @@ class SocketServer(Multiplexer, Process):
 
         
        
-        print('\nServer running at %s:(%s,%s) multiplexer: %s \n' % (self.hostname, IN_PORT, OUT_PORT, self.poll_engine))
+        print_log('\nServer running at %s:(%s,%s) multiplexer: %s \n' % (self.hostname, IN_PORT, OUT_PORT, self.poll_engine))
         try:
             #запускаем sender
             self._sender_thread.start()
@@ -241,7 +243,7 @@ class SocketServer(Multiplexer, Process):
     
     def _handle_close(self, client_name, message):
         "закрытие подключения"
-        print('Closing %s: %s' % (client_name, message))
+        print_log('Closing %s: %s' % (client_name, message))
         
         self._closed.put_nowait(client_name)
         
@@ -266,7 +268,7 @@ class SocketServer(Multiplexer, Process):
     
     def stop(self, reason=None):
         if self.running:
-            print('SocketServer stopping..')
+            print_log('SocketServer stopping..')
 
             self._unregister(self.in_fileno)
             self._unregister(self.out_fileno)
@@ -286,7 +288,7 @@ class SocketServer(Multiplexer, Process):
 
 
 
-            print 'Waiting for sender thread'
+            print_log ('Waiting for sender thread')
             self._sender_thread._Thread__stop()
             self._sender_thread.join()
 

@@ -3,6 +3,8 @@
 from share.mathlib import *
 from engine.mathlib import *
 from engine.enginelib import wrappers
+from share.logger import print_log
+
 
 
 from random import choice, random
@@ -201,7 +203,7 @@ class DynamicObject(GameObject):
             timeout = kwargs['timeout']
         else:
             timeout = 0
-        #print 'add_event', action, args
+        #print_log 'add_event', action, args
         self.world.add_event(self.gid, object_type, self.position, vector, action, args, timeout)
         self.has_events = True
     

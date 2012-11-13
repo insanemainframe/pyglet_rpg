@@ -4,23 +4,26 @@
 import os.path
 import logging
 
-def create_logger(name):
-    logfile = '/tmp/%s_rpg.log' % name
-    if os.path.exists(logfile):
-        from os import remove
-        remove(logfile)
 
-    logger = logging.getLogger('%s_rpg' % name)
-    hdlr = logging.FileHandler(logfile)
+logfile = '/tmp/pyglet_rpg.log'
+if os.path.exists(logfile):
+    from os import remove
+    remove(logfile)
 
-    formatter = logging.Formatter('%(message)s')
-    hdlr.setFormatter(formatter)
+if __debug__ or True:
+    handler = logging.StreamHandler()
+    
 
-    logger.addHandler(hdlr)
-    logger.setLevel(logging.DEBUG)
-    return logger
+logger = logging.Logger('logger')
 
-SERVERLOG = create_logger('server')
-CLIENTLOG = create_logger('client')
-PROTOCOLLOG = create_logger('protocol')
-ENGINELOG = create_logger('engine')
+formatter = logging.Formatter('%(message)s')
+handler.setFormatter(formatter)
+
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
+
+
+def print_log(*args):
+	message = ' '.join([str(a) for a in args])
+	logger.debug(message)
+

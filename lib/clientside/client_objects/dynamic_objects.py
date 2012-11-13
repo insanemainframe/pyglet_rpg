@@ -210,7 +210,7 @@ class Cat(Movable, DynamicObject):
         self._rainbow = False
         self.create_animation('rainbow', 'rainbow', 3,2)
     
-    def rainbow(self):
+    def heal(self):
         self._rainbow = True
     
     def draw(self):

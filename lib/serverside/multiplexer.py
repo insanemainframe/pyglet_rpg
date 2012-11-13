@@ -3,6 +3,7 @@
 from socket import error as socket_error
 
 from config import *
+from share.logger import print_log
 
 IN, OUT = 0,1
 
@@ -20,7 +21,7 @@ class EpollMultiplexer:
         self._poller.unregister(fileno)
     
     def _run_poll(self):
-        print('Start polling')
+        print_log('Start polling')
         while not self._stop_event.is_set():
             event_pairs = self._poller.poll()
             while event_pairs:
@@ -41,9 +42,9 @@ class EpollMultiplexer:
                         self._handle_error(Error, fileno, event)
                             
                 except socket_error as Error:
-                    print ('socket_error', Error)
+                    print_log ('socket_error', Error)
                     self._handle_error(Error, fileno, event)
-        print ('polling end')
+        print_log ('polling end')
 
 
 class SelectMultiplexer:
@@ -62,9 +63,9 @@ class SelectMultiplexer:
         
     def _run_poll(self):
         "ожидание входящих пакетов с совкетов, обработка новых подключений"
-        print('Start polling')
+        print_log('Start polling')
         while not self.stop_event.is_set():
-            print('polling')
+            print_log('polling')
             #смотрим новые подключения и на чтение
             insocks = [client.insock for client in self.clients.values()]
             timeout = SERVER_TIMER*1.5  #- (time()-t)
@@ -80,7 +81,7 @@ class SelectMultiplexer:
                     self._handle_read(client_name)
             self.write_all()
 
-        print('Stop polling')
+        print_log('Stop polling')
 
 
 

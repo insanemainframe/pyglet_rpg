@@ -29,7 +29,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         Unit.__init__(self, self.speed, self.hp, Corpse, 'players')
         
         MapObserver.mixin(self, look_size)
-        Striker.mixin(self,3, Ball, self.damage)
+        Striker.mixin(self, 5, Ball, self.damage)
         Respawnable.mixin(self, 10, 30)
         Stats.mixin(self)
         Skill.mixin(self,self.default_skills)

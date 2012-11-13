@@ -11,10 +11,12 @@ from engine.enginelib.meta import DynamicObject, StaticObject
 
 
 from random import randrange
-from weakref import proxy
+from weakref import proxy, ProxyType
 from collections import defaultdict
 from time import time
 import imp
+
+from share.logger import print_log
 
 
 
@@ -48,10 +50,10 @@ class MetaWorld(PersistentWorld):
         self.init_func =  init.init
     
     def start(self):
-        print('Starting world "%s"' % self.name)
+        print_log('Starting world "%s"' % self.name)
         result = self.load_objects()
         if not result:
-            print('Generating world "%s", this could take a while'% self.name)
+            print_log('Generating world "%s", this could take a while'% self.name)
             self.generate_func(self)
         self.init_func(self)
             
@@ -124,7 +126,7 @@ class MetaWorld(PersistentWorld):
         try:
             self.locations[i][j].add_event(event)
         except IndexError:
-            print('location IndexError', i,j)
+            print_log('location IndexError', i,j)
     
         if vector:
             alt_position = position+vector
@@ -133,7 +135,7 @@ class MetaWorld(PersistentWorld):
             try:
                 self.locations[i][j].add_event(event)
             except IndexError:
-                print('location IndexError %s[%s:%s] %s' (self.name, i,j, name))
+                print_log('location IndexError %s[%s:%s] %s' (self.name, i,j, name))
     
     def change_location(self, player, prev_loc, cur_loc):
         "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
@@ -148,10 +150,7 @@ class MetaWorld(PersistentWorld):
             cur_location.add_object(player)
             
             
-            player.location = cur_location
             
-            for related in player.related_objects:
-                related.location = cur_location
         else:
             return prev_location
     
@@ -167,7 +166,7 @@ class MetaWorld(PersistentWorld):
         try:
             return self.locations[i][j]
         except IndexError as Error:
-            print('Warning: invalid location cord %s[%s:%s]' % (self.name,i,j))
+            print_log('Warning: invalid location cord %s[%s:%s]' % (self.name,i,j))
             raise Error
     
     def get_near_tiles(self, i,j):

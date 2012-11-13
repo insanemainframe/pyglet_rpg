@@ -9,13 +9,15 @@ from marshal import loads, dumps
 from engine.world.map_source import load_map
 from engine.enginelib import meta 
 from engine import game_objects
+from share.logger import print_log
+
 
 PICKLE_PATH = '%sworld.marshal.zlib' % WORLD_PATH
 
 class PersistentWorld(object):
     def __init__(self, mapname):
         self.mapname = mapname
-        print('loading map %s ...' % self.mapname)
+        print_log('loading map %s ...' % self.mapname)
         self.map, self.size, self.background = load_map(mapname)
         
 
@@ -23,20 +25,20 @@ class PersistentWorld(object):
 
     def load_objects(self):
         if self.world_exists():
-            print('Loading world %s from pickle' % self.name)
+            print_log('Loading world %s from pickle' % self.name)
             with open(PICKLE_PATH % self.mapname, 'rb') as w_file:
                 data = w_file.read()
             worlds_objects = loads(decompress(data))
 
             for object_type, data in worlds_objects:
-                #print 'loading', object_type, data
+                #print_log 'loading', object_type, data
                 object_type = self.get_class(object_type)
                 data = object_type.__load__(*data)
                 player = object_type(*data)
                 self.new_object(player)
             return True
         else:
-            print("world pickle doesn't exist")
+            print_log("world pickle doesn't exist")
             return False
 
 
@@ -55,7 +57,7 @@ class PersistentWorld(object):
             data = compress(dumps(worlds_objects))
             with open(PICKLE_PATH % self.mapname, 'wb') as w_file:
                 w_file.write(data)
-                print('world %s saved' % self.name)
+                print_log('world %s saved' % self.name)
 
 
     def save_objects(self):

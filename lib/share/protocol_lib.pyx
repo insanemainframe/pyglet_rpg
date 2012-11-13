@@ -3,7 +3,6 @@
 import struct
 from socket import htonl, ntohl, error as socket_error
 
-from share.logger import PROTOCOLLOG as LOG
 
 
 

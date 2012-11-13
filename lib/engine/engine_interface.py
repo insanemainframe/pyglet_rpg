@@ -12,6 +12,8 @@ from engine.game_objects import Player
 
 
 from config import *
+from share.logger import print_log
+
 
 #####################################################################
 class GameEngine:
@@ -29,7 +31,7 @@ class GameEngine:
         game.mainworld.new_object(new_player)
         
         game.guided_changed = True
-        print('New player %s' % name)
+        print_log('New player %s' % name)
 
         #оставляем сообщение о подключении
         yield ServerAccept()
@@ -100,7 +102,7 @@ class GameEngine:
     
     def game_quit(self, name):
         "выход игрока из игры"
-        print('%s quit' % name)
+        print_log('%s quit' % name)
         game.remove_guided(name)
 
         game.guided_changed = True

@@ -39,18 +39,31 @@ class Fighter:
         self.attack_speed = 1.0/self.attack_speed
         self.prev_attack = time()
     
-    @wrappers.alive_only()
-    @wrappers.player_filter(Breakable)
     def collission(self, player):
-        if self.fraction!=player.fraction:
-            cur_time = time()
-            if cur_time - self.prev_attack > self.attack_speed:
-                self.prev_attack = cur_time
+        if isinstance(player, Unit) and not self.fraction is player.fraction:
+                cur_time = time()
+                if cur_time - self.prev_attack > self.attack_speed:
+                    self.prev_attack = cur_time
 
-                player.hit(self.damage)
-                self.add_event('attack')
+                    player.hit(self.damage)
+                    self.add_event('attack')
     
 
+
+
+class Healer:
+    heal_timeout = 30
+    def mixin(self, heal_hp, heal_player_speed = 0.2):
+        self.heal_hp = heal_hp
+        self.prev_heal = time()
+        self.heal_player_speed = 1.0/heal_player_speed
+
+    def heal_player(self, player):
+        cur_time = time()
+        if cur_time- self.prev_heal > self.heal_player_speed:
+            self.prev_heal = cur_time
+            player.heal(5)
+            self.add_event('heal', timeout = self.heal_timeout)
 
 class Stalker:
     "объекты охотящиеся за игроками"

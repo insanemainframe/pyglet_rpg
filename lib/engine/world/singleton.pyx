@@ -13,6 +13,8 @@ from engine.enginelib import meta
 from engine.enginelib.meta import DynamicObject, StaticObject
 from engine.world.meta import MetaWorld
 
+from share.logger import print_log
+
 
         
 class __GameSingleton(object):
@@ -31,7 +33,7 @@ class __GameSingleton(object):
 
     
     def start(self):
-        print('\n Engine initialization...')
+        print_log('\n Engine initialization...')
         
         self.worlds['ground'] = MetaWorld(self, 'ground')
         self.worlds['underground'] = MetaWorld(self, 'underground')
@@ -43,7 +45,7 @@ class __GameSingleton(object):
             world.start()
             world.save(True)
         
-        print('\n Engine initialization complete. \n')
+        print_log('\n Engine initialization complete. \n')
     
         
     def new_object(self, player):

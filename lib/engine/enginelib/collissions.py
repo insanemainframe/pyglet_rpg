@@ -8,6 +8,8 @@ from math import hypot
 from collections import namedtuple
 
 from config import *
+from share.logger import print_log
+
 
 
 
@@ -147,7 +149,7 @@ def new_get_cross(start, vector):
 
     crossed = ylist + xlist
 
-    #print [cross.cord for cross in crossed]
+    #print_log [cross.cord for cross in crossed]
     crossed.sort(key = lambda cross: cross.dist)
 
 

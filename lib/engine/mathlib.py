@@ -5,6 +5,8 @@ from math import hypot
 from share.mathlib import *
 
 from config import *
+from share.logger import print_log
+
 
 ########################################################################
 from random import random
@@ -40,13 +42,13 @@ def rotate(AB, angle):
 ########################################################################
 if __name__=='__main__':
     #A,B,C,D = Point(2,2), Point(5,6), Point(0,0), Point(4,0)
-    #print interception(A,B,C,D)
+    #print_log interception(A,B,C,D)
     #6243:6085 117:106
 
     #position, vector = Point(6243,6085), Point(117,106)
-    #print position, vector, position+ vector, position/TILESIZE, vector/TILESIZE, (position+ vector)/TILESIZE
-    #print 'result', get_cross(position, vector)
+    #print_log position, vector, position+ vector, position/TILESIZE, vector/TILESIZE, (position+ vector)/TILESIZE
+    #print_log 'result', get_cross(position, vector)
     
-    print(rotate(Point(40, 0), 30))
+    print_log(rotate(Point(40, 0), 30))
     
     

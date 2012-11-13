@@ -10,6 +10,8 @@ from marshal import loads, dumps
 
 from collections import Counter
 
+from share.logger import print_log
+
 
 
 
@@ -26,15 +28,15 @@ def load_map(mapname):
             decompressed = decompress(readed)
             tmap = loads(decompressed)
         except Exception as error:
-            print('Error: "%s" while loading %s' % (error, map_file))
+            print_log('Error: "%s" while loading %s' % (error, map_file))
         else:
-            print('\t map loaded from data file')
+            print_log('\t map loaded from data file')
             tilemap, size, background =  tmap
             return tilemap, size, background
     else:
-        print("\t map data file doesn't exist")
+        print_log("\t map data file doesn't exist")
 
-    print('Generating tilemap "for" %s' % mapname)
+    print_log('Generating tilemap "for" %s' % mapname)
     from PIL import Image
     
 
@@ -55,7 +57,7 @@ def load_map(mapname):
             row.append(tile)
         tilemap.append(row)
         
-    print('\tmap loaded:',size)
+    print_log('\tmap loaded:',size)
     
     
     background = counter.most_common()[0][0]

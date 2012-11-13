@@ -5,7 +5,6 @@ from config import *
 from engine.enginelib.meta import *
 from engine.mathlib import chance
 from engine.enginelib.units_lib import *
-from engine.gameobjects.items import *
 from engine.gameobjects.shells import *
 from engine.enginelib.movable import Movable
 from engine.enginelib import wrappers
@@ -75,10 +74,14 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, DynamicObject):
             self.unbind_master()
 
 
-class Cat(Walker, Solid, Stalker, DiplomacySubject, DynamicObject):
+
+
+
+
+
+class Cat(Walker, Solid, Stalker, DiplomacySubject, DynamicObject, Healer):
     speed = 20
     radius = TILESIZE
-    rainbow_time = 30
     alive = True
     look_size = 300
     
@@ -87,19 +90,14 @@ class Cat(Walker, Solid, Stalker, DiplomacySubject, DynamicObject):
         Solid.mixin(self, self.radius)
         Movable.mixin(self, self.speed)
         DiplomacySubject.mixin(self, 'good')
-        self.heal_counter = 0
+        Healer.mixin(self, 5)
+        
     
     def collission(self, player):
         if isinstance( player, Guided):
-            if self.heal_counter==0:
-                self.rainbow(player)
-            self.heal_counter+=1
-            if self.heal_counter==10:
-                self.heal_counter = 0
+            self.heal_player(player)
     
-    def rainbow(self, player):
-        player.heal(5)
-        self.add_event('rainbow', timeout = self.rainbow_time)
+
     
     def update(self):
         if chance(10):
@@ -119,7 +117,7 @@ class Bat(Fighter, MetaMonster):
     speed = 30
     damage = 1
     attack_speed = 1
-    loot_cost = 10
+    loot_cost = 20
     BLOCKTILES = ['stone', 'forest']
     SLOWTILES = {}
     
@@ -134,7 +132,7 @@ class Zombie(Fighter, MetaMonster):
     speed = 15
     damage = 2
     attack_speed = 0.5
-    loot_cost = 30
+    loot_cost = 50
     
     def __init__(self, name, position):
         MetaMonster.__init__(self, name, position, self.speed, self.hp)
@@ -160,7 +158,7 @@ class Lych(MetaMonster, Striker):
     hp = 25
     speed = 10
     damage = 5
-    loot_cost = 60
+    loot_cost = 90
     strike_speed = 1
     
     def __init__(self, name, position):

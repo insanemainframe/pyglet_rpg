@@ -19,13 +19,13 @@ def generate(self):
         self.create_item(200, GetTeleport(Cave, 'underground'))
         
         print('\t Creating decorartions...')
-        self.create_item(1000, Stone)
-        self.create_item(500, Mushroom)
-        self.create_item(1000, Plant)
-        self.create_item(7000, Flower)
-        self.create_item(300, WaterFlower) 
+        self.create_item(3000, Stone)
+        self.create_item(2000, Mushroom)
+        self.create_item(5000, Plant)
+        self.create_item(20000, Flower)
+        self.create_item(500, WaterFlower) 
         self.create_item(200, BigWaterFlower) 
-        self.create_item(10000, AloneTree)
+        self.create_item(13000, AloneTree)
         self.create_item(1000, AloneBush)
         self.create_item(100, WindMill)
 
@@ -37,5 +37,5 @@ def init(self):
         self.create_object(500, Zombie)
         self.create_object(100, Lych)
         self.create_object(100, Ghast)
-        self.create_object(30, Cat)
+        self.create_object(100, Cat)
 

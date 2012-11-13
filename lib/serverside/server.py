@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-
 from config import SERVER_TIMER, HOSTNAME, PROFILE_SERVER, SERVER_PROFILE_FILE
 
 from sys import exit as sys_exit, exc_info
@@ -14,6 +12,8 @@ from engine.engine_interface import GameEngine
 from share.packer import pack, unpack
 from share.ask_hostname import ask_hostname
 from serverside.socket_server import SocketServer
+from share.logger import print_log
+
 
 
 
@@ -80,7 +80,7 @@ class GameServer(object):
 
     def stop(self, stop_reason = ''):
         #считаем среднее время на раунд
-        print('%s \n GameServer stopping...' % str(stop_reason))
+        print_log('%s \n GameServer stopping...' % str(stop_reason))
         try:
             self.server.stop()
         finally:
@@ -88,21 +88,21 @@ class GameServer(object):
             if count:
                 all_time = sum(self.r_times)
                 m_time = all_time/count
-                print('median time %s/%s = %s' % (all_time, count, m_time))
+                print_log('median time %s/%s = %s' % (all_time, count, m_time))
             if isinstance(stop_reason, BaseException):
                 raise stop_reason
         
 
     def start(self):
-        print('Running...')
+        print_log('Running...')
         stop_reason = 'None'
         try:
             self.server.start()
-            print('GameServer running')
+            print_log('GameServer running')
             t = time()
             while 1:
                 if not self.server.excp.empty():
-                    print('error in SocketServer')
+                    print_log('error in SocketServer')
                     stop_reason = self.server.excp.get_nowait()
                     break
 
@@ -116,22 +116,22 @@ class GameServer(object):
                 timeout = SERVER_TIMER - delta if delta<SERVER_TIMER else 0
                 t = time()
                 sleep(timeout)
-            print('game loop end')
+            print_log('game loop end')
 
         except KeyboardInterrupt:
             stop_reason= 'KeyboardInterrupt'
             self.game.save()
-            print('stop_reason:', stop_reason)
+            print_log('stop_reason:', stop_reason)
 
         except:
             except_type, except_class, tb = exc_info()
-            print('exception!', except_type, except_class)
+            print_log('exception!', except_type, except_class)
             for line in traceback.extract_tb(tb):
-                print(line)
+                print_log(line)
 
 
         finally:
-            print('game loop exit')
+            print_log('game loop exit')
          
             self.stop(stop_reason)
             sys_exit()
@@ -148,7 +148,7 @@ def main():
 
 if __name__ == '__main__':
     if PROFILE_SERVER:
-        print('profile')
+        print_log('profile')
         cProfile.run('main()', SERVER_PROFILE_FILE)
         
     else:

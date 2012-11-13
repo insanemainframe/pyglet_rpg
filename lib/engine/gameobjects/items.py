@@ -73,7 +73,8 @@ class Cloak(Item):
 class Lamp(Item):
      def effect(self):
          from engine.gameobjects.units import Ally
-         position = self.world.choice_position(Ally, 5, self.owner.position,True)
+
+         position = self.owner.world.choice_position(Ally, 5, self.owner.position,True)
          ally = Ally(position)
          ally.bind_master(self.owner)
          self.world.new_object(ally)
