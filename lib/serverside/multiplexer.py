@@ -22,7 +22,10 @@ class EpollMultiplexer:
     def _run_poll(self):
         print('Start polling')
         while not self.stop_event.is_set():
-            event_pairs = self._poller.poll()
+            
+            print ('polling')
+
+            event_pairs = self._poller.poll(1)
             while event_pairs:
                 fileno, event = event_pairs.pop()
                 try:
@@ -44,6 +47,9 @@ class EpollMultiplexer:
                     print ('socket_error', Error)
                     self._handle_error(Error, fileno, event)
         print ('polling end')
+
+    def _stop_poll(self):
+        self._poller.close()
 
 
 class SelectMultiplexer:
@@ -81,6 +87,9 @@ class SelectMultiplexer:
             self.write_all()
 
         print('Stop polling')
+
+    def _stop_poll(self):
+        pass
 
 
 

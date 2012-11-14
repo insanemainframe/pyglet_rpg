@@ -2,111 +2,14 @@
 # -*- coding: utf-8 -*-
 from config import *
 from share.errors import *
-xrange = range
 
 from engine.mathlib import Cord, Position, ChunkCord
 
-from share.serialization import loads, dumps, load, dump
 
-from engine.world.chunk import Chunk
-from engine.world.map_source import load_map
-from engine.enginelib.meta  import Savable, SavableRandom
-from engine import game_objects
 
 from random import randrange, choice
 from weakref import proxy,ProxyType
-from os.path import exists
 from collections import defaultdict
-
-
-import imp
-
-
-
-
-
-class PersistentLocation(object):
-    def __init__(self, mapname):
-        self.mapname = mapname
-        print ('loading map...')
-        self.map, self.size, self.background = load_map(mapname)
-        self.position_size = self.size*TILESIZE
-
-        init = imp.load_source('init', LOCATION_PATH %mapname + 'init.py')
-        self.generate_func = init.generate
-
-        
-
-
-
-    def create_object(self, n, object_type):
-        n = int(n/LOCATION_MUL)
-        print 'creating %s of %s' % (n, object_type.__name__)
-        for i in xrange(n):
-            monster = object_type()
-            self.new_object(monster, generation = True)
-            
-    
-        
-        
-
-
-
-    def load_objects(self):
-        if self.location_exists():
-            filename = LOCATION_PATH % self.mapname + LOCATION_FILE
-            locations_objects = load(filename)
-
-
-            for object_type, data, (x,y) in locations_objects:
-                position = Position(x,y)
-                object_type = self.get_class(object_type)
-
-                player = object_type.__load__(proxy(self), *data)
-
-                # if isinstance(player, SavableRandom):
-                #     chunk, position = self.choice_position(player)
-                #     self.new_object(player, chunk = chunk, position = position)
-                # else:
-                self.new_object(player, position = position)
-            return True
-        else:
-            return False
-
-
-
-
-    def get_class(self, object_type):
-        return getattr(game_objects, object_type)
-
-    def location_exists(self):
-        return exists(LOCATION_PATH % self.mapname + LOCATION_FILE)
-            
-    
-    def save(self, force = False):
-        if SAVE_LOCATION or force:
-            locations_objects = self.save_objects()
-            filename = LOCATION_PATH % self.mapname + LOCATION_FILE
-            data = dump(locations_objects, filename)
-
-
-
-    def save_objects(self):
-        objects = []
-
-        for player in self._players.values():
-            if isinstance(player, Savable):
-                object_type = player.__class__.__name__
-                data = player.__save__()
-                position = player.position.get()
-
-                objects.append((object_type, data, position))
-
-
-        return objects
-
-
-
 
 
 
@@ -156,10 +59,10 @@ class ChoiserMixin:
             chunks = list(chunks)
             while chunks:
                 chunk_cord = chunks.pop()
-                chunk = self[chunk_cord]
+                chunk = self._chunks[chunk_cord]
 
                 if ignore_chunk or player.verify_chunk(self, chunk):
-                    chunk = self[chunk_cord]
+                    chunk = self._chunks[chunk_cord]
 
                     try:
                         position = self._choice_in_chunk(player, chunk_cord, bad_cords, ignore_position)
@@ -198,20 +101,20 @@ class ChoiserMixin:
         raise NoPlaceException(err_message)
 
     def _choice_in_chunk(self, player, chunk_cord, bad_cords, ignore_position):
-        chunk = self[chunk_cord]
+        chunk = self._chunks[chunk_cord]
 
-        cords = list(chunk.get_free_cords())
+        cords = list(self.get_free_cords(chunk_cord))
 
         while cords:
             cord = cords.pop()
-            voxel = chunk[cord]
-            i,j = cord.get()
-            if ignore_position or player.verify_position(self, chunk, voxel, i,j):
-                shift = Position(randrange(TILESIZE), randrange(TILESIZE))
-                position = cord.to_position() + shift 
-                return position
-            else:
-                bad_cords.add(cord)
+            voxel = self.get_voxel(cord)
+
+            if not self.get_tile(cord) in player.BLOCKTILES:
+                if ignore_position or player.verify_position(self, chunk, cord):
+                    shift = Position(randrange(TILESIZE), randrange(TILESIZE))
+                    position = cord.to_position() + shift 
+                    return position
+            bad_cords.add(cord)
         raise NoPlaceException
 
 

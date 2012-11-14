@@ -59,11 +59,16 @@ class SocketServer(Multiplexer, Process):
                 
         
         self.r_times = []
+        self.running = False
 
     #интерфейс
-    def get_accepted(self):
-        while not self.accepted.empty():
-            yield self.accepted.get_nowait()
+    def get_accepted(self, blocking = False):
+        if not blocking:
+            while not self.accepted.empty():
+                yield self.accepted.get_nowait()
+        else:
+            while not self.accepted.empty():
+                yield self.accepted.get()
         raise StopIteration
 
     def get_closed(self):
@@ -82,8 +87,8 @@ class SocketServer(Multiplexer, Process):
 
 
     def _handle_exception(self, except_type, except_class, tb):
+        print ('sending exception')
         self.excp.put_nowait((except_type, except_class, traceback.extract_tb(tb)))
-        self.stop()
             
     def _create_socket(self, stream):
         "создает неблокирубщий сокет на заданном порте"
@@ -97,19 +102,26 @@ class SocketServer(Multiplexer, Process):
     def _sender(self):
         try:
             while not self.stop_event.is_set():
-                client_name, response = self.responses.get()
+                print ('sending')
+
+                try:
+                    client_name, response = self.responses.get(3)
+                except:
+                    pass
+
                 if client_name in self.clients:
                     sock = self.clients[client_name].outsock
                     try:
                         send(sock, response)
                     except socket_error as error:
                         print('sender error', str(error))
-            print('sender stop')
+            
 
         except:
+            print 'excption in sender'
             self._handle_exception(*exc_info())
-        finally:
-            self.stop()
+            self._stop('sender')  
+        print('sender stop')          
 
             
 
@@ -203,8 +215,14 @@ class SocketServer(Multiplexer, Process):
                 cProfile.runctx('self._run()', globals(),locals(),SOCKET_SERVER_PROFILE_FILE)
             else:
                 self._run()
-        finally:
-            self.stop()
+        except Exception as error:
+            print ('Socket server erro:', error)
+            self._handle_exception(*exc_info())
+            self._stop('run')
+            
+        print ('server process stopped')
+
+
     def _run(self):
         self.running = True
 
@@ -219,18 +237,12 @@ class SocketServer(Multiplexer, Process):
         
        
         print('\nServer running at %s:(%s,%s) multiplexer: %s \n' % (self.hostname, IN_PORT, OUT_PORT, self.poll_engine))
-        try:
-            #запускаем sender
-            self.sender_thread.start()
-        
-            #запускаем мультиплексор
-            self._run_poll()
-        except:
-            self._handle_exception(*exc_info())
-
-        finally:
-            print ('polling exit')
-            self._handle_stop()
+        #запускаем sender
+        self.sender_thread.start()
+    
+        #запускаем мультиплексор
+        self._run_poll()
+    
 
     
     def _handle_close(self, client_name, message):
@@ -258,23 +270,39 @@ class SocketServer(Multiplexer, Process):
 
         
     
-    def stop(self, reason=None):
-        print('SocketServer stopping..')
-        self.running = False
-        self.stop_event.set() 
+    def stop(self, sender = 'unknown'):
+        print ('sending signal from %s' % sender)
+        self.stop_event.set()
+        self.responses.close()
 
-    def _handle_stop(self):
-        "сотановка сервера"
-        try:
-            self.sender_thread._Thread__stop()
-                        #
+    def _stop(self, reason=None):
+        if self.running:
+            print('SocketServer stopping.. %s' % reason)
+
+            self.running = False
+
+            self.stop_event.set() 
+
+            # self.responses.close()
+
+
+            
+
             self._unregister(self.in_fileno)
             
             self.insock.close()
             self.outsock.close()
-        finally:    
+
+            self._stop_poll()
+
+            
+            print( 'waiting for sender thread')
+            self.sender_thread.join()
+            print ('sender thread stopped')
             print('SocketServer stopped')
-            sys_exit()
+            #sys_exit()
+
+ 
             
         
     

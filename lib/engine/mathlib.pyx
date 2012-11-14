@@ -118,6 +118,20 @@ cdef class ChunkCord(Point):
 	def __repr__(ChunkCord self):
 		return "ChunkCord[%s:%s]" % self.get()
 
+	def __iter__(ChunkCord self):
+		cdef Cord start, end
+		cdef int i,j
+		
+		start = self.cord.to_cord()
+		end = (self.cord + ChunkCord(1,1)).to_cord()
+
+		start = self.to_cord()
+		end = (self + ChunkCord(1,1)).to_cord()
+
+		for i in range(start.x, end.x):
+			for j in range(start.y, end.y):
+				yield Cord(i,j)
+
 	
 
     

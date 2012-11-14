@@ -126,6 +126,13 @@ class ChunkCord(Point):
 	def __repr__(self):
 	    return "ChunkCord[%s:%s]" % self.get()
 
+	def __iter__(self):
+		start = self.to_cord()
+		end = (self + ChunkCord(1,1)).to_cord()
+
+		for i in range(start.x, end.x):
+			for j in range(start.y, end.y):
+				yield Cord(i,j)
 	
 
     

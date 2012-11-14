@@ -27,9 +27,7 @@ cdef class Point:
         elif op==5:
             return abs(self)>=abs(point)
 
-    def __iter__(self):
-        yield self.x
-        yield self.y
+
             
     def __nonzero__(Point self):
         return bool(self.x) or bool(self.y)

@@ -41,9 +41,9 @@ class Unit(MutableObject, Solid, Breakable, DiplomacySubject):
                 return False
         return True
 
-    def verify_position(self, location, chunk, voxel, ci ,cj):
+    def verify_position(self, location, chunk, cord):
         # print ('unit verify_position')
-        for player in sum(voxel.get_nears(), []):
+        for player in sum(location.get_near_voxels(cord), []):
             if isinstance(player, Solid):
                 return False
 

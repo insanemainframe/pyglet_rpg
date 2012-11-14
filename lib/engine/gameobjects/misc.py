@@ -38,8 +38,8 @@ class WaterFlower(Misc):
 
 class BigWaterFlower(WaterFlower):
     count = 9
-    def verify_position(self, location, chunk, voxel, i ,j):
-        for tile in location.get_near_tiles(i,j):
+    def verify_position(self, location, chunk, cord):
+        for tile in location.get_near_tiles(cord):
                 if tile in self.BLOCKTILES:
                     return False
         return True
@@ -81,12 +81,12 @@ class AloneTree(Misc, Impassable, ):
         Misc.__init__(self)
         Impassable.mixin(self, self.radius)
 
-    def verify_position(self, location, chunk, voxel, i,j):
+    def verify_position(self, location, chunk, cord):
         if AloneTree.gen_counter<50:
             AloneTree.gen_counter+=1
             return True
         else:
-            for player in sum(voxel.get_nears(), []):
+            for player in sum(location.get_near_voxels(cord), []):
                 if isinstance(player, AloneTree):
                     return True
             if chance(98):

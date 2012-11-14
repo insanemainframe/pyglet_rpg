@@ -11,9 +11,7 @@ class Point:
         self.x = int(x)
         self.y = int(y)
 
-    def __iter__(self):
-        yield self.x
-        yield self.y
+
 
     def __nonzero__(self):
         return bool(self.x) or bool(self.y)

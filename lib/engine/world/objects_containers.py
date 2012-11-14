@@ -17,6 +17,7 @@ near_chunk_cords = [ChunkCord(i,j) for i,j in nears]
 
 
 class ObjectContainer:
+    "контейнер для игровых объектов, отмечающий изменения игроков и хранящий прокси-списки по типам объектов"
     proxy_list = ()
 
     def __init__(self):
@@ -106,6 +107,7 @@ class ObjectContainer:
 class ActivityContainer:
     "функционал локации для работы с ее активностью"
     def __init__(self):
+        assert hasattr(self, 'nears')
         self.primary_activity = 0
         self.slavery_activity = 0
 

@@ -34,10 +34,22 @@ class GameObject(object):
         self.gid = str(hash((name, random())))
 
         
-        self._REMOVE = False
+        self.__REMOVE = False
         self._owner = None
 
         self._position = None
+
+
+    @property
+    def _REMOVE(self):
+        return self.__REMOVE
+
+    @_REMOVE.setter
+    def _REMOVE(self, value):
+        self.__REMOVE = value
+        if value:
+
+            self.chunk.add_to_remove(self.name)
 
 
 
@@ -103,7 +115,7 @@ class GameObject(object):
     def verify_chunk(self, location, chunk):
         return True
     
-    def verify_position(self, location, chunk, voxel, i ,j):
+    def verify_position(self, location, chunk, cord):
         return True
     
     
@@ -300,6 +312,7 @@ class Impassable(Solid):
 class Breakable(Updatable):
     "класс для живых объектов"
     heal_time = 1200
+
     def mixin(self, hp = 10):
         self._hp_value = hp
         self._hp = hp
@@ -321,12 +334,15 @@ class Breakable(Updatable):
         return self._hp
     @hp.setter
     def hp(self, new_hp):
-        if new_hp>self._hp_value:
-            new_hp = self._hp_value
-        elif new_hp<0:
-            new_hp = 0
-        self._hp = new_hp
+        if new_hp!=self._hp:
+            if new_hp>self._hp_value:
+                new_hp = self._hp_value
+            elif new_hp<0:
+                new_hp = 0
+            self._hp = new_hp
+
         self.add_event('change_hp', self._hp_value, self._hp)
+        print('change_hp')
 
     @property
     def hp_value(self):
@@ -337,12 +353,12 @@ class Breakable(Updatable):
         if new_hp_value>0:
             self._hp_value = new_hp_value
             self.add_event('change_hp', self._hp_value, self._hp)
+            self.add_event('defend')
     
         
     
     def hit(self, hp):
-        self.hitted = 10
-        self.hp-=hp
+        self.hp = self.hp-hp
         
         
         if self.hp<=0:
@@ -356,29 +372,22 @@ class Breakable(Updatable):
         if not hp:
             hp = self.heal_speed
 
-        new_hp = self.hp+ hp
-        if new_hp>self.hp_value:
-            new_hp = self.hp_value
-        
-        self.hp = new_hp
+        self.hp += hp
+
     
     def plus_hp(self, armor):
         self.hp_value+=armor
         self.heal_speed = self.hp_value/float(self.heal_time)
     
     def update(self):
-        if self.hitted:
-            self.add_event('defend')
-            self.hitted-=1
-        else:
-            if self.hp<self.hp_value:
-                self.heal()
+        if self.hp<self.hp_value:
+            self.heal()
     
     
     def create_corpse(self):
         if self.corpse_type:
             corpse = self.corpse_type()
-            self.location.new_object(corpse)
+            self.location.new_object(corpse, position = self.position)
     
     
     def get_args(self):

@@ -38,7 +38,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         Skill.mixin(self,self.default_skills)
         Equipment.mixin(self)
 
-        self.set_strike_speed(3)
+        self.set_strike_speed(5)
         self.set_shell(Ball)
 
 

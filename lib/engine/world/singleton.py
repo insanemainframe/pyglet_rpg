@@ -6,14 +6,11 @@ from config import *
 
 from weakref import proxy, ProxyType
 from random import  choice
-from collections import OrderedDict, Sequence
-
-
+from collections import OrderedDict
+from threading import Event
 
 from engine.mathlib import Cord, Position, ChunkCord
-from engine.mathlib import Cord, Position, ChunkCord
-from engine.mathlib import Cord, Position, ChunkCord
-from engine.enginelib.meta import Guided, HierarchySubject, Container, Respawnable
+from engine.enginelib.meta import Guided, HierarchySubject, Respawnable
 from engine.enginelib.mutable import MutableObject
 from engine.world.location import Location
 
@@ -28,6 +25,19 @@ class __GameSingleton(object):
         self.monster_count = 0
         self.guided_changed = False
         self.stopped = False
+        self._active = Event()
+
+    def is_active(self):
+        return self._active.is_set()
+
+    def wait(self):
+        return self._active.wait()
+
+    def set_activity(self):
+        self._active.set()
+
+    def unset_activity(self):
+        self._active.clear()
 
     
     def start(self):
@@ -53,12 +63,16 @@ class __GameSingleton(object):
 
     def add_active_location(self, location):
         self.active_locations[location.name] = location
+        if not self.is_active():
+            self.set_activity()
 
     def remove_active_location(self,location):
         key = location.name
         if key in self.active_locations:
             del self.active_locations[key]
-    
+
+        if not self.active_locations:
+            self.unset_activity()
         
     def _new_object(self, player):
         "создает динамический объект"
@@ -80,9 +94,10 @@ class __GameSingleton(object):
         name = player.name
 
         player.handle_remove()
+        player.location.pop_object(player)
 
         if not isinstance(player, Respawnable):
-            player.location.pop_object(player)
+            
 
             if isinstance(player, Guided):
                 print ('game._remove_object', player, force)
@@ -91,7 +106,6 @@ class __GameSingleton(object):
             del self.players[name]
             
         else:
-            player.location.pop_object(player)
 
             player._REMOVE = False
             player.regid()
@@ -128,14 +142,14 @@ class __GameSingleton(object):
     
 
 
-    def change_location(self, player, location_name, new_position = None):
+    def change_location(self, player, location_name):
         "переметить объект из одного мира в другой"
 
         assert isinstance(player, ProxyType)
-        assert new_position is None or isinstance(new_position, Position)
 
         if isinstance(player, Guided):  print ('game.change_location', player, location_name
         )
+
         prev_location = player.location
 
         new_location = self.locations[location_name]
@@ -143,17 +157,12 @@ class __GameSingleton(object):
 
         #нходим новый чанк
         dest_chunk_cord = choice(new_location.teleports)
-        print (dest_chunk_cord)
         
-        if not new_position:
-            new_chunk_cord,new_position = new_location.choice_position(player, dest_chunk_cord)
-        else:
-            new_chunk_cord = new_position.to_chunk()
+
         
         #меняем локацию
         prev_location.pop_object(player)
-        new_location.add_object(player, new_chunk_cord, new_position)
-        new_chunk = player.chunk
+        new_location.add_object(player, dest_chunk_cord)
                 
         
         

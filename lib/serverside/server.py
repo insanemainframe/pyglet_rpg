@@ -36,7 +36,11 @@ class GameServer(object):
         "обращается к движку по расписанию"
         #смотрим новых клиентов
 
-        for client_name in self.server.get_accepted():
+        blocking = self.game.is_active()
+        if blocking:
+            print ('Sleeeping mode')
+
+        for client_name in self.server.get_accepted(blocking = blocking):
             for accept_response in self.game.game_connect(client_name):
                 response = pack(accept_response)
                 self.server.put_response(client_name, response)
@@ -82,7 +86,7 @@ class GameServer(object):
     def stop(self, stop_reason = ''):
         #считаем среднее время на раунд
         print('%s \n GameServer stopping...' % str(stop_reason))
-        self.server.stop()
+        self.server.stop('gameserver.stop')
         self.game.stop()
         count = len(self.r_times)
         if count:
@@ -123,7 +127,6 @@ class GameServer(object):
         except KeyboardInterrupt:
             stop_reason= 'KeyboardInterrupt'
             self.game.save()
-            print('stop_reason:', stop_reason)
 
         except:
             except_type, except_class, tb = exc_info()
@@ -136,6 +139,10 @@ class GameServer(object):
             print('game loop exit')
          
             self.stop(stop_reason)
+            
+            if self.server.is_alive():
+                print ('waiting for socket-server process')
+                self.server.join()
             sys_exit()
     
 

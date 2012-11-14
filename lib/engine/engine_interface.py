@@ -21,10 +21,6 @@ class GameEngine:
         game.start()
         self.messages = {}
 
-    def is_active(self):
-        self.active_chunks = game.get_active_chunks()
-        return bool(self.active_chunks)
-
             
     def game_connect(self, name):
         "создание нового игрока"
@@ -42,6 +38,10 @@ class GameEngine:
         for message in new_player.accept_response():
             yield message
         raise StopIteration
+
+    def is_active(self):
+        game.is_active()
+
 
         
         
