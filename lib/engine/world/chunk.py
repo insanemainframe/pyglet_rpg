@@ -13,7 +13,7 @@ from engine.world.objects_containers import ActivityContainer, ObjectContainer, 
 from engine.enginelib.meta import Solid, Updatable, DiplomacySubject, Guided
 from engine.enginelib.mutable import MutableObject
 
-from engine.enginelib.units_lib import Unit
+from engine.enginelib.units_lib import Unit, MetaMonster
 from engine.gameobjects.teleports import Teleport
 
 
@@ -40,11 +40,11 @@ class Chunk(ObjectContainer, ActivityContainer):
         self.new_events = False
         self._remove_list = set()
 
-        
+        self.__protected = False
 
-   
-        
-
+    
+    def set_protected(self):
+        self.__protected = True
 
 
         
@@ -85,16 +85,18 @@ class Chunk(ObjectContainer, ActivityContainer):
 
         if isinstance(player, Guided):  print ('chunk.add_object', player)
 
-        player.chunk = proxy(self)
-        
-        self.add_activity(player)
-        self.add_proxy(player)
-        self._players[player.name] = player
+        if self.__protected and isinstance(player, MetaMoster):
+            return False
 
+        else:
+            player.chunk = proxy(self)
+            
+            self.add_activity(player)
+            self.add_proxy(player)
+            self._players[player.name] = player
 
-
-
-        player.set_position(position)
+            player.set_position(position)
+            return True
 
     
     def pop_object(self, player):

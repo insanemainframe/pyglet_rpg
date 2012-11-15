@@ -44,7 +44,7 @@ class PersistentLocation(object):
         print 'creating %s of %s' % (n, object_type.__name__)
         for i in xrange(n):
             monster = object_type()
-            self.new_object(monster, generation = True)
+            self.new_object(monster)
             
     
         

@@ -22,10 +22,8 @@ class EpollMultiplexer:
     def _run_poll(self):
         print('Start polling')
         while not self.stop_event.is_set():
-            
-            print ('polling')
 
-            event_pairs = self._poller.poll(1)
+            event_pairs = self._poller.poll()
             while event_pairs:
                 fileno, event = event_pairs.pop()
                 try:

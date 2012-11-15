@@ -214,7 +214,7 @@ class Sweemer(MapAccess):
             self.prefix = ''
     
 
-class Deadly(Animated):
+class Breakable(Animated):
     def __init__(self, hp_value, hp,frames):
         Animated.__init__(self)
         self.dead = False

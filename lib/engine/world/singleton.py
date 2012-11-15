@@ -12,7 +12,6 @@ from threading import Event
 from engine.mathlib import Cord, Position, ChunkCord
 from engine.enginelib.meta import Guided, HierarchySubject, Respawnable
 from engine.enginelib.mutable import MutableObject
-from engine.world.location import Location
 
 
         
@@ -107,7 +106,7 @@ class __GameSingleton(object):
             
         else:
 
-            player._REMOVE = False
+            player._GameObject__REMOVE = False
             player.regid()
             player.respawned = True
             
@@ -142,7 +141,7 @@ class __GameSingleton(object):
     
 
 
-    def change_location(self, player, location_name):
+    def change_location(self, player, location_name, chunk = None):
         "переметить объект из одного мира в другой"
 
         assert isinstance(player, ProxyType)
@@ -155,8 +154,11 @@ class __GameSingleton(object):
         new_location = self.locations[location_name]
     
 
+        if not chunk:
         #нходим новый чанк
-        dest_chunk_cord = choice(new_location.teleports)
+            dest_chunk_cord = choice(new_location.teleports)
+        else:
+            dest_chunk_cord = chunk
         
 
         
@@ -173,8 +175,7 @@ class __GameSingleton(object):
         
         if isinstance(player, HierarchySubject):
             for slave in player.get_slaves():
-                (chunk_i, chunk_j), position = new_location.choice_position(slave, dest_chunk_cord)
-                self.change_location(slave, new_location.name, new_position = position)
+                self.change_location(slave, new_location.name, chunk = dest_chunk_cord)
         
     
     def get_active_chunks(self):
@@ -196,5 +197,5 @@ class __GameSingleton(object):
 
 
 game = __GameSingleton()
-
-
+##кольцевая зависимость
+from engine.world.location import Location

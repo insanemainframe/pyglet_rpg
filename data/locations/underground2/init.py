@@ -5,6 +5,8 @@ from config import *
 from engine.gameobjects.teleports import *
 from engine.gameobjects.units import *
 from engine.gameobjects.misc import *
+from engine.gameobjects.blocks import *
+
 
 from random import choice
 
@@ -16,6 +18,7 @@ def generate(self):
         self.create_object(200, GetTeleport(UpStair,'underground'))
         
         print('\t Creating decorartions...')
+        self.create_object(10000, Rock)
         self.create_object(5000, Stone)
         self.create_object(7000, Mushroom)
         self.create_object(100, Rubble)

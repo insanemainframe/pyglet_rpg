@@ -11,7 +11,7 @@ from clientside.client_objects.objects_lib import *
 
 
     
-class Player(Sweemer, Movable, DynamicObject, Deadly):
+class Player(Sweemer, Movable, DynamicObject, Breakable):
     tilename = 'player'
     move_frames = 2
     defend_frames = 1
@@ -19,17 +19,17 @@ class Player(Sweemer, Movable, DynamicObject, Deadly):
         DynamicObject.__init__(self, name, position)
         Movable.__init__(self, self.move_frames)
         
-        Deadly.__init__(self, hp, hp_value, self.defend_frames)
+        Breakable.__init__(self, hp, hp_value, self.defend_frames)
     
     def draw(self):
         if self.dead or self.defended:
-            sprite =  Deadly.draw(self) 
+            sprite =  Breakable.draw(self) 
         else:
             tiles = Movable.draw(self)
             label  = create_label(self.name, self.position)
             sprite =  tiles + [label]
         
-        return sprite + Deadly.draw_label(self)
+        return sprite + Breakable.draw_label(self)
             
         
     def update(self, dt):
@@ -39,13 +39,13 @@ class Player(Sweemer, Movable, DynamicObject, Deadly):
 
     def die(self):
         self.moving = False
-        Deadly.die(self)
+        Breakable.die(self)
 
     def disconnect(self):
         pass
     
     def round_update(self):
-        Deadly.round_update(self)
+        Breakable.round_update(self)
         Movable.round_update(self)
         
     
@@ -59,11 +59,11 @@ class Ally(Player):
     move_frames = 11
     defend_frames = 3
 
-class MetaMonster(Movable, DynamicObject, Deadly, Fighter):
+class MetaMonster(Movable, DynamicObject, Breakable, Fighter):
     def __init__(self, name, position, move_frames, dead_frames, fight_frames,hp, hp_value):
         DynamicObject.__init__(self, name, position)
         Movable.__init__(self, move_frames)
-        Deadly.__init__(self, hp, hp_value, dead_frames)
+        Breakable.__init__(self, hp, hp_value, dead_frames)
         Fighter.__init__(self,fight_frames)
     
     def draw(self):
@@ -72,15 +72,15 @@ class MetaMonster(Movable, DynamicObject, Deadly, Fighter):
         elif not self.dead and not self.defended:
             sprite =  Movable.draw(self)
         elif self.dead:
-            return Deadly.draw(self)
+            return Breakable.draw(self)
         else:
-            sprite =  Deadly.draw(self)
+            sprite =  Breakable.draw(self)
         
-        return sprite + Deadly.draw_label(self)
+        return sprite + Breakable.draw_label(self)
     
     def round_update(self):
         Fighter.round_update(self)
-        Deadly.round_update(self)
+        Breakable.round_update(self)
 
 
 
@@ -147,10 +147,11 @@ class Cat(Movable, DynamicObject):
         self._rainbow = False
         self.create_animation('rainbow', 'rainbow', 3,2)
     
-    def rainbow(self):
+    def rainbow(self, time):
         self._rainbow = True
     
     def draw(self):
+
         if self._rainbow:
             tilename = self.tilename + self.get_animation('rainbow')
             return [create_tile(self.position, tilename, 1)]

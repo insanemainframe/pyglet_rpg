@@ -16,7 +16,7 @@ from config import *
 #####################################################################
 class GameEngine:
     "интерфейс к движку игры"
-    monster_count = 0
+
     def __init__(self, save_time):
         game.start()
         self.messages = {}
@@ -43,9 +43,6 @@ class GameEngine:
         game.is_active()
 
 
-        
-        
-
     
     def game_requests(self, messages):
         "выполнение запросов игроков"
@@ -66,9 +63,10 @@ class GameEngine:
         
         #обновляем объекты в активных локациях
         for chunk in game.get_active_chunks():
-            for player in chunk.get_list(MutableObject)[:]:
-                if not player._REMOVE:
-                    player._update()
+            for player in chunk.get_list(Updatable)[:]:
+                if player.is_alive():
+                    if isinstance(player, MutableObject):
+                        player._update()
                     player.update()
             
         

@@ -27,9 +27,9 @@ class MutableObject(GameObject, Updatable):
         self.location_changed = False
 
 
-        self._vector  = Position(0,0)
+        self.__vector  = Position(0,0)
         self.speed = speed
-        self._move_vector = Position(0,0)
+        self.__move_vector = Position(0,0)
         self._moved = False
         self._stopped = 0
 
@@ -50,17 +50,16 @@ class MutableObject(GameObject, Updatable):
     def update_speed(self, speed):
         self.speed+=speed
 
-    @property
-    def move_vector(self):
-        return self._move_vector 
+    
+    def get_move_vector(self):
+        return self.__move_vector 
 
-    @property
-    def vector(self):
-        return self._vector 
+    def get_vector(self):
+        return self.__vector 
 
     def flush(self):
-        self._move_vector = Position(0,0)
-        self._vector = Position(0,0)
+        self.__move_vector = Position(0,0)
+        self.__vector = Position(0,0)
     
     def move(self, vector=Position(0,0), destination=False):
         assert isinstance(vector, Position), vector
@@ -74,14 +73,14 @@ class MutableObject(GameObject, Updatable):
             else:
                 #если вектор на входе определен, до определяем вектор движения объекта
                 if vector:
-                    self._vector = vector
+                    self.__vector = vector
                 #если вектор движения не достиг нуля, то продолжить движение
                 
-                if self._vector:
+                if self.__vector:
                     
                     #проверка столкновения
-                    part = self.speed / abs(self._vector) # доля пройденного пути в векторе
-                    move_vector = self._vector * part if part<1 else self._vector
+                    part = self.speed / abs(self.__vector) # доля пройденного пути в векторе
+                    move_vector = self.__vector * part if part<1 else self.__vector
                     #определяем столкновения с тайлами
                     new_cord = (self.position+move_vector).to_cord()
 
@@ -92,23 +91,23 @@ class MutableObject(GameObject, Updatable):
              
                     
                     
-                    self._vector = self._vector - move_vector
+                    self.__vector = self.__vector - move_vector
                     move_vector = move_vector * resist
                 else:
-                    move_vector = self._vector
+                    move_vector = self.__vector
                 
                 if self.location_changed:
-                        self._move_vector = Position(0,0)
-                        self._vector = Position(0,0)
+                        self.__move_vector = Position(0,0)
+                        self.__vector = Position(0,0)
                         success = False
 
                 if move_vector:
                     self.change_position(self.position+move_vector)
-                    self._move_vector = move_vector
+                    self.__move_vector = move_vector
                 
                     #добавляем событие
-                    if self._move_vector:
-                        self.add_event('move',  self._move_vector.get())
+                    if self.__move_vector:
+                        self.add_event('move',  self.__move_vector.get())
         return success
                     
                 
@@ -124,7 +123,7 @@ class MutableObject(GameObject, Updatable):
 
                 if cross_tile in self.BLOCKTILES or collission_result:
                     move_vector = (cross_position - self.position)*0.90
-                    self._vector = move_vector
+                    self.__vector = move_vector
                     self.tile_collission(cross_tile)
                     blocked = True
                     break
@@ -139,7 +138,7 @@ class MutableObject(GameObject, Updatable):
                     break
             else:
                 move_vector = Position(0,0)
-                self._vector = move_vector
+                self.__vector = move_vector
                 blocked = True
                 break
         else:
@@ -155,7 +154,7 @@ class MutableObject(GameObject, Updatable):
         
     def _detect_collisions(self, cord):
         for player in self.location.get_voxel(cord):
-            if player.name != self.name:
+            if isinstance(player, Solid) and player.name != self.name:
                 player.collission(proxy(self))
                 self.collission(player)
                 if isinstance(player, Impassable):
@@ -170,8 +169,8 @@ class MutableObject(GameObject, Updatable):
         self._stopped = time
     
     def abort_moving(self):
-        self._vector = Position(0,0)
-        self._move_vector = Position(0,0)
+        self.__vector = Position(0,0)
+        self.__move_vector = Position(0,0)
     
 
     
@@ -179,7 +178,7 @@ class MutableObject(GameObject, Updatable):
     
 
     def add_event(self, action, *args, **kwargs):
-        if isinstance(self, Guided): print action, args
+        #if isinstance(self, Guided): print action, args
 
         self.__events__.add(Event(action, args))
 
@@ -189,7 +188,7 @@ class MutableObject(GameObject, Updatable):
 
 
     def get_events(self):
-        if self.__events__ and isinstance(self, Guided): print self.__events__
+        #if self.__events__ and isinstance(self, Guided): print self.__events__
 
         return self.__events__
 
@@ -201,7 +200,7 @@ class MutableObject(GameObject, Updatable):
         self.__events__.clear()
 
     def _update(self):
-        if not self._moved and self._vector:
+        if not self._moved and self.__vector:
             MutableObject.move(self)
 
     def update(self):

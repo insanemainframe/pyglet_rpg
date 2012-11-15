@@ -12,21 +12,22 @@ from engine.gameobjects.shells import Ball
 
 from random import randrange, random, choice    
 from math import hypot
-from weakref import ProxyType
+from weakref import ProxyType, ReferenceError
 from time import time
 
 class Corpse(GameObject, Temporary):
     "кости остающиеся после смерти живых игроков"
-    def mixin(self):
+    def __init__(self):
         GameObject.__init__(self)
         Temporary.mixin(self, 5)
     
     def update(self):
-        GameObject.update(self)
         Temporary.update(self)
 
 
 class Unit(MutableObject, Solid, Breakable, DiplomacySubject):
+    __brave = False
+
     def __init__(self, name, hp, speed, fraction):
         MutableObject.__init__(self, name, speed)
         Breakable.mixin(self, hp)
@@ -36,18 +37,27 @@ class Unit(MutableObject, Solid, Breakable, DiplomacySubject):
         self.set_corpse(Corpse)
 
     def verify_chunk(self, location, chunk):
-        for player in chunk.get_list(Unit):
-            if player.fraction!=self.fraction and player.fraction!='good':
-                return False
+        if not self.__brave:
+            for player in chunk.get_list(Unit):
+                if player.fraction!=self.fraction and player.fraction!='good':
+                    return False
         return True
 
-    def verify_position(self, location, chunk, cord):
-        # print ('unit verify_position')
+    def verify_position(self, location, chunk, cord, generation = True):
+        if not GameObject.verify_position(self, location, chunk, cord, generation):
+            return False
+            
         for player in sum(location.get_near_voxels(cord), []):
             if isinstance(player, Solid):
                 return False
 
         return True
+
+    def set_brave(self):
+        self.__brave = True
+
+    def handle_remove(self):
+        Breakable.handle_remove(self)
 
 
 class Lootable:
@@ -133,6 +143,7 @@ class Stalker:
                 else:
                     return False
             return False
+
             
 class Striker:
     "дает возможность игроку стрелять снарядами"
@@ -179,10 +190,10 @@ class Stats:
     
     def plus_kills(self):
         self.kills+=1
-        self.location.game.guided_changed = True
+        self.location.change_guided()
     
     def is_stats_changed(self):
-        stats = (self.hp, self.hp_value, self.speed, self.damage,
+        stats = (self.get_hp(), self.get_hp_value(), self.speed, self.damage,
             self.gold, self.kills, self.death_counter, self.skills, bool(self.invisible))
         
         if self.prev_stats!=stats:
@@ -191,7 +202,7 @@ class Stats:
         return False
     
     def get_stats(self):
-        data = (self.hp, self.hp_value, self.speed, self.damage,
+        data = (self.get_hp(), self.get_hp_value(), self.speed, self.damage,
                 self.gold, self.kills, self.death_counter ,self.skills, bool(self.invisible))
         self.stats_changed = False
         return data
@@ -234,32 +245,47 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, SavableRandom):
         Breakable.hit(self, damage)
     
     def update(self):
-        victim_trig = self.victim and self.victim.position_changed
+        try:
+            victim_trig = self.victim and self.victim.position_changed
 
-        if self.is_blocked or chance(10):
-            self.hunting = False
-            Walker.update(self)
-            self.is_blocked = False
+        except ReferenceError:
+            pass
         else:
-            if victim_trig or not self.hunting:
-                result = self.hunt()
-                if result:
-                    self.victim, self.vector_to_victim = result
-                    self.hunting = True
-                    
-            if self.hunting:
-                if abs(self.vector_to_victim)<=TILESIZE*2:
-                    self.fight(self.victim, self.vector_to_victim)
-                else:
-                    self.is_blocked = not self.move(self.vector_to_victim)
-            else:
+            if self.is_blocked or chance(10):
+                self.hunting = False
                 Walker.update(self)
+                self.is_blocked = False
+            else:
+                if victim_trig or not self.hunting:
+                    result = self.hunt()
+                    if result:
+                        self.victim, self.vector_to_victim = result
+                        self.hunting = True
+                        
+                if self.hunting:
+                    if abs(self.vector_to_victim)<=TILESIZE*2:
+                        self.fight(self.victim, self.vector_to_victim)
+                    else:
+                        self.is_blocked = not self.move(self.vector_to_victim)
+                else:
+                    Walker.update(self)
 
-
-        Breakable.update(self)
+        finally:
+            Breakable.update(self)
     
     def get_args(self):
         return Breakable.get_args(self)
+
+
+    def verify_chunk(self, location, chunk):
+        if chunk.cord==location.main_chunk.cord:
+            return False
+        return Unit.verify_chunk(self, location, chunk)
+
+
+    def handle_remove(self):
+        Unit.handle_remove(self)
+        Lootable.handle_remove(self)
     
 
 

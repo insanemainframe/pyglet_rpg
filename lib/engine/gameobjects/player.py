@@ -18,15 +18,15 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     min_dist = 10
     prev_looked = set()
     speed = TILESIZE*0.5
-    hp = 10 #60
+    player_hp = 100 #60
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     SLOWTILES = {'water':0.5, 'bush':0.3}
-    damage = 5
-    default_skills = 10
+    damage = 20
+    default_skills = 1000
     fraction='players'
 
     def __init__(self, name, look_size=PLAYER_LOOK_RADIUS):
-        Unit.__init__(self, name, self.hp, self.speed, 'players')
+        Unit.__init__(self, name, self.player_hp, self.speed, 'players')
         
         
         HierarchySubject.mixin(self)
@@ -71,7 +71,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
             new_trig = False
             
         if self.position_changed:
-            yield MoveCamera(self.move_vector)
+            yield MoveCamera(self.get_move_vector())
     
         #если изменилась клетка - смотрим новые тайлы и список тайлов в радусе обзора
 
@@ -121,6 +121,8 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     
     def get_args(self):
         return Breakable.get_args(self)
+
+
 
     def handle_respawn(self):
         MapObserver.handle_respawn(self)

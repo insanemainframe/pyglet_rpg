@@ -122,8 +122,8 @@ cdef class ChunkCord(Point):
 		cdef Cord start, end
 		cdef int i,j
 		
-		start = self.cord.to_cord()
-		end = (self.cord + ChunkCord(1,1)).to_cord()
+		start = self.to_cord()
+		end = (self + ChunkCord(1,1)).to_cord()
 
 		start = self.to_cord()
 		end = (self + ChunkCord(1,1)).to_cord()

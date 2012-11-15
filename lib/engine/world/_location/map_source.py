@@ -9,21 +9,17 @@ import os, imp
 
 from collections import Counter
 
-from engine.mathlib import  chance
+from engine.mathlib import Cord, Position, ChunkCord, chance
 from engine.world.objects_containers import near_cords
+from engine.world.surfaces import tiledict
 
 from random import randrange, choice
 
 
 
-def load_map(str mapname): 
-    cdef str map_file, map_image, dict_file
-    cdef list tilemap
-    cdef tuple map_data
-
+def load_map(mapname): 
     map_file = LOCATION_PATH % mapname + MAP_FILE
     map_image = LOCATION_PATH % mapname + MAP_IMAGE
-    dict_file = LOCATION_PATH % mapname + MAP_DICT
 
     
     if os.path.exists(map_file):
@@ -37,7 +33,7 @@ def load_map(str mapname):
     else:
         print('/data/map.data doesnt exist')
         #gen = Generator()
-        gen = FromImage(map_image, dict_file)
+        gen = FromImage(map_image)
 
         tilemap, size, background = gen.generate()
         map_data = tilemap, size, background
@@ -106,19 +102,13 @@ class Generator:
 
 
 class FromImage:
-    def __init__(self, map_image, dict_file):
+    def __init__(self, map_image,):
         self.map_image = map_image
-        self.dict_file = dict_file
 
     def generate(self):
-        cdef int i,j
-        cdef tuple color
-        cdef str tile, background
-
         from PIL import Image
         
 
-        tiledict = imp.load_source('tiledict',self.dict_file).tiledict
 
         counter = Counter()
         image = Image.open(self.map_image)

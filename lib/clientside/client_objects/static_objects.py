@@ -3,7 +3,7 @@
 from clientside.gui.window import  create_tile, create_label
 
 from share.point import Point
-from clientside.client_objects.objects_lib import StaticObject
+from clientside.client_objects.objects_lib import *
 
 from config import TILESIZE
 
@@ -39,6 +39,18 @@ class Sceptre(Item):
 
 class Cloak(Item):
     tilename = 'cloak'
+
+class Wood(Item):
+    tilename = 'wood'
+
+class Brick(Item):
+    tilename = 'brick'
+
+
+
+
+
+
 
 class Teleport(StaticObject):
     def draw(self):
@@ -98,12 +110,16 @@ class Stone(Misc):
 class Rubble(Misc):
     tilename = 'rubble'
 
-class AloneTree(Misc):
-    tilename = 'alone_tree'
-
 
 class AloneBush(Misc):
     tilename = 'alone_bush'
 
 class WindMill(Misc):
     tilename = 'windmill'
+
+
+class AloneTree(Misc, Breakable):
+    tilename = 'alone_tree'
+
+class Rock(Misc, Breakable):
+    tilename = 'rock'

@@ -102,10 +102,9 @@ class SocketServer(Multiplexer, Process):
     def _sender(self):
         try:
             while not self.stop_event.is_set():
-                print ('sending')
 
                 try:
-                    client_name, response = self.responses.get(3)
+                    client_name, response = self.responses.get(1)
                 except:
                     pass
 
@@ -219,7 +218,7 @@ class SocketServer(Multiplexer, Process):
             print ('Socket server erro:', error)
             self._handle_exception(*exc_info())
             self._stop('run')
-            
+
         print ('server process stopped')
 
 

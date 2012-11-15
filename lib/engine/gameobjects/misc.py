@@ -11,7 +11,6 @@ from engine.gameobjects.player import Player
 
 
 class Misc(GameObject, Savable):
-    BLOCKTILES = Player.BLOCKTILES
     def __init__(self):
         GameObject.__init__(self)
         self.number = randrange(self.count)
@@ -20,77 +19,42 @@ class Misc(GameObject, Savable):
     def get_args(self):
         return {'number': self.number}
 
-class Mushroom(Misc):
-    BLOCKTILES = Player.BLOCKTILES + ['water']
+class Mushroom(Misc, OverLand):
     count = 12
 
-class Plant(Misc):
-    BLOCKTILES = Player.BLOCKTILES + ['water']
+class Plant(Misc, OverLand):
     count = 10
 
-class Flower(Misc):
-    BLOCKTILES = Player.BLOCKTILES + ['water']
+class Flower(Misc, OverLand):
     count = 15
 
-class WaterFlower(Misc):
+class WaterFlower(Misc, OverWater):
     count = 9
-    BLOCKTILES = ['grass', 'forest', 'bush', 'stone', 'underground', 'lava']
 
-class BigWaterFlower(WaterFlower):
+class BigWaterFlower(WaterFlower, OverWater):
     count = 9
-    def verify_position(self, location, chunk, cord):
+    def verify_position(self, location, chunk, cord, generation = True):
+        if not GameObject.verify_position(self, location, chunk, cord, generation):
+            return False
+            
         for tile in location.get_near_tiles(cord):
                 if tile in self.BLOCKTILES:
                     return False
         return True
 
-class Reef(Misc):
-    BLOCKTILES = ['grass', 'forest', 'bush', 'stone', 'underground', 'lava']
+class Reef(Misc, OverWater):
     count = 3
-    pass
 
     
-class Rubble(Misc):
+class Rubble(Misc, OverLand):
     count = 3
-    BLOCKTILES = Player.BLOCKTILES
     
 
-class Stone(Misc):
-    BLOCKTILES = Player.BLOCKTILES + ['water']
+class Stone(Misc, OverLand):
     count = 13
 
-class WindMill(Misc):
-    BLOCKTILES = Player.BLOCKTILES + ['water']
+class WindMill(Misc, OverLand):
     count = 1
 
-class AloneBush(Misc, Solid):
-    BLOCKTILES = Player.BLOCKTILES + ['water']
+class AloneBush(Misc, OverLand):
     count = 9
-    radius = TILESIZE
-    def __init__(self):
-        Misc.__init__(self)
-        Solid.mixin(self, self.radius)
-
-class AloneTree(Misc, Impassable, ):
-    BLOCKTILES = Player.BLOCKTILES + ['water']
-    gen_counter = 0
-    count = 5
-    radius = TILESIZE
-    hp = 100
-    def __init__(self):
-        Misc.__init__(self)
-        Impassable.mixin(self, self.radius)
-
-    def verify_position(self, location, chunk, cord):
-        if AloneTree.gen_counter<50:
-            AloneTree.gen_counter+=1
-            return True
-        else:
-            for player in sum(location.get_near_voxels(cord), []):
-                if isinstance(player, AloneTree):
-                    return True
-            if chance(98):
-                return False
-            else:
-                return True
-

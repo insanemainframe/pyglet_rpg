@@ -9,7 +9,6 @@ from weakref import ProxyType
 from config import *
 
 class Shell(MutableObject, DiplomacySubject, Temporary, Solid, Mortal, ActiveState):
-    counter = 0
     def __init__(self, direct, speed, fraction, striker, damage, alive_after_collission):
         assert isinstance(striker, ProxyType)
         assert isinstance(direct, Position)
@@ -36,6 +35,19 @@ class Shell(MutableObject, DiplomacySubject, Temporary, Solid, Mortal, ActiveSta
         self.move(self.direct)
 
 
+class DeviationMixin(Shell):
+    __deviation = Position(0,0)
+
+
+    def set_deviation(self, deviation):
+        assert isinstance(deviation, Position)
+        self.__deviation = deviation
+
+    # def update(self):
+    #     vector = self.direct +  self.__deviation
+    #     self.move(self.direct)
+
+
 
 
 
@@ -47,7 +59,7 @@ class Ball(Fragile,  Shell):
     explode_time = 20
     alive_after_collission = False
     def __init__(self, direct, fraction, striker, damage = 2):
-        Shell.__init__(self,direct, self.speed, fraction, striker, damage, self.alive_after_collission)
+        Shell.__init__(self, direct, self.speed, fraction, striker, damage, self.alive_after_collission)
         
     
     def update(self):
@@ -77,7 +89,7 @@ class DarkBall(Ball):
     radius = TILESIZE/3
     speed = 30
     
-class SkillBall(Ball):
+class SkillBall(Ball, DeviationMixin):
     radius = TILESIZE
     speed = 70
     alive_after_collission = True

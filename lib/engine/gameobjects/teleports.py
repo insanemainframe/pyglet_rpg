@@ -35,7 +35,7 @@ class Teleport(GameObject, Solid, Savable):
     def collission(self, player):
         assert isinstance(player, ProxyType)
         if isinstance(player, Guided):
-            self.location.game.change_location(player, location_name = self.dest)
+            self.location.change_location(player, location_name = self.dest)
     
 
 

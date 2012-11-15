@@ -13,18 +13,18 @@ from weakref import ProxyType
 
 class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubject):
     lifetime = 60
-    hp = 60
+    player_hp = 60
     damage = 5
     speed = 40
     radius = TILESIZE
     look_size = 10
-    BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
+    BLOCKTILES = ['stone', 'forest', ]
     SLOWTILES = {'water':0.5, 'bush':0.3}
     name_counter = 0
     leash_size = 4
     
     def __init__(self):   
-        Unit.__init__(self, None, self.hp, self.speed, 'good')
+        Unit.__init__(self, None, self.player_hp, self.speed, 'good')
 
         HierarchySubject.mixin(self)
         Stalker.mixin(self, self.look_size)
@@ -33,8 +33,8 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
 
 
         self.set_shell(AllyBall)
+        self.set_brave()
 
-        self.spawn()
     
     def handle_bind_master(self):
         self.fraction = self.master.fraction
@@ -68,19 +68,11 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
         return Breakable.get_args(self)
     
     def handle_remove(self):
-        if self.master:
-            self.unbind_master()
+        HierarchySubject.handle_remove(self)
+        Unit.handle_remove(self)
 
 
 
-    def verify_chunk(self, location, chunk):
-        print ('ally verify_chunk')
-        if chunk==self.master.chunk:
-            return True
-        for chunk in chunk.get_nears():
-            if chunk==self.master.chunk:
-                return True
-        return False
 
 
 
@@ -111,10 +103,14 @@ class Cat(Walker, Solid, Stalker, DiplomacySubject, GameObject):
     
     def update(self):
         if chance(10):
-            direct = self.hunt(True)
-            MutableObject.move(self.direct)
+            result = self.hunt(True)
+            if result:
+                victim, vector = result
+                MutableObject.move(self, vector)
+            else:
+                Walker.update(self)
         else:
-            if not self.vector:
+            if not self.get_vector():
                 Walker.update(self)
     
 
@@ -123,7 +119,7 @@ class Cat(Walker, Solid, Stalker, DiplomacySubject, GameObject):
         
 
 class Bat(Fighter, MetaMonster):
-    hp = 3
+    player_hp = 3
     speed = 30
     damage = 1
     attack_speed = 10
@@ -132,46 +128,46 @@ class Bat(Fighter, MetaMonster):
     SLOWTILES = {}
     
     def __init__(self):
-        MetaMonster.__init__(self, self.speed, self.hp)
+        MetaMonster.__init__(self, self.speed, self.player_hp)
         Fighter.mixin(self, self.damage, self.attack_speed)
     
 
 
 class Zombie(Fighter, MetaMonster):
-    hp = 20
+    player_hp = 20
     speed = 15
     damage = 2
     attack_speed = 10
     loot_cost = 30
     
     def __init__(self):
-        MetaMonster.__init__(self, self.speed, self.hp)
+        MetaMonster.__init__(self, self.speed, self.player_hp)
         Fighter.mixin(self, self.damage, self.attack_speed)
     
 
     
 
 class Ghast(Fighter, MetaMonster):
-    hp = 50
+    player_hp = 50
     speed = 10
     damage = 10
     attack_speed = 30
     loot_cost = 90
     
     def __init__(self):
-        MetaMonster.__init__(self, self.speed, self.hp)
+        MetaMonster.__init__(self, self.speed, self.player_hp)
         Fighter.mixin(self, self.damage, self.attack_speed)
 
 
 
 class Lych(MetaMonster, Striker):
-    hp = 25
+    player_hp = 25
     speed = 10
     damage = 5
     loot_cost = 60
     
     def __init__(self):
-        MetaMonster.__init__(self, self.speed, self.hp)
+        MetaMonster.__init__(self, self.speed, self.player_hp)
         Striker.mixin(self, 10, self.damage)
         self.set_shell(DarkBall)
     

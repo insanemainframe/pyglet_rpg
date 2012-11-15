@@ -6,6 +6,7 @@ from engine.enginelib.meta import *
 from engine.gameobjects.shells import SkillBall
 
 class Skill:
+    deviation = Position(1,0)
     def mixin(self, number=5):
         self.skills = number
         self.directs = (Position(1,0), Position(-1,0), Position(0,-1), Position(0,1),
@@ -17,6 +18,8 @@ class Skill:
         if self.skills>0:
             for direct in self.directs:
                 ball = SkillBall(direct, self.fraction, proxy(self), self.damage)
+                ball.set_deviation(self.deviation)
+
                 self.location.new_object(ball, position = self.position)
             self.skills-=1
     

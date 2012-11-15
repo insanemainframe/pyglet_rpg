@@ -74,8 +74,9 @@ class ObjectsView(Drawable, GuiElement):
         if self.objects[gid].gid == self.focus_object :
                 self.focus_object = False
         if delay_arg:
-            action = delay_arg[0]
-            args = delay_arg[1:]
+            action, args = delay_arg
+            print 'dealyarg', args
+            
             self.objects[gid].handle_action(action, args)
             self.delayed_objects.append(gid)
         else:
