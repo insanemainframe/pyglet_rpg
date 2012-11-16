@@ -181,51 +181,51 @@ class Updatable(object):
 
 class HierarchySubject(object):
     def mixin(self):
-        self._master = None
-        self._slaves = {}
+        self.__master = None
+        self.__slaves = {}
 
-    @property
-    def master(self):
-        return self._master
 
-    @master.setter
-    def master(self, new_master):
-        assert new_master is None or isinstance(new_master, ProxyType)
-        self._master = new_master
+    def get_master(self):
+        return self.__master
+
+    def has_master(self):
+        return bool(self.__master)
+
 
     def bind_slave(self, slave):
         assert isinstance(slave, ProxyType)
 
-        self._slaves[slave.name] = slave
+        self.__slaves[slave.name] = slave
         slave.master = proxy(self)
-        slave.handle_bind_master()
+        slave.handle_bind_master(proxy(self))
     
     def unbind_slave(self, slave):
-        self._slaves[slave.name].master = None
-        del self._slaves[slave.name]
+        self.__slaves[slave.name].master = None
+        del self.__slaves[slave.name]
         slave.handle_unbind_master()
 
     def unbind_all_slaves(self):
-        slaves = self._slaves.values()
+        slaves = self.__slaves.values()
         for slave in slaves:
             self.unbind_slave(slave)
 
     def get_slaves(self):
-        return self._slaves.values()
+        return self.__slaves.values()
 
-    def handle_unbind_master(self):
+    def handle_unbind_master(self, master):
         pass
 
-    def handle_bind_master(self):
+    def handle_bind_master(self, master):
         pass
 
     def handle_remove(self):
-        self.master.unbind_slave(self)
+        if self.__master:
+            self.__master.unbind_slave(self)
 
 
     def __del__(self):
-        del self._master
-        del self._slaves
+        del self.__master
+        del self.__slaves
 
 
 
@@ -338,8 +338,7 @@ class Solid(object):
     def collission(self, player):
         pass
 
-    def tile_collission(self, tile):
-        pass
+
 
 class Impassable(Solid):
     pass
@@ -464,21 +463,21 @@ class Breakable:
 
 class Fragile(object):
     "класс для объекто разбивающихся при столкновении с тайлами"
-    def tile_collission(self, tile):
+    def handle_block(self, tile):
         self.add_to_remove()
         
     
 class Mortal(object):
     "класс для объектов убивающих живых при соприкосновении"
     def mixin(self, damage=1, alive_after_collission = False):
-        self.damage = damage
-        self.alive_after_collission = alive_after_collission
+        self.__damage = damage
+        self.__alive_after = alive_after_collission
     
     def collission(self, player):
         if isinstance(player, Breakable):
             if player.name!=self.name:
-                is_dead = player.hit(self.damage)
-                if not self.alive_after_collission:
+                is_dead = player.hit(self.__damage)
+                if not self.__alive_after:
                     self.add_to_remove()
                 #
                 try:
@@ -507,18 +506,50 @@ class Respawnable(object):
 class DiplomacySubject(object):
     fraction = 'neutral'
     def mixin(self, fraction = 'neutral'):
-        self.fraction = fraction
-        self.invisible = 0
+        self.__fraction = fraction
+        self.__spy_mode = False
     
     def set_fraction(self, fraction):
-        self.fraction = fraction
+        self.__fraction = fraction
 
-    def set_invisible(self, invisible_time):
-        self.invisible = invisible_time
+    def get_fraction(self):
+        return self.__fraction
+
+    def is_spy(self):
+        return self.__spy_mode
+
+    def set_spy_mode(self, invisible_time):
+        self.__spy_mode = True
+        self.__prev_time = time()
+        self.__spy_mode_time = invisible_time
+
+    def unset_spy_mode(self):
+        self.__spy_mode = False
+        self.__prev_time = None
+        self.__spy_mode_time = None
+
+
+    def is_ally(self, player):
+        assert isinstance(player, DiplomacySubject)
+
+        return player.__spy_mode or player.__fraction in (self.__fraction, 'good')
+
+    def is_enemy(self, player):
+        assert isinstance(player, DiplomacySubject)
+        if 'player' in self.__fraction:
+            print self.__fraction, player.__fraction
+            print not player.__spy_mode and not player.__fraction in (self.__fraction, 'good', 'neutral')
+
+        return not player.__spy_mode and not player.__fraction in (self.__fraction, 'good', 'neutral')
+
+    def is_good(self, player):
+        return player.__fraction!='bad'
+    
     
     def update(self):
-        if self.invisible:
-            self.invisible-=1
+        if self.__spy_mode:
+            if time()-self.__prev_time>self.__spy_mode_time:
+                self.unset_spy_mode()
 
 ####################################################################
 class Temporary(Updatable):
@@ -532,7 +563,6 @@ class Temporary(Updatable):
         cur_time = time()
 
         if cur_time - self.__creation_time > self.__lifetime:
-            print 'remove'
             self.add_to_remove()
 
 

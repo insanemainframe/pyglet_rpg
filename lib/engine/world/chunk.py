@@ -82,8 +82,9 @@ class Chunk(ObjectContainer, ActivityContainer):
         "добавляет ссылку на игрока"
         assert isinstance(player, ProxyType)
         assert not hasattr(player, 'chunk')
+        assert not player.name in self._players
 
-        if isinstance(player, Guided):  print ('chunk.add_object', player)
+        # if isinstance(player, Guided):  print ('chunk.add_object', player)
 
         if self.__protected and isinstance(player, MetaMoster):
             return False
@@ -102,6 +103,7 @@ class Chunk(ObjectContainer, ActivityContainer):
     def pop_object(self, player):
         "удаляет ссылку из списка игроков"
         assert player.name in self._players
+        assert player.chunk==self
 
         # if isinstance(player, Guided):  print ('chunk.pop_object', player)
         
@@ -169,5 +171,9 @@ class Chunk(ObjectContainer, ActivityContainer):
     
     def unset_activity(self):
         self.location.remove_active_chunk(self)
+
+    def __eq__(self, chunk):
+        assert isinstance(chunk, Chunk)
+        return self.cord==chunk.cord
 
 

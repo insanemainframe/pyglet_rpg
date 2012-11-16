@@ -76,6 +76,10 @@ class __GameSingleton(object):
     def _new_object(self, player):
         "создает динамический объект"
         assert not isinstance(player, ProxyType)
+        assert not hasattr(player, 'location')
+        assert not hasattr(player, 'chunk')
+        assert not hasattr(player, 'cord')
+        assert not hasattr(player, 'Position')
 
         if isinstance(player, Guided):  print ('game._new_object', player)
         
@@ -89,8 +93,13 @@ class __GameSingleton(object):
     
     
     def _remove_object(self, player):
-        assert player.name in self.players
         name = player.name
+        assert name in self.players
+        assert player.is_alive()
+
+        if isinstance(player, Guided): print ('game._remove_object', player)
+
+        
 
         player.handle_remove()
         player.location.pop_object(player)
@@ -98,8 +107,7 @@ class __GameSingleton(object):
         if not isinstance(player, Respawnable):
             
 
-            if isinstance(player, Guided):
-                print ('game._remove_object', player, force)
+            
                 
 
             del self.players[name]
@@ -152,6 +160,7 @@ class __GameSingleton(object):
         prev_location = player.location
 
         new_location = self.locations[location_name]
+
     
 
         if not chunk:
@@ -164,6 +173,8 @@ class __GameSingleton(object):
         
         #меняем локацию
         prev_location.pop_object(player)
+
+        player.regid()
         new_location.add_object(player, dest_chunk_cord)
                 
         
@@ -171,7 +182,6 @@ class __GameSingleton(object):
         if isinstance(player, MutableObject):
             player.flush()
         #обновляем хэш объекта
-        player.regid()
         
         if isinstance(player, HierarchySubject):
             for slave in player.get_slaves():

@@ -124,7 +124,7 @@ class MutableObject(GameObject, Updatable):
                 if cross_tile in self.BLOCKTILES or collission_result:
                     move_vector = (cross_position - self.position)*0.90
                     self.__vector = move_vector
-                    self.tile_collission(cross_tile)
+                    # self.tile_collission(cross_tile)
                     blocked = True
                     break
 

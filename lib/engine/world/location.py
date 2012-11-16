@@ -72,7 +72,7 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
         assert chunk is None or isinstance(chunk, ChunkCord)
         assert not hasattr(player, 'location')
 
-        if isinstance(player, Guided):  print ('location.add_object %s ' % player)
+        if isinstance(player, Guided):  print ('%s.add_object %s ' % (self.name, player))
 
         try:
             if not position:
@@ -110,8 +110,11 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
 
 
     def pop_object(self, player):
-        if isinstance(player, Guided):  print ('location.pop_object %s' % player)
+        if isinstance(player, Guided):  print ('%s.pop_object %s' % (self.name, player))
+        
+
         assert player.name in self._players
+        assert player.location==self
        
         name = player.name
 
@@ -162,6 +165,7 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
 
     def pop_from_voxel(self, player, cord):
         assert isinstance(cord, Cord)
+        assert player.cord==cord
 
         voxel = self._voxels[cord]
 
@@ -183,7 +187,7 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
         "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
         assert isinstance(player, ProxyType)
 
-        if isinstance(player, Guided):  print ('location.change_chunk %s' % player)
+        # if isinstance(player, Guided):  print ('location.change_chunk %s' % player)
 
 
         if self.is_valid_chunk(new_chunk_cord):
@@ -246,9 +250,10 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
 
 
 
-    
+    def __eq__(self, location):
+        assert isinstance(location, Location)
 
-    
+        return self.name==location.name
 
     def start(self):
         result = self.load_objects()

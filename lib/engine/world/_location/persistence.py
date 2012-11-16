@@ -9,7 +9,7 @@ from engine.mathlib import Cord, Position, ChunkCord
 from share.serialization import loads, dumps, load, dump
 
 from engine.world.chunk import Chunk
-from engine.world.map_source import load_map
+from engine.world._location.map_source import load_map
 from engine.enginelib.meta  import Savable, SavableRandom
 from engine import game_objects
 

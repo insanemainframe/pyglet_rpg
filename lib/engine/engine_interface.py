@@ -50,7 +50,7 @@ class GameEngine:
             if name in game.guided_players:
                 player = game.guided_players[name]
                 for action, message in message_list:
-                    print 'action', action
+                    # print 'action', action
                     try:
                         player.handle_action(action, message)
                     except ActionDenied:

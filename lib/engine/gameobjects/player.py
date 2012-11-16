@@ -22,7 +22,9 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     SLOWTILES = {'water':0.5, 'bush':0.3}
     damage = 20
+    strike_speed = 2
     default_skills = 1000
+
     fraction='players'
 
     def __init__(self, name, look_size=PLAYER_LOOK_RADIUS):
@@ -32,7 +34,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         HierarchySubject.mixin(self)
         
         MapObserver.mixin(self, look_size)
-        Striker.mixin(self,2, self.damage)
+        Striker.mixin(self,self.strike_speed, self.damage)
         Respawnable.mixin(self, 10, 30)
         Stats.mixin(self)
         Skill.mixin(self,self.default_skills)

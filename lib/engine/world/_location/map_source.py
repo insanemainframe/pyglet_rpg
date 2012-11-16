@@ -125,8 +125,9 @@ class FromImage:
                 row.append(unicode(tile))
             tilemap.append(row)
             
-        print('\tmap loaded:',size)
+       
         
         background = counter.most_common()[0][0]
+        print('\tmap loaded:',size, background)
         
         return tilemap, size[0], background

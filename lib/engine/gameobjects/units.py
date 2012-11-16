@@ -36,14 +36,13 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
         self.set_brave()
 
     
-    def handle_bind_master(self):
-        self.fraction = self.master.fraction
+    def handle_bind_master(self, master):
+        print 'ally fraction', master.get_fraction()
+        self.set_fraction(master.get_fraction())
     
     def update(self):
-        assert self.master is None or isinstance(self.master, ProxyType)
-
-        if self.master:
-            o_pos = self.master.position
+        if self.has_master():
+            o_pos = self.get_master().position
             pos = self.position
             dist = abs(o_pos-pos)/TILESIZE
             if dist < self.leash_size:
@@ -168,7 +167,7 @@ class Lych(MetaMonster, Striker):
     
     def __init__(self):
         MetaMonster.__init__(self, self.speed, self.player_hp)
-        Striker.mixin(self, 10, self.damage)
+        Striker.mixin(self, 1, self.damage)
         self.set_shell(DarkBall)
     
     def update(self):
