@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
+from server_logger import debug
 from share.errors import *
 
 from engine.mathlib import Cord, Position, ChunkCord
@@ -35,39 +36,28 @@ class GameObject(object):
 
         
         self.gid = str(hash((name, random())))
-
-        
         self.__REMOVE = False
-        self._owner = None
+        
 
-        self._position = None
+
+    def add_event(self, action, *args):
+        self.chunk.add_event(self.gid, Event(action, args))
+
+
+
 
     def is_alive(self):
         return not self.__REMOVE
-
-
-
-
-    def add_event(self, *args, **kwargs):
-        pass
-
-
-
-
-
 
     
     def handle_creating(self):
         pass
 
     
-    
     def handle_remove(self):
-
         return True
 
-    def handle_new_location(self):
-        pass
+
     
     def regid(self):
         self.gid = str(hash((self.name, time(), random())))
@@ -81,17 +71,7 @@ class GameObject(object):
         return self._prev_position
 
 
-
-
-
-    @property
-    def owner(self):
-        return self._owner
-
-    @owner.setter
-    def owner(self, owner):
-        assert owner is None or isinstance(owner, ProxyType)
-        self._owner = owner
+    
     
     def set_position(self, position):
         "принудительная установка позиции"
@@ -108,20 +88,17 @@ class GameObject(object):
         #self.location.update_tiles(self, prev_cord, self.cord)
         self.chunk.set_new_players()
 
-            
-    
 
-    
     
     
     def verify_chunk(self, location, chunk):
         return True
     
     def verify_position(self, location, chunk, cord, generation = True):
-        # print self.name, 'BLOCKTILES', location.get_tile(cord), self.BLOCKTILES
+        # debug self.name, 'BLOCKTILES', location.get_tile(cord), self.BLOCKTILES
         blocked = location.get_tile(cord) in self.BLOCKTILES
         if blocked:
-            print 'blocked', self.name, self.BLOCKTILES
+            debug( 'blocked', self.name, self.BLOCKTILES)
             return False
         else:
             return True
@@ -143,7 +120,10 @@ class GameObject(object):
     
 
 
-    def add_to_remove(self):
+    def add_to_remove(self, reason = None):
+        if isinstance(self, Guided):
+            debug ('add_to_remove', reason)
+        
         self.chunk.add_to_remove(self.name)
 
     def add_delay(self, action, *args):
@@ -159,7 +139,6 @@ class GameObject(object):
 
     def get_args(self):
         return {}
-
 
 
     def __str__(self):
@@ -194,13 +173,17 @@ class HierarchySubject(object):
 
     def bind_slave(self, slave):
         assert isinstance(slave, ProxyType)
+        assert isinstance(slave, HierarchySubject)
+        assert slave.name not in self.__slaves
 
         self.__slaves[slave.name] = slave
-        slave.master = proxy(self)
+        slave.__master = proxy(self)
         slave.handle_bind_master(proxy(self))
     
     def unbind_slave(self, slave):
-        self.__slaves[slave.name].master = None
+        assert slave.name in self.__slaves
+
+        self.__slaves[slave.name].__master = None
         del self.__slaves[slave.name]
         slave.handle_unbind_master()
 
@@ -212,7 +195,7 @@ class HierarchySubject(object):
     def get_slaves(self):
         return self.__slaves.values()
 
-    def handle_unbind_master(self, master):
+    def handle_unbind_master(self):
         pass
 
     def handle_bind_master(self, master):
@@ -223,9 +206,6 @@ class HierarchySubject(object):
             self.__master.unbind_slave(self)
 
 
-    def __del__(self):
-        del self.__master
-        del self.__slaves
 
 
 
@@ -259,7 +239,7 @@ class Container(object):
         slot = self.__related_objects[related_type]
         slot[related.name] = related
 
-        related.owner = proxy(self)
+        related._Containerable__owner = proxy(self)
 
     
     def unbind(self, related):
@@ -269,7 +249,7 @@ class Container(object):
         assert name in slot
 
         related = slot.popitem(name)
-        related.owner = None
+        del related._Containerable__owner
 
         self.location.new_object(related, position = self.position)
         self.handle_unbind(related)
@@ -287,28 +267,47 @@ class Container(object):
 
 
 
+
+
     def handle_bind(self, related):
         pass
 
-    def __del__(self):
-        del self.__related_objects
 
 
-    
+class Containerable:
+    def get_owner(self):
+        return self.__owner
+
+    def set_owner(self, owner):
+        assert isinstance(owner, Container)
+        owner.bind(self)
+
+
+    def collission(self, player):
+        if isinstance(player, Container):
+            self.set_owner(player)
+
+
 
 
 
 class Guided(ActiveState):
     "управляемый игроком объекта"
-    __actions__ = {}
+    __actions = {}
+
+    def set_actions(self, **action_dict):
+        for name, handler in action_dict.items():
+            assert isinstance(name, str)
+            assert callable(handler)
+            self.__actions[name] = handler
     
     def handle_action(self, action_name, args):
-        if action_name in self.__actions__:
-            method = self.__actions__[action_name]
+        if action_name in self.__actions:
+            method = self.__actions[action_name]
             return method(*args)
 
         else:
-            print('no action %s' % action_name)
+            debug('no action %s' % action_name)
             raise ActionError('no action %s' % action_name)
     
 
@@ -332,16 +331,23 @@ class Guided(ActiveState):
 
 
 class Solid(object):
-    def mixin(self, radius):
-        self.radius = radius
+    def mixin(self, passable = True):
+        self.__passable = passable
+
+    def is_passable(self):
+        return self.__passable
+
+    def set_passable(self, value):
+        assert isinstance(value, bool)
+        self.__passable = value
     
     def collission(self, player):
         pass
 
+    def tile_collission(self, tile):
+        pass
 
 
-class Impassable(Solid):
-    pass
 
 
 
@@ -352,22 +358,30 @@ class Breakable:
     __heal_time = 120
 
     def mixin(self, hp = 10):
+        self.__hp = hp
         self.__hp_value = hp
-        self.__HP = hp
 
-        self.heal_speed = self.__hp_value/float(self.__heal_time)
+        self.heal_speed = self.__hp/float(self.__heal_time)
         self.__corpse_type = None
         self.death_counter = 0
         self.hitted = 0
 
-        self.prev_heal = time()
+        self.__prev_time = time()
 
-    def set_hp(self, hp_value):
-        self.__hp_value = hp_value
-        self.__HP = hp_value
+    def set_hp(self, new_hp):
+        if new_hp>0:
+            self.__hp = new_hp
+            if self.__hp_value>self.__hp:
+                self.__hp_value = self.__hp
+
+            self.heal_speed = self.__hp/float(self.heal_time)
+            self.add_event('change_hp', self.__hp, self.__hp_value)
+
+    def update_hp(self, value):
+        self.set_hp(hp_max+value)
 
     def get_hp(self):
-        return self.__HP
+        return self.__hp
 
     def get_hp_value(self):
         return self.__hp_value
@@ -376,41 +390,31 @@ class Breakable:
         self.__corpse_type = corpse_type
 
 
-    @property
-    def __hp(self):
-        return self.__HP
+    def __update_hp_value(self, value):
+        self.__set_hp_value(self.__hp_value+value)
 
-    @__hp.setter
-    def __hp(self, new_hp):
-        if new_hp!=self.__hp:
-            if new_hp>self.__hp_value:
-                new_hp = self.__hp_value
-            elif new_hp<0:
-                new_hp = 0
-            self.__HP = new_hp
+    def __set_hp_value(self, value):
+        if value!=self.__hp_value:
+            if value>self.__hp:
+                value = self.__hp
+            elif value<0:
+                value = 0
 
-        self.add_event('change_hp', self.__hp_value, self.__HP)
+            if value<self.__hp_value:
+                self.add_event('defend')
+            self.__hp_value = value
 
-    @property
-    def hp_value(self):
-        return self.__hp_value
+        self.add_event('change_hp', self.__hp, self.__hp_value)
 
-    @hp_value.setter
-    def hp_value(self, new_hp_value):
-        if new_hp_value>0:
-            self.__hp_value = new_hp_value
-            self.add_event('change_hp', self.__hp_value, self.__HP)
-            self.add_event('defend')
-    
-        
+
+            
+
     
     def hit(self, hp):
-        self.__hp = self.__hp-hp
+        self.__update_hp_value(-hp)
         
-        
-        if self.__hp<=0:
-            self.add_to_remove()
-            self.__hp = self.__hp_value
+        if self.__hp_value<=0:
+            self.add_to_remove('died')
             return True
         else:
             return False
@@ -419,42 +423,38 @@ class Breakable:
         if not hp:
             hp = self.heal_speed
 
-        self.__hp += hp
+        self.__update_hp_value(hp)
 
 
     
-    def plus_hp(self, armor):
-        self.__hp_value+=armor
-        self.heal_speed = self.__hp_value/float(self.heal_time)
+        
     
     def update(self):
         cur_time = time()
-        delta = cur_time - self.prev_heal
+        delta = cur_time - self.__prev_time
 
         heal_hp = self.heal_speed * delta
         self.heal(heal_hp)
 
-        self.prev_heal = cur_time
+        self.__prev_time = cur_time
+
 
     
-    def create_corpse(self):
-        if self.__corpse_type:
-            corpse = self.__corpse_type()
-            self.location.new_object(corpse, position = self.position)
-    
-    
     def get_args(self):
-        return {'hp': self.__hp, 'hp_value':self.__hp_value}
+        return {'hp': self.__hp_value, 'hp_value':self.__hp}
 
 
     def handle_remove(self):
         self.add_delay('die')
-        self.create_corpse()
+
+        if self.__corpse_type:
+            corpse = self.__corpse_type()
+            self.location.new_object(corpse, position = self.position)
 
 
 
     def handle_respawn(self):
-        self.__hp = self.__hp_value
+        self.__hp_value = self.__hp
 
     
     
@@ -463,8 +463,8 @@ class Breakable:
 
 class Fragile(object):
     "класс для объекто разбивающихся при столкновении с тайлами"
-    def handle_block(self, tile):
-        self.add_to_remove()
+    def tile_collission(self, tile):
+        self.add_to_remove('Fragile')
         
     
 class Mortal(object):
@@ -475,16 +475,20 @@ class Mortal(object):
     
     def collission(self, player):
         if isinstance(player, Breakable):
-            if player.name!=self.name:
-                is_dead = player.hit(self.__damage)
-                if not self.__alive_after:
-                    self.add_to_remove()
-                #
-                try:
-                    if isinstance(self.striker, Guided) and is_dead:
-                            self.striker.plus_kills()
-                except:
-                    pass
+            is_dead = player.hit(self.__damage* self.get_speed())
+            if not self.__alive_after:
+                self.add_to_remove('Mortal')
+            #
+            try:
+                if isinstance(self.striker, Guided) and is_dead:
+                        self.striker.plus_kills()
+            except:
+                pass
+
+class SmartMortal(Mortal):
+    def collission(self, player):
+        if isinstance(player, DiplomacySubject) and self.is_enemy(player):
+            Mortal.collission(self, player)
 
 ####################################################################
 
@@ -504,7 +508,6 @@ class Respawnable(object):
 
 
 class DiplomacySubject(object):
-    fraction = 'neutral'
     def mixin(self, fraction = 'neutral'):
         self.__fraction = fraction
         self.__spy_mode = False
@@ -532,18 +535,13 @@ class DiplomacySubject(object):
     def is_ally(self, player):
         assert isinstance(player, DiplomacySubject)
 
-        return player.__spy_mode or player.__fraction in (self.__fraction, 'good')
+        return player.__spy_mode or player.__fraction==self.__fraction
 
     def is_enemy(self, player):
         assert isinstance(player, DiplomacySubject)
-        if 'player' in self.__fraction:
-            print self.__fraction, player.__fraction
-            print not player.__spy_mode and not player.__fraction in (self.__fraction, 'good', 'neutral')
 
-        return not player.__spy_mode and not player.__fraction in (self.__fraction, 'good', 'neutral')
+        return player.__fraction!=self.__fraction and player.__fraction!='neutral' and not player.__spy_mode
 
-    def is_good(self, player):
-        return player.__fraction!='bad'
     
     
     def update(self):
@@ -563,7 +561,7 @@ class Temporary(Updatable):
         cur_time = time()
 
         if cur_time - self.__creation_time > self.__lifetime:
-            self.add_to_remove()
+            self.add_to_remove('Temporary')
 
 
 
@@ -596,6 +594,9 @@ class Groupable:
 
 
 class Savable(object):
+    def handle_load_position(self, location, position):
+        return position
+
     def __save__(self):
         return ()
 
@@ -603,8 +604,11 @@ class Savable(object):
     def __load__(cls, location):
         return cls()
 
+
 class SavableRandom(Savable):
-    pass
+    def handle_load_position(self, location, position):
+        chunk, position = location.choice_position(self)
+        return position
 
 
 class OverLand:

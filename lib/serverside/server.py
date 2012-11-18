@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-
 from config import SERVER_TIMER, HOSTNAME, PROFILE_SERVER, SERVER_PROFILE_FILE, DEBUG, ACCEPT_NUMBER
+from server_logger import debug
 
 from sys import exit as sys_exit, exc_info
 import traceback
@@ -10,8 +9,8 @@ import cProfile
 from time import time, sleep
 from collections import defaultdict
 
+
 from engine.engine_interface import GameEngine
-from share.packer import pack, unpack
 from serverside.socket_server import SocketServer
 
 
@@ -38,12 +37,11 @@ class GameServer(object):
 
         blocking = self.game.is_active()
         if blocking:
-            print ('Sleeeping mode')
+            debug ('Sleeeping mode')
 
         for client_name in self.server.get_accepted(blocking = blocking):
             for accept_response in self.game.game_connect(client_name):
-                response = pack(accept_response)
-                self.server.put_response(client_name, response)
+                self.server.put_response(client_name, accept_response)
 
             self.client_list.add(client_name)
         
@@ -60,7 +58,7 @@ class GameServer(object):
 
 
         for client_name, message in requestes:
-            self.client_requestes[client_name].append(unpack(message))
+            self.client_requestes[client_name].append(message)
 
         
         #отправляем запросы движку
@@ -74,18 +72,16 @@ class GameServer(object):
         #вставляем ответы в очередь на отправку
         for client_name, messages in self.game.game_responses():
             for message in messages:
-                response = pack(message)
-                self.server.put_response(client_name, response)
+                self.server.put_response(client_name, message)
         
         #завершаем раунд игры
         self.game.end_round()
-        if DEBUG:
-            self.game.debug()
+
 
 
     def stop(self, stop_reason = ''):
         #считаем среднее время на раунд
-        print('%s \n GameServer stopping...' % str(stop_reason))
+        debug('%s \n GameServer stopping...' % str(stop_reason))
         self.server.stop('gameserver.stop')
         self.game.stop()
         count = len(self.r_times)
@@ -93,22 +89,22 @@ class GameServer(object):
             all_time = sum(self.r_times)
             m_time = all_time/count
 
-            print('median time %s/%s = %s' % (all_time, count, m_time))
+            debug('median time %s/%s = %s' % (all_time, count, m_time))
             
         if isinstance(stop_reason, BaseException):
             raise stop_reason
         
 
     def start(self):
-        print('Running...')
+        debug('Running...')
         stop_reason = 'None'
         try:
             self.server.start()
-            print('GameServer running')
+            debug('GameServer running')
             t = time()
             while 1:
                 if not self.server.excp.empty():
-                    print('error in SocketServer')
+                    debug('error in SocketServer')
                     stop_reason = self.server.excp.get_nowait()
                     break
 
@@ -122,7 +118,7 @@ class GameServer(object):
                 timeout = SERVER_TIMER - delta if delta<SERVER_TIMER else 0
                 t = time()
                 sleep(timeout)
-            print('game loop end')
+            debug('game loop end')
 
         except KeyboardInterrupt:
             stop_reason= 'KeyboardInterrupt'
@@ -130,18 +126,18 @@ class GameServer(object):
 
         except:
             except_type, except_class, tb = exc_info()
-            print('exception!', except_type, except_class)
+            debug('exception!', except_type, except_class)
             for line in traceback.extract_tb(tb):
-                print(line)
+                debug(line)
 
 
         finally:
-            print('game loop exit')
+            debug('game loop exit')
          
             self.stop(stop_reason)
             
             if self.server.is_alive():
-                print ('waiting for socket-server process')
+                debug ('waiting for socket-server process')
                 self.server.join()
             sys_exit()
     

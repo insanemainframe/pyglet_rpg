@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
+from server_logger import debug
 
 from engine.mathlib import Cord, Position, ChunkCord
 
 
 from weakref import proxy, ProxyType
+from collections import defaultdict
 
 from engine.world.objects_containers import ActivityContainer, ObjectContainer, near_chunk_cords
 
@@ -35,9 +37,12 @@ class Chunk(ObjectContainer, ActivityContainer):
         
 
         self._players = {}
+        self.__events = defaultdict(list)
+        self.cords_changed = False
+
         self.delay_args = {}
 
-        self.new_events = False
+        self._new_events = False
         self._remove_list = set()
 
         self.__protected = False
@@ -52,9 +57,9 @@ class Chunk(ObjectContainer, ActivityContainer):
         assert isinstance(player, ProxyType)
         assert isinstance(new_position, Position)
 
-
-
         if self.location.is_valid_position(new_position):
+            
+
             player._prev_position = player._position
             player._position  = new_position
             player.position_changed = True
@@ -62,6 +67,7 @@ class Chunk(ObjectContainer, ActivityContainer):
             new_cord = new_position.to_cord()
 
             if player.cord!=new_cord:
+                self.cords_changed = True
 
                 self.location.change_voxel(player, new_cord)
 
@@ -69,13 +75,6 @@ class Chunk(ObjectContainer, ActivityContainer):
 
                 if new_chunk_cord!=player.chunk.cord:
                     self.location.change_chunk(player, new_chunk_cord, new_position)
-
-                        
-                    
-                
-
-
-
         
     
     def add_object(self, player, position):
@@ -84,7 +83,7 @@ class Chunk(ObjectContainer, ActivityContainer):
         assert not hasattr(player, 'chunk')
         assert not player.name in self._players
 
-        # if isinstance(player, Guided):  print ('chunk.add_object', player)
+        # if isinstance(player, Guided):  debug ('chunk.add_object', player)
 
         if self.__protected and isinstance(player, MetaMoster):
             return False
@@ -105,7 +104,7 @@ class Chunk(ObjectContainer, ActivityContainer):
         assert player.name in self._players
         assert player.chunk==self
 
-        # if isinstance(player, Guided):  print ('chunk.pop_object', player)
+        # if isinstance(player, Guided):  debug ('chunk.pop_object', player)
         
         name = player.name
         
@@ -117,23 +116,40 @@ class Chunk(ObjectContainer, ActivityContainer):
         if name in self._remove_list:
             self._remove_list.remove(name)
 
+
+
         del self._players[player.name]
         del player.chunk
+
 
     def add_to_remove(self, name):
         self._remove_list.add(name)
 
-    def set_event(self):
-        self.new_events = True
+    def add_event(self, gid, event):
+        self._new_events = True
+        self.__events[gid].append(event)
         
     
     def check_events(self):
-        if self.new_events:
+        if self._new_events:
             return True
         for chunk in self.nears:
-            if chunk.new_events:
+            if chunk._new_events:
                 return True
         
+        return False
+
+
+    def get_events(self):
+        return sum([chunk.__events.items() for chunk in self.nears], self.__events.items())
+
+
+    def check_positions(self):
+        if self.cords_changed:
+            return True
+        for chunk in self.nears:
+            if chunk.cords_changed:
+                return True
         return False
 
     def get_nears(self):
@@ -162,8 +178,13 @@ class Chunk(ObjectContainer, ActivityContainer):
     
     def complete_round(self):        
         ObjectContainer.complete_round(self)
-        self.map_changed = False
-        self.new_events = False
+
+        self._map_changed = False
+        self.cords_changed = False
+
+        self._new_events = False
+        self.__events.clear()
+
         self.delay_args.clear()
 
     def set_activity(self):

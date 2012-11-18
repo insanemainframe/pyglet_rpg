@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
+from server_logger import debug
 
 from engine.enginelib.meta import *
 from engine.mathlib import chance
@@ -44,23 +45,22 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         self.set_shell(Ball)
 
 
-        self.__actions__ = {'ApplyItem': self.ApplyItem, 'Move' : self.Move,
-                            'Strike' : self.Strike, 'Skill' : self.Skill}
+        self.set_actions(ApplyItem = self.ApplyItem, Move = self.Move,
+                        Strike = self.Strike, Skill = self.Skill)
     
     def accept_response(self):
         data = self.location.name, self.location.size, self.position, self.location.background
         yield NewLocation(*data)
         
     def handle_response(self):
-        #если попал в новый мир
-        #cdef set new_looked, observed, old_players
-        #cdef dict events
-        #cdef list new_players
-        #if self.cord_changed or self.location_changed or self.respawned:
-        self.observe()
+        chunk = self.chunk
+        new_trig = self.location_changed or self.respawned
+
+        if self.cord_changed:
+            self.observe()
+
         
-        if self.location_changed or self.respawned:
-            new_trig = True
+        if new_trig:
             if self.location_changed:
                 yield NewLocation(self.location.name, self.location.size, self.position, self.location.background)
                 self.location_changed = False
@@ -69,8 +69,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
                 yield Respawn(self.position)
                 self.respawned = False
 
-        else:
-            new_trig = False
+
             
         if self.position_changed:
             yield MoveCamera(self.get_move_vector())
@@ -81,11 +80,16 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
             new_looked, observed = self.look_map()
             yield LookLand(new_looked, observed)
 
-        chunk = self.chunk
         
-        #if new_trig or self.has_events or chunk.check_events() or chunk.check_players():
-        new_players, events, old_players = self.look_objects()
-        yield LookObjects(new_players, events, old_players)
+        if self.cord_changed or chunk.check_positions() or chunk.check_players()  or new_trig:
+            new_players, old_players = self.look_objects()
+            if new_players or old_players:
+                yield LookObjects(new_players, old_players)
+
+        if chunk.check_events():
+            events = self.look_events()
+            if events:
+                yield LookEvents(events)
 
 
 
@@ -136,9 +140,5 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     
 
 
-    def __del__(self):
-        HierarchySubject.__del__(self)
-        Equipment.__del__(self)
-        Unit.__del__(self)
 
     

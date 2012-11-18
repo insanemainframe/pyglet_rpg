@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
+from server_logger import debug
 
 from engine.enginelib.meta import *
 from engine.mathlib import Cord, Position, ChunkCord,  chance
@@ -29,10 +30,12 @@ class Unit(MutableObject, Solid, Breakable, DiplomacySubject):
     __brave = False
 
     def __init__(self, name, hp, speed, fraction):
-        MutableObject.__init__(self, name, speed)
+        MutableObject.__init__(self, name)
         Breakable.mixin(self, hp)
         DiplomacySubject.mixin(self, fraction)
-        Solid.mixin(self, TILESIZE/2)
+        Solid.mixin(self)
+
+        self.set_speed(speed)
 
         self.set_corpse(Corpse)
 
@@ -108,7 +111,7 @@ class Fighter:
                         in_distance = self.cord.in_radius(player.cord, self.atack_distance)
 
                         if self.is_enemy(player) and in_distance:
-                            print ('fight')
+                            debug ('fight')
                             player.hit(self.__damage)
                             self.add_event('attack')
                             break
@@ -131,16 +134,15 @@ class Fighter:
 class Stalker:
     "объекты охотящиеся за игроками"
     def mixin(self, look_size):
-        self.look_size = look_size
+        self.__look_size = look_size
     
     def hunt(self, inradius = False):
             players = self.chunk.get_list_all(Unit)
             if players:
                 dists = []
                 for player in players:
-                    if player!=self:
-                        if self.is_enemy(player):
-                            dists.append((player, player.position - self.position))
+                    if self.is_enemy(player):
+                        dists.append((player, player.position - self.position))
                 if dists:
                     victim, vector = min(dists, key = lambda pair: abs(pair[1]))
                     assert isinstance(victim, ProxyType)
@@ -153,35 +155,46 @@ class Stalker:
 class Striker:
     "дает возможность игроку стрелять снарядами"
     default_shell = Ball
-    def mixin(self, strike_speed = 1, damage = 1):
-        self.__shell_type = None
-        self.__shell_type = Striker.default_shell
-        self.__strike_speed = strike_speed
-        self.__strike_damage = damage
+    def mixin(self, strike_speed = 1, impact = 1):
+        self.__speed = strike_speed
+        self.__impact = impact
 
-        self.prev_strike_time = time()
+        self.__prev_time = time()
+
 
     def set_shell(self, shell_type):
         self.__shell_type = shell_type
 
-    def plus_strike_speed(self, plus):
-        self.__strike_speed +=plus
+    def update_strike_speed(self, plus):
+        self.__speed +=plus
 
     def set_strike_speed(self, strike_speed):
-        self.__strike_speed = strike_speed
+        assert strike_speed>0
+        self.__speed = strike_speed
+
+    def set_strike_impact(self, impact):
+        assert impact>0
+        self.__impact = impact
+
+    def update_strike_impact(self, value):
+        new_impact = self.__impact + value
+
+        assert new_impact>0
+        self.__impact = new_impact
     
     def strike_ball(self, vector):
         assert isinstance(vector, Position)
-        cur_time = time()
+        if vector:
+            cur_time = time()
 
-        if cur_time-self.prev_strike_time>1.0/self.__strike_speed:
-            self.prev_strike_time = cur_time
+            if cur_time-self.__prev_time>1.0/self.__speed:
+                self.__prev_time = cur_time
 
-            ball = self.__shell_type(vector, self.fraction, proxy(self), self.__strike_damage)
-            self.location.new_object(ball, position = self.position)
+                ball = self.__shell_type(vector, self.__impact, proxy(self))
+
+                self.location.new_object(ball, position = self.position)
     
-    def plus_damage(self, damage):
-        self.__strike_damage+=damage
+
             
 
     
@@ -199,9 +212,11 @@ class Stats:
     def plus_kills(self):
         self.kills+=1
         self.location.change_guided()
+
+
     
     def is_stats_changed(self):
-        stats = (self.get_hp(), self.get_hp_value(), self.speed, self.__damage,
+        stats = (self.get_hp_value(), self.get_hp(), self.speed, 0,
             self.gold, self.kills, self.death_counter, self.skills, self.is_spy())
         
         if self.prev_stats!=stats:
@@ -210,14 +225,14 @@ class Stats:
         return False
     
     def get_stats(self):
-        data = (self.get_hp(), self.get_hp_value(), self.speed, self.__damage,
+        data = (self.get_hp_value(), self.get_hp(), self.speed, 0,
                 self.gold, self.kills, self.death_counter ,self.skills, self.is_spy())
         self.stats_changed = False
         return data
 
 
 class Walker(MutableObject):
-    def update(self):
+    def get_walk_vector(self):
         positive_x = -1 if random()>0.5 else 1
         positive_y = -1 if random()>0.5 else 1
         partx = random()*10
@@ -225,7 +240,7 @@ class Walker(MutableObject):
         x = positive_x*self.speed*partx
         y = positive_y*self.speed*party
         direct = Position(x,y)
-        self.move(direct)
+        return direct
 
 
 class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, SavableRandom):
@@ -233,10 +248,10 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, SavableRandom):
     look_size = 10
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     SLOWTILES = {'water':0.5, 'bush':0.3}
-    fraction = 'bad'
+    __fraction = 'bad'
     
     def __init__(self, speed, hp):
-        Unit.__init__(self, None, hp, speed, self.fraction)
+        Unit.__init__(self, None, hp, speed, self.__fraction)
 
         Stalker.mixin(self, self.look_size)
         Respawnable.mixin(self, 60, 100)
@@ -261,7 +276,7 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, SavableRandom):
         else:
             if self.is_blocked or chance(10):
                 self.hunting = False
-                Walker.update(self)
+                self.move(self.get_walk_vector())
                 self.is_blocked = False
             else:
                 if victim_trig or not self.hunting:
@@ -276,7 +291,7 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, SavableRandom):
                     else:
                         self.is_blocked = not self.move(self.vector_to_victim)
                 else:
-                    Walker.update(self)
+                    self.move(self.get_walk_vector())
 
         finally:
             Breakable.update(self)

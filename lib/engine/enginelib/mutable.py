@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
+from server_logger import debug
 
 from engine.mathlib import Cord, Position, ChunkCord
 from engine.enginelib.meta import *
@@ -14,13 +15,11 @@ class MutableObject(GameObject, Updatable):
     "класс движущихся объектов"
     BLOCKTILES = []
     SLOWTILES = {}
-    def __init__(self, name = None, speed = TILESIZE):
+    def __init__(self, name = None):
         GameObject.__init__(self, name)
 
         Updatable.mixin(self)
 
-        self.__events__ = set()
-        self.has_events = False
 
         self.cord_changed = True
         self.position_changed = True
@@ -28,16 +27,16 @@ class MutableObject(GameObject, Updatable):
 
 
         self.__vector  = Position(0,0)
-        self.speed = speed
+        self.__speed = 0
         self.__move_vector = Position(0,0)
-        self._moved = False
-        self._stopped = 0
+        self.__moved = False
+        self.__stopped = 0
 
 
 
     
 
-    def change_position(self, new_position):
+    def __change_position(self, new_position):
         "вызывается при смене позиции"
         assert isinstance(new_position, Position)
         
@@ -45,10 +44,13 @@ class MutableObject(GameObject, Updatable):
             self.chunk.change_position(proxy(self), new_position)
 
     def set_speed(self, speed):
-        self.speed = speed
+        self.__speed = speed
 
     def update_speed(self, speed):
-        self.speed+=speed
+        self.__speed+=speed
+
+    def get_speed(self):
+        return self.__speed
 
     
     def get_move_vector(self):
@@ -56,6 +58,8 @@ class MutableObject(GameObject, Updatable):
 
     def get_vector(self):
         return self.__vector 
+
+    
 
     def flush(self):
         self.__move_vector = Position(0,0)
@@ -66,10 +70,10 @@ class MutableObject(GameObject, Updatable):
         
         success = True
 
-        if not self._moved:
-            self._moved = True
-            if self._stopped>0:
-                self._stopped-=1
+        if not self.__moved:
+            self.__moved = True
+            if self.__stopped>0:
+                self.__stopped-=1
             else:
                 #если вектор на входе определен, до определяем вектор движения объекта
                 if vector:
@@ -79,7 +83,7 @@ class MutableObject(GameObject, Updatable):
                 if self.__vector:
                     
                     #проверка столкновения
-                    part = self.speed / abs(self.__vector) # доля пройденного пути в векторе
+                    part = self.__speed / abs(self.__vector) # доля пройденного пути в векторе
                     move_vector = self.__vector * part if part<1 else self.__vector
                     #определяем столкновения с тайлами
                     new_cord = (self.position+move_vector).to_cord()
@@ -102,7 +106,7 @@ class MutableObject(GameObject, Updatable):
                         success = False
 
                 if move_vector:
-                    self.change_position(self.position+move_vector)
+                    self.__change_position(self.position+move_vector)
                     self.__move_vector = move_vector
                 
                     #добавляем событие
@@ -118,13 +122,14 @@ class MutableObject(GameObject, Updatable):
         blocked = False
         for (i,j), cross_position in get_cross(self.position, move_vector):
             if 0<i<self.location.size and 0<j<self.location.size:
-                cross_tile =  self.location.map[i][j]
-                collission_result = self._detect_collisions(Cord(i,j))
+                cross_tile =  self.location.get_tile(Cord(i,j))
+                
+                collission_result = self._voxel_collision(Cord(i,j))
 
-                if cross_tile in self.BLOCKTILES or collission_result:
+                if cross_tile in self.BLOCKTILES or not collission_result:
                     move_vector = (cross_position - self.position)*0.90
                     self.__vector = move_vector
-                    # self.tile_collission(cross_tile)
+                    self.tile_collission(cross_tile)
                     blocked = True
                     break
 
@@ -152,21 +157,21 @@ class MutableObject(GameObject, Updatable):
             
         return move_vector, resist, blocked
         
-    def _detect_collisions(self, cord):
+    def _voxel_collision(self, cord):
         for player in self.location.get_voxel(cord):
             if isinstance(player, Solid) and player.name != self.name:
                 player.collission(proxy(self))
                 self.collission(player)
-                if isinstance(player, Impassable):
-                    return True
-        return False
+                if not player.is_passable():
+                    return False
+        return True
         
     
     
 
     def stop(self, time):
         "останавливает на опредленное времчя"
-        self._stopped = time
+        self.__stopped = time
     
     def abort_moving(self):
         self.__vector = Position(0,0)
@@ -177,34 +182,22 @@ class MutableObject(GameObject, Updatable):
     
     
 
-    def add_event(self, action, *args, **kwargs):
-        #if isinstance(self, Guided): print action, args
-
-        self.__events__.add(Event(action, args))
-
-        self.chunk.set_event()
-
-        self.has_events = True
-
-
-    def get_events(self):
-        #if self.__events__ and isinstance(self, Guided): print self.__events__
-
-        return self.__events__
+    
 
     def _complete_round(self):
-        self._moved = False
+        self.__moved = False
         self.cord_changed = False
         self.position_changed = False
-        self.has_events = False
-        self.__events__.clear()
+        self.location_changed = False
+        
 
     def _update(self):
-        if not self._moved and self.__vector:
+        if not self.__moved and self.__vector:
             MutableObject.move(self)
 
     def update(self):
         pass
+
 
 
 

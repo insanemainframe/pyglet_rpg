@@ -8,6 +8,7 @@ from select import select
 from socket import error as SocketError
 
 from share.protocol_lib import send, receivable
+from share.serialization import loads, dumps
 
 
 IN, OUT = 0,1
@@ -61,7 +62,7 @@ class SocketClient:
     
     def put_message(self, message):
         "кладет ответ в очередь на отправку"
-        self.out_messages.append(message)
+        self.out_messages.append(dumps(message))
     
     def handle_read(self):
         "читает все пакеты, пока сокет доступен"
@@ -72,6 +73,7 @@ class SocketClient:
                 self.handle_close('Disconnect')
             else:
                 if message:
+                    message = loads(message)
                     if self.accepted:
                         self.read(message)
                     else:

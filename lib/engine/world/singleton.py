@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #разделяемое состояние всех объектов игры
 from config import *
-
+from server_logger import debug
 
 from weakref import proxy, ProxyType
 from random import  choice
@@ -40,7 +40,7 @@ class __GameSingleton(object):
 
     
     def start(self):
-        print('Engine initialization...')
+        debug('Engine initialization...')
         self_proxy = proxy(self)
         
         self.locations = OrderedDict()
@@ -52,13 +52,13 @@ class __GameSingleton(object):
         self.mainlocation = self.locations['ground']
         
         for location in self.locations.values():
-            print('location %s initialization' % location.name)
+            debug('location %s initialization' % location.name)
             location.start()
             location.save(True)
 
         
         
-        print('Engine initialization complete. \n')
+        debug('Engine initialization complete. \n')
 
     def add_active_location(self, location):
         self.active_locations[location.name] = location
@@ -81,7 +81,7 @@ class __GameSingleton(object):
         assert not hasattr(player, 'cord')
         assert not hasattr(player, 'Position')
 
-        if isinstance(player, Guided):  print ('game._new_object', player)
+        if isinstance(player, Guided):  debug ('game._new_object', player)
         
         self.players[player.name] = player
          
@@ -92,24 +92,22 @@ class __GameSingleton(object):
         
     
     
-    def _remove_object(self, player):
+    def _remove_object(self, player, force = False):
         name = player.name
         assert name in self.players
         assert player.is_alive()
 
-        if isinstance(player, Guided): print ('game._remove_object', player)
+        if isinstance(player, Guided): debug ('game._remove_object', player)
 
         
 
         player.handle_remove()
         player.location.pop_object(player)
 
-        if not isinstance(player, Respawnable):
-            
-
-            
+        if not isinstance(player, Respawnable) or force:
+            if name in self.guided_players:
+                del self.guided_players[name]
                 
-
             del self.players[name]
             
         else:
@@ -130,23 +128,18 @@ class __GameSingleton(object):
 
 
     def remove_guided(self, name):
-        print ('\n\n remove_guided', name)
+        debug ('\n\n remove_guided', name)
+
         assert name in self.guided_players
 
         player = self.guided_players[name]
         del self.guided_players[name]
 
         player.handle_quit()
-        player.location.pop_object(player)
-
-        del self.players[name]
-        print 'weak', player
+        self._remove_object(player, force = True)
 
 
 
-
-
-    
 
 
     def change_location(self, player, location_name, chunk = None):
@@ -154,7 +147,7 @@ class __GameSingleton(object):
 
         assert isinstance(player, ProxyType)
 
-        if isinstance(player, Guided):  print ('game.change_location', player, location_name
+        if isinstance(player, Guided):  debug ('game.change_location', player, location_name
         )
 
         prev_location = player.location

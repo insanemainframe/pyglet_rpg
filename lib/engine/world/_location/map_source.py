@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
+from server_logger import debug
 
 from share.serialization import loads, dumps, load, dump
 
@@ -27,11 +28,11 @@ def load_map(mapname):
         
         tilemap, size, background =  map_data
 
-        print('\tmap loaded from pickle')
+        debug('\tmap loaded from pickle')
         return tilemap, size, background
 
     else:
-        print('/data/map.data doesnt exist')
+        debug('/data/map.data doesnt exist')
         #gen = Generator()
         gen = FromImage(map_image)
 
@@ -72,7 +73,7 @@ class Generator:
 
 
     def apply_tile(self, tile, number):
-        print( 'apply_tile', tile, number)
+        debug( 'apply_tile', tile, number)
         limit = number*(self.size**2)/5
         c = 0
         while number>0 :
@@ -103,7 +104,7 @@ class Generator:
 
 class FromImage:
     def __init__(self, map_image,):
-        self.map_image = map_image
+        self._map_image = map_image
 
     def generate(self):
         from PIL import Image
@@ -111,7 +112,7 @@ class FromImage:
 
 
         counter = Counter()
-        image = Image.open(self.map_image)
+        image = Image.open(self._map_image)
         size = image.size
         m =image.load()
         
@@ -128,6 +129,6 @@ class FromImage:
        
         
         background = counter.most_common()[0][0]
-        print('\tmap loaded:',size, background)
+        debug('\tmap loaded:',size, background)
         
         return tilemap, size[0], background

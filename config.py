@@ -22,7 +22,7 @@ CHUNK_SIZE = 6
 ROUND_TIMER = 0.1
 SERVER_TIMER = 0.1
 PLAYER_LOOK_RADIUS = 9
-SQUARE_FOV = True
+RECT_FOV = True
 
 ###
 LOCATION_PATH = 'data/locations/%s/'
@@ -36,6 +36,7 @@ LOCATION_MUL = 1
 MAP_ZLIB = True
 
 
+SERVER_LOG_FILE = '/tmp/server_game.log'
 
 PROFILE_SERVER = 1
 SOCKET_SERVER_PROFILE = 1

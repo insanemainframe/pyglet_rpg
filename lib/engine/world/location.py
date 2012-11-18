@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
+from server_logger import debug
 from share.errors import *
 xrange = range
 
@@ -61,10 +62,12 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
 
         
         
-        if isinstance(player, Guided):  print ('\n location.new_object %s' % player)
+        if isinstance(player, Guided):  debug ('\n location.new_object %s' % player)
         game._new_object(player)
         
         self.add_object(proxy(player), chunk, position)
+        
+        player.handle_creating()
 
 
     def add_object(self, player, chunk = None, position = None):
@@ -72,7 +75,7 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
         assert chunk is None or isinstance(chunk, ChunkCord)
         assert not hasattr(player, 'location')
 
-        if isinstance(player, Guided):  print ('%s.add_object %s ' % (self.name, player))
+        if isinstance(player, Guided):  debug ('%s.add_object %s ' % (self.name, player))
 
         try:
             if not position:
@@ -86,7 +89,7 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
                 chunk_cord = position.to_chunk()
 
         except NoPlaceException as error:
-            print 'add_object %s' % error
+            debug ('add_object %s' % error)
             raise error
 
         else:
@@ -104,13 +107,12 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
             self.add_activity(player)
 
             player.location_changed = True
-            player.handle_new_location()
 
 
 
 
     def pop_object(self, player):
-        if isinstance(player, Guided):  print ('%s.pop_object %s' % (self.name, player))
+        if isinstance(player, Guided):  debug ('%s.pop_object %s' % (self.name, player))
         
 
         assert player.name in self._players
@@ -135,7 +137,7 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
 
     def remove_object(self, player):
         "вызывает remove_object синглетона"
-        if isinstance(player, Guided):  print ('\n location.remove_object', player)
+        if isinstance(player, Guided):  debug ('\n location.remove_object', player)
 
         if isinstance(player, HierarchySubject):
             player.unbind_all_slaves()
@@ -149,7 +151,8 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
         assert isinstance(cord, Cord)
         assert not hasattr(player, 'voxel')
 
-        voxel = self._voxels[cord]
+        voxel = self.get_voxel_full(cord)
+
         voxel[player.name] = player
 
         player.voxel = voxel
@@ -167,7 +170,7 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
         assert isinstance(cord, Cord)
         assert player.cord==cord
 
-        voxel = self._voxels[cord]
+        voxel = self.get_voxel_full(cord)
 
         del voxel[player.name]
         del player.voxel
@@ -187,7 +190,7 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
         "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
         assert isinstance(player, ProxyType)
 
-        # if isinstance(player, Guided):  print ('location.change_chunk %s' % player)
+        # if isinstance(player, Guided):  debug ('location.change_chunk %s' % player)
 
 
         if self.is_valid_chunk(new_chunk_cord):
@@ -241,11 +244,11 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
 
 
     def set_activity(self):
-        print ('location set_activity')
+        debug ('location set_activity')
         game.add_active_location(self)
     
     def unset_activity(self):
-        print ('location unset_activity')
+        debug ('location unset_activity')
         game.remove_active_location(self)
 
 
@@ -262,7 +265,7 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
         self.flush_genaration_data()
 
         number = len(self._players)
-        print ('Location "%s" with %s objects has been started' % (self.name, number))
+        debug ('Location "%s" with %s objects has been started' % (self.name, number))
 
 
 

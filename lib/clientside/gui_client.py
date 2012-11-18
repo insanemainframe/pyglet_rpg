@@ -150,6 +150,7 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
             if action=='Respawn':
                 new_position = message                
                 self.gamesurface.set_camera_position(new_position)
+                self.objects.flush()
             
             elif action=='MoveCamera':
                 move_vector = message
@@ -164,10 +165,13 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
                 
             
             elif action=='LookObjects':
-                new_players, events, old_players = message
+                new_players, old_players = message
                 self.objects.insert_objects(new_players, old_players)
-                self.objects.insert_events(events)
                 self.objects.clear()
+                
+            elif action=='LookEvents':
+                events = message
+                self.objects.insert_events(events)
                 
 
                 
@@ -185,6 +189,7 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
             elif action=='NewLocation':
                 wold_name, location_size, position, background = message
                 self.new_location(wold_name, location_size, position, background)
+                self.objects.flush()
             
             else:
                 print 'Unknown Action:%s' % action

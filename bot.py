@@ -53,7 +53,7 @@ class Bot(GameClient, Process):
                         self.objects.move_position(move_vector)
 
                     elif action=='LookObjects':
-                        new_players, events, old_players = message
+                        new_players, old_players = message
                         self.objects.add(new_players)
                         self.objects.remove(old_players)
 

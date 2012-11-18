@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
+from server_logger import debug
 from share.errors import *
 xrange = range
 
@@ -27,9 +28,9 @@ import imp
 
 class PersistentLocation(object):
     def __init__(self, mapname):
-        self.mapname = mapname
-        print ('loading map...')
-        self.map, self.size, self.background = load_map(mapname)
+        self._mapname = mapname
+        debug ('loading map...')
+        self._map, self.size, self.background = load_map(mapname)
         self.position_size = self.size*TILESIZE
 
         init = imp.load_source('init', LOCATION_PATH %mapname + 'init.py')
@@ -41,7 +42,7 @@ class PersistentLocation(object):
 
     def create_object(self, n, object_type):
         n = int(n/LOCATION_MUL)
-        print 'creating %s of %s' % (n, object_type.__name__)
+        debug ('creating %s of %s' % (n, object_type.__name__))
         for i in xrange(n):
             monster = object_type()
             self.new_object(monster)
@@ -54,7 +55,7 @@ class PersistentLocation(object):
 
     def load_objects(self):
         if self.location_exists():
-            filename = LOCATION_PATH % self.mapname + LOCATION_FILE
+            filename = LOCATION_PATH % self._mapname + LOCATION_FILE
             locations_objects = load(filename)
 
 
@@ -62,12 +63,13 @@ class PersistentLocation(object):
                 position = Position(x,y)
                 object_type = self.get_class(object_type)
 
-                player = object_type.__load__(proxy(self), *data)
+                player = object_type.__load__(self, *data)
 
-                # if isinstance(player, SavableRandom):
-                #     chunk, position = self.choice_position(player)
-                #     self.new_object(player, chunk = chunk, position = position)
-                # else:
+                position = player.handle_load_position(self, position)
+
+                assert self.is_valid_position(position)
+
+
                 self.new_object(player, position = position)
             return True
         else:
@@ -80,13 +82,13 @@ class PersistentLocation(object):
         return getattr(game_objects, object_type)
 
     def location_exists(self):
-        return exists(LOCATION_PATH % self.mapname + LOCATION_FILE)
+        return exists(LOCATION_PATH % self._mapname + LOCATION_FILE)
             
     
     def save(self, force = False):
         if SAVE_LOCATION or force:
             locations_objects = self.save_objects()
-            filename = LOCATION_PATH % self.mapname + LOCATION_FILE
+            filename = LOCATION_PATH % self._mapname + LOCATION_FILE
             data = dump(locations_objects, filename)
 
 

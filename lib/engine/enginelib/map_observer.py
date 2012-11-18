@@ -1,129 +1,141 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
+from server_logger import debug
 xrange = range
+
+
+
+from sets import ImmutableSet
+from weakref import ProxyType
+
 
 from engine.mathlib import Cord, Position, ChunkCord
 from engine.enginelib.meta import Updatable
 from engine.enginelib.mutable import MutableObject
-
-
-
-from weakref import ProxyType
 
 class MapObserver:
     "mixn объекта видящего карту"
     def mixin(self, look_size):
         self.look_size = look_size
         self.look_radius = self.look_size*TILESIZE
+        self.sq_look_size = look_size**2
         
         
-        self.prev_looked = set()
-        self.prev_observed = set()
+        #ткущий фов
+        self.fov = ImmutableSet()
+        #новый фов
+        self.new_fov = ImmutableSet()
+
+        #список видимых контейнеров с объектами
+        self.fov_voxels = dict()
 
 
-        self.observed_objects = []
-        self.observed_objects_gids = set()
-        self.observed_names = []
+        self.objects = []
+        self.objects_gids = ImmutableSet()
 
-        self.fov = set()
-        self.fov_voxels = [] #список видимых контейнеров с объектами
+        
+    def clear_looked(self):
+        self.fov = ImmutableSet()
+        self.new_fov = ImmutableSet()
+        self.old_fov = ImmutableSet()
+
+        self.fov_voxels.clear()
+
+        self.objects_gids = ImmutableSet()
+        self.objects = []
 
     def handle_change_location(self):
         self.clear_looked()
+        self.observe()
+
 
     def handle_respawn(self):
         self.clear_looked()
+        self.observe()
 
-    def clear_looked(self):
-        self.prev_looked = set()
-        self.prev_observed = set()
 
-        self.observed_objects_gids.clear()
-        self.observed_objects = []
-        self.observed_names = []
-
-        self.fov.clear()
-        self.fov_voxels = []
     
     def observe(self):
-        #cdef int rad, I,J, i,j, i_start, i_end, j_start, j_end
-        #cdef list tile
-        # print ('observe')
-
-        self.prev_observed = self.fov
-
-        self.fov = set()
-        self.fov_voxels = []
+        "формирует новую область видимости"
+        #формируем видимые коордианты
+        
+        I,J = self.cord.get()
 
         rad = self.look_size
-        I,J = self.cord.get()
+        sq_rad = self.sq_look_size
 
         i_start = self.location.resize_cord(I-rad)
         i_end = self.location.resize_cord(I+rad)
         j_start = self.location.resize_cord(J-rad)
         j_end = self.location.resize_cord(J+rad)
 
-        for i in xrange(i_start, i_end):
-            for j in xrange(j_start, j_end):
-                if SQUARE_FOV or (I-i)**2 + (J-j)**2 < rad**2:
-                    self.fov.add(Cord(i, j))
-                    
-                    voxel = self.location.get_voxel(Cord(i,j))
-                    self.fov_voxels.append(voxel)
+
+
+
+        #новые видимые коордианты
+        fov_cords = ImmutableSet(
+            (Cord(i,j) for i in xrange(i_start, i_end)
+            for j in xrange(j_start, j_end)
+            if RECT_FOV or (I-i)**2 + (J-j)**2 < sq_rad)
+            )
+
+
+
+
+
+        self.new_fov = fov_cords - self.fov
+        self.old_fov = self.fov - fov_cords
+        self.fov = fov_cords
+
+        #обновляем словарь видимых вокселей
+        new_voxels = {cord:self.location.get_voxel_full(cord) for cord in self.new_fov}
+
+        for cord in self.old_fov:
+            del self.fov_voxels[cord]
+
+        self.fov_voxels.update(new_voxels)
+
+
 
 
     
     def look_map(self):
         "возвращает список координат видимых клеток из позиции position, с координаами относительно начала карты"
-        #cdef set map_tiles
-        map_tiles = set()
+        #cdef ImmutableSet map_tiles
 
-        for cord in self.fov:
-            if cord not in self.prev_observed:
-                tile_type = self.location.get_tile(cord)
-                map_tiles.add((cord, tile_type))
+        new_tiles = [(cord, self.location.get_tile(cord)) for cord in self.new_fov]
+                
 
-        return map_tiles, self.fov
+        return new_tiles, self.fov
 
 
     def look_objects(self):
-        #cdef set observed_objects_gids, old_players
-        #cdef list observed_objects, new_players
-        
+        objects = sum((voxel.values() for voxel in self.fov_voxels.values() if voxel), [])
+        objects_gids = ImmutableSet([game_object.gid for game_object in objects])
 
-        observed_objects = sum(self.fov_voxels, [])
-        observed_objects_gids = set([game_object.gid for game_object in observed_objects])
+        if objects_gids!=self.objects_gids:
+            chunk = self.chunk
 
-        new_players = [player.get_tuple(self.name) for player in observed_objects
-                        if player.gid not in self.observed_objects_gids]
+            new_players = [player.get_tuple(self.name) for player in objects
+                            if player.gid not in self.objects_gids]
 
-        old_players = self.observed_objects_gids - observed_objects_gids
-                
+            old_players = self.objects_gids - objects_gids
+                    
 
-        self.observed_objects = observed_objects
-        self.observed_objects_gids = observed_objects_gids
-        self.observed_names = [player.name for player in observed_objects]
+            self.objects = objects
+            self.objects_gids = objects_gids
 
-        old_players_pairs = []
-
-        for name in old_players:
-            if name in self.chunk.delay_args:
-                delay_arg = self.chunk.delay_args[name]
-            else:
-                delay_arg = None
-
-            old_players_pairs.append((name, delay_arg))
+            old_players_pairs = [(name, chunk.delay_args.get(name)) for name in old_players]
 
 
-        #
-        events = {}
-        for player in self.observed_objects:
-            if isinstance(player, MutableObject):
-                events[player.gid] = player.get_events()
-            
 
-        return new_players, events, old_players_pairs
+            return new_players, old_players_pairs
+        else:
+            return None, None
+
+    def look_events(self):        
+        return [(gid, events) for gid, events in self.chunk.get_events() if gid in self.objects_gids]
 
 
 

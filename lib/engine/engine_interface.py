@@ -12,6 +12,7 @@ from engine.game_objects import Player
 
 
 from config import *
+from server_logger import debug
 
 #####################################################################
 class GameEngine:
@@ -24,7 +25,7 @@ class GameEngine:
             
     def game_connect(self, name):
         "создание нового игрока"
-        print('New player %s' % name)
+        debug('New player %s' % name)
 
         #выбираем позицию для нового игрока
         chunk_cord = game.mainlocation.main_chunk.cord
@@ -50,7 +51,7 @@ class GameEngine:
             if name in game.guided_players:
                 player = game.guided_players[name]
                 for action, message in message_list:
-                    # print 'action', action
+                    # debug ('action', action)
                     try:
                         player.handle_action(action, message)
                     except ActionDenied:
@@ -59,7 +60,7 @@ class GameEngine:
     
     def game_update(self):
         "отыгрывание раунда игры"
-        #print 'update'
+        #debug ('update')
         
         #обновляем объекты в активных локациях
         for chunk in game.get_active_chunks():
@@ -105,7 +106,8 @@ class GameEngine:
 
 
     def game_quit(self, name):
-        print('%s quit' % name)
+        debug('%s quit' % name)
+
         if name in self.messages:
             del self.messages[name]
         game.remove_guided(name)

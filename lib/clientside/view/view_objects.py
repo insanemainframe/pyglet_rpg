@@ -26,7 +26,6 @@ class ObjectsView(Drawable, GuiElement):
         self.delayed_objects = []
         
 
-        self.focus_object = False
 
         self.object_dict = {}
 
@@ -36,8 +35,8 @@ class ObjectsView(Drawable, GuiElement):
                 if issubclass(Class, object_types.Meta):
                     self.object_dict[name] = Class
 
-        self.prev_hovered = False
-        self.focus_object = False
+        self.prev_hovered = None
+        self.focus_object = None
 
     def insert_events(self, new_events={}):
         for gid, eventlist in new_events.items():
@@ -68,22 +67,27 @@ class ObjectsView(Drawable, GuiElement):
         if object_type=='Self':
             self.focus_object = gid
         #print 'create_object', gid, name
+
+    def flush(self):
+        self.objects.clear()
+        self.delayed_objects = []
+        self.prev_hovered = None
+        self.focus_object = None
     
     def remove_object(self, gid, delay_arg = False):
-        #print 'remove_object', gid, self.objects[gid].name
-        if self.objects[gid].gid == self.focus_object :
-                self.focus_object = False
-        if delay_arg:
-            action, args = delay_arg
-            print 'dealyarg', args
-            
-            self.objects[gid].handle_action(action, args)
-            self.delayed_objects.append(gid)
-        else:
-            del self.objects[gid]
+        if gid in self.objects:
+            if self.objects[gid].gid == self.focus_object :
+                    self.focus_object = False
+            if delay_arg:
+                action, args = delay_arg
+                print 'dealyarg', args
+                
+                self.objects[gid].handle_action(action, args)
+                self.delayed_objects.append(gid)
+            else:
+                del self.objects[gid]
     
-    def clear(self):
-        self.objects = {}
+
 
     def get_focus_position(self):
         if self.focus_object:

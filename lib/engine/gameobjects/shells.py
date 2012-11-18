@@ -7,19 +7,25 @@ from engine.enginelib.mutable import MutableObject
 from weakref import ProxyType
 
 from config import *
+from server_logger import debug
 
-class Shell(MutableObject, DiplomacySubject, Temporary, Solid, Mortal, ActiveState):
-    def __init__(self, direct, speed, fraction, striker, damage, alive_after_collission):
+class Shell(MutableObject, DiplomacySubject, Temporary, Solid, SmartMortal, ActiveState):
+    damage = 1
+    def __init__(self, direct, impact,  striker, alive_after_collission = False):
         assert isinstance(striker, ProxyType)
-        assert isinstance(direct, Position)
+        assert isinstance(direct, Position) and bool(direct)
 
-        MutableObject.__init__(self, None, speed = self.speed)
+        MutableObject.__init__(self)
 
+        Solid.mixin(self)
         Temporary.mixin(self, 1)
-        Mortal.mixin(self, damage, alive_after_collission)
-        DiplomacySubject.mixin(self, fraction)
+        SmartMortal.mixin(self, self.damage, alive_after_collission)
+        DiplomacySubject.mixin(self, striker.get_fraction())
 
-        one_step = Position(self.speed, self.speed)
+
+        self.set_speed(impact)
+
+        one_step = Position(impact, impact)
         self.direct = direct*(abs(one_step)/abs(direct))
 
 
@@ -27,39 +33,21 @@ class Shell(MutableObject, DiplomacySubject, Temporary, Solid, Mortal, ActiveSta
         self.striker = striker
 
     def collission(self, player):
-        if isinstance(player, Breakable):
+        if isinstance(player, MutableObject):
             player.move(self.direct)
-            Mortal.collission(self, player)
+        SmartMortal.collission(self, player)
 
     def update(self):
         self.move(self.direct)
 
 
-class DeviationMixin(Shell):
-    __deviation = Position(0,0)
-
-
-    def set_deviation(self, deviation):
-        assert isinstance(deviation, Position)
-        self.__deviation = deviation
-
-    # def update(self):
-    #     vector = self.direct +  self.__deviation
-    #     self.move(self.direct)
 
 
 
-
-
-class Ball(Fragile,  Shell):
+class MetaBall(Fragile,  Shell):
     "снаряд игрока"
-    radius = TILESIZE/2
-    speed = 60
-    BLOCKTILES = ['stone', 'forest']
-    explode_time = 20
-    alive_after_collission = False
-    def __init__(self, direct, fraction, striker, damage = 2):
-        Shell.__init__(self, direct, self.speed, fraction, striker, damage, self.alive_after_collission)
+    def __init__(self, direct, impact, striker, alive_after_collission = False):
+        Shell.__init__(self, direct, impact, striker, alive_after_collission)
         
     
     def update(self):
@@ -67,30 +55,25 @@ class Ball(Fragile,  Shell):
         Temporary.update(self)
             
     
-    
-    def collission(self, player):
-        Mortal.collission(self, player)
+
                 
     
-    def tile_collission(self, tile):
-        self.add_to_remove()
 
     def handle_remove(self):
-        return ('explode', self.explode_time)
+        return ('explode', 20)
 
+class Ball(MetaBall):
+    damage = 2
 
-class AllyBall(Ball):
-    pass
+class AllyBall(MetaBall):
+    damage = 1
                     
 
-
-class DarkBall(Ball):
-    "снаряд лича"
-    radius = TILESIZE/3
-    speed = 30
+class DarkBall(MetaBall):
+    damage = 1
     
-class SkillBall(Ball, DeviationMixin):
-    radius = TILESIZE
-    speed = 70
-    alive_after_collission = True
+class SkillBall(MetaBall):
+    damage = 2
+    def __init__(self, direct, impact, striker):
+        Shell.__init__(self, direct, impact, striker, True)
 

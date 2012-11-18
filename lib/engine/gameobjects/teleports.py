@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
+from server_logger import debug
 
 from random import randrange
 from weakref import ProxyType
@@ -27,9 +28,10 @@ class Teleport(GameObject, Solid, Savable):
     min_dist = 10
     def __init__(self, dest):
         GameObject.__init__(self)
+        Solid.mixin(self)
         self.dest = dest
     
-    def handle_new_location(self):
+    def handle_creating(self):
         self.location.teleports.append(self.chunk.cord)
     
     def collission(self, player):

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
+from server_logger import debug
 from share.errors import *
 
 
 from engine.mathlib import Cord, Position, ChunkCord
 from engine.world.chunk import Chunk
-
 
 from engine.world.objects_containers import near_cords
 
@@ -31,7 +31,7 @@ class LocationMath:
 
     def create_voxels(self):
         _range = range(self.size)
-        self._voxels = {Cord(i,j): {} for i in _range for j in _range}
+        self._voxels = [[{} for j in _range] for i in _range]
 
 
     def generate_free_cords(self):
@@ -67,6 +67,9 @@ class LocationMath:
         x,y = cord.get()
         return 0<=x<self.size and 0<=y<self.size
 
+    def is_valid_cord_2i(self, i,j):
+        return 0<=i<self.size and 0<=j<self.size
+
     def is_valid_position(self, position):
         assert isinstance(position, Position)
         x,y = position.get()
@@ -78,20 +81,36 @@ class LocationMath:
     def get_tile(self, cord):
         assert isinstance(cord, Cord)
         assert self.is_valid_cord(cord)
-        return self.map[cord.x][cord.y]
+        return self._map[cord.x][cord.y]
+
+    def get_tile_2i(self, i,j):
+        assert self.is_valid_cord_2i(i,j)
+        return self._map[i][j]
 
     def get_near_tiles(self, cord):
         nears = [(cord+near_cord).get()  for near_cord in near_cords if self.is_valid_cord(cord+near_cord)]
 
-        return [self.map[i][j] for i,j in nears]
+        return [self._map[i][j] for i,j in nears]
 
     def get_voxel(self, cord):
         assert isinstance(cord, Cord)
-        return self._voxels[cord].values()
+        return self._voxels[cord.x][cord.y].values()
+
+    def get_voxel_2i(self, i,j):
+        assert self.is_valid_cord_2i(i,j)
+        return self._voxels[i][j].values()
+
+    def get_voxel_full(self, cord):
+        assert self.is_valid_cord(cord)
+        return self._voxels[cord.x][cord.y]
+
+    def get_voxel_full_2i(self, i,j):
+        assert self.is_valid_cord_2i(i,j)
+        return self._voxels[i][j]
 
     def get_near_voxels(self, cord):
         nears = [cord+near_cord for near_cord in near_cords]
-        return [self._voxels[cord].values() for cord in nears if self.is_valid_cord(cord)]
+        return [self._voxels[cord.x][cord.y].values() for cord in nears if self.is_valid_cord(cord)]
     
 
     

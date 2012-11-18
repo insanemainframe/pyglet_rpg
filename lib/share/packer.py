@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from share.serialization import loads, dumps
 from share.errors import MethodError
 
 from share import game_protocol
@@ -24,15 +23,11 @@ def pack(protocol_object):
     method = protocol_object.__class__.__name__
 
     
-    result = dumps((method, data))
-
-    return result
-
+    return (method, data)
     
-def unpack( data):
+def unpack(pair):
     "распаковщик"
-    method, data = loads(data)
-
+    method, data= pair
     if method in method_handlers:
         message = method_handlers[method].unpack(*data)
         return str(method), message

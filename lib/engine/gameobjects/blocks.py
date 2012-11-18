@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
+from server_logger import debug
 
 from random import randrange
 
@@ -12,12 +13,12 @@ from engine.gameobjects.items import Item
 
 
 
-class MetaBlock(OverLand, Misc, Breakable, Impassable):
+class MetaBlock(OverLand, Misc, Breakable, Solid):
     """docstring for ClassName"""
     corpse = None
     def __init__(self):
         Misc.__init__(self)
-        Impassable.mixin(self, self.radius)
+        Solid.mixin(self, False)
         Breakable.mixin(self, self.hp)
         self.set_corpse(self.corpse)
 
@@ -32,17 +33,17 @@ class BlockSeed(Savable):
         self.__block_type = block_type
 
     def effect(self):
-        print ('try seed')
+        debug ('try seed')
         new_block = self.__block_type()
 
-        chunk = self.owner.chunk
-        location = self.owner.location
-        cord = self.owner.cord + Cord(0,1)
+        chunk = self.get_owner().chunk
+        location = self.get_owner().location
+        cord = self.get_owner().cord + Cord(0,1)
 
         if new_block.verify_position(location, chunk, cord, False):
             position = cord.to_position()
-            print 'seed %s' % position
-            self.owner.location.new_object(new_block, position = position)
+            debug ('seed %s' % position)
+            self.get_owner().location.new_object(new_block, position = position)
             return True
         return False
 

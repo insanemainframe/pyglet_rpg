@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from config import *
+from server_logger import debug
 from share.errors import *
 
 from engine.mathlib import Cord, Position, ChunkCord
@@ -24,7 +25,7 @@ class ChoiserMixin:
     def choice_position(self, player, chunk = None, radius = 0, generation = False):
         "выбирает случайную позицию, доступную для объекта"
 
-        #print( '%s: choice_position %s' % (self.name, player))
+        #debug( '%s: choice_position %s' % (self.name, player))
 
         start_chunk = chunk
         assert start_chunk is None or isinstance(start_chunk, ChunkCord)
@@ -79,21 +80,21 @@ class ChoiserMixin:
                     radius+=1
                 else:
                     if not ignore_chunk:
-                        print('ignore_chunk')
+                        debug('ignore_chunk')
                         ignore_chunk = True
                     else:
                         if not ignore_position:
-                            print('ignore_position')
+                            debug('ignore_position')
                             ignore_position = True
                         else:
                             raise NoPlaceException(err_message)
             else:
                 if not ignore_chunk:
-                    print('ignore_chunk')
+                    debug('ignore_chunk')
                     ignore_chunk = True
                 else:
                     if not ignore_position:
-                        print('\n\n ignore_position')
+                        debug('\n\n ignore_position')
                         ignore_position = True
                     else:
                         raise NoPlaceException(err_message)
