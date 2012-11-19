@@ -22,8 +22,8 @@ class Corpse(GameObject, Temporary):
         GameObject.__init__(self)
         Temporary.mixin(self, 5)
     
-    def update(self, cur_time):
-        super(Corpse, self).update(cur_time)
+    def __update__(self, cur_time):
+        super(Corpse, self).__update__(cur_time)
 
 
 class Unit(MutableObject, Solid, Breakable, DiplomacySubject):
@@ -39,8 +39,8 @@ class Unit(MutableObject, Solid, Breakable, DiplomacySubject):
 
         self.set_corpse(Corpse)
 
-    def update(self, cur_time):
-        super(Unit, self).update(cur_time)
+    def __update__(self, cur_time):
+        super(Unit, self).__update__(cur_time)
 
     def verify_chunk(self, location, chunk):
         if not self.__brave:
@@ -273,8 +273,8 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, Fighter, Savable
         self.stop(10)
         Breakable.hit(self, damage)
     
-    def update(self, cur_time):
-        super(MetaMonster, self).update(cur_time)
+    def __update__(self, cur_time):
+        super(MetaMonster, self).__update__(cur_time)
 
         try:
             victim_trig = self.victim and self.victim.position_changed

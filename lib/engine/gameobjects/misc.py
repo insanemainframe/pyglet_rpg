@@ -16,8 +16,8 @@ class Misc(GameObject, Savable):
         GameObject.__init__(self)
         self.number = randrange(self.count)
     
-    def update(self, cur_time):
-        super(Misc, self).update(cur_time)
+    def __update__(self, cur_time):
+        super(Misc, self).__update__(cur_time)
 
     def get_args(self):
         return {'number': self.number}

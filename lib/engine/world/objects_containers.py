@@ -17,6 +17,7 @@ nears =    ((-1,1),(0,1),(1,1),
             (-1,0),      (1,0),
             (-1,-1),(0,-1),(1,-1))
 
+
 near_cords = [Cord(i,j) for i,j in nears]
 near_chunk_cords = [ChunkCord(i,j) for i,j in nears]
 

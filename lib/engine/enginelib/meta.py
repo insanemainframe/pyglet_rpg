@@ -153,10 +153,10 @@ class GameObject(object):
     def handle_remove(self):
         return True
 
-    def update(self, cur_time):
+    def __update__(self, cur_time):
         pass
 
-    def complete_round(self):
+    def __complete_round__(self):
         pass
 
     def __str__(self):
@@ -459,7 +459,7 @@ class Breakable(object):
     
         
     
-    def update(self, cur_time):
+    def __update__(self, cur_time):
         cur_time = time()
         delta = cur_time - self.__prev_time
 
@@ -531,6 +531,9 @@ class Respawnable(object):
         
     def remove(self):
         return False
+
+    def handle_respawn(self):
+        pass
     
     def handle_remove(self):
         return False
@@ -575,7 +578,7 @@ class DiplomacySubject(object):
 
     
     
-    def update(self, cur_time):
+    def __update__(self, cur_time):
         if self.__spy_mode:
             if time()-self.__prev_time>self.__spy_mode_time:
                 self.unset_spy_mode()
@@ -590,7 +593,7 @@ class Temporary(object):
         self.__lifetime = lifetime
         self.__creation_time = time()
     
-    def update(self, cur_time):
+    def __update__(self, cur_time):
         if cur_time - self.__creation_time > self.__lifetime:
             self.add_to_remove('Temporary')
 

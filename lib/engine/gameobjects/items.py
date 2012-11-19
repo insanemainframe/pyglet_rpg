@@ -21,8 +21,8 @@ class Item(Containerable, Solid,  Temporary, GameObject):
     
     
     
-    def update(self, cur_time):
-        super(Item, self).update(cur_time)
+    def __update__(self, cur_time):
+        super(Item, self).__update__(cur_time)
     
     def effect(self):
         return True

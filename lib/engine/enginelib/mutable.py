@@ -191,16 +191,16 @@ class MutableObject(GameObject):
 
     
 
-    def complete_round(self):
+    def __complete_round__(self):
         self.__moved = False
         self.cord_changed = False
         self.position_changed = False
         self.location_changed = False
 
-        super(MutableObject, self).complete_round()
+        super(MutableObject, self).__complete_round__()
         
 
-    def update(self, cur_time):
+    def __update__(self, cur_time):
         if not self.__moved and self.__vector:
             MutableObject.move(self)
 

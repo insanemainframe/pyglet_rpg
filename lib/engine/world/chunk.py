@@ -187,7 +187,7 @@ class Chunk(ObjectContainer, ActivityContainer):
     def update(self, cur_time):
         for player in self.__updaters.values():
             if player.is_alive():
-                player.update(cur_time)
+                player.__update__(cur_time)
 
     def clear(self):
         "очистка объекьтов"       
@@ -204,7 +204,7 @@ class Chunk(ObjectContainer, ActivityContainer):
         #         MutableObject._complete_round(player)
                 
         for player in self.__updaters.values():
-                player.complete_round()
+                player.__complete_round__()
 
         self.cords_changed = False
 

@@ -13,7 +13,7 @@ from weakref import ProxyType
 from engine.mathlib import Cord, Position, ChunkCord
 from engine.enginelib.mutable import MutableObject
 
-class MapObserver:
+class MapObserver(object):
     "mixn объекта видящего карту"
     def mixin(self, look_size):
         self.look_size = look_size

@@ -125,17 +125,19 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     def ApplyItem(self, slot):
         self.apply_item(slot)
     
+
+
     def get_args(self):
         return Breakable.get_args(self)
 
 
 
     def handle_respawn(self):
-        MapObserver.handle_respawn(self)
-        Breakable.handle_respawn(self)
+        super(Player, self).handle_respawn()
+ 
     
-    def update(self, cur_time):
-        super(Player, self).update(cur_time)
+    def __update__(self, cur_time):
+        super(Player, self).__update__(cur_time)
     
 
 

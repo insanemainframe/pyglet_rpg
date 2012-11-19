@@ -47,8 +47,8 @@ class Teleport(GameObject, Solid, Savable):
         return True
 
 
-    def update(self, cur_time):
-        super(Teleport, self).update(cur_time)
+    def __update__(self, cur_time):
+        super(Teleport, self).__update__(cur_time)
 
     def __save__(self):
         return [ self.dest]
