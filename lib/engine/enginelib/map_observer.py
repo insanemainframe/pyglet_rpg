@@ -11,7 +11,6 @@ from weakref import ProxyType
 
 
 from engine.mathlib import Cord, Position, ChunkCord
-from engine.enginelib.meta import Updatable
 from engine.enginelib.mutable import MutableObject
 
 class MapObserver:
@@ -111,7 +110,7 @@ class MapObserver:
 
 
     def look_objects(self):
-        objects = sum((voxel.values() for voxel in self.fov_voxels.values() if voxel), [])
+        objects = sum([voxel.values() for voxel in self.fov_voxels.values() if voxel], [])
         objects_gids = ImmutableSet([game_object.gid for game_object in objects])
 
         if objects_gids!=self.objects_gids:
@@ -126,7 +125,7 @@ class MapObserver:
             self.objects = objects
             self.objects_gids = objects_gids
 
-            old_players_pairs = [(name, chunk.delay_args.get(name)) for name in old_players]
+            old_players_pairs = [(gid, (action, args)) for gid, (action, args) in chunk.get_delay_args() if gid in old_players]
 
 
 

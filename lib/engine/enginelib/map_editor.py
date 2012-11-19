@@ -6,7 +6,8 @@ from server_logger import debug
 from engine.mathlib import Cord, Position, ChunkCord
 from engine.mathlib import Cord, Position, ChunkCord
 from engine.mathlib import Cord, Position, ChunkCord
-class MapEditor:
+
+class MapEditor(object):
 	def __init__(self):
 		pass
 

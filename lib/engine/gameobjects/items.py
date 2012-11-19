@@ -16,14 +16,13 @@ class Item(Containerable, Solid,  Temporary, GameObject):
     def __init__(self,):
         GameObject.__init__(self)
         Solid.mixin(self)
-        Temporary.mixin(self, 10*self.lifetime)
+
+        Temporary.mixin(self, self.lifetime)
     
     
-            
-        
     
-    def update(self):
-        Temporary.update(self)
+    def update(self, cur_time):
+        super(Item, self).update(cur_time)
     
     def effect(self):
         return True

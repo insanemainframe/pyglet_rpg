@@ -19,7 +19,7 @@ class __GameSingleton(object):
     "синглтон игрового движка - хранит карты, все объекты, и предоставляет доступ к ним"
     def __init__(self):
         self.guided_players = {} #управляемые игроки
-        self.players = {}
+        self._players = {}
         
         self.monster_count = 0
         self.guided_changed = False
@@ -75,18 +75,21 @@ class __GameSingleton(object):
         
     def _new_object(self, player):
         "создает динамический объект"
-        assert not isinstance(player, ProxyType)
-        assert not hasattr(player, 'location')
-        assert not hasattr(player, 'chunk')
-        assert not hasattr(player, 'cord')
-        assert not hasattr(player, 'Position')
+        assert self._new_object_assertion(player)
 
         if isinstance(player, Guided):  debug ('game._new_object', player)
         
-        self.players[player.name] = player
+        self._players[player.name] = player
          
         if isinstance(player, Guided):
             self.guided_players[player.name] = proxy(player)
+
+    def _new_object_assertion(self, player):
+        return (not isinstance(player, ProxyType) and
+                not hasattr(player, 'location') and
+                not hasattr(player, 'chunk') and
+                not hasattr(player, 'cord') and 
+                not hasattr(player, 'Position'))
                 
 
         
@@ -94,23 +97,19 @@ class __GameSingleton(object):
     
     def _remove_object(self, player, force = False):
         name = player.name
-        assert name in self.players
-        assert player.is_alive()
+        assert name in self._players
 
         if isinstance(player, Guided): debug ('game._remove_object', player)
 
         
 
         player.handle_remove()
+
+        location = player.location
+
         player.location.pop_object(player)
 
-        if not isinstance(player, Respawnable) or force:
-            if name in self.guided_players:
-                del self.guided_players[name]
-                
-            del self.players[name]
-            
-        else:
+        if not force and isinstance(player, Respawnable):
 
             player._GameObject__REMOVE = False
             player.regid()
@@ -119,10 +118,21 @@ class __GameSingleton(object):
             if isinstance(player, MutableObject):
                 player.flush()
 
-            chunk_cord = game.mainlocation.main_chunk.cord
-            self.mainlocation.add_object(player, chunk_cord)
+            if isinstance(player, Guided):
+                chunk_cord = game.mainlocation.main_chunk.cord
+                self.mainlocation.add_object(player, chunk_cord)
+
+            else:
+                location.add_object(player)
 
             player.handle_respawn()
+
+        else:
+            if name in self.guided_players:
+                del self.guided_players[name]
+                
+            del self._players[name]
+            
 
 
 
@@ -195,6 +205,9 @@ class __GameSingleton(object):
 
     def stop(self):
         self.stopped = True
+        from engine.world.objects_containers import ObjectContainer
+        print ObjectContainer._ObjectContainer__counter
+
 
 
 

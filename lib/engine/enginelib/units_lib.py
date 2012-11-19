@@ -22,8 +22,8 @@ class Corpse(GameObject, Temporary):
         GameObject.__init__(self)
         Temporary.mixin(self, 5)
     
-    def update(self):
-        Temporary.update(self)
+    def update(self, cur_time):
+        super(Corpse, self).update(cur_time)
 
 
 class Unit(MutableObject, Solid, Breakable, DiplomacySubject):
@@ -38,6 +38,9 @@ class Unit(MutableObject, Solid, Breakable, DiplomacySubject):
         self.set_speed(speed)
 
         self.set_corpse(Corpse)
+
+    def update(self, cur_time):
+        super(Unit, self).update(cur_time)
 
     def verify_chunk(self, location, chunk):
         if not self.__brave:
@@ -63,7 +66,7 @@ class Unit(MutableObject, Solid, Breakable, DiplomacySubject):
         Breakable.handle_remove(self)
 
 
-class Lootable:
+class Lootable(object):
     "объект, послесмерти которого выпадает предмет"
     __loot = set((Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak))
     def mixin(self, cost):
@@ -83,7 +86,7 @@ class Lootable:
             self.location.new_object(item, position = self.position)
 
 
-class Fighter:
+class Fighter(object):
     "объект спобоный на ближнюю атаку"
     atack_distance = int(hypot(1.5, 1.5))
     def mixin(self, damage, attack_speed=30):
@@ -131,7 +134,7 @@ class Fighter:
 
 
 
-class Stalker:
+class Stalker(object):
     "объекты охотящиеся за игроками"
     def mixin(self, look_size):
         self.__look_size = look_size
@@ -152,7 +155,7 @@ class Stalker:
             return False
 
             
-class Striker:
+class Striker(object):
     "дает возможность игроку стрелять снарядами"
     default_shell = Ball
     def mixin(self, strike_speed = 1, impact = 1):
@@ -200,7 +203,7 @@ class Striker:
     
 
 
-class Stats:
+class Stats(object):
     def mixin(self):
         self.gold = 0
         self.kills = 0
@@ -243,16 +246,19 @@ class Walker(MutableObject):
         return direct
 
 
-class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, SavableRandom):
+class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, Fighter, SavableRandom):
     radius = TILESIZE
     look_size = 10
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     SLOWTILES = {'water':0.5, 'bush':0.3}
-    __fraction = 'bad'
+    fraction = 'bad'
+
+    attack_speed = 30
     
     def __init__(self, speed, hp):
-        Unit.__init__(self, None, hp, speed, self.__fraction)
+        Unit.__init__(self, None, hp, speed, self.fraction)
 
+        Fighter.mixin(self, self.damage, self.attack_speed)
         Stalker.mixin(self, self.look_size)
         Respawnable.mixin(self, 60, 100)
         Lootable.mixin(self, self.loot_cost)
@@ -267,10 +273,11 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, SavableRandom):
         self.stop(10)
         Breakable.hit(self, damage)
     
-    def update(self):
+    def update(self, cur_time):
+        super(MetaMonster, self).update(cur_time)
+
         try:
             victim_trig = self.victim and self.victim.position_changed
-
         except ReferenceError:
             pass
         else:
@@ -293,8 +300,7 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, SavableRandom):
                 else:
                     self.move(self.get_walk_vector())
 
-        finally:
-            Breakable.update(self)
+
     
     def get_args(self):
         return Breakable.get_args(self)

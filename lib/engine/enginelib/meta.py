@@ -14,10 +14,14 @@ from time import time
 from weakref import proxy, ProxyType
 from collections import defaultdict
 
+from abc import ABCMeta, abstractmethod
+
 
 
 
 class GameObject(object):
+    __metaclass__ = ABCMeta
+
     BLOCKTILES = []
     SLOWTILES = {}
     __name_counter = 0
@@ -37,6 +41,36 @@ class GameObject(object):
         
         self.gid = str(hash((name, random())))
         self.__REMOVE = False
+        self.__created = False
+        self.__activity = 0
+
+    def __run(self):
+        self.__created = True
+        if self.__activity>0:
+            self.chunk.add_to_update(self.name)
+        
+
+    def add_activity(self, Class = None):
+        # print 'add to update', self
+        self.__activity+=1
+        if self.__activity==1 and self.__created:
+            self.chunk.add_to_update(self.name)
+
+        assert self.__activity>0
+        
+
+    def pop_activity(self):
+        # print 'pop_activity', self, Class
+        if self.__activity>0:
+            self.__activity-=1
+            if self.__activity==0:
+                self.chunk.pop_from_update(self.name)
+
+        assert self.__activity>=0
+
+    def get_activity(self):
+        return bool(self.__activity)
+
         
 
 
@@ -45,18 +79,8 @@ class GameObject(object):
 
 
 
-
     def is_alive(self):
         return not self.__REMOVE
-
-    
-    def handle_creating(self):
-        pass
-
-    
-    def handle_remove(self):
-        return True
-
 
     
     def regid(self):
@@ -89,36 +113,6 @@ class GameObject(object):
         self.chunk.set_new_players()
 
 
-    
-    
-    def verify_chunk(self, location, chunk):
-        return True
-    
-    def verify_position(self, location, chunk, cord, generation = True):
-        # debug self.name, 'BLOCKTILES', location.get_tile(cord), self.BLOCKTILES
-        blocked = location.get_tile(cord) in self.BLOCKTILES
-        if blocked:
-            debug( 'blocked', self.name, self.BLOCKTILES)
-            return False
-        else:
-            return True
-
-      
-    
-    
-
-    def __hash__(self):
-        return hash(self.name)
-    
-    def __eq__(self, player):
-        return self.name==player.name
-    
-    def __ne__(self, player):
-        return self.name!=player.name
-    
-
-    
-
 
     def add_to_remove(self, reason = None):
         if isinstance(self, Guided):
@@ -127,7 +121,7 @@ class GameObject(object):
         self.chunk.add_to_remove(self.name)
 
     def add_delay(self, action, *args):
-        self.chunk.delay_args[self.gid] = (action, args)
+        self.chunk.add_delay(self.gid, action, args)
 
     def get_tuple(self, name):
         if name==self.name:
@@ -140,9 +134,44 @@ class GameObject(object):
     def get_args(self):
         return {}
 
+    def verify_chunk(self, location, chunk):
+        return True
+    
+    def verify_position(self, location, chunk, cord, generation = True):
+        # debug self.name, 'BLOCKTILES', location.get_tile(cord), self.BLOCKTILES
+        blocked = location.get_tile(cord) in self.BLOCKTILES
+        if blocked:
+            debug( 'blocked', self.name, self.BLOCKTILES)
+            return False
+        else:
+            return True
+
+
+    def handle_creating(self):
+        pass
+
+    def handle_remove(self):
+        return True
+
+    def update(self, cur_time):
+        pass
+
+    def complete_round(self):
+        pass
 
     def __str__(self):
-        return self.name
+        return "<%s> % s" % (self.__class__.__name__, self.name)
+
+    def __hash__(self):
+        return hash(self.name)
+    
+    def __eq__(self, player):
+        return self.name==player.name
+    
+    def __ne__(self, player):
+        return self.name!=player.name
+
+
 
 
 
@@ -152,9 +181,6 @@ class ActiveState(object):
     def is_active(self):
         return True
 
-class Updatable(object):
-    def mixin(self):
-        pass
 
 
 
@@ -274,7 +300,7 @@ class Container(object):
 
 
 
-class Containerable:
+class Containerable(object):
     def get_owner(self):
         return self.__owner
 
@@ -353,7 +379,7 @@ class Solid(object):
 
 
         
-class Breakable:
+class Breakable(object):
     "класс для живых объектов"
     __heal_time = 120
 
@@ -411,6 +437,8 @@ class Breakable:
 
     
     def hit(self, hp):
+        self.add_activity('Breakable')
+
         self.__update_hp_value(-hp)
         
         if self.__hp_value<=0:
@@ -424,12 +452,14 @@ class Breakable:
             hp = self.heal_speed
 
         self.__update_hp_value(hp)
+        if self.__hp_value==self.__hp:
+            self.pop_activity()
 
 
     
         
     
-    def update(self):
+    def update(self, cur_time):
         cur_time = time()
         delta = cur_time - self.__prev_time
 
@@ -475,7 +505,8 @@ class Mortal(object):
     
     def collission(self, player):
         if isinstance(player, Breakable):
-            is_dead = player.hit(self.__damage* self.get_speed())
+            damage = (self.__damage*self.get_speed()/10)
+            is_dead = player.hit(damage)
             if not self.__alive_after:
                 self.add_to_remove('Mortal')
             #
@@ -544,28 +575,28 @@ class DiplomacySubject(object):
 
     
     
-    def update(self):
+    def update(self, cur_time):
         if self.__spy_mode:
             if time()-self.__prev_time>self.__spy_mode_time:
                 self.unset_spy_mode()
 
+
 ####################################################################
-class Temporary(Updatable):
+class Temporary(object):
     "класс объекта с ограниченным сроком существования"
     def mixin(self, lifetime):
-        Updatable.mixin(self)
+        self.add_activity('Temporary')
+        
         self.__lifetime = lifetime
         self.__creation_time = time()
     
-    def update(self, ):
-        cur_time = time()
-
+    def update(self, cur_time):
         if cur_time - self.__creation_time > self.__lifetime:
             self.add_to_remove('Temporary')
 
 
 
-class Groupable:
+class Groupable(object):
     group_chance = 98
 
     def verify_position(self, location, chunk, cord, generation = True):
@@ -611,8 +642,8 @@ class SavableRandom(Savable):
         return position
 
 
-class OverLand:
+class OverLand(object):
     BLOCKTILES = ['water', 'ocean', 'lava', 'stone']
 
-class OverWater:
+class OverWater(object):
     BLOCKTILES = ['grass', 'forest', 'bush', 'stone', 'underground', 'lava']

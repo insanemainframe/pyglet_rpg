@@ -6,7 +6,7 @@ from engine.enginelib.meta import *
 from engine.gameobjects.shells import SkillBall
 
 
-class Skillable:
+class Skillable(object):
     def mixin(self):
         self.__slots = {}
 
@@ -22,7 +22,7 @@ class Skillable:
         pass
 
 
-class SkillABC:
+class SkillABC(object):
     pass
 
 class Skill(SkillABC):

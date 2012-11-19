@@ -67,6 +67,7 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
         
         self.add_object(proxy(player), chunk, position)
         
+        player._GameObject__run()
         player.handle_creating()
 
 

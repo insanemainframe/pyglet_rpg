@@ -54,7 +54,7 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
         self.set_fraction(master.get_fraction())
         debug ('ally fraction', self.get_master().get_fraction(), self.get_fraction())
     
-    def update(self):
+    def update(self, cur_time):
         if self.has_master():
             master_cord = self.get_master().cord
             self_cord = self.cord
@@ -69,12 +69,11 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
                 else:
                     self.move(self.get_walk_vector())
             else:
-                self.move(o_pos - pos)
+                self.move(master_cord.to_position() - self.position)
         else:
             self.move(self.get_walk_vector())
         
-        Breakable.update(self)
-        Temporary.update(self)
+        super(Ally, self).update(cur_time)
     
     
     def get_args(self):
@@ -114,7 +113,7 @@ class Cat(Walker, Solid, Stalker, DiplomacySubject, GameObject):
         player.heal(5)
         self.add_event('rainbow', self.rainbow_time)
     
-    def update(self):
+    def update(self, cur_time):
         if chance(10):
             result = self.hunt(True)
             if result:
@@ -125,13 +124,14 @@ class Cat(Walker, Solid, Stalker, DiplomacySubject, GameObject):
         else:
             if not self.get_vector():
                 self.move(self.get_walk_vector())
+        super(Cat, self).update(cur_time)
     
 
 
 
         
 
-class Bat(Fighter, MetaMonster):
+class Bat(MetaMonster):
     player_hp = 3
     speed = 30
     damage = 1
@@ -142,11 +142,10 @@ class Bat(Fighter, MetaMonster):
     
     def __init__(self):
         MetaMonster.__init__(self, self.speed, self.player_hp)
-        Fighter.mixin(self, self.damage, self.attack_speed)
     
 
 
-class Zombie(Fighter, MetaMonster):
+class Zombie( MetaMonster):
     player_hp = 20
     speed = 15
     damage = 2
@@ -155,12 +154,15 @@ class Zombie(Fighter, MetaMonster):
     
     def __init__(self):
         MetaMonster.__init__(self, self.speed, self.player_hp)
-        Fighter.mixin(self, self.damage, self.attack_speed)
+        
+
+    def update(self, cur_time):
+        super(Zombie, self).update(cur_time)
     
 
     
 
-class Ghast(Fighter, MetaMonster):
+class Ghast( MetaMonster):
     player_hp = 50
     speed = 10
     damage = 10
@@ -170,6 +172,9 @@ class Ghast(Fighter, MetaMonster):
     def __init__(self):
         MetaMonster.__init__(self, self.speed, self.player_hp)
         Fighter.mixin(self, self.damage, self.attack_speed)
+
+    def update(self, cur_time):
+        super(Ghast, self).update(cur_time)
 
 
 
@@ -184,7 +189,7 @@ class Lych(MetaMonster, Striker):
         Striker.mixin(self, 1, self.damage)
         self.set_shell(DarkBall)
     
-    def update(self):
+    def update(self, cur_time):
         if chance(50):
             result = self.hunt(False)
             if result:
@@ -197,5 +202,5 @@ class Lych(MetaMonster, Striker):
         else:
             self.move(self.get_walk_vector())
             
-        Breakable.update(self)
+        super(Lych, self).update(cur_time)
         

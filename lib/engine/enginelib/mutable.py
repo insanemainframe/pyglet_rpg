@@ -11,14 +11,13 @@ from engine.enginelib.collissions import *
 
 
 
-class MutableObject(GameObject, Updatable):
+class MutableObject(GameObject):
     "класс движущихся объектов"
     BLOCKTILES = []
     SLOWTILES = {}
     def __init__(self, name = None):
         GameObject.__init__(self, name)
 
-        Updatable.mixin(self)
 
 
         self.cord_changed = True
@@ -31,6 +30,8 @@ class MutableObject(GameObject, Updatable):
         self.__move_vector = Position(0,0)
         self.__moved = False
         self.__stopped = 0
+
+        self.add_activity('MutableObject')
 
 
 
@@ -69,6 +70,9 @@ class MutableObject(GameObject, Updatable):
         assert isinstance(vector, Position), vector
         
         success = True
+
+        if vector:
+            self.add_activity('MutableObject')
 
         if not self.__moved:
             self.__moved = True
@@ -112,6 +116,9 @@ class MutableObject(GameObject, Updatable):
                     #добавляем событие
                     if self.__move_vector:
                         self.add_event('move',  self.__move_vector.get())
+
+        # if not self.__vector:
+        #     self.pop_activity()
         return success
                     
                 
@@ -184,19 +191,19 @@ class MutableObject(GameObject, Updatable):
 
     
 
-    def _complete_round(self):
+    def complete_round(self):
         self.__moved = False
         self.cord_changed = False
         self.position_changed = False
         self.location_changed = False
+
+        super(MutableObject, self).complete_round()
         
 
-    def _update(self):
+    def update(self, cur_time):
         if not self.__moved and self.__vector:
             MutableObject.move(self)
 
-    def update(self):
-        pass
 
 
 
@@ -207,8 +214,7 @@ class MutableObject(GameObject, Updatable):
     def handle_respawn(self):
         pass
 
-    def update(self):
-        pass
+
 
 
     

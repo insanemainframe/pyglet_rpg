@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
+from config import *
+from server_logger import debug
+
 from share.game_protocol import NewLocation, ServerAccept
 
 from engine.world.singleton import game
 
-from engine.enginelib.meta import Updatable, ActionDenied
+from engine.enginelib.meta import ActionDenied
 from engine.enginelib.mutable import MutableObject
-
 from engine.game_objects import Player
 
 
-from config import *
-from server_logger import debug
+from time import time
 
 #####################################################################
 class GameEngine:
@@ -63,17 +64,15 @@ class GameEngine:
         #debug ('update')
         
         #обновляем объекты в активных локациях
+        cur_time = time()
         for chunk in game.get_active_chunks():
-            for player in chunk.get_list(Updatable)[:]:
-                if player.is_alive():
-                    if isinstance(player, MutableObject):
-                        player._update()
-                    player.update()
+            chunk.update(cur_time)
+            
             
         
         #обновляем активнеы локации
         for chunk in game.get_active_chunks():
-            chunk.update()
+            chunk.clear()
 
                     
         
@@ -91,8 +90,6 @@ class GameEngine:
     def end_round(self):
         "завершение игрового раунда"
         for chunk in game.get_active_chunks():
-            for player in chunk.get_list(MutableObject):
-                MutableObject._complete_round(player)
             chunk.complete_round()
         
         game.guided_changed = False
@@ -102,6 +99,7 @@ class GameEngine:
         game.save()
 
     def stop(self):
+        debug('stopping engine')
         game.stop()
 
 

@@ -26,6 +26,7 @@ class MetaBlock(OverLand, Misc, Breakable, Solid):
         Breakable.handle_remove(self)
         
 
+
 class BlockSeed(Savable):
     def mixin(self, block_type):
         assert isinstance(block_type, type)
@@ -47,16 +48,22 @@ class BlockSeed(Savable):
             return True
         return False
 
-        def __save__(self):
-            return (self.__block_type.__name__)
+    def handle_remove(self):
+        self.location.new_object(new_block, position = self.position)
 
-        @classmethod
-        def __load__(cls, location, block_type_name):
-            assert isinstance(block_type_name, str)
-            assert block_type_name in locals()
+    def __save__(self):
+        return (self.__block_type.__name__, )
 
-            block_type = locals()[block_type_name]
-            return block_type()
+    @classmethod
+    def __load__(cls, location, block_type_name):
+        #block_type_name = 'AloneTree'
+
+        assert isinstance(block_type_name, str), block_type_name
+        assert block_type_name in globals(), block_type_name
+
+        block_type = globals()[block_type_name]
+        return block_type()
+
 
 class Brick(BlockSeed, Item):
     def __init__(self):

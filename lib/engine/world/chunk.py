@@ -12,7 +12,7 @@ from collections import defaultdict
 from engine.world.objects_containers import ActivityContainer, ObjectContainer, near_chunk_cords
 
 
-from engine.enginelib.meta import Solid, Updatable, DiplomacySubject, Guided
+from engine.enginelib.meta import Solid, DiplomacySubject, Guided
 from engine.enginelib.mutable import MutableObject
 
 from engine.enginelib.units_lib import Unit, MetaMonster
@@ -23,7 +23,7 @@ from engine.gameobjects.teleports import Teleport
 
 class Chunk(ObjectContainer, ActivityContainer):
     "функционал локации для работы с объектами"
-    proxy_list = (MutableObject, Solid, Updatable, Unit, Teleport)
+    proxy_list = (MutableObject, Solid, Unit, Teleport)
     def __init__(self, location, cord):
         self.location = location
         self.cord = cord
@@ -36,20 +36,19 @@ class Chunk(ObjectContainer, ActivityContainer):
         
         
 
-        self._players = {}
+        self.__players = {}
         self.__events = defaultdict(list)
         self.cords_changed = False
 
-        self.delay_args = {}
+        self._delay_args = {}
 
         self._new_events = False
-        self._remove_list = set()
+        self.__remove_list = set()
+        self.__updaters = {}
 
         self.__protected = False
 
-    
-    def set_protected(self):
-        self.__protected = True
+
 
 
         
@@ -59,7 +58,6 @@ class Chunk(ObjectContainer, ActivityContainer):
 
         if self.location.is_valid_position(new_position):
             
-
             player._prev_position = player._position
             player._position  = new_position
             player.position_changed = True
@@ -79,51 +77,71 @@ class Chunk(ObjectContainer, ActivityContainer):
     
     def add_object(self, player, position):
         "добавляет ссылку на игрока"
+        name = player.name
+
         assert isinstance(player, ProxyType)
         assert not hasattr(player, 'chunk')
-        assert not player.name in self._players
+        assert not name in self.__players
+        assert name not in self.__updaters
 
-        # if isinstance(player, Guided):  debug ('chunk.add_object', player)
+        player.chunk = proxy(self)
+        
+        self.add_activity(player)
+        self.add_proxy(player)
+        self.__players[name] = player
 
-        if self.__protected and isinstance(player, MetaMoster):
-            return False
+        if player._GameObject__activity>0:
+            self.__updaters[name] = player
 
-        else:
-            player.chunk = proxy(self)
-            
-            self.add_activity(player)
-            self.add_proxy(player)
-            self._players[player.name] = player
-
-            player.set_position(position)
-            return True
+        player.set_position(position)
 
     
     def pop_object(self, player):
         "удаляет ссылку из списка игроков"
-        assert player.name in self._players
+        name = player.name
+
+        assert player.name in self.__players
         assert player.chunk==self
 
-        # if isinstance(player, Guided):  debug ('chunk.pop_object', player)
-        
-        name = player.name
-        
-            
-
-        self.remove_activity(player)
         self.remove_proxy(player)
+        self.remove_activity(player)
+        
 
-        if name in self._remove_list:
-            self._remove_list.remove(name)
+        if name in self.__remove_list:
+            self.__remove_list.remove(name)
 
+        if name in self.__updaters:
+            del self.__updaters[name]
 
-
-        del self._players[player.name]
+        del self.__players[player.name]
         del player.chunk
 
 
     def add_to_remove(self, name):
-        self._remove_list.add(name)
+        self.__remove_list.add(name)
+
+    def add_delay(self, gid, action, args):
+        self._delay_args[gid] = (action, args)
+
+    def get_delay_args(self):
+        return self._delay_args.items()
+
+
+    def add_to_update(self, name):
+        assert name in self.__players
+        assert self.__players[name]._GameObject__activity>0
+
+        # print 'add to update', name
+
+        if name not in self.__updaters:
+            self.__updaters[name] = self.__players[name]
+
+    def pop_from_update(self, name):
+        assert isinstance(name, str)
+        assert self.__players[name]._GameObject__activity==0
+        assert name in self.__updaters
+
+        del self.__updaters[name]
 
     def add_event(self, gid, event):
         self._new_events = True
@@ -152,10 +170,9 @@ class Chunk(ObjectContainer, ActivityContainer):
                 return True
         return False
 
+
     def get_nears(self):
         return self.nears
-
-
 
 
     
@@ -166,26 +183,37 @@ class Chunk(ObjectContainer, ActivityContainer):
             if self.location.is_valid_chunk(self.cord + chunk_cord):
                 near_chunk = self.location.get_chunk(self.cord + chunk_cord)
                 self.nears.append(near_chunk)
-        
-    def update(self):
-        "очистка объекьтов"            
-        for name in self._remove_list.copy():
-            assert name in self._players, self._remove_list
-            player = self._players[name]
-            self.location.remove_object(player)
-
-        self._remove_list.clear()
     
-    def complete_round(self):        
-        ObjectContainer.complete_round(self)
+    def update(self, cur_time):
+        for player in self.__updaters.values():
+            if player.is_alive():
+                player.update(cur_time)
 
-        self._map_changed = False
+    def clear(self):
+        "очистка объекьтов"       
+        if self.__remove_list:     
+            for name in self.__remove_list.copy():
+                assert name in self.__players, self.__remove_list
+                player = self.__players[name]
+                self.location.remove_object(player)
+
+            self.__remove_list.clear()
+    
+    def complete_round(self):
+        # for player in self.get_list(MutableObject):
+        #         MutableObject._complete_round(player)
+                
+        for player in self.__updaters.values():
+                player.complete_round()
+
         self.cords_changed = False
 
         self._new_events = False
         self.__events.clear()
 
-        self.delay_args.clear()
+        self._delay_args.clear()
+
+        super(Chunk, self).complete_round()
 
     def set_activity(self):
         self.location.add_active_chunk(self)
@@ -196,5 +224,9 @@ class Chunk(ObjectContainer, ActivityContainer):
     def __eq__(self, chunk):
         assert isinstance(chunk, Chunk)
         return self.cord==chunk.cord
+
+    def __del__(self):
+        print 'del chunk'
+        super(Chunk, self).__del__()
 
 

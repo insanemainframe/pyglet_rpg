@@ -37,8 +37,9 @@ class Shell(MutableObject, DiplomacySubject, Temporary, Solid, SmartMortal, Acti
             player.move(self.direct)
         SmartMortal.collission(self, player)
 
-    def update(self):
+    def update(self, cur_time):
         self.move(self.direct)
+        super(Shell, self).update(cur_time)
 
 
 
@@ -50,9 +51,8 @@ class MetaBall(Fragile,  Shell):
         Shell.__init__(self, direct, impact, striker, alive_after_collission)
         
     
-    def update(self):
-        Shell.update(self)
-        Temporary.update(self)
+    def update(self, cur_time):
+        super(MetaBall, self).update(cur_time)
             
     
 

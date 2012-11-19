@@ -22,8 +22,8 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     player_hp = 100 #60
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     SLOWTILES = {'water':0.5, 'bush':0.3}
-    damage = 20
     strike_speed = 2
+    strike_impulse = 60
     default_skills = 1000
 
     fraction='players'
@@ -35,7 +35,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         HierarchySubject.mixin(self)
         
         MapObserver.mixin(self, look_size)
-        Striker.mixin(self,self.strike_speed, self.damage)
+        Striker.mixin(self,self.strike_speed, self.strike_impulse)
         Respawnable.mixin(self, 10, 30)
         Stats.mixin(self)
         Skill.mixin(self,self.default_skills)
@@ -134,9 +134,8 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         MapObserver.handle_respawn(self)
         Breakable.handle_respawn(self)
     
-    def update(self):
-        Breakable.update(self)
-        DiplomacySubject.update(self)
+    def update(self, cur_time):
+        super(Player, self).update(cur_time)
     
 
 
