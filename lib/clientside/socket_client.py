@@ -7,7 +7,7 @@ import socket, sys, os
 from select import select
 from socket import error as SocketError
 
-from share.protocol_lib import send, receivable
+from share.protocol_lib import send, Receiver
 from share.serialization import loads, dumps
 
 
@@ -23,7 +23,7 @@ class SocketClient:
         
         self.insock, self.in_fileno = self.create_sock(OUT)
         
-        self.generator = receivable(self.insock)
+        self.generator = Receiver(self.insock)
         
         self.out_messages = []
         

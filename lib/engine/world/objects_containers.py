@@ -112,9 +112,7 @@ class ObjectContainer(object):
     def complete_round(self):
         self.new_players = False
 
-    def __del__(self):
-        print 'Proxies'
-        print self.__counter
+
 
 
 class ActivityContainer(object):

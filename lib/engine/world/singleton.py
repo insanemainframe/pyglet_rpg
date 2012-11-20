@@ -206,7 +206,7 @@ class __GameSingleton(object):
     def stop(self):
         self.stopped = True
         from engine.world.objects_containers import ObjectContainer
-        print ObjectContainer._ObjectContainer__counter
+        debug(ObjectContainer._ObjectContainer__counter)
 
 
 

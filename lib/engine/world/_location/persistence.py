@@ -99,7 +99,7 @@ class PersistentLocation(object):
         for player in self._players.values():
             if isinstance(player, Savable):
                 object_type = player.__class__.__name__
-                data = player.__save__()
+                data = tuple(player.__save__())
                 position = player.position.get()
 
                 objects.append((object_type, data, position))

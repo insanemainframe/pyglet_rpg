@@ -51,7 +51,7 @@ class GameObject(object):
         
 
     def add_activity(self, Class = None):
-        # print 'add to update', self
+        # debug  'add to update', self
         self.__activity+=1
         if self.__activity==1 and self.__created:
             self.chunk.add_to_update(self.name)
@@ -60,7 +60,7 @@ class GameObject(object):
         
 
     def pop_activity(self):
-        # print 'pop_activity', self, Class
+        # debug  'pop_activity', self, Class
         if self.__activity>0:
             self.__activity-=1
             if self.__activity==0:
@@ -154,6 +154,9 @@ class GameObject(object):
         return True
 
     def __update__(self, cur_time):
+        pass
+
+    def __regular__(self, cur_time):
         pass
 
     def __complete_round__(self):
@@ -599,33 +602,6 @@ class Temporary(object):
 
 
 
-class Groupable(object):
-    group_chance = 98
-
-    def verify_position(self, location, chunk, cord, generation = True):
-        if not GameObject.verify_position(self, location, chunk, cord, generation = True):
-            return False
-        self_type = self.__class__
-
-        if generation:
-            if not hasattr(self_type, 'gen_counter'):
-                self_type.gen_counter = 0
-
-            if self_type.gen_counter<50:
-                self_type.gen_counter+=1
-                return True
-            else:
-                for player in sum(location.get_near_voxels(cord), []):
-                    if isinstance(player, self_type):
-                        return True
-                if chance(self.group_chance):
-                    return False
-                else:
-                    return True
-        else:
-            return True
-
-
 
 class Savable(object):
     def handle_load_position(self, location, position):
@@ -645,8 +621,3 @@ class SavableRandom(Savable):
         return position
 
 
-class OverLand(object):
-    BLOCKTILES = ['water', 'ocean', 'lava', 'stone']
-
-class OverWater(object):
-    BLOCKTILES = ['grass', 'forest', 'bush', 'stone', 'underground', 'lava']

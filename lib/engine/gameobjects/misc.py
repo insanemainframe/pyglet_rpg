@@ -9,6 +9,7 @@ from engine.mathlib import Cord, Position, ChunkCord, chance
 
 from engine.enginelib.meta import *
 from engine.gameobjects.player import Player
+from engine.enginelib.passability import *
 
 
 class Misc(GameObject, Savable):
@@ -34,16 +35,17 @@ class Flower(Misc, OverLand):
 class WaterFlower(Misc, OverWater):
     count = 9
 
-class BigWaterFlower(WaterFlower, OverWater):
+
+
+
+
+class BigWaterFlower(WaterFlower, OverWater, BigObject):
     count = 9
     def verify_position(self, location, chunk, cord, generation = True):
-        if not GameObject.verify_position(self, location, chunk, cord, generation):
-            return False
+        return (GameObject.verify_position(self, location, chunk, cord, generation) and
+                BigObject.verify_position(self, location, chunk, cord, generation))
             
-        for tile in location.get_near_tiles(cord):
-                if tile in self.BLOCKTILES:
-                    return False
-        return True
+        
 
 class Reef(Misc, OverWater):
     count = 3

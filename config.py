@@ -36,7 +36,7 @@ LOCATION_MUL = 1
 MAP_ZLIB = True
 
 
-SERVER_LOG_FILE = '/tmp/server_game.log'
+LOG_FILE = '/tmp/server_game.log'
 
 PROFILE_SERVER = 1
 SOCKET_SERVER_PROFILE = 1

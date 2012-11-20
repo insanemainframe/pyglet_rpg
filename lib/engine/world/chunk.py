@@ -131,7 +131,7 @@ class Chunk(ObjectContainer, ActivityContainer):
         assert name in self.__players
         assert self.__players[name]._GameObject__activity>0
 
-        # print 'add to update', name
+        # debug  'add to update', name
 
         if name not in self.__updaters:
             self.__updaters[name] = self.__players[name]
@@ -226,7 +226,7 @@ class Chunk(ObjectContainer, ActivityContainer):
         return self.cord==chunk.cord
 
     def __del__(self):
-        print 'del chunk'
+        debug  ('del chunk')
         super(Chunk, self).__del__()
 
 

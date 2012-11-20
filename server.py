@@ -11,7 +11,7 @@ from config import HOSTNAME, PROFILE_SERVER, SERVER_PROFILE_FILE
 
 from share.ask_hostname import ask_hostname
 from serverside.server import GameServer
-
+from server_logger import debug
 
 
 def main():
@@ -22,11 +22,11 @@ def main():
 if __name__ == '__main__':
 	if PROFILE_SERVER:
 		import cProfile
-		print('profile')
+		debug('profile')
 		cProfile.run('main()', SERVER_PROFILE_FILE)
         
 	else:
 		main()
 
-	print ('game process stopped')
+	debug ('game process stopped')
 

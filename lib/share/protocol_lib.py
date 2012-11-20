@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import struct
-from socket import htonl, ntohl, error as socket_error
+from socket import htonl, ntohl, error as SocketError
 
-from share.logger import PROTOCOLLOG as LOG
 
 
 
@@ -12,10 +11,7 @@ from share.logger import PROTOCOLLOG as LOG
 
 class PackageError(BaseException):
     "ошибка полуения пакета"
-    def __init__(self, data=''):
-        self.error = 'package receive erroor %s' %  data
-    def __str__(self):
-        return self.error
+    
 
 
 
@@ -24,78 +20,65 @@ class PackageError(BaseException):
 #####################################################################
 #упаковка и распаковка пакетов для сокетов
 def send(channel, data):
-    if data:
-        value = htonl(len(data))
-        size = struct.pack("!Q",value)
-        #посылаем размер пакета
-        while size:
-            try:
-                channel.send(size)
-            except socket_error as Error:
-                if Error[0]==11:
-                    print('send: error 11')
-                if Error[0]==9:
-                    pass
-                elif Error[0]==104:
-                    return 
-                elif Error[0]==32:
-                    return 
-                else:
-                    raise Error
-            else:
-                size = ''
-        #посылаем пакет
-        while data:
-            try:
-                channel.send(data)
-            except socket_error as Error:
-                if Error[0]==11:
-                    print('send: error 11')
-                elif Error[0]==104:
-                    return
-                elif Error[0]==32:
-                    return 
-                else:
-                    raise Error
-            else:
-                data = ''
+    assert isinstance(data, bytes) and bool(data), data
+
+    #вычисляем размер пакета
+    size = htonl(len(data))
+    size_block = struct.pack("!Q",size)
+
+    response = size_block+data
+
+    response_size = len(response)
+
+    #посылаем размер пакета
+    try:
+        sended_size = channel.send(response)
+    except SocketError as (errno, message):
+        if errno in (11, 9, 104, 32):
+            print('send: error %s' % errno)
+            return
+
+        else:
+            raise SocketError(errno, message)
+    else:
+        assert sended_size == response_size
+
+
             
 
     
 
+size_for_recv= struct.calcsize("!Q")
 
-def receivable(channel):
+def Receiver(channel):
     "генератор получающий данные из сокета, возвращает пакет данных или None если считывать больше нечего"
     while 1:
+        data = bytes('')
+        package_size = bytes('')
+
         #получаем размер из канала
-        size_for_recv= struct.calcsize("!Q")
-        size = ''
-        while len(size)<size_for_recv:
+        while len(package_size)<size_for_recv:
             try:
-                new_size = channel.recv(size_for_recv-len(size))
+                new_size = channel.recv(size_for_recv-len(package_size))
                 
-            except socket_error as Error:
-                errno = Error[0]
-                if errno==11:
-                    #сокет недоступен для чтения
-                    yield None
-                elif errno==35:
-                    print('socket error 35')
-                    yield None
+            except SocketError as (errno, message):
+                if errno in (11, 35):
+                    yield 
                 else:
-                    print('receivable socket error#', str(errno))
-                    raise Error
+                    print('Receiver socket error#', errno, message)
+
+                    raise SocketError(errno, message)
             else:
                 if new_size:
-                    size+=new_size
+                    package_size+=new_size
                 else:
                     raise StopIteration
-        if not size:
+        if not package_size:
             raise StopIteration
         
         #преобразуем размер
         try:
-            size = struct.unpack("!Q", size)[0]
+            size = struct.unpack("!Q", package_size)[0]
             size = ntohl(size)
         except struct.error as Error:
             #в случае ошибки конвертации размера
@@ -104,30 +87,26 @@ def receivable(channel):
 
         else:
             #получаем пакет данных
-            data = ''
             while len(data)<size:
                 try:
                     new_data = channel.recv(size - len(data))
-                except socket_error as Error:
-                    errno = Error[0]
-                    if errno==11:
-                        #сокет недоступен для чтения
-                        yield None
-                    elif errno==35:
-                        print('socket error 35')
-                        yield None
+                
+                except SocketError as (errno, message):
+                    if errno in (11, 35):
+                        yield
                     else:
-                        print('socket error while receiving apckage: %s' % str(Error))
-                        raise Error
+                        print('Receiver socket error', errno, message)
+                        raise  SocketError(errno, message)
+
+
                 else:
                     if new_data:
                         data+=new_data
                     else:
-                        print('NO DATA')
                         raise StopIteration
 
             yield data
-            data = None
+            
             
 
 

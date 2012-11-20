@@ -79,10 +79,13 @@ class ObjectsView(Drawable, GuiElement):
             if self.objects[gid].gid == self.focus_object :
                     self.focus_object = False
             if delay_arg:
+                player = self.objects[gid]
                 action, args = delay_arg
-                print 'dealyarg', args
+                print 'delay', player,name, args
                 
-                self.objects[gid].handle_action(action, args)
+                player.handle_action(action, args)
+                player._dealy()
+
                 self.delayed_objects.append(gid)
             else:
                 del self.objects[gid]
@@ -126,6 +129,10 @@ class ObjectsView(Drawable, GuiElement):
                 if self.objects[gid]._REMOVE:
                     self.remove_object(gid)
                     self.delayed_objects.remove(gid)
+                else:
+                    if not self.objects[gid]._is_alive():
+                        print 'dorce remove'
+                        self.remove_object(gid)
 
 
     

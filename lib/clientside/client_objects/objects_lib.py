@@ -56,6 +56,12 @@ class ClientObject:
     def unhover(self):
         pass
 
+    def _delay(self):
+        self._remove_time = time()
+
+    def _is_alive(self):
+        return time() - self._remove_time < 5
+
 class StaticObject(ClientObject):
     def __init__(self, name, position):
         ClientObject.__init__(self, name, position)

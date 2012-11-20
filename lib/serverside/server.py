@@ -103,9 +103,9 @@ class GameServer(object):
             debug('GameServer running')
             t = time()
             while 1:
-                if not self.server.excp.empty():
+                if self.server.has_exceptions():
                     debug('error in SocketServer')
-                    stop_reason = self.server.excp.get_nowait()
+                    stop_reason = list(self.server.get_exceptions())
                     break
 
                 r_time = time()

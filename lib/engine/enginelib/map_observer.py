@@ -125,8 +125,14 @@ class MapObserver(object):
             self.objects = objects
             self.objects_gids = objects_gids
 
-            old_players_pairs = [(gid, (action, args)) for gid, (action, args) in chunk.get_delay_args() if gid in old_players]
+            if old_players:
+                delay_args = chunk.get_delay_args()
 
+                old_players_pairs = [(gid, delay_args[gid] if gid in delay_args else ())
+                                for gid in old_players]
+
+            else:
+                old_players_pairs = ()
 
 
             return new_players, old_players_pairs

@@ -10,6 +10,7 @@ from engine.mathlib import Cord, Position, ChunkCord, chance
 from engine.enginelib.meta import *
 from engine.gameobjects.misc import Misc
 from engine.gameobjects.items import Item
+from engine.enginelib.passability import *
 
 
 

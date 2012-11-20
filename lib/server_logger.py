@@ -4,14 +4,17 @@
 import os.path
 import logging
 
-from config import SERVER_LOG_FILE
+from config import LOG_FILE
 
-if os.path.exists(SERVER_LOG_FILE):
+if os.path.exists(LOG_FILE):
     from os import remove
-    remove(SERVER_LOG_FILE)
+    remove(LOG_FILE)
 
-if __debug__ or True:
+if __debug__:
     handler = logging.StreamHandler()
+
+else:
+	handler = logging.FileHandler(LOG_FILE)
     
 
 logger = logging.Logger('logger')

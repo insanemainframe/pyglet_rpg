@@ -55,16 +55,14 @@ class EpollMultiplexer:
 class SelectMultiplexer:
     poll_engine = 'select'
     def __init__(self):
-        pass
+        self.__insocks = []
     
-    def _register(self, fileno):
-        pass
-        
+
     def _unregister(self, fileno):
-        pass
+        self.__insocks.append(fileno)
 
     def _register_in(self, fileno):
-        pass
+        self.__insocks.append(fileno)
         
     def _run_poll(self):
         "ожидание входящих пакетов с совкетов, обработка новых подключений"

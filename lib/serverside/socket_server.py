@@ -17,7 +17,7 @@ import cProfile
 from collections import namedtuple
 
 
-from share.protocol_lib import send, receivable, PackageError
+from share.protocol_lib import send, Receiver, PackageError
 from serverside.multiplexer import Multiplexer
 from share.serialization import loads, dumps
 from share.packer import pack, unpack
@@ -46,16 +46,15 @@ class SocketServer(Multiplexer, Process):
         self.outsock, self.out_fileno = self._create_socket(OUT)
 
         self.infilenos = {}
-        self.insocks = {}
         self.outfilenos = {}
 
         self.address_buf = {}
 
-        self.accepted = Queue()
-        self.closed = Queue()
-        self.requestes = Queue()
-        self.responses = Queue()
-        self.excp = Queue()
+        self.__accepted = Queue()
+        self.__closed = Queue()
+        self.__requestes = Queue()
+        self.__responses = Queue()
+        self.__exceptions = Queue()
 
         self.sender_thread  = Thread(target = self._sender)
 
@@ -71,37 +70,49 @@ class SocketServer(Multiplexer, Process):
     #интерфейс
     def get_accepted(self, blocking = False):
         if not blocking:
-            while not self.accepted.empty():
-                yield self.accepted.get_nowait()
+            while not self.__accepted.empty():
+                yield self.__accepted.get_nowait()
         else:
-            while not self.accepted.empty():
-                yield self.accepted.get()
+            while not self.__accepted.empty():
+                yield self.__accepted.get()
         raise StopIteration
 
     def get_closed(self):
         try:
             while 1:
-                yield self.closed.get_nowait()
+                yield self.__closed.get_nowait()
         except Empty:
             raise StopIteration
 
     def get_requestes(self):
         try:
             while 1:
-                client, request = self.requestes.get_nowait()
+                client, request = self.__requestes.get_nowait()
                 yield client, unpack(request)
         except Empty:
             raise StopIteration
+
+    def get_exceptions(self):
+        try:
+            while 1:
+                except_type, except_class, traceback = self.__exceptions.get_nowait()
+                yield except_type, except_class, traceback
+        except Empty:
+            raise StopIteration
+
+    def has_exceptions(self):
+        return not self.__exceptions.empty()
+
                 
         
 
     def put_response(self, client_name, response):
-        self.responses.put_nowait((client_name, pack(response)))
+        self.__responses.put_nowait((client_name, pack(response)))
 
 
     def _handle_exception(self, except_type, except_class, tb):
         debug ('sending exception')
-        self.excp.put_nowait((except_type, except_class, traceback.extract_tb(tb)))
+        self.__exceptions.put_nowait((except_type, except_class, traceback.extract_tb(tb)))
             
     def _create_socket(self, stream):
         "создает неблокирубщий сокет на заданном порте"
@@ -115,20 +126,20 @@ class SocketServer(Multiplexer, Process):
     def _sender(self):
         try:
             while not self.stop_event.is_set():
-
                 try:
-                    client_name, response = self.responses.get(1)
-                except:
+                    client_name, response = self.__responses.get(timeout=1)
+
+                except Empty:
                     pass
+                else:
+                    if client_name in self.clients:
+                        sock = self.clients[client_name].outsock
 
-                if client_name in self.clients:
-                    sock = self.clients[client_name].outsock
-
-                    package = dumps(response)
-                    try:
-                        send(sock, package)
-                    except socket_error as error:
-                        debug('sender error', str(error))
+                        package = dumps(response)
+                        try:
+                            send(sock, package)
+                        except socket_error as error:
+                            debug('sender error', str(error))
             
 
         except:
@@ -145,10 +156,8 @@ class SocketServer(Multiplexer, Process):
         try:
             package = self.clients[client_name].generator.next()
 
-        except socket.error as Error:
-            #если возникла ошабка на сокете - закрываем"
-            errno = Error[0]
-            self._handle_close(client_name, 'Socket Error %s' % errno)
+        except socket.error as (errno, message):
+            self._handle_close(client_name, 'Socket Error %s %s' % errno, message)
             return False
                             
         except PackageError:
@@ -163,7 +172,7 @@ class SocketServer(Multiplexer, Process):
         else:
             if package:
                 request = loads(package)
-                self.requestes.put_nowait((client_name, request))
+                self.__requestes.put_nowait((client_name, request))
             return True
             
         
@@ -204,7 +213,7 @@ class SocketServer(Multiplexer, Process):
         client_name = 'player_%s' % self.client_counter
         self.client_counter+=1
         
-        self.clients[client_name] = client_tuple(insock,outsock, receivable(insock))
+        self.clients[client_name] = client_tuple(insock,outsock, Receiver(insock))
         
         insock_fileno = insock.fileno()
         outsock_fileno = outsock.fileno()
@@ -219,7 +228,7 @@ class SocketServer(Multiplexer, Process):
         debug('accepting_client %s' % client_name)
 
         #реагируем на появление нового клиента
-        self.accepted.put_nowait(client_name)
+        self.__accepted.put_nowait(client_name)
         
     
 
@@ -227,6 +236,7 @@ class SocketServer(Multiplexer, Process):
     def run(self):
         try:
             if SOCKET_SERVER_PROFILE:
+                print 'profile socket-server'
                 cProfile.runctx('self._run()', globals(),locals(),SOCKET_SERVER_PROFILE_FILE)
             else:
                 self._run()
@@ -263,8 +273,9 @@ class SocketServer(Multiplexer, Process):
     def _handle_close(self, client_name, message):
         "закрытие подключения"
         debug('Closing %s: %s' % (client_name, message))
+
         
-        self.closed.put_nowait(client_name)
+        self.__closed.put_nowait(client_name)
         
         #
         infileno = self.clients[client_name].insock.fileno()
@@ -288,7 +299,7 @@ class SocketServer(Multiplexer, Process):
     def stop(self, sender = 'unknown'):
         debug ('sending signal from %s' % sender)
         self.stop_event.set()
-        self.responses.close()
+        self.__responses.close()
 
     def _stop(self, reason=None):
         if self.running:
@@ -298,7 +309,7 @@ class SocketServer(Multiplexer, Process):
 
             self.stop_event.set() 
 
-            # self.responses.close()
+            # self.__responses.close()
             self._unregister(self.in_fileno)
             
             self.insock.close()
