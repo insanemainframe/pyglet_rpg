@@ -12,6 +12,7 @@ class Equipment(Container):
     def mixin(self, slots_num = 8):
         Container.mixin(self)
         self.__equipment_changed = True
+        self.__tool = None
     
     def handle_bind(self, item):
         self.__equipment_changed = True
@@ -38,6 +39,9 @@ class Equipment(Container):
 
     def is_equipment_changed(self):
         return self.__equipment_changed
+
+    def is_set_tool(self):
+        return bool(self.__tool)
             
             
 

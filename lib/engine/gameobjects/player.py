@@ -113,8 +113,11 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
             
             
     def Strike(self, vector):
-        vector = Position(*vector.get())
-        self.strike_ball(vector)
+        if self.is_set_tool():
+            self.use_tool()
+        else:
+            vector = Position(*vector.get())
+            self.strike_ball(vector)
     
     def Move(self, vector, destination):
         vector = Position(*vector.get())
