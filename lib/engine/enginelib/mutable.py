@@ -33,6 +33,8 @@ class MutableObject(GameObject):
 
         self.add_activity('MutableObject')
 
+        self.destination = None
+
 
 
     
@@ -74,6 +76,11 @@ class MutableObject(GameObject):
         if vector:
             self.add_activity('MutableObject')
 
+        if destination:
+            self.destination = destination
+        if vector and not destination:
+            self.destination = None
+
         if not self.__moved:
             self.__moved = True
             if self.__stopped>0:
@@ -94,13 +101,17 @@ class MutableObject(GameObject):
 
                     resist = 1
                     if self.cord!= new_cord:
-                        move_vector, resist, blocked = self._tile_collission(move_vector, destination)
+                        move_vector, resist, blocked = self._tile_collission(move_vector)
                         success = not blocked
              
                     
                     
                     self.__vector = self.__vector - move_vector
                     move_vector = move_vector * resist
+
+                    #
+                    if not self.__vector and self.destination:
+                        self._get_object(True)
                 else:
                     move_vector = self.__vector
                 
@@ -123,10 +134,11 @@ class MutableObject(GameObject):
                     
                 
     
-    def _tile_collission(self, move_vector, destination):
+    def _tile_collission(self, move_vector):
         "определения пересечяения вектора с непрохоодимыми и труднопроходимыми тайлами"
         resist = 1
         blocked = False
+
         for (i,j), cross_position in get_cross(self.position, move_vector):
             if 0<i<self.location.size and 0<j<self.location.size:
                 cross_tile =  self.location.get_tile(Cord(i,j))
@@ -153,24 +165,44 @@ class MutableObject(GameObject):
                 self.__vector = move_vector
                 blocked = True
                 break
-        else:
-            if destination:
-                for player in self.location.get_tile(Cord(i,j)):
-                    if player.name==destination:
+
+        return move_vector, resist, blocked
+        
+    def _get_object(self, force = False):
+        assert self.destination
+
+        for player in self.location.get_voxel(Cord(i,j)):
+            if player.name==self.destination:
+                player.collission(proxy(self))
+                self.collission(player)
+                self.destination = None
+                break
+        if force:
+            for voxel in self.location.get_near_voxels(Cord(i,j)):
+                for player in voxel.values():
+                    if player.name==self.destination:
                         player.collission(proxy(self))
                         self.collission(player)
+                        break
+
 
                 
             
-        return move_vector, resist, blocked
         
     def _voxel_collision(self, cord):
         for player in self.location.get_voxel(cord):
             if isinstance(player, Solid) and player.name != self.name:
                 player.collission(proxy(self))
                 self.collission(player)
-                if not player.is_passable():
+
+                if player.name==self.destination:
+                    self.destination = None
+
+                if not player.is_passable() or player.is_alive():
+                    return True
+                else:
                     return False
+
         return True
         
     

@@ -115,6 +115,7 @@ class GameObject(object):
 
 
     def add_to_remove(self, reason = None):
+        self.__REMOVE = True
         if isinstance(self, Guided):
             debug ('add_to_remove', reason)
         
@@ -405,6 +406,10 @@ class Breakable(object):
 
         self.__prev_time = time()
 
+    def __add_activity(self, message = None):
+        if self.__heal_speed:
+            self.add_activity(message)
+
     def set_hp(self, new_hp):
         if new_hp>0:
             self.__hp = new_hp
@@ -448,11 +453,12 @@ class Breakable(object):
 
     
     def hit(self, hp):
-        self.add_activity('Breakable')
+        self.__add_activity('Breakable')
 
         self.__update_hp_value(-hp)
         
         if self.__hp_value<=0:
+            print self.name, 'died'
             self.add_to_remove('died')
             return True
         else:

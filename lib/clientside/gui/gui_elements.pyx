@@ -149,7 +149,7 @@ class EquipmentDisplay(Drawable, GuiElement):
             yn+=1
             n+=1
     
-    def on_key_press(self, int symbol, modifiers):
+    def on_key_press(self, symbol, modifiers):
         "движение с помощью клавиатуры"
         if symbol in self.control_keys:
             self.pressed[symbol] = True
