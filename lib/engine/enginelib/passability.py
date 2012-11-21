@@ -11,8 +11,6 @@ class Groupable(object):
     group_chance = 98
 
     def verify_position(self, location, chunk, cord, generation = True):
-        if not GameObject.verify_position(self, location, chunk, cord, generation = True):
-            return False
         self_type = self.__class__
 
         if generation:

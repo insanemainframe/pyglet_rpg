@@ -135,6 +135,7 @@ class MapObserver(object):
                 old_players_pairs = ()
 
 
+
             return new_players, old_players_pairs
         else:
             return None, None

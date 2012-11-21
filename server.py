@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-
 from sys import path
 
 path.append('lib/')
@@ -10,7 +8,8 @@ path.append('lib/')
 from config import HOSTNAME, PROFILE_SERVER, SERVER_PROFILE_FILE
 
 from share.ask_hostname import ask_hostname
-from serverside.server import GameServer
+from serverside.game_server import GameServer
+
 from server_logger import debug
 
 

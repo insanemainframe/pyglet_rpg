@@ -7,14 +7,14 @@ import socket
 from socket import error as socket_error
 
 from threading import Thread
-from multiprocessing import Process, Queue, Event
-from multiprocessing.queues import Empty
+from multiprocessing import Process, Event, Pipe
 
 from sys import exc_info, exit as sys_exit
 import traceback
 import cProfile
 
 from collections import namedtuple
+import signal
 
 
 from share.protocol_lib import send, Receiver, PackageError
@@ -39,6 +39,9 @@ class SocketServer(Multiplexer, Process):
     def __init__(self, hostname, listen_num=100):
         Process.__init__(self)
         Multiplexer.__init__(self)
+
+        self.daemon = True
+
         self.listen_num = listen_num
         self.hostname = hostname
 
@@ -50,13 +53,16 @@ class SocketServer(Multiplexer, Process):
 
         self.address_buf = {}
 
-        self.__accepted = Queue()
-        self.__closed = Queue()
-        self.__requestes = Queue()
-        self.__responses = Queue()
-        self.__exceptions = Queue()
+        self._accepted, self.__accepted = Pipe(False)
+        self._closed, self.__closed = Pipe(False)
+        # self._exceptions, self.__exceptions = Pipe(False)
+        self._exceptions = Event()
 
-        self.sender_thread  = Thread(target = self._sender)
+        self._requestes, self.__requestes = Pipe(False)
+        self.__responses, self._responses  = Pipe(False)
+
+        self.__sender_thread  = Thread(target = self._sender)
+        self.__sender_thread.daemon = True
 
         self.clients = {}
         self.client_counter = 0
@@ -69,50 +75,33 @@ class SocketServer(Multiplexer, Process):
 
     #интерфейс
     def get_accepted(self, blocking = False):
-        if not blocking:
-            while not self.__accepted.empty():
-                yield self.__accepted.get_nowait()
-        else:
-            while not self.__accepted.empty():
-                yield self.__accepted.get()
-        raise StopIteration
+        while self._accepted.poll():
+            yield self._accepted.recv()
+
 
     def get_closed(self):
-        try:
-            while 1:
-                yield self.__closed.get_nowait()
-        except Empty:
-            raise StopIteration
+        while self._closed.poll():
+            yield self._closed.recv()
 
     def get_requestes(self):
-        try:
-            while 1:
-                client, request = self.__requestes.get_nowait()
-                yield client, unpack(request)
-        except Empty:
-            raise StopIteration
+        while self._requestes.poll():
+            client, request = self._requestes.recv()
+            yield client, unpack(request)
 
-    def get_exceptions(self):
-        try:
-            while 1:
-                except_type, except_class, traceback = self.__exceptions.get_nowait()
-                yield except_type, except_class, traceback
-        except Empty:
-            raise StopIteration
+
 
     def has_exceptions(self):
-        return not self.__exceptions.empty()
+        return self._exceptions.is_set()
 
-                
-        
 
     def put_response(self, client_name, response):
-        self.__responses.put_nowait((client_name, pack(response)))
+        self._responses.send((client_name, pack(response)))
 
 
     def _handle_exception(self, except_type, except_class, tb):
         debug ('sending exception')
-        self.__exceptions.put_nowait((except_type, except_class, traceback.extract_tb(tb)))
+        #self.__exceptions.send((except_type, except_class, traceback.extract_tb(tb)))
+        self._exceptions.set()
             
     def _create_socket(self, stream):
         "создает неблокирубщий сокет на заданном порте"
@@ -126,12 +115,9 @@ class SocketServer(Multiplexer, Process):
     def _sender(self):
         try:
             while not self.stop_event.is_set():
-                try:
-                    client_name, response = self.__responses.get(timeout=1)
+                if self.__responses.poll(3):
+                    client_name, response = self.__responses.recv()
 
-                except Empty:
-                    pass
-                else:
                     if client_name in self.clients:
                         sock = self.clients[client_name].outsock
 
@@ -145,7 +131,9 @@ class SocketServer(Multiplexer, Process):
         except:
             debug ('excption in sender')
             self._handle_exception(*exc_info())
-            self._stop('sender')  
+            #self._stop('sender')
+            self.stop_event.set()
+
         debug('sender stop')          
 
             
@@ -172,7 +160,7 @@ class SocketServer(Multiplexer, Process):
         else:
             if package:
                 request = loads(package)
-                self.__requestes.put_nowait((client_name, request))
+                self.__requestes.send((client_name, request))
             return True
             
         
@@ -228,22 +216,23 @@ class SocketServer(Multiplexer, Process):
         debug('accepting_client %s' % client_name)
 
         #реагируем на появление нового клиента
-        self.__accepted.put_nowait(client_name)
+        self.__accepted.send(client_name)
         
     
 
     
     def run(self):
+        signal.signal(signal.SIGINT, lambda *x: self._stop('socket SIGINT %s' % x))
         try:
             if SOCKET_SERVER_PROFILE:
                 print 'profile socket-server'
-                cProfile.runctx('self._run()', globals(),locals(),SOCKET_SERVER_PROFILE_FILE)
+                cProfile.runctx('self._run()', globals(),locals(), SOCKET_SERVER_PROFILE_FILE)
             else:
                 self._run()
         except Exception as error:
             debug ('Socket server erro:', error)
             self._handle_exception(*exc_info())
-            self._stop('run')
+            self._stop('run %s' % str(error))
 
         debug ('server process stopped')
 
@@ -263,7 +252,7 @@ class SocketServer(Multiplexer, Process):
        
         debug('\nServer running at %s:(%s,%s) multiplexer: %s \n' % (self.hostname, IN_PORT, OUT_PORT, self.poll_engine))
         #запускаем sender
-        self.sender_thread.start()
+        self.__sender_thread.start()
     
         #запускаем мультиплексор
         self._run_poll()
@@ -275,7 +264,7 @@ class SocketServer(Multiplexer, Process):
         debug('Closing %s: %s' % (client_name, message))
 
         
-        self.__closed.put_nowait(client_name)
+        self.__closed.send(client_name)
         
         #
         infileno = self.clients[client_name].insock.fileno()
@@ -299,30 +288,42 @@ class SocketServer(Multiplexer, Process):
     def stop(self, sender = 'unknown'):
         debug ('sending signal from %s' % sender)
         self.stop_event.set()
-        self.__responses.close()
+
+        self._responses.close()
+        self._requestes.close()
+        self._accepted.close()
+        self._closed.close()
+
+        
+
+    def _sigint(self, sig_num, frame):
+        self.stop_event.set()
 
     def _stop(self, reason=None):
-        if self.running:
-            debug('SocketServer stopping.. %s' % reason)
+        debug('SocketServer stopping.. %s' % str(reason))
 
-            self.running = False
+        self.running = False
 
-            self.stop_event.set() 
+        if not self.stop_event.is_set():
+            self.stop_event.set()
 
-            # self.__responses.close()
-            self._unregister(self.in_fileno)
-            
-            self.insock.close()
-            self.outsock.close()
 
-            self._stop_poll()
+        self.__responses.close()
+        self.__requestes.close()
+        self.__accepted.close()
+        self.__closed.close()
 
-            
-            debug( 'waiting for sender thread')
-            self.sender_thread.join()
-            debug ('sender thread stopped')
-            debug('SocketServer stopped')
-            #sys_exit()
+
+
+        self._unregister(self.in_fileno)
+        self.insock.close()
+        self.outsock.close()
+        self._stop_poll()
+
+        
+        debug( 'waiting for sender thread')
+        self.__sender_thread.join()
+        debug('SocketServer stopped')
 
  
             

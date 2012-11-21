@@ -99,7 +99,8 @@ class __GameSingleton(object):
         name = player.name
         assert name in self._players
 
-        if isinstance(player, Guided): debug ('game._remove_object', player)
+        #if isinstance(player, Guided):
+        debug ('game._remove_object', player)
 
         
 

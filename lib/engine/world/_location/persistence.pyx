@@ -5,7 +5,7 @@ from server_logger import debug
 from share.errors import *
 xrange = range
 
-from engine.mathlib import Cord, Position, ChunkCord
+from engine.mathlib cimport Cord, Position, ChunkCord
 
 from share.serialization import loads, dumps, load, dump
 
@@ -36,37 +36,33 @@ class PersistentLocation(object):
         init = imp.load_source('init', LOCATION_PATH %mapname + 'init.py')
         self.generate_func = init.generate
 
-        
-
-
 
     def create_object(self, n, object_type):
         assert isinstance(n, int)
-        # assert isinstance(object_type, type), object_type
         # assert (issubclass(object_type, GameObject) or 
-        #         issubclass(object_type, GameObjectFactory)), object_type
-        
+        #         issubclass(object_type,GameObjectFactory)), object_type
+
         n = int(n/LOCATION_MUL)
         debug ('creating %s of %s' % (n, object_type.__name__))
         for i in xrange(n):
             monster = object_type()
             self.new_object(monster)
             
-    
-        
-        
-
-
 
     def load_objects(self):
+        cdef str object_type_name, filename
+        cdef Position position
+        cdef int x,y
+        cdef tuple data
+
         if self.location_exists():
             filename = LOCATION_PATH % self._mapname + LOCATION_FILE
             locations_objects = load(filename)
 
 
-            for object_type, data, (x,y) in locations_objects:
+            for object_type_name, data, (x,y) in locations_objects:
                 position = Position(x,y)
-                object_type = self.get_class(object_type)
+                object_type = self.get_class(object_type_name)
 
                 player = object_type.__load__(self, *data)
 
@@ -81,9 +77,9 @@ class PersistentLocation(object):
             return False
 
 
-
-
     def get_class(self, object_type):
+        assert isinstance(object_type, str)
+
         return getattr(game_objects, object_type)
 
     def location_exists(self):

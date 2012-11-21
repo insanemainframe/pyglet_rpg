@@ -25,7 +25,7 @@ class ChoiserMixin:
     def choice_position(self, player, chunk = None, radius = 0, generation = False):
         "выбирает случайную позицию, доступную для объекта"
 
-        #debug( '%s: choice_position %s' % (self.name, player))
+        # debug( '\n %s: choice_position %s' % (self.name, player))
 
         start_chunk = chunk
         assert start_chunk is None or isinstance(start_chunk, ChunkCord)
@@ -58,9 +58,13 @@ class ChoiserMixin:
             chunk_list = list(chunks)
             del chunks
 
+            # print len(chunk_list)
+
             while chunk_list:
                 chunk_cord = chunk_list.pop(randrange(len(chunk_list)))
                 chunk = self._chunks[chunk_cord]
+
+                # print chunk_cord
 
                 if ignore_chunk or player.verify_chunk(self, chunk):
                     chunk = self._chunks[chunk_cord]
@@ -68,10 +72,12 @@ class ChoiserMixin:
                     try:
                         position = self._choice_in_chunk(player, chunk_cord, bad_cords, ignore_position)
                     except NoPlaceException:
+                        # print 'no place in chunk'
                         bad_chunks.add(chunk_cord)
                     else:
                         return chunk_cord, position
                 else:
+                    # print 'bad chunk', chunk_cord, player
                     bad_chunks.add(chunk_cord)
                     
         
@@ -106,18 +112,22 @@ class ChoiserMixin:
 
         cords = list(self.get_free_cords(chunk_cord))
 
+        # print 'cords', len(cords)
+
         while cords:
             cord = cords.pop(randrange(len(cords)))
             voxel = self.get_voxel(cord)
 
-            if not self.get_tile(cord) in player.BLOCKTILES:
-                if ignore_position or player.verify_position(self, chunk, cord):
+            # if not self.get_tile(cord) in player.BLOCKTILES:
+            if ignore_position or player.verify_position(self, chunk, cord):
                     position = cord.to_position()
                     if not player.cord_binded:
                         shift = Position(randrange(TILESIZE), randrange(TILESIZE))
                         position += shift 
                     return position
-            bad_cords.add(cord)
+            else:
+                # print 'bad cord', player.verify_position
+                bad_cords.add(cord)
         raise NoPlaceException
 
 

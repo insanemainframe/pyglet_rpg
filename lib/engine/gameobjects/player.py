@@ -7,6 +7,8 @@ from engine.enginelib.meta import *
 from engine.mathlib import chance
 from engine.enginelib.units_lib import Unit, Striker, Stats
 from engine.gameobjects.shells import Ball
+from engine.gameobjects.items import Sceptre
+
 from engine.enginelib.mutable import MutableObject
 from engine.enginelib.skills import Skill
 from engine.enginelib.equipment import Equipment
@@ -19,7 +21,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     min_dist = 10
     prev_looked = set()
     speed = TILESIZE*0.5
-    player_hp = 100 #60
+    player_hp = 600
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     SLOWTILES = {'water':0.5, 'bush':0.3}
     strike_speed = 2
@@ -43,6 +45,8 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
 
         self.set_strike_speed(5)
         self.set_shell(Ball)
+        
+        self.add_related(Sceptre())
 
 
         self.set_actions(ApplyItem = self.ApplyItem, Move = self.Move,
@@ -134,6 +138,10 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
 
     def handle_respawn(self):
         super(Player, self).handle_respawn()
+
+    def handle_change_location(self):
+        super(Player, self).handle_change_location()
+
  
     
     def __update__(self, cur_time):

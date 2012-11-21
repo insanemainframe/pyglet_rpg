@@ -23,7 +23,7 @@ class Corpse(GameObject, Temporary):
         Temporary.mixin(self, 5)
     
     def __update__(self, cur_time):
-        super(Corpse, self).__update__(cur_time)
+        Temporary.__update__(self, cur_time)
 
 
 class Unit(MutableObject, Solid, Breakable, DiplomacySubject):
@@ -43,14 +43,18 @@ class Unit(MutableObject, Solid, Breakable, DiplomacySubject):
         super(Unit, self).__update__(cur_time)
 
     def verify_chunk(self, location, chunk):
+        if not super(Unit, self).verify_chunk(location, chunk):
+            return False
         if not self.__brave:
             for player in chunk.get_list(Unit):
                 if self.is_enemy(player):
+                    print self.fraction, player.fraction, 'is enemy'
                     return False
+            return True
         return True
 
     def verify_position(self, location, chunk, cord, generation = True):
-        if not GameObject.verify_position(self, location, chunk, cord, generation):
+        if not super(Unit, self).verify_position(location, chunk, cord, generation):
             return False
             
         for player in sum(location.get_near_voxels(cord), []):
@@ -308,8 +312,10 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, Fighter, Savable
 
     def verify_chunk(self, location, chunk):
         if chunk.cord==location.main_chunk.cord:
+            print 'not maincord'
             return False
-        return Unit.verify_chunk(self, location, chunk)
+        return super(MetaMonster, self).verify_chunk(location, chunk)
+
 
 
     def handle_remove(self):

@@ -9,7 +9,7 @@ from weakref import ProxyType
 from engine.enginelib.meta import *
 from engine.gameobjects.player import Player
 
-class GetTeleport:
+class TeleportFactory(GameObjectFactory):
     "фабрика  телепортов"
     __name__ = 'Teleport factory'
     def __init__(self, ttype, dest):

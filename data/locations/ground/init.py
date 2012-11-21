@@ -3,6 +3,7 @@
 from config import *
 
 from engine.gameobjects.teleports import *
+from engine.gameobjects.monsters import *
 from engine.gameobjects.units import *
 from engine.gameobjects.misc import *
 from engine.gameobjects.blocks import *
@@ -16,14 +17,6 @@ items = [Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cl
 
 
 def generate(self):
-        print('Generating location, this can take a while...')
-        print('\t Creating teleports...')
-        self.create_object(200, GetTeleport(Cave, 'underground'))
-
-        print('\t Creating decorartions...')
-        self.create_object(10000, AloneTree)
-        self.create_object(1000, Rock)
-
         print('\t Creating monsters...')
         self.create_object(100, Lych)
         self.create_object(100, Bat)
@@ -31,6 +24,15 @@ def generate(self):
         
         self.create_object(100, Ghast)
         self.create_object(50, Cat)
+
+        print('\t Creating teleports...')
+        self.create_object(200, TeleportFactory(Cave, 'underground'))
+
+        print('\t Creating decorartions...')
+        self.create_object(10000, AloneTree)
+        self.create_object(1000, Rock)
+
+        
         
         
         

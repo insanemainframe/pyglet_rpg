@@ -3,7 +3,9 @@
 from config import *
 
 from engine.gameobjects.teleports import *
+from engine.gameobjects.monsters import *
 from engine.gameobjects.units import *
+
 from engine.gameobjects.misc import *
 from engine.gameobjects.blocks import *
 
@@ -15,7 +17,7 @@ items = [Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cl
     
 def generate(self):
         print('\t Creating teleports...')
-        self.create_object(200, GetTeleport(UpStair,'underground'))
+        self.create_object(200, TeleportFactory(UpStair,'underground'))
         
         print('\t Creating decorartions...')
         self.create_object(10000, Rock)

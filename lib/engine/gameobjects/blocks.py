@@ -25,6 +25,9 @@ class MetaBlock(OverLand, Misc, Breakable, Solid):
 
     def handle_remove(self):
         Breakable.handle_remove(self)
+
+    def update(cur_time):
+        super(self, MetaBlock).update(cur_time)
         
 
 
@@ -50,6 +53,7 @@ class BlockSeed(Savable):
         return False
 
     def handle_remove(self):
+        new_block = self.__block_type()
         self.location.new_object(new_block, position = self.position)
 
     def __save__(self):
@@ -78,7 +82,7 @@ class Brick(BlockSeed, Item):
 class Rock(Groupable, MetaBlock):
     count = 1
     radius = TILESIZE
-    hp = 20
+    hp = 200
     corpse = Brick
     group_chance = 99.5
     cord_binded = True

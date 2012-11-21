@@ -3,7 +3,8 @@
 from config import SERVER_TIMER, HOSTNAME, PROFILE_SERVER, SERVER_PROFILE_FILE, DEBUG, ACCEPT_NUMBER
 from server_logger import debug
 
-from sys import exit as sys_exit, exc_info
+from sys import exit as  exc_info
+import signal
 import traceback
 import cProfile
 from time import time, sleep
@@ -77,13 +78,29 @@ class GameServer(object):
         #завершаем раунд игры
         self.game.end_round()
 
+    def sigint(self, sig_Num, frame):
+        self.stop('server sigint')
+
+
 
 
     def stop(self, stop_reason = ''):
         #считаем среднее время на раунд
-        debug('%s \n GameServer stopping...' % str(stop_reason))
-        self.server.stop('gameserver.stop')
-        self.game.stop()
+        if self.running:
+            self.debug()
+            debug('%s \n GameServer stopping...' % str(stop_reason))
+
+            self.server.stop('gameserver.stop')
+            self.game.stop()
+
+            if self.server.is_alive():
+                debug ('waiting for socket-server process')
+                self.server.join()
+            
+            self.running = False
+
+
+    def debug(self):
         count = len(self.r_times)
         if count:
             all_time = sum(self.r_times)
@@ -91,12 +108,15 @@ class GameServer(object):
 
             debug('median time %s/%s = %s' % (all_time, count, m_time))
             
-        if isinstance(stop_reason, BaseException):
-            raise stop_reason
+
         
 
     def start(self):
         debug('Running...')
+        self.running = True
+
+        signal.signal(signal.SIGINT, self.sigint)
+
         stop_reason = 'None'
         try:
             self.server.start()
@@ -105,7 +125,7 @@ class GameServer(object):
             while 1:
                 if self.server.has_exceptions():
                     debug('error in SocketServer')
-                    stop_reason = list(self.server.get_exceptions())
+                    #stop_reason = list(self.server.get_exceptions())
                     break
 
                 r_time = time()
@@ -120,15 +140,11 @@ class GameServer(object):
                 sleep(timeout)
             debug('game loop end')
 
-        except KeyboardInterrupt:
-            stop_reason= 'KeyboardInterrupt'
-            self.game.save()
-
-        except:
-            except_type, except_class, tb = exc_info()
-            debug('exception!', except_type, except_class)
-            for line in traceback.extract_tb(tb):
-                debug(line)
+        # except:
+        #     except_type, except_class, tb = exc_info()
+        #     debug('exception!', except_type, except_class)
+        #     for line in traceback.extract_tb(tb):
+        #         debug(line)
 
 
         finally:
@@ -136,10 +152,7 @@ class GameServer(object):
          
             self.stop(stop_reason)
             
-            if self.server.is_alive():
-                debug ('waiting for socket-server process')
-                self.server.join()
-            sys_exit()
+            
     
 
 

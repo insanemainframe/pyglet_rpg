@@ -15,7 +15,7 @@ class MutableObject(GameObject):
     "класс движущихся объектов"
     BLOCKTILES = []
     SLOWTILES = {}
-    def __init__(self, name = None):
+    def __init__(self, name = None, speed = 0):
         GameObject.__init__(self, name)
 
 
@@ -26,7 +26,7 @@ class MutableObject(GameObject):
 
 
         self.__vector  = Position(0,0)
-        self.__speed = 0
+        self.__speed = speed
         self.__move_vector = Position(0,0)
         self.__moved = False
         self.__stopped = 0

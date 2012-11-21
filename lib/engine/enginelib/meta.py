@@ -141,7 +141,7 @@ class GameObject(object):
         # debug self.name, 'BLOCKTILES', location.get_tile(cord), self.BLOCKTILES
         blocked = location.get_tile(cord) in self.BLOCKTILES
         if blocked:
-            debug( 'blocked', self.name, self.BLOCKTILES)
+            #debug( 'blocked', self.name, self.BLOCKTILES)
             return False
         else:
             return True
@@ -176,6 +176,8 @@ class GameObject(object):
 
 
 
+class GameObjectFactory(object):
+    pass
 
 
 
@@ -384,13 +386,19 @@ class Solid(object):
         
 class Breakable(object):
     "класс для живых объектов"
-    __heal_time = 120
 
-    def mixin(self, hp = 10):
+    def mixin(self, hp = 10, heal_time = 120):
+        assert isinstance(hp, int) and hp>0
+        assert isinstance(heal_time, int) and heal_time>=0
         self.__hp = hp
         self.__hp_value = hp
+        self.__heal_time = heal_time
 
-        self.heal_speed = self.__hp/float(self.__heal_time)
+        if self.__heal_time>0:
+            self.__heal_speed = self.__hp/float(self.__heal_time)
+        else:
+            self.__heal_speed = 0
+
         self.__corpse_type = None
         self.death_counter = 0
         self.hitted = 0
@@ -403,7 +411,7 @@ class Breakable(object):
             if self.__hp_value>self.__hp:
                 self.__hp_value = self.__hp
 
-            self.heal_speed = self.__hp/float(self.heal_time)
+            self.__heal_speed = self.__hp/float(self.heal_time)
             self.add_event('change_hp', self.__hp, self.__hp_value)
 
     def update_hp(self, value):
@@ -452,7 +460,7 @@ class Breakable(object):
     
     def heal(self, hp = False):
         if not hp:
-            hp = self.heal_speed
+            hp = self.__heal_speed
 
         self.__update_hp_value(hp)
         if self.__hp_value==self.__hp:
@@ -466,7 +474,7 @@ class Breakable(object):
         cur_time = time()
         delta = cur_time - self.__prev_time
 
-        heal_hp = self.heal_speed * delta
+        heal_hp = self.__heal_speed * delta
         self.heal(heal_hp)
 
         self.__prev_time = cur_time
@@ -508,7 +516,7 @@ class Mortal(object):
     
     def collission(self, player):
         if isinstance(player, Breakable):
-            damage = (self.__damage*self.get_speed()/10)
+            damage = (self.__damage*self.get_speed())
             is_dead = player.hit(damage)
             if not self.__alive_after:
                 self.add_to_remove('Mortal')
@@ -521,7 +529,7 @@ class Mortal(object):
 
 class SmartMortal(Mortal):
     def collission(self, player):
-        if isinstance(player, DiplomacySubject) and self.is_enemy(player):
+        if not isinstance(player, DiplomacySubject) or self.is_enemy(player):
             Mortal.collission(self, player)
 
 ####################################################################

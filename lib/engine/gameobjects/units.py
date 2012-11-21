@@ -93,6 +93,7 @@ class Cat(Walker, Solid, Stalker, DiplomacySubject, GameObject):
     rainbow_time = 30
     look_size = 300
     heal_speed = 3
+    heal_Value = 50
     
     def __init__(self):
         MutableObject.__init__(self, speed = self.speed)
@@ -110,7 +111,7 @@ class Cat(Walker, Solid, Stalker, DiplomacySubject, GameObject):
             
     
     def rainbow(self, player):
-        player.heal(5)
+        player.heal(self.heal_Value)
         self.add_event('rainbow', self.rainbow_time)
     
     def __update__(self, cur_time):
@@ -126,81 +127,3 @@ class Cat(Walker, Solid, Stalker, DiplomacySubject, GameObject):
                 self.move(self.get_walk_vector())
         super(Cat, self).__update__(cur_time)
     
-
-
-
-        
-
-class Bat(MetaMonster):
-    player_hp = 3
-    speed = 30
-    damage = 1
-    attack_speed = 10
-    loot_cost = 10
-    BLOCKTILES = ['stone', 'forest']
-    SLOWTILES = {}
-    
-    def __init__(self):
-        MetaMonster.__init__(self, self.speed, self.player_hp)
-    
-
-
-class Zombie( MetaMonster):
-    player_hp = 20
-    speed = 15
-    damage = 2
-    attack_speed = 10
-    loot_cost = 30
-    
-    def __init__(self):
-        MetaMonster.__init__(self, self.speed, self.player_hp)
-        
-
-    def __update__(self, cur_time):
-        super(Zombie, self).__update__(cur_time)
-    
-
-    
-
-class Ghast( MetaMonster):
-    player_hp = 50
-    speed = 10
-    damage = 10
-    attack_speed = 30
-    loot_cost = 90
-    
-    def __init__(self):
-        MetaMonster.__init__(self, self.speed, self.player_hp)
-        Fighter.mixin(self, self.damage, self.attack_speed)
-
-    def __update__(self, cur_time):
-        super(Ghast, self).__update__(cur_time)
-
-
-
-class Lych(MetaMonster, Striker):
-    player_hp = 25
-    speed = 10
-    damage = 5
-    loot_cost = 60
-    
-    def __init__(self):
-        MetaMonster.__init__(self, self.speed, self.player_hp)
-        Striker.mixin(self, 1, self.damage)
-        self.set_shell(DarkBall)
-    
-    def __update__(self, cur_time):
-        if chance(50):
-            result = self.hunt(False)
-            if result:
-                vector = result[1]
-                delta = random()*TILESIZE
-                vector += Position(delta, -delta)
-                self.strike_ball(vector)
-            else:
-                self.move(self.get_walk_vector())
-        else:
-            self.move(self.get_walk_vector())
-            
-        super(Lych, self).__update__(cur_time)
-        

@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 from engine.gameobjects.player import *
 from engine.gameobjects.units import *
+from engine.gameobjects.monsters import *
+
 from engine.gameobjects.items import *
 from engine.gameobjects.shells import *
 from engine.gameobjects.misc import *
