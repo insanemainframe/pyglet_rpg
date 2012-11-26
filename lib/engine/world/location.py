@@ -2,26 +2,17 @@
 # -*- coding: utf-8 -*-
 from config import *
 from server_logger import debug
-from share.errors import *
-xrange = range
-
+from engine.errors import *
 
 from engine.mathlib import Cord, Position, ChunkCord
-
-
 from engine.world._location.persistence import PersistentLocation
 from engine.world._location.choiser import ChoiserMixin
 from engine.world._location.location_math import LocationMath
-
 from engine.world.objects_containers import ActivityContainer, near_cords
-
 from engine.enginelib.meta import Container, Guided, HierarchySubject
-
-
 
 from weakref import proxy, ProxyType
 from collections import defaultdict
-
 
 
 class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin):
@@ -36,11 +27,9 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
 
         self.name = name
         
-        
         self.teleports = [Cord(self.size/2, self.size/2)]
         
         self.chunk_number = int(self.size/CHUNK_SIZE +1)
-        
         
         self._players = {}
         
@@ -53,30 +42,25 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
         self.generate_free_cords()
 
 
-        
-
     def new_object(self, player, chunk = None, position = None):
         assert not (chunk and position), 'chunk and position conflict %s %s' % (chunk, position)
         assert chunk is None or self.is_valid_chunk(chunk), chunk
         assert position is None or self.is_valid_position(position), position
 
-        
-        
-        if isinstance(player, Guided):  debug ('\n location.new_object %s' % player)
+        if isinstance(player, Guided):  debug('\n location.new_object %s' % player)
         game._new_object(player)
         
         self.add_object(proxy(player), chunk, position)
         
-        player._GameObject__run()
+        player._BaseObject__run()
         player.handle_creating()
-
 
     def add_object(self, player, chunk = None, position = None):
         assert isinstance(player, ProxyType)
         assert chunk is None or isinstance(chunk, ChunkCord)
         assert not hasattr(player, 'location')
 
-        if isinstance(player, Guided):  debug ('%s.add_object %s ' % (self.name, player))
+        if isinstance(player, Guided):  debug('%s.add_object %s ' % (self.name, player))
 
         try:
             if not position:
@@ -90,7 +74,7 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
                 chunk_cord = position.to_chunk()
 
         except NoPlaceException as error:
-            debug ('add_object %s' % error)
+            debug('add_object %s' % error)
             raise error
 
         else:
@@ -102,20 +86,14 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
             cord = position.to_cord()
             self.add_to_voxel(player, cord)
 
-
-
             self._players[player.name] = player
             self.add_activity(player)
 
             player.location_changed = True
 
-
-
-
     def pop_object(self, player):
-        if isinstance(player, Guided):  debug ('%s.pop_object %s' % (self.name, player))
+        if isinstance(player, Guided):  debug('%s.pop_object %s' % (self.name, player))
         
-
         assert player.name in self._players
         assert player.location==self
        
@@ -134,11 +112,9 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
 
         player.location_changed = True
 
-    
-
     def remove_object(self, player):
         "вызывает remove_object синглетона"
-        if isinstance(player, Guided):  debug ('\n location.remove_object', player)
+        if isinstance(player, Guided):  debug('\n location.remove_object', player)
 
         if isinstance(player, HierarchySubject):
             player.unbind_all_slaves()
@@ -147,6 +123,7 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
             player.unbind_all()
 
         game._remove_object(player)
+
 
     def add_to_voxel(self, player, cord):
         assert isinstance(cord, Cord)
@@ -180,7 +157,6 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
         player.cord_changed = True
 
 
-
     def change_voxel(self, player, new_cord):
         prev_cord = player.cord
 
@@ -191,7 +167,7 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
         "если локация объекта изменилась, то удалитьйф ссылку на него из предыдущей локации и добавить в новую"
         assert isinstance(player, ProxyType)
 
-        # if isinstance(player, Guided):  debug ('location.change_chunk %s' % player)
+        # if isinstance(player, Guided):  debug('location.change_chunk %s' % player)
 
 
         if self.is_valid_chunk(new_chunk_cord):
@@ -201,13 +177,8 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
             prev_chunk.pop_object(player)
             cur_chunk.add_object(player, position)
 
-
     def change_location(self, player, location_name):
         game.change_location(player, location_name)
-
-
-
-          
 
 
     def get_guided_list(self, name):
@@ -242,17 +213,13 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
     def has_active_chunks(self):
         return bool(self.active_chunks)
 
-
-
     def set_activity(self):
-        debug ('location set_activity')
+        debug('location set_activity')
         game.add_active_location(self)
     
     def unset_activity(self):
-        debug ('location unset_activity')
+        debug('location unset_activity')
         game.remove_active_location(self)
-
-
 
     def __eq__(self, location):
         assert isinstance(location, Location)
@@ -266,9 +233,7 @@ class Location(PersistentLocation, ActivityContainer, LocationMath, ChoiserMixin
         self.flush_genaration_data()
 
         number = len(self._players)
-        debug ('Location "%s" with %s objects has been started' % (self.name, number))
-
-
+        debug('Location "%s" with %s objects has been started' % (self.name, number))
 
 ##кольцевая зависимость
 from engine.world.singleton import game

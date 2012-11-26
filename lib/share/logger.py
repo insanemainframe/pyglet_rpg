@@ -4,6 +4,7 @@
 import os.path
 import logging
 
+
 def create_logger(name):
     logfile = '/tmp/%s_rpg.log' % name
     if os.path.exists(logfile):
@@ -19,6 +20,7 @@ def create_logger(name):
     logger.addHandler(hdlr)
     logger.setLevel(logging.DEBUG)
     return logger
+
 
 SERVERLOG = create_logger('server')
 CLIENTLOG = create_logger('client')

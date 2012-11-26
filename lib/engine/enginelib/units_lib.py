@@ -6,31 +6,33 @@ from server_logger import debug
 from engine.enginelib.meta import *
 from engine.mathlib import Cord, Position, ChunkCord,  chance
 from engine.gameobjects.items import *
-from engine.enginelib.mutable import MutableObject
+from engine.enginelib.movable import Movable
 from engine.gameobjects.shells import Ball
-
-
 
 from random import randrange, random, choice    
 from math import hypot
 from weakref import ProxyType, ReferenceError
 from time import time
 
-class Corpse(GameObject, Temporary):
+
+class Corpse(BaseObject, Temporary):
     "кости остающиеся после смерти живых игроков"
+
     def __init__(self):
-        GameObject.__init__(self)
+        BaseObject.__init__(self)
         Temporary.mixin(self, 5)
     
     def __update__(self, cur_time):
         Temporary.__update__(self, cur_time)
 
 
-class Unit(MutableObject, Solid, Breakable, DiplomacySubject):
+class Unit(Movable, BaseObject, Solid, Breakable, DiplomacySubject):
     __brave = False
 
     def __init__(self, name, hp, speed, fraction):
-        MutableObject.__init__(self, name)
+        BaseObject.__init__(self, name)
+
+        Movable.mixin(self)
         Breakable.mixin(self, hp)
         DiplomacySubject.mixin(self, fraction)
         Solid.mixin(self)
@@ -38,9 +40,7 @@ class Unit(MutableObject, Solid, Breakable, DiplomacySubject):
         self.set_speed(speed)
 
         self.set_corpse(Corpse)
-
-    def __update__(self, cur_time):
-        super(Unit, self).__update__(cur_time)
+    
 
     def verify_chunk(self, location, chunk):
         if not super(Unit, self).verify_chunk(location, chunk):
@@ -69,10 +69,19 @@ class Unit(MutableObject, Solid, Breakable, DiplomacySubject):
     def handle_remove(self):
         Breakable.handle_remove(self)
 
+    def __update__(self, cur_time):
+        Movable.__update__(self, cur_time)
+        Breakable.__update__(self, cur_time)
+
+    def __complete_round__(self):
+        BaseObject.__complete_round__(self)
+        Movable.__complete_round__(self)
+
 
 class Lootable(object):
     "объект, послесмерти которого выпадает предмет"
     __loot = set((Lamp, Sceptre, HealPotion, Sword, Armor, Sceptre, SpeedPotion, Gold, Cloak))
+
     def mixin(self, cost):
         if TEST_MODE:
             cost = 100
@@ -83,7 +92,6 @@ class Lootable(object):
         assert isinstance(loot_type, type)
         self.__loot.add(loot_type)
 
-    
     def handle_remove(self):
         if chance(self.cost):
             item = choice(list(self.__loot))()
@@ -93,6 +101,7 @@ class Lootable(object):
 class Fighter(object):
     "объект спобоный на ближнюю атаку"
     atack_distance = int(hypot(1.5, 1.5))
+
     def mixin(self, damage, attack_speed=30):
         self.__speed = attack_speed
         self.__damage = damage
@@ -118,7 +127,7 @@ class Fighter(object):
                         in_distance = self.cord.in_radius(player.cord, self.atack_distance)
 
                         if self.is_enemy(player) and in_distance:
-                            debug ('fight')
+                            debug('fight')
                             player.hit(self.__damage)
                             self.add_event('attack')
                             break
@@ -132,14 +141,9 @@ class Fighter(object):
                     self.add_event('attack')
 
 
-    
-
-
-
-
-
 class Stalker(object):
     "объекты охотящиеся за игроками"
+
     def mixin(self, look_size):
         self.__look_size = look_size
     
@@ -161,6 +165,7 @@ class Stalker(object):
             
 class Striker(object):
     "дает возможность игроку стрелять снарядами"
+
     default_shell = Ball
     def mixin(self, strike_speed = 1, impact = 1):
         self.__speed = strike_speed
@@ -200,14 +205,10 @@ class Striker(object):
                 ball = self.__shell_type(vector, self.__impact, proxy(self))
 
                 self.location.new_object(ball, position = self.position)
-    
-
-            
-
-    
 
 
 class Stats(object):
+
     def mixin(self):
         self.gold = 0
         self.kills = 0
@@ -219,8 +220,6 @@ class Stats(object):
     def plus_kills(self):
         self.kills+=1
         self.location.change_guided()
-
-
     
     def is_stats_changed(self):
         stats = (self.get_hp_value(), self.get_hp(), self.speed, 0,
@@ -238,7 +237,8 @@ class Stats(object):
         return data
 
 
-class Walker(MutableObject):
+class Walker(object):
+
     def get_walk_vector(self):
         positive_x = -1 if random()>0.5 else 1
         positive_y = -1 if random()>0.5 else 1
@@ -278,7 +278,7 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, Fighter, Savable
         Breakable.hit(self, damage)
     
     def __update__(self, cur_time):
-        super(MetaMonster, self).__update__(cur_time)
+        Unit.__update__(self, cur_time)
 
         try:
             victim_trig = self.victim and self.victim.position_changed
@@ -303,12 +303,9 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, Fighter, Savable
                         self.is_blocked = not self.move(self.vector_to_victim)
                 else:
                     self.move(self.get_walk_vector())
-
-
     
     def get_args(self):
         return Breakable.get_args(self)
-
 
     def verify_chunk(self, location, chunk):
         if chunk.cord==location.main_chunk.cord:
@@ -316,13 +313,10 @@ class MetaMonster(Respawnable, Lootable, Unit, Stalker, Walker, Fighter, Savable
             return False
         return super(MetaMonster, self).verify_chunk(location, chunk)
 
-
-
     def handle_remove(self):
         Unit.handle_remove(self)
         Lootable.handle_remove(self)
     
-
 
     def __save__(self):
         return []

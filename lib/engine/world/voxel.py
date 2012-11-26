@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 from config import *
 from server_logger import debug
-from share.errors import *
+from engine.errors import *
 
 from engine.enginelib.meta import Solid
 
 from exceptions import NotImplementedError
+
 
 class Voxel(dict):
 	def __init__(self):
@@ -15,7 +16,6 @@ class Voxel(dict):
 		self.__number = 0
 		self.__solids = 0
 		self.__blocked = 0
-
 
 
 	def has_solid(self):
@@ -30,14 +30,14 @@ class Voxel(dict):
 		if  player.name not in self:
 			if not self.__blocked:
 				self.__number += 1
-				if isinstance(player, solid):
-					self.__solids+=1
+				if isinstance(player, Solid):
+					self.__solids += 1
 					if not player.is_passable():
 						self.__blockers.append(player.name)
 				dict.__setitem__(self, player.name, player)
 				player.voxel = self
 			else:
-				raise VoxelBlocked
+				raise AlreadyBlocked()
 		else:
 			raise RuntimeError('%s already in voxel')
 
@@ -45,7 +45,7 @@ class Voxel(dict):
 		if player.name in self:
 			self.__number -= 1
 			if isinstance(player, solid):
-				self.__solids-=1
+				self.__solids -= 1
 				if name in __blockers:
 					self.__blockers.remove(name)
 			dict.__delitem__(self, player.name)
@@ -58,18 +58,11 @@ class Voxel(dict):
 		if name not in self.__blockers:
 			self.__blockers.append(name)
 		else:
-			raise
-			 RuntimeError('<%s> already blocks voxel' % name)
-
-
-
+			raise AlreadyBlocked('<%s> already blocks voxel' % name)
 
 	def __setitem__(self):
-		raise NotImplementedError
+		raise NotImplementedError()
 
 	def __delitem__(self, key):
-		raise NotImplementedError
+		raise NotImplementedError()
 
-
-class VoxelBlocked(BaseException):
-	pass

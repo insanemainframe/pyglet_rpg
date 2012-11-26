@@ -53,11 +53,52 @@ class Player(Sweemer, Movable, DynamicObject, Breakable):
 
 class Self(Player):
     tilename = 'self'
+    antilag = TILESIZE
+
+    def __init__(self, name, position, hp, hp_value):
+        Player.__init__(self, name, position, hp, hp_value)
+        self.__vector = False
+
+    def _calc_vector(self, vector):
+        assert vector
+
+        if abs(vector) > self.antilag:
+            ratio = self.antilag / abs(vector)
+            return vector * ratio
+        else:
+            return vector
+
+
+    def antilag_init(self, vector):
+        if not self.get_vector():
+            antilag_vector = self._calc_vector(vector)
+            self.__vector = antilag_vector
+            self.move(antilag_vector)
+
+    def move(self, vector):
+        antilag_vector = self.__vector
+        if antilag_vector:
+            if vector > antilag_vector:
+                vector -= antilag_vector
+                self.__vector = False
+            
+            elif antilag_vector > vector:
+                self.__vector = antilag_vector - vector
+                vector = False
+
+            else:
+                self.__vector = False
+                vector = False
+
+        if vector:
+            Player.move(self, vector)
+
 
 class Ally(Player):
     tilename = 'ally'
     move_frames = 11
     defend_frames = 3
+
 
 class MetaMonster(Movable, DynamicObject, Breakable, Fighter):
     def __init__(self, name, position, move_frames, dead_frames, fight_frames,hp, hp_value):
@@ -83,8 +124,6 @@ class MetaMonster(Movable, DynamicObject, Breakable, Fighter):
         Breakable.round_update(self)
 
 
-
-
 class Bat(MetaMonster):
     tilename = 'bat'
     move_frames = 10
@@ -106,12 +145,6 @@ class Zombie(MetaMonster):
                     self.move_frames, self.dead_frames, self.fight_frames,
                     hp, hp_value)
     
-    
-
-
-    
-
-
         
 class Ghast(MetaMonster):
     tilename = 'ghast'
@@ -122,8 +155,6 @@ class Ghast(MetaMonster):
         MetaMonster.__init__(self, name, position,
                     self.move_frames, self.dead_frames, self.fight_frames,
                     hp, hp_value)
-    
-     
     
         
 class Lych(MetaMonster):
@@ -136,8 +167,6 @@ class Lych(MetaMonster):
                     self.move_frames, self.dead_frames, self.fight_frames,
                     hp, hp_value)
      
-    
-    
     
 class Cat(Movable, DynamicObject):
     tilename = 'cat'

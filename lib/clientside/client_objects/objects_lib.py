@@ -62,6 +62,7 @@ class ClientObject:
     def _is_alive(self):
         return time() - self._remove_time < 5
 
+
 class StaticObject(ClientObject):
     def __init__(self, name, position):
         ClientObject.__init__(self, name, position)
@@ -99,7 +100,7 @@ class DynamicObject(ClientObject):
 class MapAccess:
     pass
 
-########################################################################
+
 class Animated:
     "класс для анимированных объектов"
     def __init__(self):
@@ -157,6 +158,9 @@ class Movable(Animated, DynamicObject):
         self.moving = False
         self.vector = Point(0,0)
         self.create_animation('moving', 'move', frames,2)
+
+    def get_vector(self):
+        return self.vector
     
     def move(self, xy):
         vector = Point(*xy)

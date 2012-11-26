@@ -109,6 +109,14 @@ class GameSurface(Surface):
         if self.striking:
             self.window.client.send_ball(self.striking)
 
+    def send_move(self, vector, destination):
+        focus_object = self.window.objects.get_focus_object()
+        if focus_object:
+            focus_object.antilag_init(vector)
+
+        self.window.client.send_move(vector, destination)
+
+
 
 class StatsSurface(Surface):
     control_keys = []

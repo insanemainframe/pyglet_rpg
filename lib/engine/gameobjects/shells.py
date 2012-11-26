@@ -2,68 +2,68 @@
 # -*- coding: utf-8 -*-
 #
 from engine.enginelib.meta import *
-from engine.enginelib.mutable import MutableObject
+from engine.enginelib.movable import Movable
 
 from weakref import ProxyType
 
 from config import *
 from server_logger import debug
 
-class Shell(MutableObject, DiplomacySubject, Temporary, Solid, SmartMortal, ActiveState):
+
+class Shell(BaseObject, Movable, DiplomacySubject, Temporary, Solid, SmartMortal, ActiveState):
     damage = 1
+    __lifetime = 1
+    
     def __init__(self, direct, impact,  striker, alive_after_collission = False):
         assert isinstance(striker, ProxyType)
         assert isinstance(direct, Position) and bool(direct)
 
-        MutableObject.__init__(self)
+        BaseObject.__init__(self)
 
+        Movable.mixin(self)
         Solid.mixin(self)
-        Temporary.mixin(self, 1)
+        Temporary.mixin(self, self.__lifetime)
         SmartMortal.mixin(self, self.damage, alive_after_collission)
         DiplomacySubject.mixin(self, striker.get_fraction())
-
 
         self.set_speed(impact)
 
         one_step = Position(impact, impact)
         self.direct = direct*(abs(one_step)/abs(direct))
 
-
         self.alive = True
         self.striker = striker
 
+
     def collission(self, player):
-        if isinstance(player, MutableObject):
-            player.move(self.direct)
+        if isinstance(player, Movable):
+            Movable.move(player, self.direct)
         SmartMortal.collission(self, player)
+
 
     def __update__(self, cur_time):
         self.move(self.direct)
-        super(Shell, self).__update__(cur_time)
 
+        Movable.__update__(self, cur_time)
+        Temporary.__update__(self, cur_time)
 
-
+    def __complete_round__(self):
+        BaseObject.__complete_round__(self)
+        Movable.__complete_round__(self)
 
 
 class MetaBall(Fragile,  Shell):
     "снаряд игрока"
     def __init__(self, direct, impact, striker, alive_after_collission = False):
         Shell.__init__(self, direct, impact, striker, alive_after_collission)
-        
-    
-    def __update__(self, cur_time):
-        super(MetaBall, self).__update__(cur_time)
-            
-    
-
-                
-    
 
     def handle_remove(self):
         return ('explode', 20)
 
+
 class Ball(MetaBall):
     damage = 2
+
 
 class AllyBall(MetaBall):
     damage = 1
@@ -72,6 +72,7 @@ class AllyBall(MetaBall):
 class DarkBall(MetaBall):
     damage = 1
     
+
 class SkillBall(MetaBall):
     damage = 2
     def __init__(self, direct, impact, striker):

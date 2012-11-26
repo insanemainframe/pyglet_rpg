@@ -4,7 +4,6 @@ from share.gameprotocol.meta import GameProtocol
 from share.point import Point
 
 
-
 class ServerAccept(GameProtocol):
     def __init__(self):
         pass
@@ -16,7 +15,7 @@ class ServerAccept(GameProtocol):
     def unpack(cls):
         return []
 
-#инициализация
+
 class NewLocation(GameProtocol):
     "ответ сервера - инициализация клиента"
     def __init__(self, wold_name, location_size, position, background):
@@ -34,9 +33,7 @@ class NewLocation(GameProtocol):
         position = Point(*xy)
         return wold_name, location_size, position, background
 
-#
 
-#обзор
 class MoveCamera(GameProtocol):
     def __init__(self, move_vector):
         self.move_vector = move_vector
@@ -49,6 +46,7 @@ class MoveCamera(GameProtocol):
     def unpack(cls, x,y):
         move_vector = Point(x,y)
         return move_vector
+
 
 class LookLand(GameProtocol):
     def __init__(self, land, observed):
@@ -68,18 +66,14 @@ class LookLand(GameProtocol):
         return land, observed
 
 
-
 class LookObjects(GameProtocol):
     def __init__(self, new_players, old_players):
         self.new_players = new_players
         self.old_players = old_players
     
-
-    #gid, name, object_type, position, args
     def pack(self):
         new_players = [(gid, name, object_type, position.get(), args,)
             for gid, name, object_type, position, args in self.new_players]
-
 
         return new_players, tuple(self.old_players)
     
@@ -102,9 +96,6 @@ class LookEvents(GameProtocol):
         return dict(events)
 
 
-
-
-#статы игрока
 class PlayerStats(GameProtocol):
     def __init__(self, hp, hp_value, speed, damage, gold, kills, death_counter, skills, invisible):
         self.hp = hp
@@ -126,7 +117,7 @@ class PlayerStats(GameProtocol):
     def unpack(cls, hp, hp_value, speed, damage, gold, kills, death_counter, skills, invisible):
         return hp, hp_value, speed, damage, gold, kills, death_counter, skills, invisible
 
-#
+
 class EquipmentDict(GameProtocol):
     def __init__(self, item_dict):
         self.item_dict = item_dict
@@ -138,7 +129,7 @@ class EquipmentDict(GameProtocol):
     def unpack(cls, item_dict):
         return item_dict
 
-#
+
 class PlayersList(GameProtocol):
     def __init__(self, player_list):
         self.player_list = player_list
@@ -150,7 +141,7 @@ class PlayersList(GameProtocol):
     def unpack(cls, player_list):
         return player_list
 
-#РЕСПАВН
+
 class Respawn(GameProtocol):
     def __init__(self, position):
         self.position = position

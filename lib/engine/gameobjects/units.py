@@ -8,11 +8,12 @@ from engine.mathlib import chance
 from engine.enginelib.units_lib import *
 from engine.gameobjects.items import *
 from engine.gameobjects.shells import *
-from engine.enginelib.mutable import MutableObject
+from engine.enginelib.movable import Movable
 
 from weakref import ProxyType
 
-class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubject):
+
+class Ally(Unit, Stalker, Temporary, Walker, Striker, BaseObject, HierarchySubject):
     lifetime = 60
     player_hp = 60
     strike_speed = 3
@@ -24,7 +25,6 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
     SLOWTILES = {'water':0.5, 'bush':0.3}
     __leash_size = 4
 
-    
     def __init__(self):   
         Unit.__init__(self, None, self.player_hp, self.speed, 'good')
 
@@ -32,7 +32,6 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
         Stalker.mixin(self, self.look_size)
         Striker.mixin(self, self.strike_speed, self.strike_impulse)
         Temporary.mixin(self, self.lifetime)
-
 
         self.set_shell(AllyBall)
         self.set_brave()
@@ -49,11 +48,11 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
         if new_leash>0:
             self.__leash_size = new_leash
 
-    
     def handle_bind_master(self, master):
         self.set_fraction(master.get_fraction())
-        debug ('ally fraction', self.get_master().get_fraction(), self.get_fraction())
+        debug('ally fraction', self.get_master().get_fraction(), self.get_fraction())
     
+
     def __update__(self, cur_time):
         if self.has_master():
             master_cord = self.get_master().cord
@@ -73,8 +72,8 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
         else:
             self.move(self.get_walk_vector())
         
-        super(Ally, self).__update__(cur_time)
-    
+        Unit.__update__(self, cur_time)
+        Temporary.__update__(self, cur_time)
     
     def get_args(self):
         return Breakable.get_args(self)
@@ -84,11 +83,7 @@ class Ally(Unit, Stalker, Temporary, Walker, Striker, GameObject, HierarchySubje
         Unit.handle_remove(self)
 
 
-
-
-
-
-class Cat(Walker, Solid, Stalker, DiplomacySubject, GameObject):
+class Cat(Walker, Solid, Stalker, DiplomacySubject, BaseObject, Movable):
     speed = 20
     rainbow_time = 30
     look_size = 300
@@ -96,7 +91,9 @@ class Cat(Walker, Solid, Stalker, DiplomacySubject, GameObject):
     heal_Value = 50
     
     def __init__(self):
-        MutableObject.__init__(self, speed = self.speed)
+        BaseObject.__init__(self)
+
+        Movable.mixin(self, speed=self.speed)
         Solid.mixin(self)
         DiplomacySubject.mixin(self, 'neutral')
         self.prev_heal_time = time()
@@ -109,7 +106,6 @@ class Cat(Walker, Solid, Stalker, DiplomacySubject, GameObject):
                     self.prev_heal_time = cur_time
                     self.rainbow(player)
             
-    
     def rainbow(self, player):
         player.heal(self.heal_Value)
         self.add_event('rainbow', self.rainbow_time)
@@ -119,11 +115,12 @@ class Cat(Walker, Solid, Stalker, DiplomacySubject, GameObject):
             result = self.hunt(True)
             if result:
                 victim, vector = result
-                MutableObject.move(self, vector)
+                Movable.move(self, vector)
             else:
                 self.move(self.get_walk_vector())
         else:
             if not self.get_vector():
                 self.move(self.get_walk_vector())
-        super(Cat, self).__update__(cur_time)
+
+        Movable.__update__(cur_time)
     

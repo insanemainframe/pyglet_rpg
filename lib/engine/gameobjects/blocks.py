@@ -38,7 +38,7 @@ class BlockSeed(Savable):
         self.__block_type = block_type
 
     def effect(self):
-        debug ('try seed')
+        debug('try seed')
         new_block = self.__block_type()
 
         chunk = self.get_owner().chunk
@@ -47,7 +47,7 @@ class BlockSeed(Savable):
 
         if new_block.verify_position(location, chunk, cord, False):
             position = cord.to_position()
-            debug ('seed %s' % position)
+            debug('seed %s' % position)
             self.get_owner().location.new_object(new_block, position = position)
             return True
         return False

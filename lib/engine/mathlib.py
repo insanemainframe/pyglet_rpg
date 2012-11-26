@@ -3,13 +3,11 @@ from config import TILESIZE, CHUNK_SIZE
 
 from random import random
 from math import hypot, floor
-
+from numbers import Number
 
 
 from share.point import Point
 
-
-########################################################################
 
 def chance(n):
     n = n/100.0
@@ -17,10 +15,6 @@ def chance(n):
         return True
     else:
         return False
-
-
-
-
 
     
 class Position(Point):
@@ -33,6 +27,7 @@ class Position(Point):
 
 	def __add__(self, point):
 	    assert isinstance(point, Position)
+
 	    return Position(self.x + point.x, self.y + point.y)
 
 	def __sub__(self, point):
@@ -41,17 +36,20 @@ class Position(Point):
 	    return Position(self.x - point.x, self.y - point.y)
 
 	def __neg__(self):
-	    return Position(-self.x, -self.y)
+		return Position(-self.x, -self.y)
 	    
 	def __mul__(self, number):
-	    '*'
-	    return Position(self.x*number, self.y*number)
+		'*'
+		assert isinstance(number, Number)
+		return Position(self.x*number, self.y*number)
 
 	def __div__( self,  number):
-	    return Position(floor(self.x/number), floor(self.y/number))
+		assert isinstance(number, Number)
+		return Position(floor(self.x/number), floor(self.y/number))
 
 	def __truediv__( self,  number):
-	    return Position(floor(self.x/number), floor(self.y/number))
+		assert isinstance(number, Number)
+		return Position(floor(self.x/number), floor(self.y/number))
 
 	def __repr__(self):
 	    return "Position[%s:%s]" % self.get()
@@ -79,14 +77,17 @@ class Cord(Point):
 	    return Cord(-self.x, -self.y)
         
 	def __mul__(self, number):
-	    '*'
-	    return Cord(self.x*number, self.y*number)
+		'*'
+		assert isinstance(number, Number)
+		return Cord(self.x*number, self.y*number)
 
 	def __div__( self,  number):
-	    return Cord(floor(self.x/number), floor(self.y/number))
+		assert isinstance(number, Number)
+		return Cord(floor(self.x/number), floor(self.y/number))
 
 	def __truediv__( self,  number):
-	    return Cord(floor(self.x/number), floor(self.y/number))
+		assert isinstance(number, Number)
+		return Cord(floor(self.x/number), floor(self.y/number))
 
 	def __repr__(self):
 	    return "Cord[%s:%s]" % self.get()
@@ -114,14 +115,17 @@ class ChunkCord(Point):
 	    return ChunkCord(-self.x, -self.y)
 	    
 	def __mul__(self, number):
-	    '*'
-	    return ChunkCord(self.x*number, self.y*number)
+		'*'
+		assert isinstance(number, Number)
+		return ChunkCord(self.x*number, self.y*number)
 
 	def __div__( self,  number):
-	    return ChunkCord(floor(self.x/number), floor(self.y/number))
+		assert isinstance(number, Number)
+		return ChunkCord(floor(self.x/number), floor(self.y/number))
 
 	def __truediv__( self,  number):
-	    return ChunkCord(floor(self.x/number), floor(self.y/number))
+		assert isinstance(number, Number)
+		return ChunkCord(floor(self.x/number), floor(self.y/number))
 
 	def __repr__(self):
 	    return "ChunkCord[%s:%s]" % self.get()

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from config import *
 from server_logger import debug
-from share.errors import *
+from engine.errors import *
 xrange = range
 
 from engine.mathlib cimport Cord, Position, ChunkCord
@@ -29,7 +29,7 @@ import imp
 class PersistentLocation(object):
     def __init__(self, mapname):
         self._mapname = mapname
-        debug ('loading map...')
+        debug('loading map...')
         self._map, self.size, self.background = load_map(mapname)
         self.position_size = self.size*TILESIZE
 
@@ -43,7 +43,7 @@ class PersistentLocation(object):
         #         issubclass(object_type,GameObjectFactory)), object_type
 
         n = int(n/LOCATION_MUL)
-        debug ('creating %s of %s' % (n, object_type.__name__))
+        debug('creating %s of %s' % (n, object_type.__name__))
         for i in xrange(n):
             monster = object_type()
             self.new_object(monster)

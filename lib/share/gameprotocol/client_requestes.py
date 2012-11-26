@@ -5,8 +5,6 @@ from share.gameprotocol.meta import GameProtocol
 from share.point import Point
 
 
-
-#передвижение
 class Move(GameProtocol):
     def __init__(self, vector, destination):
         self.vector = vector
@@ -20,7 +18,7 @@ class Move(GameProtocol):
         x, y = x_y
         return (Point(x,y), destination)
 
-#стрельба
+
 class Strike(GameProtocol):
     def __init__(self, vector):
         self.vector = vector
@@ -43,6 +41,7 @@ class ApplyItem(GameProtocol):
     @classmethod
     def unpack(cls, item_type):
         return [item_type]
+
 
 class Skill(GameProtocol):
     def __init__(self):

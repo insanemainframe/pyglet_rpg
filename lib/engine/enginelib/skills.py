@@ -15,7 +15,6 @@ class Skillable(object):
         if skill_type not in self.__slots:
             self.a
 
-
     def set_skill(self, ):
         pass
     def apply_skill(self):
@@ -24,6 +23,7 @@ class Skillable(object):
 
 class SkillABC(object):
     pass
+
 
 class Skill(SkillABC):
     __impulse = 60

@@ -38,6 +38,11 @@ class ObjectsView(Drawable, GuiElement):
         self.prev_hovered = None
         self.focus_object = None
 
+    def get_focus_object(self):
+        if self.focus_object:
+            return self.objects[self.focus_object]
+        
+
     def insert_events(self, new_events={}):
         for gid, eventlist in new_events.items():
             for action, args in eventlist:

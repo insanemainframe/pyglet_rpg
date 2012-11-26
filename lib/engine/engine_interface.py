@@ -1,21 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
 from config import *
 from server_logger import debug
 
 from share.game_protocol import NewLocation, ServerAccept
 
 from engine.world.singleton import game
-
 from engine.enginelib.meta import ActionDenied
-from engine.enginelib.mutable import MutableObject
 from engine.game_objects import Player
-
 
 from time import time
 
-#####################################################################
+
 class GameEngine:
     "интерфейс к движку игры"
 
@@ -40,11 +36,6 @@ class GameEngine:
         for message in new_player.accept_response():
             yield message
         raise StopIteration
-
-    def is_active(self):
-        game.is_active()
-
-
     
     def game_requests(self, messages):
         "выполнение запросов игроков"
@@ -52,29 +43,22 @@ class GameEngine:
             if name in game.guided_players:
                 player = game.guided_players[name]
                 for action, message in message_list:
-                    # debug ('action', action)
+                    # debug('action', action)
                     try:
                         player.handle_action(action, message)
                     except ActionDenied:
                         pass
     
-    
     def game_update(self):
-        "отыгрывание раунда игры"
-        #debug ('update')
-        
+        "отыгрывание раунда игры"        
         #обновляем объекты в активных локациях
         cur_time = time()
         for chunk in game.get_active_chunks():
             chunk.update(cur_time)
-            
-            
         
         #обновляем активнеы локации
         for chunk in game.get_active_chunks():
-            chunk.clear()
-
-                    
+            chunk.clear()  
         
     def game_responses(self):
         "получение ответов управляемых игрокв"
@@ -86,14 +70,21 @@ class GameEngine:
             
             yield name, messages
 
-
     def end_round(self):
         "завершение игрового раунда"
         for chunk in game.get_active_chunks():
             chunk.complete_round()
         
         game.guided_changed = False
-        
+    
+    def game_quit(self, name):
+        debug('%s quit' % name)
+
+        if name in self.messages:
+            del self.messages[name]
+        game.remove_guided(name)
+        game.guided_changed = True
+    
        
     def save(self):
         game.save()
@@ -102,14 +93,11 @@ class GameEngine:
         debug('stopping engine')
         game.stop()
 
+    def is_active(self):
+        game.is_active()
 
-    def game_quit(self, name):
-        debug('%s quit' % name)
 
-        if name in self.messages:
-            del self.messages[name]
-        game.remove_guided(name)
-        game.guided_changed = True
+    
     
     
                 

@@ -8,11 +8,13 @@ from engine.enginelib.meta import Container
 from weakref import proxy, ProxyType
 from collections import defaultdict
 
+
 class Equipment(Container):
     def mixin(self, slots_num = 8):
         Container.mixin(self)
         self.__equipment_changed = True
         self.__tool = None
+
     
     def handle_bind(self, item):
         self.__equipment_changed = True
@@ -29,9 +31,7 @@ class Equipment(Container):
         item = self.pop_related(item_type)
         if item:                
             if not item.effect():
-                self.add_related(item)
-                
-
+                self.add_related(item) 
     
     def look_items(self):
         result = self.get_related_dict()

@@ -2,16 +2,13 @@
 # -*- coding: utf-8 -*-
 from config import *
 from server_logger import debug
-from share.errors import *
+from engine.errors import *
 
 from engine.mathlib import Cord, Position, ChunkCord
-
-
 
 from random import randrange, choice
 from weakref import proxy,ProxyType
 from collections import defaultdict
-
 
 
 class ChoiserMixin:
@@ -25,8 +22,6 @@ class ChoiserMixin:
     def choice_position(self, player, chunk = None, radius = 0, generation = False):
         "выбирает случайную позицию, доступную для объекта"
 
-        # debug( '\n %s: choice_position %s' % (self.name, player))
-
         start_chunk = chunk
         assert start_chunk is None or isinstance(start_chunk, ChunkCord)
 
@@ -34,14 +29,10 @@ class ChoiserMixin:
         if radius>=MAX_RADIUS:
             radius = MAX_RADIUS-1
 
-       
         bad_chunks = set()
         bad_cords = set()
         ignore_chunk = False
         ignore_position = False
-
-        #if isinstance(player, type):
-
 
         while radius<=MAX_RADIUS:
             if start_chunk:
@@ -53,18 +44,12 @@ class ChoiserMixin:
             if not ignore_chunk:
                 chunks -= bad_chunks
 
-
-
             chunk_list = list(chunks)
             del chunks
-
-            # print len(chunk_list)
 
             while chunk_list:
                 chunk_cord = chunk_list.pop(randrange(len(chunk_list)))
                 chunk = self._chunks[chunk_cord]
-
-                # print chunk_cord
 
                 if ignore_chunk or player.verify_chunk(self, chunk):
                     chunk = self._chunks[chunk_cord]
@@ -80,7 +65,6 @@ class ChoiserMixin:
                     # print 'bad chunk', chunk_cord, player
                     bad_chunks.add(chunk_cord)
                     
-        
             if start_chunk:
                 if radius<MAX_RADIUS:
                     radius+=1
@@ -107,12 +91,11 @@ class ChoiserMixin:
 
         raise NoPlaceException(err_message)
 
+
     def _choice_in_chunk(self, player, chunk_cord, bad_cords, ignore_position):
         chunk = self._chunks[chunk_cord]
 
         cords = list(self.get_free_cords(chunk_cord))
-
-        # print 'cords', len(cords)
 
         while cords:
             cord = cords.pop(randrange(len(cords)))
@@ -129,8 +112,6 @@ class ChoiserMixin:
                 # print 'bad cord', player.verify_position
                 bad_cords.add(cord)
         raise NoPlaceException
-
-
 
 
             

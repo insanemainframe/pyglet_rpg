@@ -1,24 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from share.errors import *
+
 import struct
 from socket import htonl, ntohl, error as SocketError
 
 
-
-
-
-#####################################################################
-
-class PackageError(BaseException):
-    "ошибка полуения пакета"
-    
-
-
-
-
-
-#####################################################################
-#упаковка и распаковка пакетов для сокетов
 def send(channel, data):
     assert isinstance(data, bytes) and bool(data), data
 
@@ -37,16 +24,11 @@ def send(channel, data):
         if errno in (11, 9, 104, 32):
             print('send: error %s' % errno)
             return
-
         else:
             raise SocketError(errno, message)
     else:
         assert sended_size == response_size
 
-
-            
-
-    
 
 size_for_recv= struct.calcsize("!Q")
 
@@ -84,7 +66,6 @@ def Receiver(channel):
             #в случае ошибки конвертации размера
             print('protocol_lib.receive struct error %s size %s' % (Error, len(size)))
             raise StopIteration
-
         else:
             #получаем пакет данных
             while len(data)<size:
@@ -97,14 +78,11 @@ def Receiver(channel):
                     else:
                         print('Receiver socket error', errno, message)
                         raise  SocketError(errno, message)
-
-
                 else:
                     if new_data:
                         data+=new_data
                     else:
                         raise StopIteration
-
             yield data
             
             

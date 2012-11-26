@@ -3,38 +3,28 @@
 from config import *
 from server_logger import debug
 
-from engine.mathlib import Cord, Position, ChunkCord
-
-
 from weakref import proxy, ProxyType
 from collections import defaultdict
 
+from engine.mathlib import Cord, Position, ChunkCord
 from engine.world.objects_containers import ActivityContainer, ObjectContainer, near_chunk_cords
-
-
 from engine.enginelib.meta import Solid, DiplomacySubject, Guided
-from engine.enginelib.mutable import MutableObject
-
 from engine.enginelib.units_lib import Unit, MetaMonster
 from engine.gameobjects.teleports import Teleport
 
 
-
-
 class Chunk(ObjectContainer, ActivityContainer):
     "функционал локации для работы с объектами"
-    proxy_list = (MutableObject, Solid, Unit, Teleport)
+    proxy_list = (Solid, Unit, Teleport)
+    
     def __init__(self, location, cord):
         self.location = location
         self.cord = cord
         self.base_cord = cord*TILESIZE
-
         self.nears = []
         
         ObjectContainer.__init__(self)
         ActivityContainer.__init__(self)
-        
-        
 
         self.__players = {}
         self.__events = defaultdict(list)
@@ -47,9 +37,6 @@ class Chunk(ObjectContainer, ActivityContainer):
         self.__updaters = {}
 
         self.__protected = False
-
-
-
 
         
     def change_position(self, player, new_position):
@@ -90,12 +77,11 @@ class Chunk(ObjectContainer, ActivityContainer):
         self.add_proxy(player)
         self.__players[name] = player
 
-        if player._GameObject__activity>0:
+        if player._BaseObject__activity>0:
             self.__updaters[name] = player
 
         player.set_position(position)
 
-    
     def pop_object(self, player):
         "удаляет ссылку из списка игроков"
         name = player.name
@@ -129,7 +115,7 @@ class Chunk(ObjectContainer, ActivityContainer):
 
     def add_to_update(self, name):
         assert name in self.__players
-        assert self.__players[name]._GameObject__activity>0
+        assert self.__players[name]._BaseObject__activity>0
 
         # debug  'add to update', name
 
@@ -138,16 +124,16 @@ class Chunk(ObjectContainer, ActivityContainer):
 
     def pop_from_update(self, name):
         assert isinstance(name, str)
-        assert self.__players[name]._GameObject__activity==0
+        assert self.__players[name]._BaseObject__activity==0
         assert name in self.__updaters
 
         del self.__updaters[name]
+
 
     def add_event(self, gid, event):
         self._new_events = True
         self.__events[gid].append(event)
         
-    
     def check_events(self):
         if self._new_events:
             return True
@@ -156,7 +142,6 @@ class Chunk(ObjectContainer, ActivityContainer):
                 return True
         
         return False
-
 
     def get_events(self):
         return sum([chunk.__events.items() for chunk in self.nears], self.__events.items())
@@ -174,15 +159,13 @@ class Chunk(ObjectContainer, ActivityContainer):
     def get_nears(self):
         return self.nears
 
-
-    
-        
     def create_links(self,):
         "создает сслыки на соседние локации"
         for chunk_cord in near_chunk_cords:
             if self.location.is_valid_chunk(self.cord + chunk_cord):
                 near_chunk = self.location.get_chunk(self.cord + chunk_cord)
                 self.nears.append(near_chunk)
+    
     
     def update(self, cur_time):
         for player in self.__updaters.values():
@@ -199,10 +182,8 @@ class Chunk(ObjectContainer, ActivityContainer):
 
             self.__remove_list.clear()
     
+    
     def complete_round(self):
-        # for player in self.get_list(MutableObject):
-        #         MutableObject._complete_round(player)
-                
         for player in self.__updaters.values():
                 player.__complete_round__()
 

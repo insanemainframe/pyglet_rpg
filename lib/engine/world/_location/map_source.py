@@ -6,23 +6,18 @@ from server_logger import debug
 from share.serialization import loads, dumps, load, dump
 
 import os, imp
-
-
 from collections import Counter
+from random import randrange, choice
 
 from engine.mathlib import Cord, Position, ChunkCord, chance
 from engine.world.objects_containers import near_cords
 from engine.world.surfaces import tiledict
-
-from random import randrange, choice
-
 
 
 def load_map(mapname): 
     map_file = LOCATION_PATH % mapname + MAP_FILE
     map_image = LOCATION_PATH % mapname + MAP_IMAGE
 
-    
     if os.path.exists(map_file):
         map_data = load(map_file)
         
@@ -41,15 +36,11 @@ def load_map(mapname):
 
         source = dump(map_data, map_file)
 
-        
         return tilemap, size, background
-
-
 
 
 tiles = {'water':5, 'stone':5, 'ocean':2}
 main_tile = 'grass'
-
 
 
 class Generator:
@@ -69,8 +60,6 @@ class Generator:
                     self.tile_map[i][j] = main_tile
 
         return self.tile_map, self.size, main_tile
-        
-
 
     def apply_tile(self, tile, number):
         debug( 'apply_tile', tile, number)
@@ -95,8 +84,6 @@ class Generator:
                 number-=1
                 self.free.remove((i,j))
 
-
-
     def get_near(self, I,J):
         cords = [(i+I,j+J) for i,j in near_cords if (0<=i+I<self.size and  0<=j+J<self.size)]
         return cords
@@ -108,8 +95,6 @@ class FromImage:
 
     def generate(self):
         from PIL import Image
-        
-
 
         counter = Counter()
         image = Image.open(self._map_image)
@@ -125,8 +110,6 @@ class FromImage:
                 counter[tile]+=1
                 row.append(unicode(tile))
             tilemap.append(row)
-            
-       
         
         background = counter.most_common()[0][0]
         debug('\tmap loaded:',size, background)

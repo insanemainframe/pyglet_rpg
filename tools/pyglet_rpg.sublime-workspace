@@ -4,12 +4,328 @@
 		"selected_items":
 		[
 			[
-				"loo",
-				"loot_type	(local, instance)"
+				"on",
+				"on_cell"
+			],
+			[
+				"en",
+				"end_cord	(local, instance)"
+			],
+			[
+				"st",
+				"start_cord	(local, instance)"
+			],
+			[
+				"end",
+				"end_cord	(local, instance)"
+			],
+			[
+				"p",
+				"position	(local, instance)"
+			],
+			[
+				"for",
+				"force	(local, instance)"
+			],
+			[
+				"de",
+				"destination	(attribute, instance)"
+			],
+			[
+				"chu",
+				"chunk_cord	(local, instance)"
+			],
+			[
+				"ob",
+				"object_type	(local, instance)"
+			],
+			[
+				"hea",
+				"heal_time	(local, instance)"
+			],
+			[
+				"he",
+				"heal_time	(local, instance)"
+			],
+			[
+				"ME",
+				"MetaBlock	(global, class)"
+			],
+			[
+				"__re",
+				"__requestes	(attribute, instance)"
+			],
+			[
+				"stop",
+				"stop_event	(attribute, instance)"
+			],
+			[
+				"fr",
+				"frame"
+			],
+			[
+				"sig",
+				"sig_num"
+			],
+			[
+				"er",
+				"error	(local, instance)"
+			],
+			[
+				"old",
+				"old_players_pairs"
+			],
+			[
+				"del",
+				"delay_args"
+			],
+			[
+				"ol",
+				"old_players"
+			],
+			[
+				"_Re",
+				"_remove_time"
+			],
+			[
+				"get_",
+				"get_nowait"
+			],
+			[
+				"i",
+				"import"
+			],
+			[
+				"so",
+				"socket_error"
+			],
+			[
+				"lo",
+				"locations	(attribute, instance)"
+			],
+			[
+				"_",
+				"__counter	(attribute, instance)"
+			],
+			[
+				"fi",
+				"filter_type	(local, instance)"
+			],
+			[
+				"up",
+				"update"
+			],
+			[
+				"Re",
+				"ReferenceError	(imported, instance)"
+			],
+			[
+				"sup",
+				"super	(builtin, function)"
+			],
+			[
+				"Ba",
+				"Base	(global, class)"
+			],
+			[
+				"__",
+				"__updaters	(attribute, instance)"
+			],
+			[
+				"ch",
+				"chunk_list"
+			],
+			[
+				"Ma",
+				"MAX_RADIUS"
+			],
+			[
+				"ig",
+				"ignore_position"
+			],
+			[
+				"ba",
+				"bad_cords"
+			],
+			[
+				"bad",
+				"bad_chunks"
+			],
+			[
+				"po",
+				"position"
+			],
+			[
+				"new",
+				"new_block"
+			],
+			[
+				"cho",
+				"choice"
+			],
+			[
+				"loca",
+				"location	(local, instance)"
+			],
+			[
+				"loc",
+				"location"
+			],
+			[
+				"s",
+				"self	(local, instance)"
+			],
+			[
+				"_ne",
+				"_new_object_assertion"
+			],
+			[
+				"pl",
+				"player"
+			],
+			[
+				"blo",
+				"block_type_name	(local, instance)"
+			],
+			[
+				"as",
+				"assert	(keyword, instance)"
+			],
+			[
+				"pop",
+				"pop_activity"
+			],
+			[
+				"__hp",
+				"__hp	(attribute, instance)"
+			],
+			[
+				"upda",
+				"add_to_update"
+			],
+			[
+				"mas",
+				"master_cord	(local, instance)"
+			],
+			[
+				"add",
+				"add_activity"
+			],
+			[
+				"pr",
+				"proxy	(imported, instance)"
 			],
 			[
 				"is",
 				"isinstance	(builtin, function)"
+			],
+			[
+				"str",
+				"strike_speed	(local, instance)"
+			],
+			[
+				"dm",
+				"damage	(local, instance)"
+			],
+			[
+				"ski",
+				"skill_type"
+			],
+			[
+				"sk",
+				"skill_type	(local, instance)"
+			],
+			[
+				"ne",
+				"new_leash"
+			],
+			[
+				"obj",
+				"objects	(attribute, instance)"
+			],
+			[
+				"cl",
+				"clear	(builtin, function)"
+			],
+			[
+				"fov",
+				"fov_cords	(local, instance)"
+			],
+			[
+				"j",
+				"j_end"
+			],
+			[
+				"sq",
+				"sq_rad"
+			],
+			[
+				"ex",
+				"except	(keyword, instance)"
+			],
+			[
+				"re",
+				"request	(local, instance)"
+			],
+			[
+				"pa",
+				"pack	(imported, instance)"
+			],
+			[
+				"ve",
+				"vector	(local, instance)"
+			],
+			[
+				"dir",
+				"direct	(local, instance)"
+			],
+			[
+				"pack",
+				"package"
+			],
+			[
+				"j_",
+				"j_end"
+			],
+			[
+				"i_",
+				"i_end"
+			],
+			[
+				"reu",
+				"return	(keyword, instance)"
+			],
+			[
+				"position",
+				"position_changed"
+			],
+			[
+				"event",
+				"events"
+			],
+			[
+				"cla",
+				"clear"
+			],
+			[
+				"get",
+				"get_voxel"
+			],
+			[
+				"ac",
+				"action_dict	(local, instance)"
+			],
+			[
+				"set",
+				"set_hp(hp_max)	(attribute, function)"
+			],
+			[
+				"hp",
+				"hp_value	(attribute, instance)"
+			],
+			[
+				"loo",
+				"loot_type	(local, instance)"
 			],
 			[
 				"f",
@@ -18,14 +334,6 @@
 			[
 				"se",
 				"set_spy_mode(invisible_time)	(attribute, function)"
-			],
-			[
-				"__",
-				"__master	(attribute, instance)"
-			],
-			[
-				"loc",
-				"location	(local, instance)"
 			],
 			[
 				"Chu",
@@ -52,28 +360,8 @@
 				"related_type"
 			],
 			[
-				"p",
-				"pop"
-			],
-			[
-				"re",
-				"related	(local, instance)"
-			],
-			[
-				"loca",
-				"locals	(builtin, function)"
-			],
-			[
 				"bl",
 				"block_type_name	(local, instance)"
-			],
-			[
-				"lo",
-				"location_name	(local, instance)"
-			],
-			[
-				"ch",
-				"change_location"
 			],
 			[
 				"chun",
@@ -84,24 +372,12 @@
 				"tiledict"
 			],
 			[
-				"en",
-				"engine"
-			],
-			[
 				"self",
 				"self_type	(local, instance)"
 			],
 			[
-				"chu",
-				"chunk_number"
-			],
-			[
 				"cor",
 				"cord_list	(local, instance)"
-			],
-			[
-				"po",
-				"position"
 			],
 			[
 				"si",
@@ -128,24 +404,8 @@
 				"to_chunk"
 			],
 			[
-				"fr",
-				"free_cords	(attribute, instance)"
-			],
-			[
-				"ig",
-				"ignore_position"
-			],
-			[
-				"bad",
-				"bad_cords"
-			],
-			[
 				"S",
 				"Shell	(global, class)"
-			],
-			[
-				"cla",
-				"class	New Class"
 			],
 			[
 				"OV",
@@ -160,24 +420,12 @@
 				"unbind_slave"
 			],
 			[
-				"he",
-				"heal_hp	(local, instance)"
-			],
-			[
-				"s",
-				"server	(attribute, instance)"
-			],
-			[
 				"sto",
 				"stop_event	(attribute, instance)"
 			],
 			[
 				"sy",
 				"sys_exit	(imported, instance)"
-			],
-			[
-				"cl",
-				"clear"
 			],
 			[
 				"ru",
@@ -196,20 +444,8 @@
 				"False	(builtin, instance)"
 			],
 			[
-				"add",
-				"add_to_remove"
-			],
-			[
-				"pop",
-				"pop_from_voxel(player, cord)	(attribute, function)"
-			],
-			[
 				"Ch",
 				"ChunkCord"
-			],
-			[
-				"ne",
-				"nears	(local, instance)"
 			],
 			[
 				"nea",
@@ -224,16 +460,8 @@
 				"change_voxel(player, new_cord)	(attribute, function)"
 			],
 			[
-				"new",
-				"new_cord	(local, instance)"
-			],
-			[
 				"b",
 				"blocking	(local, instance)"
-			],
-			[
-				"so",
-				"socket_server"
 			],
 			[
 				"T",
@@ -260,16 +488,8 @@
 				"remove"
 			],
 			[
-				"ob",
-				"object_type	(local, instance)"
-			],
-			[
 				"at",
 				"attack_speed	(attribute, instance)"
-			],
-			[
-				"st",
-				"strike_speed	(attribute, instance)"
 			],
 			[
 				"pro",
@@ -292,270 +512,26 @@
 				"NoPlaceException"
 			],
 			[
-				"get_",
-				"get_free_cords"
-			],
-			[
 				"sel",
 				"selftype"
-			],
-			[
-				"pre",
-				"prev_voxel	(local, instance)"
-			],
-			[
-				"vo",
-				"voxels_cords	(local, instance)"
-			],
-			[
-				"isv",
-				"is_valid_cord(i, j)	(attribute, function)"
-			],
-			[
-				"y",
-				"yield	(keyword, instance)"
-			],
-			[
-				"fil",
-				"filter_cords"
-			],
-			[
-				"ver",
-				"verify_position"
-			],
-			[
-				"cu",
-				"chunk_keys"
-			],
-			[
-				"ava",
-				"class_available_chunks"
-			],
-			[
-				"pl",
-				"player"
-			],
-			[
-				"ba",
-				"bad_chunks"
-			],
-			[
-				"So",
-				"SocketError	(imported, instance)"
-			],
-			[
-				"err",
-				"error"
-			],
-			[
-				"soc",
-				"socket"
-			],
-			[
-				"errr",
-				"error	(local, instance)"
-			],
-			[
-				"out",
-				"output"
-			],
-			[
-				"prev",
-				"prev_chunk_cord	(local, instance)"
-			],
-			[
-				"_hp",
-				"_hp_value	(attribute, instance)"
-			],
-			[
-				"hp",
-				"hp_value"
-			],
-			[
-				"_ha",
-				"_handle_error(client_name, error, event)	(attribute, function)"
-			],
-			[
-				"_han",
-				"_handle_error(client_name, error, event)	(attribute, function)"
-			],
-			[
-				"pac",
-				"package"
-			],
-			[
-				"er",
-				"error	(local, instance)"
-			],
-			[
-				"Stop",
-				"StopIteration	(builtin, class)"
-			],
-			[
-				"mess",
-				"message	(local, instance)"
-			],
-			[
-				"cli",
-				"client_name	(local, instance)"
-			],
-			[
-				"ha",
-				"_handle_error"
-			],
-			[
-				"loa",
-				"location"
-			],
-			[
-				"sl",
-				"slave_names	(local, instance)"
-			],
-			[
-				"size",
-				"position_size"
-			],
-			[
-				"in",
-				"infilenos"
-			],
-			[
-				"ev",
-				"eventlist"
-			],
-			[
-				"ex",
-				"excutor	(global, instance)"
-			],
-			[
-				"byt",
-				"bytes	(builtin, class)"
-			],
-			[
-				"nm",
-				"name"
-			],
-			[
-				"na",
-				"name"
-			],
-			[
-				"du",
-				"dump"
-			],
-			[
-				"file",
-				"filename"
-			],
-			[
-				"glb",
-				"global	(keyword, instance)"
-			],
-			[
-				"m",
-				"map_data	(local, instance)"
-			],
-			[
-				"de",
-				"decompress	(imported, instance)"
-			],
-			[
-				"map",
-				"map_tuple"
-			],
-			[
-				"di",
-				"dict_file"
-			],
-			[
-				"has",
-				"hasattr	(builtin, function)"
-			],
-			[
-				"r",
-				"respawned	(attribute, instance)"
-			],
-			[
-				"new_c",
-				"new_chunk"
-			],
-			[
-				"end",
-				"end_j"
-			],
-			[
-				"t",
-				"tile_cords"
-			],
-			[
-				"get",
-				"get_list"
-			],
-			[
-				"get_c",
-				"get_chunk_by_cord(chunk_i, chunk_j)	(attribute, function)"
-			],
-			[
-				"upda",
-				"update_tiles"
-			],
-			[
-				"new_",
-				"new_position"
-			],
-			[
-				"chang",
-				"change_chunk"
-			],
-			[
-				"as",
-				"assert	(keyword, instance)"
-			],
-			[
-				"chunk",
-				"chunk_cord"
 			]
 		]
 	},
 	"buffers":
 	[
 		{
-			"file": "/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/blocks.py",
+			"file": "/home/innuendo/games/pyglet_rpg/lib/serverside/game_server.py",
 			"settings":
 			{
-				"buffer_size": 2151,
+				"buffer_size": 3731,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "/home/innuendo/games/pyglet_rpg/lib/engine/world/location.py",
+			"file": "/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/collissions.py",
 			"settings":
 			{
-				"buffer_size": 7223,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/home/innuendo/games/pyglet_rpg/lib/engine/world/singleton.py",
-			"settings":
-			{
-				"buffer_size": 5547,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/home/innuendo/games/pyglet_rpg/lib/engine/engine_interface.py",
-			"settings":
-			{
-				"buffer_size": 3133,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/meta.py",
-			"settings":
-			{
-				"buffer_size": 13824,
+				"buffer_size": 4854,
 				"line_ending": "Unix"
 			}
 		}
@@ -568,7 +544,7 @@
 		[
 			[
 				"Package Control: ",
-				"Package Control: Disable Package"
+				"Package Control: Enable Package"
 			],
 			[
 				"Pa",
@@ -600,25 +576,74 @@
 	},
 	"file_history":
 	[
-		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/units_lib.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/units.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/items.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/mutable.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/meta.py",
-		"/tmp/XO.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/world/chunk.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/player.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/world/surfaces.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/world/_location/map_source.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/world/_location/persistence.py",
-		"/home/innuendo/games/pyglet_rpg/bot.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/engine_interface.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/singleton.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/equipment.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/world/_location/choiser.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/world/_location/location_math.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/location.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/world/_location/persistence.pyx",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/world/_location/persistence.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/units.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/blocks.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/units_lib.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/meta.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/engine_interface.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/mutable.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/collissions.py",
+		"/tmp/foo.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/map_observer.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/equipment.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/player.py",
+		"/home/innuendo/games/pyglet_rpg/lib/clientside/gui/gui_elements.pyx",
+		"/home/innuendo/games/pyglet_rpg/lib/clientside/gui/surfaces.py",
+		"/home/innuendo/games/pyglet_rpg/lib/clientside/view/view_objects.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/world/_location/location_math.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/world/_location/choiser.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/items.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/shells.py",
+		"/home/innuendo/games/pyglet_rpg/data/locations/ground/init.py",
+		"/home/innuendo/games/pyglet_rpg/data/locations/underground2/init.py",
+		"/home/innuendo/games/pyglet_rpg/data/locations/underground/init.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/teleports.py",
+		"/home/innuendo/games/pyglet_rpg/lib/serverside/game_server.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/passability.py",
+		"/home/innuendo/games/pyglet_rpg/lib/serverside/socket_server.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/monsters.py",
+		"/home/innuendo/games/pyglet_rpg/server.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/game_objects.py",
+		"/home/innuendo/games/pyglet_rpg/lib/serverside/server.py",
+		"/home/innuendo/games/pyglet_rpg/lib/serverside/multiplexer.py",
+		"/home/innuendo/games/pyglet_rpg/lib/clientside/client_objects/objects_lib.py",
+		"/home/innuendo/games/pyglet_rpg/lib/share/serialization.pyx",
+		"/home/innuendo/games/pyglet_rpg/config.py",
+		"/home/innuendo/games/pyglet_rpg/lib/share/protocol_lib.py",
+		"/home/innuendo/games/pyglet_rpg/lib/clientside/socket_client.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/misc.py",
+		"/home/innuendo/games/master/pyglet_rpg/tools/clean.sh",
+		"/tmp/sup.py",
+		"/home/innuendo/games/pyglet_rpg/lib/server_logger.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/world/objects_containers.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/world/chunk.py",
+		"/tmp/foo.stat",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/skills.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/map_editor.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/world/_location/choiser.pyx",
+		"/home/innuendo/games/pyglet_rpg/lib/clientside/gui_client.py",
+		"/home/innuendo/games/pyglet_rpg/tools/pyglet_rpg.sublime-workspace",
+		"/home/innuendo/games/pyglet_rpg/lib/share/point.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/map_observer.c",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/map_observer.pyx",
+		"/home/innuendo/games/pyglet_rpg/lib/clientside/gameclient.py",
+		"/home/innuendo/games/pyglet_rpg/lib/share/packer.py",
+		"/home/innuendo/games/pyglet_rpg/lib/share/point.pyx",
+		"/home/innuendo/games/pyglet_rpg/lib/share/gameprotocol/server_responses.py",
+		"/home/innuendo/games/pyglet_rpg/bot.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/world/voxel.pyx",
+		"/home/innuendo/games/pyglet_rpg/tools/clean.sh",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/blocks/block.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/tuples.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/world/_location/location_math.c",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/world/_location/map_source.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/world/_location/location_math.pyx",
+		"/tmp/XO.py",
+		"/home/innuendo/games/pyglet_rpg/lib/engine/world/surfaces.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/location/location_math.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/location/choiser.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/_location/__init__.py",
@@ -627,34 +652,15 @@
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/map_source.py",
 		"/home/innuendo/games/pyglet_rpg/data/locations/underground/tiledict.py",
 		"/home/innuendo/games/pyglet_rpg/lib/clientside/client_objects/units.py",
-		"/home/innuendo/games/pyglet_rpg/data/locations/underground2/init.py",
-		"/home/innuendo/games/pyglet_rpg/data/locations/underground/init.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/choiser.pyx",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/misc.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/choiser.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/location_math.pyx",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/location_math.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/blocks.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/shells.py",
-		"/home/innuendo/games/pyglet_rpg/data/locations/ground/init.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/persistence.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/mathlib.pyx",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/skills.py",
 		"/home/innuendo/games/pyglet_rpg/lib/clientside/client_objects/static_objects.py",
-		"/home/innuendo/games/pyglet_rpg/lib/clientside/client_objects/objects_lib.py",
-		"/home/innuendo/games/pyglet_rpg/lib/clientside/view/view_objects.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/map_observer.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/game_objects.py",
-		"/home/innuendo/games/pyglet_rpg/lib/serverside/multiplexer.py",
-		"/home/innuendo/games/pyglet_rpg/lib/serverside/server.py",
-		"/home/innuendo/games/pyglet_rpg/lib/serverside/socket_server.py",
-		"/home/innuendo/games/pyglet_rpg/server.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/world/objects_containers.py",
-		"/home/innuendo/games/pyglet_rpg/lib/share/gameprotocol/server_responses.py",
 		"/home/innuendo/games/pyglet_rpg/lib/serverside/socket_server.pyx",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/mathlib.py",
-		"/home/innuendo/games/pyglet_rpg/lib/share/point.py",
-		"/home/innuendo/games/pyglet_rpg/lib/share/point.pyx",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/location_lib.pyx",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/location_lib.py",
 		"/home/innuendo/games/pyglet_rpg/tools/pyglet_rpg.sublime-project",
@@ -665,30 +671,17 @@
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/map_source.pyx",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/mathlib.pxd",
 		"/home/innuendo/games/pyglet_rpg/lib/share/point.pxd",
-		"/home/innuendo/games/pyglet_rpg/config.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/voxel.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/tuples.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/blocks/block.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/movable.py",
 		"/home/innuendo/games/pyglet_rpg/lib/clientside/gui/gui_elements.py",
-		"/home/innuendo/games/pyglet_rpg/lib/clientside/gui/gui_elements.pyx",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/collissions.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/map_editor.py",
-		"/home/innuendo/games/pyglet_rpg/lib/clientside/gui_client.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/world/voxel.pyx",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/cocncept.txt",
-		"/home/innuendo/games/pyglet_rpg/lib/clientside/gameclient.py",
-		"/home/innuendo/games/pyglet_rpg/lib/clientside/socket_client.py",
 		"/home/innuendo/games/master/pyglet_rpg/lib/clientside/socket_client.py",
 		"/home/innuendo/games/master/pyglet_rpg/lib/serverside/socket_server.py",
 		"/home/innuendo/games/master/pyglet_rpg/lib/serverside/multiplexer.py",
-		"/home/innuendo/games/pyglet_rpg/lib/share/protocol_lib.py",
 		"/home/innuendo/games/master/pyglet_rpg/lib/share/protocol_lib.py",
 		"/home/innuendo/games/pyglet_rpg/lib/share/protocol_lib_new.py",
 		"/home/innuendo/games/pyglet_rpg/lib/serverside/socket_server_new.py",
 		"/home/innuendo/games/pyglet_rpg/lib/serverside/multiplexer_new.py",
-		"/home/innuendo/games/pyglet_rpg/lib/share/packer.py",
-		"/tmp/foo.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/errors.py",
 		"/home/innuendo/games/pyglet_rpg/tools/mapclean.sh",
 		"/home/innuendo/games/pyglet_rpg/lib/share/gameprotocol/client_requestes.py",
@@ -704,30 +697,13 @@
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/world.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/world_lib.py",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/world_persistence.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/map_observer.pyx",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/skills.pyx",
 		"/home/innuendo/games/pyglet_rpg/lib/engine/world/meta.py",
 		"/home/innuendo/games/pyglet_rpg/data/worldmaps/ground/init.py",
 		"/home/innuendo/games/pyglet_rpg/data/worldmaps/underground/init.py",
 		"/home/innuendo/games/pyglet_rpg/data/worldmaps/underground2/init.py",
 		"/home/innuendo/games/pyglet_rpg/tools/delpickles.sh",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/world/objects_containers.pyx",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/player.pyx",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/singleton.pyx",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/world/objects_containers",
-		"/tmp/test.py",
-		"/tmp/reversi.py",
-		"/home/innuendo/games/pyglet_rpg/lib/share/game_protocol.py",
-		"/home/innuendo/games/pyglet_rpg/data/worldmaps/ground/tiledict.py",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/engine_interface.pyx",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/collissions.pyx",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/movable.pyx",
-		"/home/innuendo/games/pyglet_rpg/lib/clientside/gui/gui_lib.py",
-		"/home/innuendo/games/pyglet_rpg/lib/clientside/gui/gui_lib.pyx",
-		"/home/innuendo/games/pyglet_rpg/lib/clientside/gui/surfaces.py",
-		"/home/innuendo/games/pyglet_rpg/lib/clientside/gui/window.py",
-		"/home/innuendo/games/pyglet_rpg/lib/clientside/gui/window.pyx",
-		"/home/innuendo/games/pyglet_rpg/lib/engine/events.py"
+		"/home/innuendo/games/pyglet_rpg/lib/engine/world/objects_containers.pyx"
 	],
 	"find":
 	{
@@ -735,9 +711,25 @@
 	},
 	"find_in_files":
 	{
-		"height": 90.0,
+		"height": 0.0,
 		"where_history":
 		[
+			"/home/innuendo/games/pyglet_rpg/lib/engine",
+			"/home/innuendo/games/pyglet_rpg/data",
+			"/home/innuendo/games/pyglet_rpg/lib/engine",
+			"/home/innuendo/games/pyglet_rpg/lib/serverside",
+			"/home/innuendo/games/pyglet_rpg/lib/",
+			"/home/innuendo/games/pyglet_rpg/lib/engine/ ,/home/innuendo/games/pyglet_rpg/lib/serverside,*.py",
+			"/home/innuendo/games/pyglet_rpg/lib/engine/ ,/home/innuendo/games/pyglet_rpg/lib/serverside",
+			"/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects ,/home/innuendo/games/pyglet_rpg/lib/engine/enginelib",
+			"/home/innuendo/games/pyglet_rpg/lib/engine",
+			"/home/innuendo/games/pyglet_rpg/lib",
+			"/home/innuendo/games/pyglet_rpg",
+			"/home/innuendo/games/pyglet_rpg/lib/clientside",
+			"/home/innuendo/games/pyglet_rpg/clientside",
+			"/home/innuendo/games/pyglet_rpg/lib/, *.py",
+			"/home/innuendo/games/pyglet_rpg/lib/engine, /home/innuendo/games/pyglet_rpg/lib/serverside",
+			"/home/innuendo/games/pyglet_rpg/lib/",
 			"/home/innuendo/games/pyglet_rpg/lib/engine/",
 			"/home/innuendo/games/pyglet_rpg/lib/engine/world",
 			"",
@@ -777,134 +769,134 @@
 		"case_sensitive": true,
 		"find_history":
 		[
-			"self.__hp_value",
-			"self.move(self.get_walk_vector()",
-			"Walker.update(self)",
-			"Walker.update",
-			"plus_strike_speed",
-			"plus_damage",
-			"plus_strike_speed",
-			"self.prev_strike_time",
-			"self.look_size",
-			"self.__HP",
-			"self.change_position",
-			"change_position",
-			".__events__",
-			")\n",
-			"self.__events__",
-			"self._stopped",
-			"self._moved",
-			"self.speed",
-			"tile_col",
-			"self.alive_after_collission",
-			"self.damage",
-			".damage",
-			"self.attack_speed",
-			"self.damage",
-			"self.prev_attack_time",
-			".fraction",
-			"'monsters'",
-			"drawText",
-			"bool(self.invisible)",
-			".invisible",
-			"player.fraction",
-			"self.invisible",
-			"self.fraction",
-			"se_Fra",
-			"handle_unbind_master",
-			"handle_bind_master",
-			"self.master",
-			"self._slaves",
-			"self.master",
-			"self._master",
-			"self.damage",
-			"self.shell_type",
-			"self.strike_speed",
-			"print 'remove",
-			"location.change_chun",
-			"pop_item()",
-			"popitem()",
-			"pop_item()",
-			"popitem()",
-			"slot.popitem()",
-			"pop_item",
-			"self._related_objects",
-			"conta",
-			"self._equipment_changed",
-			"self.equipment_changed",
-			"_REMOVE",
-			"get_vector()._to_victim",
-			"get_vector()_to_victim",
-			"self.get_vector()",
-			"GameObject.update",
-			"self.move_vector",
-			"self.vector",
-			"self._vector",
-			"self._move_vector",
-			"self.location.game",
-			"self.game",
-			"self.location.game",
-			"self.game",
-			"from engine.world.singleton import game",
-			"from engine.world.location",
-			"dict",
-			"'unset_activity'",
-			"ChunkCord",
-			"flush_genaration_data",
-			"get_free_cords",
-			"Posi",
-			"cord",
-			"self._free_cords",
-			"self.free_cords",
-			"get_free_cords",
-			"Pos",
-			"self.free_cords",
-			"free",
-			"free_cords",
-			"ccpdef",
-			"cdef ",
-			"def ",
-			"verify_position",
-			"cord",
-			"(chunk_i, chunk_j)",
-			"retu",
-			"set_posi",
-			"regid",
-			"verify_position(self, location, chunk, cord)",
-			"verify_position",
-			"change_hp",
+			"hypot",
+			"debug (",
+			"__REMOVE =",
+			"__REMOVE = True",
+			"destination",
+			"_tile_collission",
+			"blocked",
 			"print",
-			"effect",
-			"Deadly",
-			"handle_remove",
-			"self.corpse_type",
-			"self.spawn()",
-			"handle_remove",
-			"create_corpse",
-			"Player.BLOCKTILES",
-			"self.hp",
-			"self._HP",
-			"self._HP_value",
-			"self.hp",
-			"self._hp",
-			"self.hp",
-			"def hp",
-			"print cord",
-			"_stop",
-			"def hit",
-			"stop()",
-			"server.stop()",
-			"self.stop()",
-			"stop_e",
+			"def verify_position",
+			"GetTeleport",
+			"GameObject.",
+			"self.heal_speed",
+			"sys_e",
 			"self.stop",
-			"_remove_list",
-			"self.running",
-			"handle",
-			"self.remove_list",
-			"__events__",
-			"near_cords",
-			"self.location.get_near_voxels",
-			"self["
+			"self.stop(",
+			"exceptio",
+			"exceptions",
+			"self.stop",
+			"stop",
+			"_stop_poll",
+			"put_nowait",
+			"error in SocketServer",
+			"self.stop_event",
+			"queu",
+			"self.sender_thread",
+			"sender",
+			"receivable",
+			"get(",
+			"put(",
+			"self.excp",
+			"self.responses",
+			"self.requestes",
+			"self.closed",
+			"self.accepted",
+			"self.__accepted",
+			"self.outfilenos",
+			"self.insocks",
+			"Over",
+			"rand",
+			"print",
+			"PackageError",
+			"socket_error",
+			"def verify_position",
+			"verify_position",
+			"print",
+			"verify_position",
+			"self).complete_round()",
+			"self).update(cur_time)",
+			"def  update(",
+			"def update(",
+			"def complete_round(",
+			"def update(",
+			"handle_respawn",
+			"class",
+			"if cur_time",
+			"upda",
+			"def update(",
+			"def update",
+			"self).update()",
+			"def update(self)",
+			"complete_round",
+			"get_list",
+			"print",
+			".mixin",
+			"def update",
+			"update",
+			"def update",
+			"class",
+			".update(self)",
+			"update(self)",
+			"def update",
+			"update",
+			"__foo__",
+			"foo",
+			"__init__",
+			"foo",
+			"ChnukCord",
+			".proxy_dict",
+			"chunk.proxy_dicts",
+			"self.proxy_dicts",
+			"self.delay_args",
+			"delay_args",
+			"self._remove_list",
+			"self._players",
+			"self.players",
+			"location.pop_object",
+			"add_activity",
+			"dela",
+			"delay_args",
+			"flus",
+			"Updatable",
+			"Updatable.mixin(self)",
+			"add_activity",
+			"add_to_update",
+			"#Updatable.mixin(self)",
+			"self.damage",
+			"upda",
+			"Updatable.mixin(self)",
+			"handle_creating",
+			"protected",
+			"world.voxel",
+			"__strike_speed",
+			"leash_size",
+			"tile_collission",
+			"_detect_collisions",
+			"soli",
+			"handle_unbind_master",
+			"owner",
+			".owner",
+			"self.owner",
+			".owner",
+			".master",
+			".fraction",
+			"self.fraction",
+			".master",
+			"SQUARE_FOV",
+			"ImmutableSet",
+			"pack",
+			"set",
+			"add",
+			"pos",
+			".new_events",
+			"has_e",
+			"event",
+			"self.chu",
+			"self.observe",
+			"set([",
+			"observed_objects"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -912,6 +904,75 @@
 		"regex": false,
 		"replace_history":
 		[
+			"debug(",
+			"TeleportFactory",
+			"self.__heal_speed",
+			"send",
+			"self.__sender_thread",
+			"Receiver",
+			"self.__exceptions",
+			"self.__responses",
+			"self.__requestes",
+			"self.__closed",
+			"self.__accepted",
+			"debug ",
+			"SocketError",
+			"return",
+			"self).__complete_round__()",
+			"self).__update__(cur_time)",
+			"def __complete_round__(",
+			"def __update__(",
+			"self).update(cur_time)",
+			"def update(self, cur_time)",
+			"foo",
+			"__foo__",
+			"foo",
+			"__init__",
+			"ChunkCord",
+			"chunk.__proxy_dicts",
+			"self.__proxy_dicts",
+			"self._delay_args",
+			"self.__remove_list",
+			"self.__players",
+			"self._players",
+			"",
+			"Updatable.mixin(self)",
+			"#Updatable.mixin(self)",
+			"__speed",
+			"__leash_size",
+			"self.get_owner()",
+			"self.get_fraction()",
+			".__master",
+			"RECT_FOV",
+			"set",
+			"ImmutableSet",
+			"objects",
+			"self._new_events",
+			"self._event_producers",
+			"self.objects",
+			"from server_logger import debug",
+			"from config import *",
+			"from config import *\nfrom config import *",
+			"from config import *\nserver_logger",
+			"from config import *\nfrom server_log import debug",
+			"print_function",
+			"debug",
+			"self._map",
+			"self._voxels[cord.x][cord.y]",
+			"__load__",
+			"__save__",
+			"__save",
+			"__load",
+			"self.__has_events",
+			"self.get_damage()",
+			".get_hp()",
+			"self.get_hp_value()",
+			"self.__prev_time",
+			"self.__hp",
+			"self.__hp_value",
+			"self.__HP_MAX",
+			"self.__HP",
+			"get_hp_max",
 			"self.__hp_max",
 			"self.move(self.get_walk_vector())",
 			"self.move(self.get_walk_vector()",
@@ -970,61 +1031,7 @@
 			"MutableObject",
 			"enginelib.movable",
 			"MovableObject",
-			"Position",
-			"Positionfrom engine.mathlib import Cord, Position, ChunkCord\nPosition",
-			"from engine.mathlib import Cord, Position, ChunkCord\nfrom engine.mathlib import Cord, Position, ChunkCord\nfrom engine.mathlib import Cord, Position, ChunkCord",
-			"handle_new_location",
-			"NewLocation",
-			"assert isinstance(point, Point), point",
-			"Point",
-			"assert isinstance(point, Point)",
-			"Position",
-			"TPoint",
-			"PointTemplate",
-			"SocketError",
-			"Breakable",
-			"from share.errors",
-			"GameObject.verify_position",
-			"location.get_voxel(i,j)",
-			"self._chunks",
-			"self._voxels",
-			"get_near_voxels",
-			"location.voxels",
-			"self.voxels",
-			"add_to_voxel",
-			"fov_voxels",
-			"GameObject.__init__(self, position, name)",
-			"GameObject",
-			"from config import *\nfrom engine.errors import *",
-			"",
-			"engine.world",
-			"locations",
-			"LOCATION_MUL",
-			"LOCATION_FILE",
-			"SAVE_LOCATION",
-			"LOCATION_PERSISTENCE",
-			"LOCATION_PATH",
-			"location",
-			"self._players",
-			"chunk_number",
-			"WORLD_FILE",
-			"CHUNK_SIZE",
-			"chunk",
-			"CHUNK_",
-			"chunk",
-			"abs",
-			"share.point",
-			"",
-			"(Point self, Point point)",
-			"_(Event self",
-			"",
-			"Point(0,0)",
-			"(Point self):",
-			"(Point self)",
-			"Point self, float number",
-			"float number",
-			"",
-			"meta"
+			"Position"
 		],
 		"reverse": false,
 		"show_context": true,
@@ -1035,145 +1042,236 @@
 	"groups":
 	[
 		{
-			"selected": 4,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "/home/innuendo/games/pyglet_rpg/lib/engine/gameobjects/blocks.py",
+					"file": "/home/innuendo/games/pyglet_rpg/lib/serverside/game_server.py",
 					"settings":
 					{
-						"buffer_size": 2151,
+						"buffer_size": 3731,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1561,
-								1561
+								2438,
+								2438
 							]
 						],
 						"settings":
 						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+								"adjoining-classes": "warning",
+								"box-model": true,
+								"box-sizing": "warning",
+								"compatible-vendor-prefixes": "warning",
+								"display-property-grouping": true,
+								"duplicate-background-images": "warning",
+								"duplicate-properties": true,
+								"empty-rules": true,
+								"errors": true,
+								"fallback-colors": "warning",
+								"floats": "warning",
+								"font-faces": "warning",
+								"font-sizes": "warning",
+								"gradients": "warning",
+								"ids": "warning",
+								"import": "warning",
+								"important": "warning",
+								"known-properties": true,
+								"outline-none": "warning",
+								"overqualified-elements": "warning",
+								"qualified-headings": "warning",
+								"regex-selectors": "warning",
+								"rules-count": "warning",
+								"shorthand": "warning",
+								"star-property-hack": "warning",
+								"text-indent": "warning",
+								"underscore-property-hack": "warning",
+								"unique-headings": "warning",
+								"universal-selector": "warning",
+								"vendor-prefix": true,
+								"zero-units": "warning"
+							},
+							"gjslint_ignore":
+							[
+								110.0
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2.0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 199.0,
+						"translation.y": 900.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "/home/innuendo/games/pyglet_rpg/lib/engine/world/location.py",
+					"file": "/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/collissions.py",
 					"settings":
 					{
-						"buffer_size": 7223,
+						"buffer_size": 4854,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3265,
-								3265
+								667,
+								667
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1459.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "/home/innuendo/games/pyglet_rpg/lib/engine/world/singleton.py",
-					"settings":
-					{
-						"buffer_size": 5547,
-						"regions":
-						{
-						},
-						"selection":
-						[
+							"annotations":
 							[
-								2940,
-								2940
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1260.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "/home/innuendo/games/pyglet_rpg/lib/engine/engine_interface.py",
-					"settings":
-					{
-						"buffer_size": 3133,
-						"regions":
-						{
-						},
-						"selection":
-						[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+								"adjoining-classes": "warning",
+								"box-model": true,
+								"box-sizing": "warning",
+								"compatible-vendor-prefixes": "warning",
+								"display-property-grouping": true,
+								"duplicate-background-images": "warning",
+								"duplicate-properties": true,
+								"empty-rules": true,
+								"errors": true,
+								"fallback-colors": "warning",
+								"floats": "warning",
+								"font-faces": "warning",
+								"font-sizes": "warning",
+								"gradients": "warning",
+								"ids": "warning",
+								"import": "warning",
+								"important": "warning",
+								"known-properties": true,
+								"outline-none": "warning",
+								"overqualified-elements": "warning",
+								"qualified-headings": "warning",
+								"regex-selectors": "warning",
+								"rules-count": "warning",
+								"shorthand": "warning",
+								"star-property-hack": "warning",
+								"text-indent": "warning",
+								"underscore-property-hack": "warning",
+								"unique-headings": "warning",
+								"universal-selector": "warning",
+								"vendor-prefix": true,
+								"zero-units": "warning"
+							},
+							"gjslint_ignore":
 							[
-								1422,
-								1422
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 575.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "/home/innuendo/games/pyglet_rpg/lib/engine/enginelib/meta.py",
-					"settings":
-					{
-						"buffer_size": 13824,
-						"regions":
-						{
-						},
-						"selection":
-						[
+								110.0
+							],
+							"gjslint_options":
 							[
-								7824,
-								7824
-							]
-						],
-						"settings":
-						{
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2.0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 5342.0,
+						"translation.y": 1980.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"

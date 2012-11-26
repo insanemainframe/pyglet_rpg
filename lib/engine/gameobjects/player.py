@@ -9,14 +9,14 @@ from engine.enginelib.units_lib import Unit, Striker, Stats
 from engine.gameobjects.shells import Ball
 from engine.gameobjects.items import Sceptre
 
-from engine.enginelib.mutable import MutableObject
+from engine.enginelib.movable import Movable
 from engine.enginelib.skills import Skill
 from engine.enginelib.equipment import Equipment
 from engine.enginelib.map_observer import MapObserver
 
 from  share.gameprotocol.server_responses import *
 
-class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equipment, HierarchySubject):
+class Player(Respawnable, MapObserver, Striker, Guided, Stats, Skill, Equipment, HierarchySubject, Unit):
     "класс игрока"
     min_dist = 10
     prev_looked = set()
@@ -33,9 +33,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     def __init__(self, name, look_size=PLAYER_LOOK_RADIUS):
         Unit.__init__(self, name, self.player_hp, self.speed, 'players')
         
-        
         HierarchySubject.mixin(self)
-        
         MapObserver.mixin(self, look_size)
         Striker.mixin(self,self.strike_speed, self.strike_impulse)
         Respawnable.mixin(self, 10, 30)
@@ -48,10 +46,10 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         
         self.add_related(Sceptre())
 
-
         self.set_actions(ApplyItem = self.ApplyItem, Move = self.Move,
                         Strike = self.Strike, Skill = self.Skill)
     
+
     def accept_response(self):
         data = self.location.name, self.location.size, self.position, self.location.background
         yield NewLocation(*data)
@@ -60,44 +58,41 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         chunk = self.chunk
         new_trig = self.location_changed or self.respawned
 
+        #если измнилась клтека - пересчитываем поле зрения
         if self.cord_changed:
             self.observe()
 
-        
         if new_trig:
+            #если изменилась локация - обновляем мир
             if self.location_changed:
                 yield NewLocation(self.location.name, self.location.size, self.position, self.location.background)
                 self.location_changed = False
-
+            #если произошел респавн - обновляем мир
             elif self.respawned:
                 yield Respawn(self.position)
                 self.respawned = False
 
-
-            
+        #если игрок двигался - получаем вектор движения для камеры
         if self.position_changed:
             yield MoveCamera(self.get_move_vector())
+            self.position_changed = False
     
         #если изменилась клетка - смотрим новые тайлы и список тайлов в радусе обзора
-
         if self.cord_changed or new_trig:
             new_looked, observed = self.look_map()
             yield LookLand(new_looked, observed)
-
         
+        #получаем список новых и исчезнувших из полязрения объектов
         if self.cord_changed or chunk.check_positions() or chunk.check_players()  or new_trig:
             new_players, old_players = self.look_objects()
             if new_players or old_players:
                 yield LookObjects(new_players, old_players)
 
+        #получаем события
         if chunk.check_events():
             events = self.look_events()
             if events:
                 yield LookEvents(events)
-
-
-
-
 
         #если изменились собственные статы
         if self.is_stats_changed():
@@ -107,7 +102,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         if self.is_guided_changed():
             yield PlayersList(self.get_online_list())
             
-        #если изменилис предметы
+        #если изменилась экипировка
         if self.is_equipment_changed():
             yield EquipmentDict(self.look_items())
             
@@ -121,7 +116,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     
     def Move(self, vector, destination):
         vector = Position(*vector.get())
-        MutableObject.move(self, vector, destination)
+        Movable.move(self, vector, destination)
     
     def Look(self):
         return MapObserver.look(self)
@@ -131,12 +126,10 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     
     def ApplyItem(self, slot):
         self.apply_item(slot)
-    
 
 
     def get_args(self):
         return Breakable.get_args(self)
-
 
 
     def handle_respawn(self):
@@ -144,11 +137,13 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
 
     def handle_change_location(self):
         super(Player, self).handle_change_location()
-
- 
     
     def __update__(self, cur_time):
-        super(Player, self).__update__(cur_time)
+        Unit.__update__(self, cur_time)
+
+    def __complete_round__(self):
+        Unit.__complete_round__(self)
+
     
 
 

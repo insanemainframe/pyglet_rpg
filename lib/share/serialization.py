@@ -14,8 +14,18 @@ else:
 
 if USE_ZLIB:
 	from zlib import compress, decompress
-	loads = lambda source: mloads(decompress(source))
-	dumps = lambda data: compress(mdumps(data))
+
+	def loads(source):
+		decompressed = decompress(source)
+		return mloads(decompressed)
+
+	def dumps(data):
+		try:
+			return compress(mdumps(data))
+
+		except ValueError as error:
+			print data
+			raise error
 
 else:
 	loads = lambda source: mloads(source)
@@ -27,6 +37,7 @@ def load(filename):
 		source = source_file.read()
 	source = str(source)
 	return loads(source)
+
 
 def dump(data, filename):
 	source = dumps(data)

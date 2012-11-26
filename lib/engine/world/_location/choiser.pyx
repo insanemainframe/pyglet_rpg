@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from config import *
 from server_logger import debug
-from share.errors import *
+from engine.errors import *
 
 from engine.mathlib cimport Cord, Position, ChunkCord
 from cpython cimport bool

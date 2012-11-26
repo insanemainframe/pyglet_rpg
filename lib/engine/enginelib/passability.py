@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from config import *
 from server_logger import debug
-from share.errors import *
+from engine.errors import *
 
 from engine.mathlib import Cord, Position, ChunkCord, chance
 
@@ -32,11 +32,9 @@ class Groupable(object):
             return True
 
 
-
-
-
 class OverLand(object):
     BLOCKTILES = ['water', 'ocean', 'lava', 'stone']
+
 
 class OverWater(object):
     BLOCKTILES = ['grass', 'forest', 'bush', 'stone', 'underground', 'lava']

@@ -6,7 +6,6 @@ from share import game_protocol
 from share.gameprotocol.meta import GameProtocol
 
 
-
 method_handlers = {}
 
 for name in dir(game_protocol):
@@ -15,15 +14,16 @@ for name in dir(game_protocol):
         if issubclass(Class, game_protocol.GameProtocol):
             method_handlers[name] = Class
 
+
 def pack(protocol_object):
     "упаковщик данных"
     assert isinstance(protocol_object, game_protocol.GameProtocol)
 
     data = protocol_object.pack()
     method = protocol_object.__class__.__name__
-
     
     return (method, data)
+    
     
 def unpack(pair):
     "распаковщик"

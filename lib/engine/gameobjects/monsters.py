@@ -8,12 +8,9 @@ from engine.mathlib import chance
 from engine.enginelib.units_lib import *
 from engine.gameobjects.items import *
 from engine.gameobjects.shells import *
-from engine.enginelib.mutable import MutableObject
 
 from weakref import ProxyType
 
-
-        
 
 class Bat(MetaMonster):
     player_hp = 30
@@ -28,7 +25,6 @@ class Bat(MetaMonster):
         MetaMonster.__init__(self, self.speed, self.player_hp)
     
 
-
 class Zombie( MetaMonster):
     player_hp = 200
     speed = 15
@@ -38,12 +34,6 @@ class Zombie( MetaMonster):
     
     def __init__(self):
         MetaMonster.__init__(self, self.speed, self.player_hp)
-        
-
-    def __update__(self, cur_time):
-        super(Zombie, self).__update__(cur_time)
-    
-
     
 
 class Ghast( MetaMonster):
@@ -56,10 +46,6 @@ class Ghast( MetaMonster):
     def __init__(self):
         MetaMonster.__init__(self, self.speed, self.player_hp)
         Fighter.mixin(self, self.damage, self.attack_speed)
-
-    def __update__(self, cur_time):
-        super(Ghast, self).__update__(cur_time)
-
 
 
 class Lych(MetaMonster, Striker):
@@ -88,5 +74,5 @@ class Lych(MetaMonster, Striker):
         else:
             self.move(self.get_walk_vector())
             
-        super(Lych, self).__update__(cur_time)
+        MetaMonster.__update__(self, cur_time)
         
