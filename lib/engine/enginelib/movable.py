@@ -11,15 +11,15 @@ from engine.enginelib import wrappers
 from math import hypot
 
 
-
 class Movable(object):
     "класс движущихся объектов"
     BLOCKTILES = []
     SLOWTILES = {}
-    def mixin(self,  speed):
-        self._vector  = Point(0,0)
+
+    def mixin(self, speed):
+        self._vector  = Point(0, 0)
         self.speed = speed
-        self._move_vector = Point(0,0)
+        self._move_vector = Point(0, 0)
         self._moved = False
         self._stopped = 0
 
@@ -32,16 +32,16 @@ class Movable(object):
         return self._vector 
 
     def flush(self):
-        self._move_vector = Point(0,0)
-        self._vector = Point(0,0)
+        self._move_vector = Point(0, 0)
+        self._vector = Point(0, 0)
     
     @wrappers.alive_only()
-    def move(self, vector=Point(0,0), destination=False):
+    def move(self, vector=Point(0, 0), destination=False):
         labs = abs
         if not self._moved:
             self._moved = True
-            if self._stopped>0:
-                self._stopped-=1
+            if self._stopped > 0:
+                self._stopped -= 1
             else:
                 #если вектор на входе определен, до определяем вектор движения объекта
                 if vector:
@@ -49,17 +49,16 @@ class Movable(object):
                 #если вектор движения не достиг нуля, то продолжить движение
                 
                 if self._vector:
-                    
                     #проверка столкновения
-                    part = self.speed / labs(self._vector) # доля пройденного пути в векторе
-                    move_vector = self._vector * part if part<1 else self._vector
+                    # доля пройденного пути в векторе
+                    part = self.speed / labs(self._vector)
+                    move_vector = self._vector * part if part < 1 else self._vector
                     #определяем столкновения с тайлами
-                    new_cord = (self.position+move_vector)/TILESIZE
+                    new_cord = (self.position + move_vector) / TILESIZE
 
                     resist = 1
-                    if self.cord!= new_cord:
+                    if self.cord != new_cord:
                         move_vector, resist = self._tile_collission(move_vector, destination)
-                    
                     
                     self._vector = self._vector - move_vector
                     move_vector = move_vector * resist
@@ -67,11 +66,11 @@ class Movable(object):
                     move_vector = self._vector
                 
                 if self.world_changed:
-                        self._move_vector = Point(0,0)
-                        self._vector = Point(0,0)
+                        self._move_vector = Point(0, 0)
+                        self._vector = Point(0, 0)
 
                 if move_vector:
-                    self.change_position(self.position+move_vector)
+                    self.change_position(self.position + move_vector)
                     self._move_vector = move_vector
                 
                     #добавляем событие
@@ -79,17 +78,16 @@ class Movable(object):
                         self.add_event('move',  self._move_vector.get())
                     
                 
-    
     def _tile_collission(self, move_vector, destination):
         "определения пересечяения вектора с непрохоодимыми и труднопроходимыми тайлами"
         resist = 1
-        for (i,j), cross_position in get_cross(self.position, move_vector):
-            if 0<i<self.world.size and 0<j<self.world.size:
+        for (i, j), cross_position in get_cross(self.position, move_vector):
+            if 0 < i < self.world.size and 0 < j < self.world.size:
                 cross_tile =  self.world.map[i][j]
                 collission_result = self._detect_collisions(Point(i,j))
 
                 if cross_tile in self.BLOCKTILES or collission_result:
-                    move_vector = (cross_position - self.position)*0.90
+                    move_vector = (cross_position - self.position) * 0.90
                     self._vector = move_vector
                     self.tile_collission(cross_tile)
                     break
@@ -102,18 +100,16 @@ class Movable(object):
                 if self.world_changed:
                     break
             else:
-                move_vector = Point(0,0)
+                move_vector = Point(0, 0)
                 self._vector = move_vector
                 break
         else:
             if destination and cross_tile:
                 for player in self.world.tiles[cross_tile]:
-                    if player.name==destination:
+                    if player.name == destination:
                         player.collission(self)
                         self.collission(player)
 
-                
-            
         return move_vector, resist
         
     def _detect_collisions(self, cord):
@@ -125,7 +121,6 @@ class Movable(object):
                     return True
         return False
         
-    
     def _complete_move(self):
         self._moved = False
 
@@ -134,10 +129,9 @@ class Movable(object):
         self._stopped = time
     
     def abort_moving(self):
-        self._vector = Point(0,0)
-        self._move_vector = Point(0,0)
+        self._vector = Point(0, 0)
+        self._move_vector = Point(0, 0)
     
-
     
     @wrappers.alive_only()
     def _update_move(self):
@@ -145,6 +139,6 @@ class Movable(object):
             Movable.move(self)
     
     def plus_speed(self, speed):
-        self.speed+=speed
+        self.speed += speed
     
 

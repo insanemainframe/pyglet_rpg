@@ -19,13 +19,15 @@ from share.logger import print_log
 class GameEngine:
     "интерфейс к движку игры"
     monster_count = 0
+
     def __init__(self, save_time):
         game.start()
             
     def game_connect(self, name):
         "создание нового игрока"
+
         #выбираем позицию для нового игрока
-        position = game.mainworld.choice_position(Player, ask_player = True)
+        position = game.mainworld.choice_position(Player, ask_player=True)
         #создаем игрока
         new_player = Player(name, position)
         game.mainworld.new_object(new_player)
@@ -38,10 +40,10 @@ class GameEngine:
         for message in new_player.accept_response():
             yield message
         
-
     def game_requests(self, messages):
         "выполнение запросов игроков"
-        for name, player in game.guided_players.items():     
+
+        for name, player in game.guided_players.items():
             if name in messages:
                 for action, message in messages[name]:
                         try:
@@ -49,12 +51,11 @@ class GameEngine:
                         except ActionDenied:
                             pass
     
-    
     def game_update(self):
         "отыгрывание раунда игры"
+
         #получаем список активных локаций
         self.active_locations = game.get_active_locations()
-        
         
         #обновляем объекты в активных локациях
         for location in self.active_locations:
@@ -70,19 +71,17 @@ class GameEngine:
         for location in self.active_locations:
             location.update()
 
-                    
-        
     def game_responses(self):
         "получение ответов управляемых игрокв"
+
         #получаем ответы игроков
         for name, player in game.guided_players.items():
             messages = [response for response in player.handle_response()]
-            
             yield name, messages
-
 
     def end_round(self):
         "завершение игрового раунда"
+
         for location in self.active_locations:
             #завершаем раунд для объектов в локации
             for player in location.players.values():
@@ -96,12 +95,12 @@ class GameEngine:
         
         game.guided_changed = False
         
-       
     def save(self):
         game.save()
     
     def game_quit(self, name):
         "выход игрока из игры"
+
         print_log('%s quit' % name)
         game.remove_guided(name)
 

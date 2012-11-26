@@ -1,27 +1,21 @@
 #!/bin/bash
-rm *.pyc
-rm */*.pyc
-rm */*/*.pyc
-rm */*/*/*.pyc
+shopt -s globstar
+rm **/*.pyc
 
 
-rm *.c
-rm */*.c
-rm */*/*.c
-rm */*/*/*.c
+rm **/*pyo
 
 
-rm *.o
-rm */*.o
-rm */*/*.o
-rm */*/*/*.o
+rm **/*.c
 
 
-rm *.so
-rm */*.so
-rm */*/*.so
-rm */*/*/*.so
+rm **/*.o
 
+
+rm **/*.so
+
+
+rmdir **/__pycache__
 
 
 

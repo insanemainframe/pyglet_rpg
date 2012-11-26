@@ -6,12 +6,15 @@ import logging
 
 
 logfile = '/tmp/pyglet_rpg.log'
+
 if os.path.exists(logfile):
     from os import remove
     remove(logfile)
 
-if __debug__ or True:
+if __debug__:
     handler = logging.StreamHandler()
+else:
+    handler = logging.FileHandler(logfile)
     
 
 logger = logging.Logger('logger')

@@ -14,13 +14,11 @@ from engine.enginelib.meta import DynamicObject, StaticObject
 from engine.world.meta import MetaWorld
 from share.logger import print_log
 
-
-
         
 class __GameSingleton(object):
     "синглтон игрового движка - хранит карты, все объекты, и предоставляет доступ к ним"
     def __init__(self):
-        self.guided_players = {} #управляемые игроки
+        self.guided_players = {}
         self.players = {}
         self.static_objects = {}
         
@@ -44,7 +42,6 @@ class __GameSingleton(object):
         
         print_log('\n Engine initialization complete. \n')
     
-        
     def new_object(self, player):
         "создает динамический объект"
         if isinstance(player, meta.DynamicObject):
@@ -55,8 +52,6 @@ class __GameSingleton(object):
                 
         else:
             self.static_objects[player.name] = player
-        
-    
     
     def remove_object(self, player):
         name = player.name
@@ -70,8 +65,6 @@ class __GameSingleton(object):
             
             player.handle_remove()
             player.world.remove_object(player)
-    
-
 
     def remove_guided(self, name):
         player = self.guided_players[name]
@@ -90,8 +83,7 @@ class __GameSingleton(object):
         location = player.location
         location.add_to_remove(player, force)
 
-
-    def change_world(self, player, world, new_position = False):
+    def change_world(self, player, world, new_position=False):
         "переметить объект из одного мира в другой"
         prev_world = player.world
         new_world = self.worlds[world]
@@ -102,27 +94,23 @@ class __GameSingleton(object):
         teleport_point = choice(new_world.teleports)
         if not new_position:
             new_position = new_world.choice_position(player, 5, teleport_point)
-        li, lj = (new_position/TILESIZE/LOCATIONSIZE).get()
-        
-        
+        li, lj = (new_position / TILESIZE / LOCATIONSIZE).get()
 
         new_location = new_world.locations[li][lj]
         new_location.add_object(player)
         new_world.add_object(player)
 
-        
         player.world = proxy(new_world)
-        
         
         player.location = proxy(new_location)
         player.set_position(new_position)
         player.flush()
         
-        
         player.world_changed = True
         player.cord_changed = True
         if isinstance(player, DynamicObject):
             player.flush()
+
         #обновляем хэш объекта
         player.regid()
         
@@ -140,7 +128,7 @@ class __GameSingleton(object):
         return lsum([world.active_locations.values() for world in self.worlds.values()], [])
     
     def get_guided_list(self, self_name):
-        f = lambda cont:  ('(%s)'% player.name if player.name==self_name else player.name, player.kills)
+        f = lambda cont:  ('(%s)' % player.name if player.name == self_name else player.name, player.kills)
         return [f(player) for player in self.guided_players.values()]
     
     def save(self):
@@ -148,5 +136,3 @@ class __GameSingleton(object):
             world.save()
 
 game = __GameSingleton()
-
-

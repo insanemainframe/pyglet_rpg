@@ -17,7 +17,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
     "класс игрока"
     min_dist = 10
     prev_looked = set()
-    speed = TILESIZE*0.5
+    speed = TILESIZE * 0.5
     hp = 60
     BLOCKTILES = ['stone', 'forest', 'ocean', 'lava']
     SLOWTILES = {'water':0.5, 'bush':0.3}
@@ -32,7 +32,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         Striker.mixin(self, 5, Ball, self.damage)
         Respawnable.mixin(self, 10, 30)
         Stats.mixin(self)
-        Skill.mixin(self,self.default_skills)
+        Skill.mixin(self, self.default_skills)
         Equipment.mixin(self)
 
         self.change_objects = False
@@ -62,7 +62,6 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
             yield protocol.LookEvents(self.look_events())
             yield protocol.LookStaticObjects(self.look_static_objects(True))
             
-            
         else:
             if self.position_changed:
                 yield protocol.MoveCamera(self.move_vector)
@@ -84,7 +83,7 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
             if self.cord_changed or self.location.check_static_objects():
                 static_objects = self.look_static_objects()
                 if static_objects:
-                    yield  protocol.LookStaticObjects(static_objects)
+                    yield protocol.LookStaticObjects(static_objects)
             
             #если есть новые события в локации
             if self.has_events or self.location.check_events():
@@ -134,23 +133,21 @@ class Player(Respawnable, Unit, MapObserver, Striker, Guided, Stats, Skill, Equi
         Breakable.update(self)
         Stats.update(self)
         DiplomacySubject.update(self)
-    
 
     
     @classmethod
     def choice_position(cls, world, location, i ,j):
         for player in location.get_players_list():
-            if player.fraction=='monsters':
-                dist = abs(Point(i,j)*TILESIZE - player.position)
-                if dist<=cls.min_dist*TILESIZE:
+            if player.fraction == 'monsters':
+                dist = abs(Point(i, j) * TILESIZE - player.position)
+                if dist <= cls.min_dist * TILESIZE:
                     return False
                     
-        for tile in world.get_near_tiles(i,j):
+        for tile in world.get_near_tiles(i, j):
             if tile in cls.BLOCKTILES:
                 return False
 
-
-        for ij in world.get_near_cords(i,j) + [(i,j)]:
+        for ij in world.get_near_cords(i, j) + [(i, j)]:
                 for player in world.tiles[Point(*ij)]:
                     if isinstance(player, Solid):
                         return False

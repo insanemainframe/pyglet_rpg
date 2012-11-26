@@ -6,7 +6,6 @@ from engine.enginelib import wrappers
 from share.logger import print_log
 
 
-
 from random import choice, random
 from time import time
 
@@ -26,8 +25,6 @@ class ActionError(BaseException):
         return 'ActionError: %s' % self.message
 
 
-
-
 class GameObject(object):
     "метаобъект"
     BLOCKTILES = []
@@ -42,7 +39,7 @@ class GameObject(object):
         self.delayed = False
         
         self._position = position
-        self.cord = position/TILESIZE
+        self.cord = position / TILESIZE
         self._prev_position = position
         
         self.gid = str(hash((name, position)))
@@ -54,6 +51,7 @@ class GameObject(object):
         
         self.has_events = False
     
+
     def bind_slave(self, slave):
         "добавить слугу"
         self.slaves.add(slave)
@@ -71,7 +69,7 @@ class GameObject(object):
         self.master.unbind_slave(self)
         self.master = None
     
-    
+
     def bind(self, related):
         self.related_objects.add(related)
         related.owner = self
@@ -82,6 +80,7 @@ class GameObject(object):
         self.related_objects.remove(related)
         related.owner = None
     
+
     def handle_creating(self):
         pass
     
@@ -89,9 +88,9 @@ class GameObject(object):
         pass
     
     def regid(self):
-        
         self.gid = str(hash((self.name, self.position, random())))
-        
+    
+
     @property
     def position(self):
         return self._position
@@ -102,12 +101,12 @@ class GameObject(object):
     
     def set_position(self, position):
         "принудительная установка позиции"
-        size = self.world.size*TILESIZE
-        if 0<=position.x<=size and 0<=position.y<=size:
-            prev_cord = self._position/TILESIZE
+        size = self.world.size * TILESIZE
+        if 0 <= position.x <= size and 0 <= position.y <= size:
+            prev_cord = self._position / TILESIZE
             self._position = position
             self._prev_position = position
-            self.cord = position/TILESIZE
+            self.cord = position / TILESIZE
             
             self.world.update_tiles(self, prev_cord, self.cord)
             
@@ -116,26 +115,26 @@ class GameObject(object):
             self.world.handle_over_range(self, position)
             raise Warning('Invalid position %s %s world %s size %s' % data)
             
-    def change_position(self,position):
+    def change_position(self, position):
         "вызывается при смене позиции"
-        if not position==self._position:
+        if not position == self._position:
             
-            cur_cord = position/TILESIZE
-            prev_cord = self._position/TILESIZE
+            cur_cord = position / TILESIZE
+            prev_cord = self._position / TILESIZE
             
-            if 0<=cur_cord.x<=self.world.size and 0<=cur_cord.y<=self.world.size:
-                prev_cord = self._position/TILESIZE
+            if 0 <= cur_cord.x <= self.world.size and 0 <= cur_cord.y <= self.world.size:
+                prev_cord = self._position / TILESIZE
                 
-                if cur_cord!=prev_cord:
+                if cur_cord != prev_cord:
                     self.cord_changed = True
                     self.cord = cur_cord
                     
-                if position!=self._position:
+                if position != self._position:
                     self.position_changed = True
                     
                 prev_loc = self.location.cord
                 cur_loc = self.world.get_loc_cord(position)
-                if prev_loc!=cur_loc:
+                if prev_loc != cur_loc:
                     self.world.change_location(self, prev_loc, cur_loc)
                 
                 self._prev_position = self._position
@@ -144,7 +143,6 @@ class GameObject(object):
                 self.world.update_tiles(self, prev_cord, cur_cord)
                 
             else:
-                data = (position, self.name, self.world.name, self.world.size)
                 self.world.handle_over_range(self, position)
                 self.flush()
     
@@ -156,10 +154,10 @@ class GameObject(object):
         return hash(self.name)
     
     def __eq__(self, player):
-        return self.name==player.name
+        return self.name == player.name
     
     def __ne__(self, player):
-        return self.name!=player.name
+        return self.name != player.name
     
     def update(self):
         pass
@@ -175,7 +173,6 @@ class GameObject(object):
 
     def to_remove(self, force=False):
         self.world.game.add_to_remove(self, force)
-    
     
 
 class DynamicObject(GameObject):
@@ -195,10 +192,9 @@ class DynamicObject(GameObject):
     def prev_position(self):
         raise Exception('@prev_position.setter')
     
-    
-    def add_event(self, action, *args,**kwargs):
+    def add_event(self, action, *args, **kwargs):
         object_type = self.__class__.__name__
-        vector = self.position-self.prev_position
+        vector = self.position - self.prev_position
         if 'timeout' in kwargs:
             timeout = kwargs['timeout']
         else:
@@ -219,12 +215,14 @@ class DynamicObject(GameObject):
     def get_args(self):
         return {}
 
+
 class StaticObject(GameObject):
     "статические объекты"
-    name_counter =0 
+    name_counter = 0 
+
     def __init__(self, position):
         counter = StaticObject.name_counter
-        StaticObject.name_counter+=1
+        StaticObject.name_counter += 1
     
         name = '%s_%s' % (self.__class__.__name__, counter)
         
@@ -245,10 +243,6 @@ class StaticObject(GameObject):
             timeout = 0
         self.world.add_static_event(self.gid, object_type, self.position, action, args, timeout)
 
-    
-
-    
-
 
 class Savable:
     "сохраняемый объект"
@@ -257,8 +251,8 @@ class Savable:
 
     @staticmethod
     def __load__(x_y):
-        x,y = x_y
-        return [Point(x,y)]
+        x, y = x_y
+        return [Point(x, y)]
 
 class ActiveState:
     "объект делающих локацию активной"
@@ -286,8 +280,6 @@ class Guided(ActiveState):
         else:
             raise ActionError('no action %s' % action_name)
     
-
-    
     @staticmethod
     def action(method):
         method.wrappers_action = True
@@ -303,24 +295,23 @@ class Solid():
     def collission(self, player):
         pass
 
+
 class Impassable(Solid):
     "непроходимый объект"
     pass
-
-
-
 
         
 class Breakable:
     "класс для разрушаемх объектов"
     heal_time = 2400
+
     def __init__(self, corpse, hp, death_time=20):
         assert isinstance(hp, int), hp
         assert isinstance(death_time, int), death_time
         assert issubclass(corpse, GameObject), corpse
 
         self.hp_value = hp
-        self.heal_speed = self.hp_value/float(self.heal_time)
+        self.heal_speed = self.hp_value / float(self.heal_time)
         self.death_time = death_time
         self.death_time_value = death_time
         self.corpse = corpse
@@ -337,10 +328,10 @@ class Breakable:
         assert isinstance(hp, int)
 
         if self.alive:
-            self.hp-=hp
+            self.hp -= hp
             
-            self.add_event('change_hp', self.hp_value, self.hp if self.hp>0 else 0)
-            if self.hp<=0:
+            self.add_event('change_hp', self.hp_value, self.hp if self.hp > 0 else 0)
+            if self.hp <= 0:
                 self.die()
                 self.hp = self.hp_value
                 return True
@@ -349,33 +340,33 @@ class Breakable:
         else:
             return False
     
-    def heal(self, hp = False):
+    def heal(self, hp=False):
         if not hp:
             hp = self.heal_speed
 
-        new_hp = self.hp+ hp
-        if new_hp>self.hp_value:
+        new_hp = self.hp + hp
+        if new_hp > self.hp_value:
             new_hp = self.hp_value
         
         self.hp = new_hp
         self.add_event('change_hp', self.hp_value, self.hp)
     
     def plus_hp(self, armor):
-        self.hp_value+=armor
-        self.heal_speed = self.hp_value/float(self.heal_time)
+        self.hp_value += armor
+        self.heal_speed = self.hp_value / float(self.heal_time)
         self.add_event('change_hp', self.hp_value, self.hp)
     
     def update(self):
         if self.alive:
             if self.hitted:
                 self.add_event('defend')
-                self.hitted-=1
+                self.hitted -= 1
             else:
-                if self.hp<self.hp_value:
+                if self.hp < self.hp_value:
                     self.heal()
         else:
-            if self.death_time>0:
-                self.death_time-=1
+            if self.death_time > 0:
+                self.death_time -= 1
                 self.add_event('die')
             else:
                 self.death_time = self.death_time_value
@@ -389,15 +380,12 @@ class Breakable:
     
     def die(self):
         self.alive = False
-        self.death_counter+=1
+        self.death_counter += 1
         self.abort_moving()
     
     def get_args(self):
-        return {'hp': self.hp, 'hp_value':self.hp_value}
+        return {'hp': self.hp, 'hp_value': self.hp_value}
     
-    
-        
-
 
 class Fragile:
     "класс для объекто разбивающихся при столкновении с тайлами"
@@ -406,7 +394,7 @@ class Fragile:
     
 class Mortal:
     "класс для объектов убивающих живых при соприкосновении"
-    def mixin(self, damage=1, alive_after_collission = False):
+    def mixin(self, damage=1, alive_after_collission=False):
         assert isinstance(damage, int)
         assert isinstance(alive_after_collission, bool)
 
@@ -415,7 +403,7 @@ class Mortal:
     
     def collission(self, player):
         if isinstance(player, Breakable):
-            if player.fraction!=self.fraction:
+            if player.fraction != self.fraction:
                 prev_state = player.alive
                 player.hit(self.damage)
                 self.alive = self.alive_after_collission
@@ -426,11 +414,11 @@ class Mortal:
                         if prev_state and not player.alive:
                             striker.plus_kills()
 
-####################################################################
 
 class Respawnable:
     "класс перерождающихся объектов"
     respawned = False
+
     def mixin(self, delay, distance):
         assert isinstance(delay, int)
         assert isinstance(distance, int)
@@ -442,9 +430,9 @@ class Respawnable:
         return False
     
     def handle_remove(self):
-        cord = self.world.size*TILESIZE/2
+        cord = self.world.size * TILESIZE / 2
         start = Point(cord, cord)
-        new_position = self.world.choice_position(self, 10 ,start, ask_player = True)
+        new_position = self.world.choice_position(self, 10 ,start, ask_player=True)
         
         self.set_position(new_position)
         
@@ -469,7 +457,7 @@ class DiplomacySubject:
     
     def update(self):
         if self.invisible:
-            self.invisible-=1
+            self.invisible -= 1
 
 ####################################################################
 class Temporary:
@@ -482,10 +470,8 @@ class Temporary:
     
     def update(self):
         t = time()
-        if t-self.creation_time >= self.lifetime:
+        if t - self.creation_time >= self.lifetime:
             self.to_remove(True)
-
-
 
 
 class Corpse(StaticObject, Temporary):

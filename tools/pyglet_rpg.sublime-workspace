@@ -4,6 +4,154 @@
 		"selected_items":
 		[
 			[
+				"log",
+				"log_data"
+			],
+			[
+				"lo",
+				"logging	(imported, module)"
+			],
+			[
+				"ran",
+				"randrange"
+			],
+			[
+				"n",
+				"name_counter"
+			],
+			[
+				"eve",
+				"events	(local, instance)"
+			],
+			[
+				"ev",
+				"event_dicts	(local, instance)"
+			],
+			[
+				"nea",
+				"near_cords"
+			],
+			[
+				"po",
+				"position"
+			],
+			[
+				"is",
+				"is_valid_position"
+			],
+			[
+				"loc",
+				"location_size	(attribute, instance)"
+			],
+			[
+				"loca",
+				"location"
+			],
+			[
+				"pr",
+				"print	(keyword, instance)"
+			],
+			[
+				"pri",
+				"print_log	(global, instance)"
+			],
+			[
+				"set",
+				"setLevel"
+			],
+			[
+				"Lo",
+				"logger"
+			],
+			[
+				"hea",
+				"heal_hp	(local, instance)"
+			],
+			[
+				"he",
+				"heal_hp"
+			],
+			[
+				"pro",
+				"proxy	(imported, instance)"
+			],
+			[
+				"ac",
+				"action_name	(local, instance)"
+			],
+			[
+				"me",
+				"method"
+			],
+			[
+				"st",
+				"_stopped"
+			],
+			[
+				"_m",
+				"_moved"
+			],
+			[
+				"p",
+				"position"
+			],
+			[
+				"tim",
+				"timeout"
+			],
+			[
+				"add",
+				"add_event"
+			],
+			[
+				"dea",
+				"death_time	(local, instance)"
+			],
+			[
+				"cop",
+				"corpse	(local, instance)"
+			],
+			[
+				"ali",
+				"alive_after_collission	(local, instance)"
+			],
+			[
+				"pl",
+				"player	(local, instance)"
+			],
+			[
+				"daa",
+				"damage	(local, instance)"
+			],
+			[
+				"as",
+				"assert	(keyword, instance)"
+			],
+			[
+				"a",
+				"attack_speed	(attribute, instance)"
+			],
+			[
+				"pre",
+				"prev_attack	(attribute, instance)"
+			],
+			[
+				"re",
+				"request"
+			],
+			[
+				"_s",
+				"_sender_thread	(attribute, instance)"
+			],
+			[
+				"run",
+				"running	(attribute, instance)"
+			],
+			[
+				"str",
+				"stream	(local, instance)"
+			],
+			[
 				"C",
 				"CELL"
 			],
@@ -26,14 +174,6 @@
 			[
 				"e",
 				"element"
-			],
-			[
-				"he",
-				"height"
-			],
-			[
-				"hea",
-				"heal_time"
 			],
 			[
 				"help",
@@ -80,10 +220,6 @@
 				"OUT_PORT"
 			],
 			[
-				"pl",
-				"players"
-			],
-			[
 				"pla",
 				"player"
 			],
@@ -100,10 +236,6 @@
 				"static_objects"
 			],
 			[
-				"pro",
-				"proxy"
-			],
-			[
 				"eng",
 				"engine_lib"
 			],
@@ -114,10 +246,6 @@
 			[
 				"exc",
 				"except"
-			],
-			[
-				"pr",
-				"print"
 			],
 			[
 				"poll",
@@ -180,20 +308,12 @@
 				"responses"
 			],
 			[
-				"run",
-				"running"
-			],
-			[
 				"se",
 				"server"
 			],
 			[
 				"new",
 				"new_clients"
-			],
-			[
-				"re",
-				"result"
 			],
 			[
 				"def",
@@ -232,66 +352,26 @@
 	"buffers":
 	[
 		{
-			"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/player.py",
+			"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/world/location.py",
 			"settings":
 			{
-				"buffer_size": 5846,
+				"buffer_size": 9351,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/shells.py",
+			"file": "/home/innuendo/games/master/pyglet_rpg/client.py",
 			"settings":
 			{
-				"buffer_size": 2432,
+				"buffer_size": 484,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/player.pyx",
+			"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/world/singleton.py",
 			"settings":
 			{
-				"buffer_size": 6298,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/home/innuendo/games/master/pyglet_rpg/lib/share/mathlib.pyx",
-			"settings":
-			{
-				"buffer_size": 1959,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/home/innuendo/games/pyglet_rpg/lib/share/point.pxd",
-			"settings":
-			{
-				"buffer_size": 248,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/home/innuendo/games/master/pyglet_rpg/lib/share/mathlib.pxd",
-			"settings":
-			{
-				"buffer_size": 226,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/collissions.pyx",
-			"settings":
-			{
-				"buffer_size": 4367,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/home/innuendo/games/master/pyglet_rpg/README.md",
-			"settings":
-			{
-				"buffer_size": 1046,
+				"buffer_size": 4470,
 				"line_ending": "Unix"
 			}
 		}
@@ -340,32 +420,85 @@
 	},
 	"file_history":
 	[
-		"/home/innuendo/games/master/pyglet_rpg/lib/engine/singleton.py",
-		"/home/innuendo/games/pyglet_rpg/lib/share/point.pyx",
-		"/home/innuendo/games/master/pyglet_rpg/README.md",
-		"/tmp/foo.py",
-		"/home/innuendo/games/master/pyglet_rpg/config.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/meta.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/world/meta.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/clientside/gui_client.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/serverside/socket_server.py",
+		"/home/innuendo/games/master/pyglet_rpg/tools/clean.sh",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/world/location.pyx",
+		"/home/innuendo/games/master/pyglet_rpg/lib/serverside/server.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/map_observer.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/player.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/movable.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/world/location.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/world/singleton.py",
+		"/home/innuendo/games/master/pyglet_rpg/data/worldmaps/ground/init.py",
 		"/home/innuendo/games/master/pyglet_rpg/lib/engine/engine_interface.py",
+		"/home/innuendo/games/master/pyglet_rpg/data/worldmaps/underground/init.py",
+		"/home/innuendo/games/master/pyglet_rpg/data/worldmaps/underground2/init.py",
+		"/home/innuendo/games/master/pyglet_rpg/server.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/mathlib.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/share/logger.py",
+		"/home/innuendo/games/master/pyglet_rpg/client.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/serverside/multiplexer.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/world/world_lib.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/world/world.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/serverside/socket_server.pyx",
+		"/home/innuendo/.config/sublime-text-2/Packages/User/Preferences.sublime-settings",
+		"/home/innuendo/.config/sublime-text-2/Packages/User/Python.sublime-settings",
+		"/home/innuendo/games/master/pyglet_rpg/config.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/engine_interface.pyx",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/world/objects_containers.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/events.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/units_lib.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/movable.pyx",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/player.pyx",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/shells.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/shells.pyx",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/units.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/world/singleton.pyx",
+		"/home/innuendo/games/master/pyglet_rpg/lib/share/gameprotocol/server_responses.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/misc.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/items.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/teleports.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/clientside/client_objects/objects_lib.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/clientside/client_objects/static_objects.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/clientside/gui_client.pyx",
+		"/home/innuendo/games/master/pyglet_rpg/lib/clientside/view/view_static_objects.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/clientside/view/view_static_objects.pyx",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/world/worl_lib.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/clientside/client_objects/dynamic_objects.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/serverside/multiplexer.pyx",
 		"/home/innuendo/games/master/pyglet_rpg/lib/engine/world/world_persistence.py",
 		"/home/innuendo/games/master/pyglet_rpg/lib/engine/world/map_source.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/collissions.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/share/protocol_lib.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/share/protocol_lib.pyx",
+		"/home/innuendo/games/master/pyglet_rpg/README.md",
+		"/home/innuendo/games/pyglet_rpg/lib/share/logger.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/share/mathlib.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/share/mathlib.pyx",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/player.c",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/shells.c",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/movable.c",
+		"/home/innuendo/games/master/pyglet_rpg/tools/profile_server.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/share/mathlib.pxd",
+		"/home/innuendo/games/pyglet_rpg/lib/share/point.pxd",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/skills.pyx",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/skills.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/equipment.py",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/map_observer.pyx",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/collissions.pyx",
+		"/home/innuendo/games/master/pyglet_rpg/lib/engine/singleton.py",
+		"/home/innuendo/games/pyglet_rpg/lib/share/point.pyx",
+		"/tmp/foo.py",
 		"/home/innuendo/games/master/pyglet_rpg/lib/share/packer.py",
-		"/home/innuendo/games/master/pyglet_rpg/lib/serverside/socket_server.py",
-		"/home/innuendo/games/master/pyglet_rpg/lib/serverside/multiplexer.py",
-		"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/teleports.py",
 		"/home/innuendo/games/master/pyglet_rpg/lib/share/gameprotocol/client_requestes.py",
-		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/meta.py",
-		"/home/innuendo/games/master/pyglet_rpg/client.py",
 		"/home/innuendo/games/master/pyglet_rpg/lib/clientside/gui/gui_elements.pyx",
 		"/home/innuendo/games/master/pyglet_rpg/lib/clientside/gui/gui_elements.py",
-		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/map_observer.pyx",
-		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/map_observer.py",
 		"/home/innuendo/.config/sublime-text-2/Packages/Package Control/Package Control.sublime-settings",
 		"/home/innuendo/games/master/pyglet_rpg/tools/pyglet_rpg.sublime-project",
-		"/home/innuendo/games/master/pyglet_rpg/lib/engine/world/meta.py",
-		"/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/units_lib.py",
 		"/home/innuendo/games/master/pyglet_rpg/lib/engine/singleton.pyx",
-		"/home/innuendo/games/master/pyglet_rpg/lib/engine/engine_interface.pyx",
-		"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/misc.py",
 		"/home/innuendo/games/master/pyglet_rpg/lib/engine/game_objects.py",
 		"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/misc.pyx",
 		"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/teleports.pyx",
@@ -411,22 +544,10 @@
 		"/home/innuendo/games/pyglet_rpg/clientside/gui/pyglet_window.py",
 		"/home/innuendo/games/pyglet_rpg/clientside/network.py",
 		"/home/innuendo/games/pyglet_rpg/serverside/server_lib.py",
-		"/home/innuendo/.config/sublime-text-2/Packages/User/Python.sublime-settings",
 		"/home/innuendo/games/pyglet_rpg/tools/profile_socket.py",
 		"/home/innuendo/games/pyglet_rpg/config.py",
 		"/home/innuendo/games/pyglet_rpg/engine/gameobjects/units_lib.py",
-		"/home/innuendo/games/pyglet_rpg/engine/game_engine.py",
-		"/home/innuendo/games/pyglet_rpg/serverside/multiplexer.py",
-		"/home/innuendo/games/pyglet_rpg/share/protocol_lib.py",
-		"/home/innuendo/games/pyglet_rpg/clientside/client_objects/objects_lib.py",
-		"/home/innuendo/games/pyglet_rpg/engine/gameobjects/movable.py",
-		"/home/innuendo/games/pyglet_rpg/engine/collissions.py",
-		"/home/innuendo/games/pyglet_rpg/README.md",
-		"/home/innuendo/games/pyglet_rpg/share/ask_hostname.py",
-		"/home/innuendo/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
-		"/home/innuendo/games/pyglet_rpg/tools/pyglet_rpg.sublime-project",
-		"/home/innuendo/.config/sublime-text-2/Packages/User/pyglet_rpg.sublime-build",
-		"/home/innuendo/games/pyglet_rpg/pyglet_rpg.sublime-project"
+		"/home/innuendo/games/pyglet_rpg/engine/game_engine.py"
 	],
 	"find":
 	{
@@ -437,6 +558,20 @@
 		"height": 0.0,
 		"where_history":
 		[
+			"/home/innuendo/games/master/pyglet_rpg/lib",
+			"/home/innuendo/games/master/pyglet_rpg/lib/data",
+			"/home/innuendo/games/master/pyglet_rpg/lib/",
+			"/home/innuendo/games/master/pyglet_rpg/lib/engine",
+			"/home/innuendo/games/master/pyglet_rpg/lib/",
+			"/home/innuendo/games/master/pyglet_rpg/lib/server,/home/innuendo/games/master/pyglet_rpg/lib/serverside",
+			"/home/innuendo/games/master/pyglet_rpg/lib/server",
+			"/home/innuendo/games/master/pyglet_rpg/lib/",
+			"/home/innuendo/games/master/pyglet_rpg/lib/engine/",
+			"/home/innuendo/games/master/pyglet_rpg/lib/",
+			"/home/innuendo/games/master/pyglet_rpg/lib/engine",
+			"",
+			"*.py",
+			"/home/innuendo/games/master/pyglet_rpg/lib/engine/",
 			"/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects,/home/innuendo/games/master/pyglet_rpg/lib/serverside",
 			"",
 			"/home/innuendo/games/pyglet_rpg/engine",
@@ -445,9 +580,71 @@
 	},
 	"find_state":
 	{
-		"case_sensitive": false,
+		"case_sensitive": true,
 		"find_history":
 		[
+			"ActivityContainer",
+			"acti",
+			"print",
+			"update",
+			"print_log (",
+			"__init__",
+			"Breakable.__init__",
+			"__in",
+			"DynamicObject",
+			"StaticObject",
+			"nears",
+			"add_to_tile",
+			"tiles",
+			"event",
+			"self.locations",
+			"print_log_log",
+			"print ",
+			"print_log '",
+			"print",
+			"print_log",
+			"share.logger",
+			"print",
+			"ordered",
+			"from weakref import proxy",
+			"Deadly",
+			"voi",
+			"Movable.__init__",
+			"Movable",
+			"Temporary.__init__",
+			"Mortal.__init__",
+			"Impassable.__init__",
+			"Lootable.mixin",
+			"DiplomacySubject.__init__",
+			"Lootable.__init__",
+			"Respawnable.__init__",
+			"Solid.__init__",
+			"__init__",
+			"complete_round",
+			"Movable",
+			"Movable.complete_round(self)",
+			"Movable.update(self)",
+			"complete_round",
+			"Movable.update",
+			"Striker.up",
+			"Striker",
+			"Stalker.__init__",
+			"Striker.__init__",
+			"Fighter",
+			"Fighter.__init__",
+			"Fighter",
+			"yield None",
+			"self.stop_event",
+			"self.requestes",
+			"self.stop_event",
+			"self.responses",
+			"self.sender_thread",
+			"self.address_buf",
+			"self.closed",
+			"self.accepted",
+			"responses",
+			"self.running",
+			"_handle_stop",
 			"#!/",
 			"print",
 			"print ",
@@ -492,69 +689,270 @@
 		"regex": false,
 		"replace_history":
 		[
+			"print_log",
+			"print_log(",
+			"Breakable.mixin",
+			"GameObject",
+			"self._locations",
+			"print_log",
+			"from weakref import proxy, ProxyType",
+			"Breakable",
+			"Movable.mixin",
+			"Temporary.mixin",
+			"Impassable.mixin",
+			"Lootable.mixin",
+			"Solid.mixin",
+			"mixin",
+			"",
+			"Stalker.mixin",
+			"Striker.mixin",
+			"Fighter.mixin",
+			"yield ''",
+			"self._requestes",
+			"self._stop_event",
+			"self._responses",
+			"self._sender_thread",
+			"        self.sender_thread  = Thread(target = self._sender)\nself._sender_thread",
+			"self._address_buf",
+			"self._closed",
+			"self._accepted",
 			"meta"
 		],
 		"reverse": false,
 		"show_context": true,
-		"use_buffer2": true,
-		"whole_word": true,
+		"use_buffer2": false,
+		"whole_word": false,
 		"wrap": true
 	},
 	"groups":
 	[
 		{
-			"selected": 7,
+			"selected": 2,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/player.py",
+					"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/world/location.py",
 					"settings":
 					{
-						"buffer_size": 5846,
+						"buffer_size": 9351,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								850,
-								850
+								931,
+								931
 							]
 						],
 						"settings":
 						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+								"adjoining-classes": "warning",
+								"box-model": true,
+								"box-sizing": "warning",
+								"compatible-vendor-prefixes": "warning",
+								"display-property-grouping": true,
+								"duplicate-background-images": "warning",
+								"duplicate-properties": true,
+								"empty-rules": true,
+								"errors": true,
+								"fallback-colors": "warning",
+								"floats": "warning",
+								"font-faces": "warning",
+								"font-sizes": "warning",
+								"gradients": "warning",
+								"ids": "warning",
+								"import": "warning",
+								"important": "warning",
+								"known-properties": true,
+								"outline-none": "warning",
+								"overqualified-elements": "warning",
+								"qualified-headings": "warning",
+								"regex-selectors": "warning",
+								"rules-count": "warning",
+								"shorthand": "warning",
+								"star-property-hack": "warning",
+								"text-indent": "warning",
+								"underscore-property-hack": "warning",
+								"unique-headings": "warning",
+								"universal-selector": "warning",
+								"vendor-prefix": true,
+								"zero-units": "warning"
+							},
+							"gjslint_ignore":
+							[
+								110.0
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2.0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 180.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/shells.py",
+					"file": "/home/innuendo/games/master/pyglet_rpg/client.py",
 					"settings":
 					{
-						"buffer_size": 2432,
+						"buffer_size": 484,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								121,
-								128
+								344,
+								344
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+								"adjoining-classes": "warning",
+								"box-model": true,
+								"box-sizing": "warning",
+								"compatible-vendor-prefixes": "warning",
+								"display-property-grouping": true,
+								"duplicate-background-images": "warning",
+								"duplicate-properties": true,
+								"empty-rules": true,
+								"errors": true,
+								"fallback-colors": "warning",
+								"floats": "warning",
+								"font-faces": "warning",
+								"font-sizes": "warning",
+								"gradients": "warning",
+								"ids": "warning",
+								"import": "warning",
+								"important": "warning",
+								"known-properties": true,
+								"outline-none": "warning",
+								"overqualified-elements": "warning",
+								"qualified-headings": "warning",
+								"regex-selectors": "warning",
+								"rules-count": "warning",
+								"shorthand": "warning",
+								"star-property-hack": "warning",
+								"text-indent": "warning",
+								"underscore-property-hack": "warning",
+								"unique-headings": "warning",
+								"universal-selector": "warning",
+								"vendor-prefix": true,
+								"zero-units": "warning"
+							},
+							"gjslint_ignore":
+							[
+								110.0
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2.0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/Python/Python.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -564,162 +962,116 @@
 				},
 				{
 					"buffer": 2,
-					"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/gameobjects/player.pyx",
+					"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/world/singleton.py",
 					"settings":
 					{
-						"buffer_size": 6298,
+						"buffer_size": 4470,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1078,
-								1078
+								2594,
+								2594
 							]
 						],
 						"settings":
 						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+								"adjoining-classes": "warning",
+								"box-model": true,
+								"box-sizing": "warning",
+								"compatible-vendor-prefixes": "warning",
+								"display-property-grouping": true,
+								"duplicate-background-images": "warning",
+								"duplicate-properties": true,
+								"empty-rules": true,
+								"errors": true,
+								"fallback-colors": "warning",
+								"floats": "warning",
+								"font-faces": "warning",
+								"font-sizes": "warning",
+								"gradients": "warning",
+								"ids": "warning",
+								"import": "warning",
+								"important": "warning",
+								"known-properties": true,
+								"outline-none": "warning",
+								"overqualified-elements": "warning",
+								"qualified-headings": "warning",
+								"regex-selectors": "warning",
+								"rules-count": "warning",
+								"shorthand": "warning",
+								"star-property-hack": "warning",
+								"text-indent": "warning",
+								"underscore-property-hack": "warning",
+								"unique-headings": "warning",
+								"universal-selector": "warning",
+								"vendor-prefix": true,
+								"zero-units": "warning"
+							},
+							"gjslint_ignore":
+							[
+								110.0
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"evil": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"wsh": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2.0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 135.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "/home/innuendo/games/master/pyglet_rpg/lib/share/mathlib.pyx",
-					"settings":
-					{
-						"buffer_size": 1959,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								775,
-								775
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 90.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "/home/innuendo/games/pyglet_rpg/lib/share/point.pxd",
-					"settings":
-					{
-						"buffer_size": 248,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								48,
-								48
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "/home/innuendo/games/master/pyglet_rpg/lib/share/mathlib.pxd",
-					"settings":
-					{
-						"buffer_size": 226,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								226,
-								226
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "/home/innuendo/games/master/pyglet_rpg/lib/engine/enginelib/collissions.pyx",
-					"settings":
-					{
-						"buffer_size": 4367,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1119,
-								1119
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 225.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 7,
-					"file": "/home/innuendo/games/master/pyglet_rpg/README.md",
-					"settings":
-					{
-						"buffer_size": 1046,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								474,
-								474
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Markdown/Markdown.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 1530.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -761,6 +1113,10 @@
 	"output.exec":
 	{
 		"height": 114.0
+	},
+	"output.find_results":
+	{
+		"height": 100.0
 	},
 	"replace":
 	{

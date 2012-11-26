@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 from sys import path
 path.append('lib/')
 
@@ -18,11 +17,11 @@ def main():
     server = GameServer(hostname)
     server.start()
 
+
 if __name__ == '__main__':
     if PROFILE_SERVER:
         print('profile')
         cProfile.run('main()', SERVER_PROFILE_FILE)
-        
     else:
         main()
 

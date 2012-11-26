@@ -3,9 +3,8 @@
 from config import *
 from client_config import *
 
-
-
 print 'Loading modules...'
+
 #вьюверы для карты, объектов, статики
 from clientside.view.view_objects import ObjectsView
 from clientside.view.view_land import LandView
@@ -21,13 +20,12 @@ from clientside.gui.gui_lib import DeltaTimerObject
 from clientside.gui import window
 from clientside.gui.gui_elements import *
 from clientside.gui import surfaces
-  
-
 
 
 class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
     accepted = False
-    vector = Point(0,0)
+    vector = Point(0, 0)
+
     def __init__(self, hostname, (height, width)):
         #инициализация родтельских классов
         window.GUIWindow.__init__(self, height, width)
@@ -39,8 +37,8 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
 
         gs_size = 700
         #поверхности
-        self.gamesurface = surfaces.GameSurface(self, 0,0,gs_size, gs_size)
-        self.rightsurface = surfaces.StatsSurface(self, gs_size, 0, height, width-gs_size)
+        self.gamesurface = surfaces.GameSurface(self, 0, 0, gs_size, gs_size)
+        self.rightsurface = surfaces.StatsSurface(self, gs_size, 0, height, width - gs_size)
         self.surfaces = [self.gamesurface, self.rightsurface]
         
         self.world_display = WorldDisplay(self.rightsurface)
@@ -48,12 +46,10 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
         self.plist = PlayersOnlineDisplay(self.rightsurface)
         self.equipment = EquipmentDisplay(self.rightsurface)
 
-
         self.land = LandView(self, self.gamesurface)
         self.objects = ObjectsView(self, self.gamesurface)
         self.static_objects = StaticObjectView(self, self.gamesurface)
 
-        
         #текст загрузки
         self.loading = LoadingScreen(self.gamesurface)
         
@@ -78,7 +74,6 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
         from clientside.client_objects.objects_lib import MapAccess
         MapAccess.map = self.land.map
     
-
     
     def update(self, dt):
         "вызывается на каждом фрейме"
@@ -95,8 +90,8 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
 
         #нахождение проходимого на этом фрейме куска вектора
         delta = self.get_delta()
-        vector = self.client.shift*delta
-        if vector> self.client.shift:
+        vector = self.client.shift * delta
+        if vector > self.client.shift:
             vector = self.client.shift
         self.client.shift = self.client.shift - vector
 
@@ -116,24 +111,23 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
         if self.objects.focus_object:
             self.objects.antilag(self.client.antilag_shift)
     
-
     def antilag_handle(self, move_vector):
         "если камера была перемещена заранее - то вычитаем антилаг-смещение из смещения камеры, полученного с сервера"
         if self.client.antilag:
-            vector = move_vector - self.client.antilag_shift 
+            vector = move_vector - self.client.antilag_shift
             self.client.shift += vector
         else:
             self.client.shift += move_vector
         
         self.client.antilag = False
-        self.client.antilag_shift = Point(0,0)
+        self.client.antilag_shift = Point(0, 0)
         
 
     def force_complete(self):
         "экстренно завершает все обновления"
         if self.client.shift:
             self.land.move_position(self.client.shift)
-            self.client.shift = Point(0,0)
+            self.client.shift = Point(0, 0)
             self.land.update()
             self.objects.force_complete()
     
@@ -143,46 +137,42 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
         self.force_complete()
         self.objects.round_update()
         self.static_objects.round_update()
-  
         
         for action, message in self.client.get_messages():
             #если произошел респавн игрока
-            if action=='Respawn':
-                new_position = message                
+            if action == 'Respawn':
+                new_position = message         
                 self.gamesurface.set_camera_position(new_position)
             
-            elif action=='MoveCamera':
+            elif action == 'MoveCamera':
                 move_vector = message
                 self.antilag_handle(move_vector)
                 
-            elif action=='LookLand':
+            elif action == 'LookLand':
                 newtiles, observed = message
                 self.land.insert(newtiles, observed)
                 if self.first_look:
                     self.land.update(self.first_look)
                     self.first_look = False
                 
-            
-            elif action=='LookPlayers':
+            elif action == 'LookPlayers':
                 objects = message
                 self.objects.insert_objects(objects)
                 
-            
-            elif action=='LookEvents':
+            elif action == 'LookEvents':
                 events = message
                 self.objects.insert_events(events)
                 self.objects.clear()
                 
-            
-            elif action=='LookStaticObjects':
+            elif action == 'LookStaticObjects':
                 static_objects = message
                 self.static_objects.insert_objects(static_objects)
                 
-            elif action=='LookStaticEvents':
+            elif action == 'LookStaticEvents':
                 static_objects_events = message
                 self.static_objects.insert_events(static_objects_events)
             
-            elif action=='PlayerStats':
+            elif action == 'PlayerStats':
                 self.stats.update(*message)
             
             elif action == 'PlayersList':
@@ -191,7 +181,7 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
             elif action == 'EquipmentDict':
                 self.equipment.update(message)
             
-            elif action=='NewWorld':
+            elif action == 'NewWorld':
                 wold_name, world_size, position, background = message
                 self.new_world(wold_name, world_size, position, background)
             
@@ -213,28 +203,22 @@ class GuiClient(DeltaTimerObject, InputHandle, window.GUIWindow):
         self.land.draw()
         self.objects.draw()
         
-        
         self.static_objects.draw()
 
         #отрисовка бара
-        self.rightsurface.draw_background(0,0,'rightside')
+        self.rightsurface.draw_background(0, 0, 'rightside')
         self.stats.draw()
         self.world_display.draw()
         self.plist.draw()
         self.equipment.draw()
-        
-
 
         self.help_display.draw()
         self.fps_display.draw()
     
-
-        
     def run(self):
         "старт"
         self.run_app()
     
-
     def on_close(self):
         self.client.close_connection()
         exit()
